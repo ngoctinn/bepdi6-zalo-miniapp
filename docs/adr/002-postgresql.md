@@ -1,22 +1,32 @@
-# ADR 002: Sử dụng PostgreSQL làm Cơ sở Dữ liệu Chính (Primary Relational Database)
+# ADR 002: Chọn PostgreSQL làm Database chính
 
-## 1. Trạng thái (Status)
-Đã chấp thuận (Accepted)
+**Status:** Accepted
+**Date:** 2026-08-20
 
-## 2. Ngữ cảnh (Context)
-Dữ liệu của hệ thống Food Order có cấu trúc quan hệ chặt chẽ (Customer -> Address, Order -> OrderItem -> OrderItemOption, Payment, VoucherUsage). Đơn hàng và thanh toán đòi hỏi tính toàn vẹn dữ liệu (ACID), hỗ trợ snapshot dữ liệu (giá, địa chỉ tại thời điểm đặt đơn), đảm bảo không xảy ra race condition khi áp dụng voucher hoặc trùng đơn hàng.
+## Context
 
-## 3. Quyết định (Decision)
-Chọn **PostgreSQL** làm cơ sở dữ liệu quan hệ chính (Source of Truth):
-- Sử dụng các tính năng quan hệ mạnh mẽ, khóa ngoại (Foreign Keys), ràng buộc toàn vẹn (Constraints), và Transactions (ACID).
-- Hỗ trợ lưu trữ tọa độ địa lý, thông tin snapshot JSON nếu cần, và lịch sử audit log.
-- Không sử dụng Redis để lưu dữ liệu đơn hàng lâu dài; Redis chỉ đóng vai trò Cache và Celery Broker.
+Dữ liệu hệ thống có quan hệ chặt chẽ: Customer → Address, Order → OrderItem → OrderItemOption, Payment, VoucherUsage. Đơn hàng và thanh toán đòi hỏi tính toàn vẹn ACID, hỗ trợ snapshot dữ liệu và chống race condition khi áp voucher.
 
-## 4. Hệ quả (Consequences)
-- **Tích cực**:
-  - Dữ liệu luôn nhất quán, đáng tin cậy, không bị mất mát dữ liệu tài chính/đơn hàng.
-  - Hỗ trợ tốt các transaction phức tạp (tạo đơn, trừ số lượng voucher, snapshot giá).
-  - Tương thích hoàn hảo với Django ORM.
-- **Cần lưu ý**:
-  - Cần đánh index hợp lý trên các trường thường xuyên query (`customer_id`, `order_code`, `status`, `created_at`).
-  - Thiết lập backup và replication khi hệ thống bước vào giai đoạn production thực tế.
+## Decision Drivers
+
+- Toàn vẹn dữ liệu tài chính và đơn hàng (ACID).
+- Hỗ trợ quan hệ phức tạp với foreign key, constraint.
+- Tương thích tốt với Django ORM.
+- Hỗ trợ JSONB cho audit log.
+
+## Considered Options
+
+| Option | Ưu điểm | Nhược điểm |
+| :--- | :--- | :--- |
+| **PostgreSQL** | ACID, quan hệ mạnh, JSONB, tương thích Django ORM | Cần đánh index cẩn thận, thiết lập backup |
+| MySQL | Phổ biến, dễ setup | Hỗ trợ transaction và constraint yếu hơn PostgreSQL |
+| MongoDB | Flexible schema, nhanh cho đọc | Không phù hợp cho dữ liệu quan hệ chặt, khó đảm bảo toàn vẹn |
+
+## Decision
+
+Chọn **PostgreSQL** làm source of truth duy nhất. Redis chỉ đóng vai trò cache và Celery broker, không lưu dữ liệu lâu dài.
+
+## Consequences
+
+- **Tốt:** Dữ liệu nhất quán, transaction phức tạp an toàn, tương thích hoàn hảo với Django ORM.
+- **Chấp nhận:** Cần đánh index hợp lý trên các trường query thường xuyên và thiết lập backup khi lên production.

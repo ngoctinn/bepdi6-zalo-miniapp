@@ -1,23 +1,32 @@
-# ADR 001: Sử dụng Django và Django REST Framework cho Backend
+# ADR 001: Chọn Django REST Framework cho Backend
 
-## 1. Trạng thái (Status)
-Đã chấp thuận (Accepted)
+**Status:** Accepted
+**Date:** 2026-08-20
 
-## 2. Ngữ cảnh (Context)
-Hệ thống Food Order yêu cầu xây dựng backend REST API ổn định, bảo mật, hỗ trợ xử lý luồng đặt hàng, giỏ hàng, tính toán phí giao hàng, voucher, và quản lý nghiệp vụ cho nhân viên/admin. Hệ thống cần phát triển nhanh (MVP), dễ mở rộng và có sẵn hệ thống ORM, migration mạnh mẽ, cũng như hệ thống admin tích hợp sẵn cho quản trị viên.
+## Context
 
-## 3. Quyết định (Decision)
-Chọn **Python** kết hợp với **Django** và **Django REST Framework (DRF)** làm nền tảng backend chính cho hệ thống:
-- Sử dụng Django ORM để làm việc với cơ sở dữ liệu PostgreSQL và quản lý migration.
-- Sử dụng Django REST Framework (DRF) để thiết kế các endpoint API chuẩn RESTful (`/api/v1/...`).
-- Sử dụng Django Admin & Role-based authentication cho các nghiệp vụ quản trị nhanh.
-- Kết hợp với Celery / Redis để xử lý các background jobs (gửi notification, tích hợp external services).
+Hệ thống cần một backend REST API xử lý các nghiệp vụ: đặt hàng, tính phí ship, voucher, thanh toán và quản trị. Yêu cầu phát triển nhanh (MVP), có sẵn ORM và migration mạnh, có trang admin tích hợp sẵn.
 
-## 4. Hệ quả (Consequences)
-- **Tích cực**:
-  - Tốc độ phát triển nhanh, hệ sinh thái phong phú.
-  - Xử lý quan hệ dữ liệu phức tạp (Order, OrderItem, Snapshot, Voucher) an toàn với Django Transactions.
-  - Hỗ trợ tốt cho việc tích hợp AI / Data analysis trong tương lai (Python ecosystem).
-- **Cần lưu ý**:
-  - Cần tối ưu hóa query (`select_related`, `prefetch_related`) để tránh N+1 query trong Django ORM.
-  - Đảm bảo cơ chế caching (Redis) khi lưu lượng truy cập xem menu tăng cao.
+## Decision Drivers
+
+- Tốc độ phát triển MVP nhanh nhất có thể.
+- ORM và hệ thống migration tốt để xử lý quan hệ dữ liệu phức tạp.
+- Có sẵn admin panel cho nhân viên thao tác mà không cần xây UI riêng ngay.
+- Hệ sinh thái Python hỗ trợ tốt cho việc tích hợp AI trong tương lai.
+
+## Considered Options
+
+| Option | Ưu điểm | Nhược điểm |
+| :--- | :--- | :--- |
+| **Django + DRF** | ORM mạnh, admin sẵn, ecosystem lớn, migration tốt | Cần tối ưu query N+1, không phải lựa chọn hiệu năng cao nhất |
+| FastAPI | Async native, tốc độ cao, tài liệu API tự sinh | Không có ORM và admin tích hợp, phải tự xây nhiều thứ |
+| NestJS | TypeScript, kiến trúc module rõ ràng | Team không mạnh TypeScript, không có admin sẵn |
+
+## Decision
+
+Chọn **Django + Django REST Framework**. Django đáp ứng đầy đủ các yêu cầu về tốc độ phát triển, ORM, migration, và admin panel. DRF cung cấp serializer, viewset và permission class giúp xây API chuẩn RESTful nhanh.
+
+## Consequences
+
+- **Tốt:** Phát triển nhanh, xử lý transaction an toàn, admin panel sẵn, dễ tích hợp Celery cho background job.
+- **Chấp nhận:** Cần chú ý tối ưu query ORM và đặt cache Redis cho các endpoint đọc nhiều như menu.
