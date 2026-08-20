@@ -109,9 +109,9 @@ Hệ thống phải hỗ trợ danh mục sản phẩm.
 Ví dụ:
 
 - Món cơm
-- Bún
+- Món nước
 - Món thêm
-- Mắm
+- Nước uống
 - Combo
 
 Một Category có nhiều Product.
@@ -128,12 +128,7 @@ Mỗi sản phẩm có tối thiểu:
 - Giá.
 - Danh mục.
 - Trạng thái.
-- Loại sản phẩm.
 
-Product type:
-
-- REGULAR
-- COMBO
 
 Ví dụ:
 
