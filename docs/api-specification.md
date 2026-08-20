@@ -1,422 +1,186 @@
-# Food Order — API Specification
+# API Specification
 
 ## 1. Quy ước
 
-Base URL:
+- **Base URL:** /api/v1
+- **Format:** application/json
+- **Xác thực:** Bearer Token (JWT)
 
-```text
-/api/v1
-```
-
-Format:
-
-```text
-application/json
-```
-
-Authentication:
-
-```text
-Bearer Token
-```
-
-Các API cần authorization phải kiểm tra Role.
-
----
-
-## 2. Authentication
-
-### POST /auth/zalo
-
-Đăng nhập bằng Zalo.
-
-Request:
-
+**Response thành công:**
 ```json
 {
-  "zalo_token": "..."
+  "success": true,
+  "data": {}
 }
 ```
 
-Response:
-
+**Response lỗi:**
 ```json
 {
-  "access_token": "...",
-  "customer": {
-    "id": 1,
-    "name": "...",
-    "phone": "..."
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Mô tả lỗi"
   }
 }
 ```
 
 ---
 
-## 3. Customer
+## 2. Xác thực
 
-### GET /customers/me
+### POST /auth/zalo
 
-Lấy thông tin Customer hiện tại.
+Đăng nhập bằng Zalo và đồng bộ SĐT.
 
-### PATCH /customers/me
-
-Cập nhật:
-
+**Request:**
 ```json
 {
-  "name": "...",
-  "phone": "..."
+  "zalo_token": "...",
+  "phone_token": "..."
+}
+```
+
+**Response:**
+```json
+{
+  "access_token": "jwt_token",
+  "customer": {
+    "id": 1,
+    "name": "Nguyễn Văn A",
+    "phone": "0987654321"
+  }
 }
 ```
 
 ---
 
-## 4. Address
+## 3. Khách hàng và Địa chỉ
 
-### GET /customers/me/addresses
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| GET | /customers/me | Lấy thông tin cá nhân |
+| PATCH | /customers/me | Cập nhật tên, SĐT |
+| GET | /customers/me/addresses | Danh sách địa chỉ |
+| POST | /customers/me/addresses | Thêm địa chỉ |
+| PATCH | /customers/me/addresses/{id} | Sửa địa chỉ |
+| DELETE | /customers/me/addresses/{id} | Xóa địa chỉ |
 
-Lấy danh sách địa chỉ.
-
-### POST /customers/me/addresses
-
-Tạo địa chỉ.
-
+**Body tạo địa chỉ:**
 ```json
 {
   "label": "Nhà",
-  "recipient_name": "...",
-  "phone": "...",
-  "address_text": "...",
-  "latitude": 10.123,
-  "longitude": 106.123
+  "recipient_name": "Nguyễn Văn A",
+  "phone": "0987654321",
+  "address_text": "123 Nguyễn Trãi, Q.1, TP.HCM",
+  "latitude": 10.7721,
+  "longitude": 106.6983,
+  "is_default": true
 }
 ```
 
-### PATCH /customers/me/addresses/{id}
+---
 
-Cập nhật địa chỉ.
+## 4. Thực đơn
 
-### DELETE /customers/me/addresses/{id}
-
-Xóa địa chỉ.
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| GET | /categories | Danh sách danh mục đang hoạt động |
+| GET | /products | Danh sách món. Query: category_id, status, search |
+| GET | /products/{id} | Chi tiết món kèm tùy chọn |
 
 ---
 
-## 5. Categories
-
-### GET /categories
-
-Lấy danh sách Category đang hoạt động.
-
----
-
-## 6. Products
-
-### GET /products
-
-Query:
-
-```text
-category_id
-status
-search
-```
-
-Ví dụ:
-
-```text
-GET /products?category_id=1
-```
-
-### GET /products/{id}
-
-Lấy chi tiết Product.
-
-Response có:
-
-- Product information.
-- Price.
-- Status.
-- Options nếu có.
-
----
-
-## 7. Cart
-
-MVP có thể xử lý Cart phía Client.
-
-Backend không bắt buộc lưu persistent Cart.
-
-Tuy nhiên trước khi tạo Order, Backend phải validate lại:
-
-- Product.
-- Price.
-- Availability.
-- Option.
-- Quantity.
-
----
-
-## 8. Calculate Checkout
+## 5. Checkout
 
 ### POST /checkout/preview
 
-Dùng để tính trước Order.
+Tính trước giá trị đơn hàng, khoảng cách và phí ship.
 
-Request:
-
+**Request:**
 ```json
 {
   "items": [
     {
       "product_id": 1,
       "quantity": 2,
-      "options": [],
-      "note": "Ít cơm"
+      "option_ids": [10, 12],
+      "note": "Ít cay"
     }
   ],
-  "address_id": 10,
+  "address_id": 5,
   "delivery_type": "ASAP",
-  "voucher_code": "ZALO10",
-  "payment_method": "COD"
+  "voucher_code": "GIAM20K",
+  "payment_method": "BANK_TRANSFER"
 }
 ```
 
-Backend trả:
-
+**Response:**
 ```json
 {
-  "subtotal": 70000,
-  "discount": 10000,
+  "subtotal": 90000,
+  "distance_km": 2.5,
   "shipping_fee": 15000,
-  "total": 75000,
-  "distance_km": 3.4
+  "discount": 20000,
+  "total_amount": 85000,
+  "is_deliverable": true
 }
 ```
 
 ---
 
-## 9. Create Order
+## 6. Đơn hàng
 
 ### POST /orders
 
-Request tương tự Checkout Preview.
+Tạo đơn hàng. Gửi kèm header Idempotency-Key.
 
-Header:
+Request body tương tự checkout preview, bổ sung note và scheduled_delivery_at.
 
-```text
-Idempotency-Key: <unique-key>
-```
-
-Backend:
-
-1. Validate Customer.
-2. Validate Product.
-3. Validate Option.
-4. Validate Product availability.
-5. Validate Address.
-6. Validate Delivery Area.
-7. Calculate Distance.
-8. Calculate Shipping Fee.
-9. Validate Voucher.
-10. Calculate Total.
-11. Create Order.
-12. Create Order Items.
-13. Create Payment.
-14. Create Notification.
-
-Response:
-
+**Response:**
 ```json
 {
-  "id": 1001,
-  "order_code": "FO1001",
+  "id": 101,
+  "order_code": "FO2408200001",
   "status": "PENDING_CONFIRMATION",
-  "total_amount": 75000
+  "total_amount": 85000,
+  "payment": {
+    "method": "BANK_TRANSFER",
+    "status": "UNPAID",
+    "qr_code_url": "https://img.vietqr.io/..."
+  }
 }
 ```
 
----
-
-## 10. Get My Orders
-
-### GET /orders
-
-Customer xem lịch sử đơn.
-
-Query:
-
-```text
-status
-page
-limit
-```
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| GET | /orders | Lịch sử đơn. Query: status, page, limit |
+| GET | /orders/{id} | Chi tiết đơn hàng |
+| GET | /orders/{id}/payment | Thông tin thanh toán |
 
 ---
 
-## 11. Get Order Detail
-
-### GET /orders/{id}
-
-Customer chỉ được xem Order của chính mình.
-
-Response:
-
-```json
-{
-  "id": 1001,
-  "order_code": "FO1001",
-  "status": "CONFIRMED",
-  "items": [],
-  "subtotal": 70000,
-  "discount": 10000,
-  "shipping_fee": 15000,
-  "total_amount": 75000,
-  "payment": {},
-  "delivery": {}
-}
-```
-
----
-
-## 12. Staff — Orders
-
-### GET /admin/orders
-
-Staff xem danh sách Order.
-
-Query:
-
-```text
-status
-date
-search
-page
-limit
-```
-
----
-
-## 13. Staff Confirm Order
-
-### POST /admin/orders/{id}/confirm
-
-Staff xác nhận Order.
-
-Có thể gửi dữ liệu đã chỉnh sửa:
-
-```json
-{
-  "items": [],
-  "delivery_address": "...",
-  "scheduled_delivery_at": null
-}
-```
-
-Order:
-
-```text
-PENDING_CONFIRMATION
-        ↓
-CONFIRMED
-```
-
----
-
-## 14. Staff Cancel Order
-
-### POST /admin/orders/{id}/cancel
-
-Request:
-
-```json
-{
-  "reason": "CUSTOMER_UNREACHABLE"
-}
-```
-
-Order:
-
-```text
-PENDING_CONFIRMATION
-        ↓
-CANCELLED
-```
-
----
-
-## 15. Staff Update Order Status
-
-### POST /admin/orders/{id}/status
-
-Request:
-
-```json
-{
-  "status": "PREPARING"
-}
-```
-
-Allowed transitions phải được Backend kiểm tra.
-
-Không cho phép Client tự gửi bất kỳ status nào.
-
----
-
-## 16. Payment
-
-### GET /orders/{id}/payment
-
-Xem Payment.
-
-### POST /admin/orders/{id}/payment/verify
-
-Staff xác nhận chuyển khoản.
-
-Request:
-
-```json
-{
-  "amount": 75000,
-  "transaction_reference": "ABC123"
-}
-```
-
-Response:
-
-```json
-{
-  "status": "PAID"
-}
-```
-
----
-
-## 17. Voucher
+## 7. Voucher
 
 ### POST /vouchers/validate
 
-Request:
-
+**Request:**
 ```json
 {
-  "code": "ZALO10",
+  "code": "GIAM20K",
   "order_amount": 120000
 }
 ```
 
-Response:
-
+**Response (hợp lệ):**
 ```json
 {
   "valid": true,
-  "discount": 10000
+  "discount": 20000
 }
 ```
 
-Nếu không hợp lệ:
-
+**Response (không hợp lệ):**
 ```json
 {
   "valid": false,
@@ -426,154 +190,56 @@ Nếu không hợp lệ:
 
 ---
 
-## 18. Admin — Voucher
+## 8. Thông báo
 
-### GET /admin/vouchers
-
-Danh sách Voucher.
-
-### POST /admin/vouchers
-
-Tạo Voucher.
-
-### PATCH /admin/vouchers/{id}
-
-Cập nhật Voucher.
-
-### DELETE /admin/vouchers/{id}
-
-Vô hiệu hóa Voucher.
-
-Không nên xóa vật lý Voucher đã được sử dụng trong Order.
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| GET | /notifications | Danh sách thông báo |
+| POST | /notifications/{id}/read | Đánh dấu đã đọc |
 
 ---
 
-## 19. Admin — Category
+## 9. Quản trị (Staff / Admin)
 
-### GET /admin/categories
+### Đơn hàng
 
-### POST /admin/categories
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| GET | /admin/orders | Danh sách đơn. Query: status, date, search, page |
+| POST | /admin/orders/{id}/confirm | Xác nhận đơn (có thể gửi kèm dữ liệu chỉnh sửa) |
+| POST | /admin/orders/{id}/cancel | Hủy đơn (gửi kèm reason) |
+| POST | /admin/orders/{id}/status | Cập nhật trạng thái (backend kiểm tra transition) |
+| POST | /admin/orders/{id}/payment/verify | Xác nhận thanh toán chuyển khoản |
 
-### PATCH /admin/categories/{id}
+### Thực đơn
 
-### DELETE /admin/categories/{id}
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| GET/POST/PATCH/DELETE | /admin/categories[/{id}] | CRUD danh mục |
+| GET/POST/PATCH | /admin/products[/{id}] | CRUD món ăn |
+| POST | /admin/products/{id}/toggle-status | Bật/tắt trạng thái món |
 
----
+### Voucher
 
-## 20. Admin — Product
-
-### GET /admin/products
-
-### POST /admin/products
-
-### PATCH /admin/products/{id}
-
-### POST /admin/products/{id}/out-of-stock
-
-Chuyển Product thành:
-
-```text
-OUT_OF_STOCK
-```
-
-### POST /admin/products/{id}/available
-
-Chuyển Product thành:
-
-```text
-AVAILABLE
-```
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| GET/POST/PATCH/DELETE | /admin/vouchers[/{id}] | CRUD voucher |
 
 ---
 
-## 21. Notification
+## 10. Mã lỗi
 
-### GET /notifications
-
-Customer xem notification.
-
-### POST /notifications/{id}/read
-
-Đánh dấu đã đọc.
-
----
-
-## 22. Error Response
-
-Tất cả API nên sử dụng format thống nhất:
-
-```json
-{
-  "error": {
-    "code": "PRODUCT_OUT_OF_STOCK",
-    "message": "Sản phẩm hiện đã hết món."
-  }
-}
-```
-
-Một số error code:
-
-```text
-PRODUCT_NOT_FOUND
-PRODUCT_OUT_OF_STOCK
-INVALID_OPTION
-INVALID_ADDRESS
-OUTSIDE_DELIVERY_AREA
-VOUCHER_INVALID
-VOUCHER_EXPIRED
-VOUCHER_LIMIT_REACHED
-ORDER_NOT_FOUND
-ORDER_CANNOT_BE_CANCELLED
-INVALID_ORDER_STATUS
-PAYMENT_NOT_FOUND
-PAYMENT_ALREADY_PAID
-```
-
----
-
-## 23. Authorization
-
-Customer:
-
-```text
-GET /orders
-GET /orders/{id}
-```
-
-chỉ được xem dữ liệu của chính mình.
-
-Staff/Admin:
-
-```text
-/admin/*
-```
-
-được phép xử lý dữ liệu quản trị theo Role.
-
-Backend không dựa vào dữ liệu từ Frontend để quyết định quyền.
-
----
-
-## 24. API Order State Validation
-
-Backend phải kiểm tra transition.
-
-Ví dụ hợp lệ:
-
-```text
-PENDING_CONFIRMATION → CONFIRMED
-CONFIRMED → PREPARING
-PREPARING → READY
-READY → DELIVERING
-DELIVERING → COMPLETED
-```
-
-Ví dụ không hợp lệ:
-
-```text
-COMPLETED → PREPARING
-CANCELLED → CONFIRMED
-READY → PENDING_CONFIRMATION
-```
-
-API phải trả lỗi nếu transition không hợp lệ.
+| Mã lỗi | Mô tả |
+| :--- | :--- |
+| UNAUTHORIZED | Token không hợp lệ hoặc hết hạn |
+| FORBIDDEN | Không có quyền truy cập |
+| PRODUCT_NOT_FOUND | Không tìm thấy món |
+| PRODUCT_OUT_OF_STOCK | Món đã hết |
+| INVALID_OPTION | Tùy chọn không hợp lệ |
+| OUT_OF_DELIVERY_RADIUS | Ngoài bán kính giao hàng |
+| VOUCHER_INVALID | Mã giảm giá không hợp lệ |
+| VOUCHER_EXPIRED | Mã giảm giá hết hạn |
+| VOUCHER_USAGE_LIMIT | Hết lượt sử dụng |
+| INVALID_STATE_TRANSITION | Chuyển trạng thái đơn không hợp lệ |
+| PAYMENT_AMOUNT_MISMATCH | Số tiền xác nhận không khớp tổng đơn |
+| DUPLICATE_ORDER | Idempotency-Key trùng, đơn đã được tạo |

@@ -1,460 +1,119 @@
-# Food Order — Requirements
+# Requirements
 
 ## 1. Tổng quan
 
-Food Order là nền tảng đặt đồ ăn online dành cho khách hàng trong khu vực giao hàng của cửa hàng.
+Hệ thống đặt đồ ăn online trên Zalo Mini App, phục vụ khách hàng trong bán kính giao hàng của cửa hàng.
 
-Khách hàng sử dụng Zalo Mini App để:
+**Khách hàng** sử dụng Zalo Mini App để xem menu, đặt hàng, chọn địa chỉ và thời gian giao, áp voucher, thanh toán và theo dõi đơn hàng.
 
-- Xem menu.
-- Chọn sản phẩm.
-- Thêm sản phẩm vào giỏ hàng.
-- Chọn địa chỉ giao hàng.
-- Chọn thời gian giao hàng.
-- Chọn phương thức thanh toán.
-- Áp dụng voucher.
-- Đặt hàng.
-- Theo dõi trạng thái đơn.
-- Xem lịch sử đơn hàng.
-
-Nhân viên/cửa hàng sử dụng hệ thống để:
-
-- Quản lý danh mục và sản phẩm.
-- Bật/tắt trạng thái bán hàng.
-- Tiếp nhận đơn.
-- Gọi điện xác nhận đơn.
-- Cập nhật trạng thái đơn.
-- Quản lý voucher.
-- Xem thông tin khách hàng.
+**Nhân viên** sử dụng trang quản trị để quản lý thực đơn, tiếp nhận đơn, gọi điện xác nhận, cập nhật trạng thái và xác nhận thanh toán chuyển khoản.
 
 ---
 
-## 2. Mục tiêu
+## 2. Phạm vi MVP
 
-### Mục tiêu chính
+### Có trong MVP
 
-Xây dựng một hệ thống giúp cửa hàng:
+| Nhóm | Chức năng |
+| :--- | :--- |
+| Xác thực | Đăng nhập qua Zalo, lấy SĐT qua Zalo Token Exchange |
+| Thực đơn | Danh mục, món ăn, tùy chọn món, combo |
+| Đặt hàng | Giỏ hàng, checkout, lưu nhiều địa chỉ, chọn giờ giao |
+| Thanh toán | COD, chuyển khoản ngân hàng qua VietQR |
+| Khuyến mãi | Voucher giảm giá cố định hoặc theo phần trăm |
+| Theo dõi | Xem trạng thái đơn, lịch sử đơn hàng |
+| Thông báo | Thông báo in-app, ZNS / Zalo OA khi đổi trạng thái |
+| CSKH | Chat trực tiếp với OA qua nút hỗ trợ |
+| Quản trị | Quản lý danh mục, món, voucher, đơn hàng, xác nhận thanh toán |
 
-1. Nhận đơn online trực tiếp từ khách hàng.
-2. Giảm phụ thuộc vào nền tảng trung gian như GrabFood.
-3. Quản lý đơn hàng tập trung.
-4. Cho phép khách hàng đặt lại dễ dàng.
-5. Hỗ trợ cả COD và chuyển khoản.
-6. Hỗ trợ giao ngay hoặc đặt lịch giao.
-7. Sử dụng voucher để khuyến khích khách đặt hàng qua Zalo.
+### Không có trong MVP
 
-### Không nằm trong mục tiêu MVP
-
-- Quản lý bàn.
-- POS.
-- Quản lý bếp.
-- Quản lý shipper.
-- Quản lý kho/nguyên liệu.
-- Đơn hàng doanh nghiệp.
-- Loyalty.
-- Đánh giá sản phẩm.
-- Dashboard phân tích nâng cao.
-- Multi-branch.
+Quản lý bàn, POS, điều phối bếp, tồn kho, nguyên liệu, shipper, loyalty, đánh giá, multi-branch, analytics nâng cao.
 
 ---
 
-## 3. Actors
+## 3. Yêu cầu chức năng
 
-### Customer
+### 3.1 Thực đơn
 
-Khách hàng đặt đồ ăn.
+**Danh mục** — Phân loại món ăn. Ví dụ: Món cơm, Món nước, Món thêm, Nước uống, Combo.
 
-Có thể:
+**Món ăn** — Mỗi món có tên, mô tả, hình ảnh, giá bán, danh mục và trạng thái. Combo được quản lý như một món thông thường với giá cố định.
 
-- Xem menu.
-- Xem sản phẩm.
-- Thêm sản phẩm vào giỏ.
-- Checkout.
-- Chọn địa chỉ.
-- Chọn thời gian giao.
-- Chọn phương thức thanh toán.
-- Sử dụng voucher.
-- Theo dõi đơn.
-- Xem lịch sử đơn.
+**Trạng thái món:**
 
-### Staff
+| Trạng thái | Ý nghĩa |
+| :--- | :--- |
+| AVAILABLE | Đang bán, khách có thể đặt |
+| OUT_OF_STOCK | Hết món, không đặt được |
+| INACTIVE | Ẩn khỏi menu |
 
-Nhân viên xử lý đơn hàng.
+**Tùy chọn món** — Nhóm tùy chọn gắn theo từng món. Hỗ trợ cấu hình bắt buộc hay không, số lượng chọn tối thiểu và tối đa. Ví dụ: Combo cơm + nước → Chọn nước: Coca, Pepsi, Trà.
 
-Có thể:
+### 3.2 Khách hàng và Địa chỉ
 
-- Xem đơn mới.
-- Gọi khách xác nhận.
-- Chỉnh sửa đơn trước khi xác nhận.
-- Xác nhận hoặc hủy đơn.
-- Cập nhật trạng thái đơn.
-- Kiểm tra chuyển khoản.
-- Quản lý sản phẩm.
-- Quản lý voucher.
+- Lấy thông tin cơ bản từ Zalo khi đăng nhập.
+- Số điện thoại được xác thực qua Zalo Token Exchange.
+- Khách có thể cập nhật tên và SĐT nhận hàng.
+- Lưu nhiều địa chỉ giao hàng, mỗi địa chỉ gồm tên người nhận, SĐT, địa chỉ chi tiết và tọa độ.
 
-### Admin
+### 3.3 Giỏ hàng và Checkout
 
-Quản lý hệ thống.
+- Giỏ hàng lưu tại client, không bắt buộc khôi phục khi đóng app.
+- Khi checkout, backend kiểm tra lại toàn bộ: trạng thái món, giá hiện tại, tùy chọn, địa chỉ, khoảng cách, phí ship, voucher.
+- Hỗ trợ 2 kiểu thời gian giao: giao ngay hoặc hẹn giờ.
+- Sử dụng Idempotency-Key để chống tạo đơn trùng.
 
-Có quyền của Staff và các quyền quản lý dữ liệu hệ thống.
+### 3.4 Giao hàng
 
----
+- Giới hạn bán kính giao hàng tối đa. Ngoài bán kính thì từ chối.
+- Khoảng cách tính bằng Mapping/Routing API dựa trên tọa độ shop và khách.
+- Phí ship tính lũy tiến theo khoảng cách, do backend quyết định.
+- Cửa hàng tự giao hoặc thuê bên thứ ba. Không quản lý shipper trong hệ thống.
 
-## 4. Menu Requirements
+### 3.5 Đơn hàng
 
-### 4.1 Category
+Vòng đời trạng thái đơn:
 
-Hệ thống phải hỗ trợ danh mục sản phẩm.
-
-Ví dụ:
-
-- Món cơm
-- Món nước
-- Món thêm
-- Nước uống
-- Combo
-
-Một Category có nhiều Product.
-
----
-
-### 4.2 Product
-
-Mỗi sản phẩm có tối thiểu:
-
-- Tên.
-- Mô tả.
-- Hình ảnh.
-- Giá.
-- Danh mục.
-- Trạng thái.
-
-
-Ví dụ:
-
-- Cơm sườn.
-- Bún thịt nướng.
-- Cơm thêm.
-- Rau thêm.
-- Mắm chưng.
-- Combo 3 hũ mắm chưng.
-
----
-
-### 4.3 Product Option
-
-Product có thể có hoặc không có Option.
-
-Option không bắt buộc.
-
-Ví dụ:
-
-```text
-Combo cơm + nước
-    → Chọn nước
-        → Coca
-        → Pepsi
-        → Trà
+```
+PENDING_CONFIRMATION → CONFIRMED → PREPARING → READY → DELIVERING → COMPLETED
 ```
 
-Không phải Product nào cũng có Option.
+Đơn có thể bị hủy (CANCELLED) ở các trạng thái trước READY.
+
+Quy trình xử lý:
+1. Khách đặt đơn → đơn ở trạng thái chờ xác nhận.
+2. Nhân viên gọi điện xác nhận, có thể chỉnh sửa trước khi duyệt.
+3. Sau khi xác nhận, khách không thể tự hủy đơn.
+
+### 3.6 Thanh toán
+
+| Phương thức | Mô tả |
+| :--- | :--- |
+| COD | Khách trả tiền mặt khi nhận hàng |
+| Chuyển khoản | Hiển thị mã VietQR chứa số tiền và mã đơn. Nhân viên đối soát và xác nhận thủ công |
+
+Thanh toán có vòng đời riêng, độc lập với trạng thái đơn.
+
+### 3.7 Voucher
+
+- Giảm theo số tiền cố định hoặc phần trăm (có giới hạn giảm tối đa).
+- Ràng buộc: thời hạn hiệu lực, giá trị đơn tối thiểu, tổng lượt dùng, lượt dùng trên từng khách.
+
+### 3.8 Thông báo và CSKH
+
+- Thông báo in-app khi đơn hàng đổi trạng thái.
+- Gửi thông báo qua ZNS hoặc tin nhắn Zalo OA.
+- Nút chat hỗ trợ mở trực tiếp khung chat với Zalo OA của quán.
 
 ---
 
-### 4.4 Combo
-
-Combo được xem như một Product.
-
-Ví dụ:
-
-```text
-Combo 3 hũ mắm chưng
-Giá: 100.000đ
-```
-
-Khách không cần quan tâm đến cấu trúc bên trong combo.
-
-Combo 3 hũ mắm chưng là một sản phẩm duy nhất trong giỏ hàng.
-
----
-
-### 4.5 Product Status
-
-Sản phẩm có thể:
-
-- AVAILABLE: đang bán.
-- OUT_OF_STOCK: hết món.
-- INACTIVE: không hiển thị/bán.
-
-Nhân viên có thể chủ động chuyển sản phẩm sang OUT_OF_STOCK.
-
----
-
-## 5. Customer Requirements
-
-Hệ thống lấy thông tin cơ bản từ Zalo.
-
-Khách có thể điều chỉnh:
-
-- Tên.
-- Số điện thoại.
-
-Khách có thể lưu nhiều địa chỉ giao hàng.
-
-Ví dụ:
-
-```text
-Nhà
-Địa chỉ khác
-```
-
-Khi checkout, khách có thể:
-
-- Chọn địa chỉ đã lưu.
-- Thêm địa chỉ mới.
-
----
-
-## 6. Cart Requirements
-
-Customer có thể:
-
-- Thêm Product.
-- Xóa Product.
-- Tăng/giảm số lượng.
-- Xem subtotal.
-- Nhập ghi chú cho sản phẩm/đơn hàng.
-
-Cart không cần lưu lâu dài.
-
-Nếu khách đóng app, hệ thống không bắt buộc khôi phục Cart.
-
----
-
-## 7. Checkout Requirements
-
-Checkout phải cho phép:
-
-- Chọn địa chỉ.
-- Kiểm tra khu vực giao hàng.
-- Tính khoảng cách.
-- Tính phí giao hàng.
-- Chọn thời gian giao.
-- Chọn phương thức thanh toán.
-- Nhập voucher.
-- Xem tổng tiền.
-
-Thời gian giao:
-
-```text
-ASAP
-SCHEDULED
-```
-
----
-
-## 8. Delivery Requirements
-
-Hệ thống phải giới hạn khu vực giao hàng.
-
-Khoảng cách được tính bằng API bản đồ/routing.
-
-Ví dụ:
-
-```text
-Shop
- ↓
-Mapping API
- ↓
-Distance
- ↓
-Shipping Rule
- ↓
-Shipping Fee
-```
-
-Shop có thể:
-
-- Tự giao.
-- Sử dụng đơn vị giao hàng thứ ba khi cần.
-
-Hệ thống không quản lý thông tin shipper.
-
----
-
-## 9. Order Requirements
-
-Khi Customer đặt hàng:
-
-```text
-Cart
- ↓
-Checkout
- ↓
-Validate
- ↓
-Create Order
- ↓
-PENDING_CONFIRMATION
-```
-
-Nhân viên liên hệ Customer để xác nhận.
-
-Nhân viên có thể:
-
-- Xác nhận.
-- Hủy.
-- Chỉnh sửa đơn trước khi xác nhận.
-
-Sau khi Confirmed:
-
-> Customer không được tự hủy đơn.
-
----
-
-## 10. Payment Requirements
-
-Hỗ trợ:
-
-- COD.
-- BANK_TRANSFER.
-
-Payment được quản lý độc lập với Order.
-
-Payment status:
-
-- UNPAID.
-- PENDING.
-- PAID.
-- FAILED.
-- REFUNDED.
-
-Chuyển khoản có thể được thực hiện trước hoặc sau khi nhân viên xác nhận.
-
-MVP cho phép nhân viên kiểm tra và xác nhận chuyển khoản thủ công.
-
----
-
-## 11. Promotion Requirements
-
-MVP sử dụng Voucher.
-
-Voucher có thể:
-
-- Giảm số tiền cố định.
-- Giảm theo phần trăm.
-- Có thời gian hiệu lực.
-- Có giá trị đơn tối thiểu.
-- Có giới hạn số lần sử dụng.
-- Có giới hạn số lần sử dụng trên mỗi khách hàng.
-
-Mục tiêu chính của Voucher là khuyến khích khách hàng đặt hàng trực tiếp qua Zalo.
-
----
-
-## 12. Order History
-
-Customer có thể xem:
-
-- Mã đơn.
-- Thời gian đặt.
-- Danh sách sản phẩm.
-- Tổng tiền.
-- Phí giao hàng.
-- Voucher.
-- Phương thức thanh toán.
-- Trạng thái đơn.
-
----
-
-## 13. Notification Requirements
-
-Customer nhận thông báo khi trạng thái đơn thay đổi.
-
-Các trạng thái chính:
-
-- Đã nhận đơn.
-- Đã xác nhận.
-- Đang chuẩn bị.
-- Đang giao.
-- Hoàn thành.
-- Hủy.
-
----
-
-## 14. Non-functional Requirements
-
-### Performance
-
-API thông thường nên phản hồi nhanh và ổn định.
-
-### Security
-
-- Customer chỉ được xem dữ liệu của chính mình.
-- Staff/Admin phải được xác thực.
-- Không expose thông tin nhạy cảm không cần thiết.
-- API phải kiểm tra authorization.
-
-### Reliability
-
-Không được tạo Order trùng do Customer gửi request nhiều lần.
-
-### Audit
-
-Các thao tác quan trọng của Staff/Admin nên được ghi nhận:
-
-- Ai thao tác.
-- Thao tác gì.
-- Thời gian.
-- Dữ liệu trước/sau nếu cần.
-
----
-
-## 15. MVP
-
-MVP gồm:
-
-### Customer
-
-- Zalo authentication/profile.
-- Menu.
-- Product.
-- Option.
-- Cart.
-- Checkout.
-- Address.
-- Voucher.
-- COD.
-- Bank transfer.
-- Order tracking.
-- Order history.
-- Notification.
-
-### Staff/Admin
-
-- Category management.
-- Product management.
-- Product option management.
-- Order management.
-- Voucher management.
-- Customer information.
-- Xác nhận chuyển khoản.
-
----
-
-## 16. Out of Scope
-
-Không triển khai trong MVP:
-
-- Inventory.
-- Recipe.
-- Supplier.
-- POS.
-- Table.
-- Kitchen station.
-- Shipper management.
-- Loyalty.
-- Review.
-- Company order.
-- Multi-branch.
-- Advanced analytics.
+## 4. Yêu cầu phi chức năng
+
+| Hạng mục | Yêu cầu |
+| :--- | :--- |
+| Bảo mật | Phân quyền chặt chẽ. Backend tính toán toàn bộ giá tiền, không tin dữ liệu từ client |
+| Hiệu năng | Mini App bundle dưới 10MB. Thời gian tải menu ban đầu dưới 1.5 giây |
+| Toàn vẹn dữ liệu | Snapshot đơn giá, tên món và địa chỉ tại thời điểm đặt đơn |
+| Độ tin cậy | Không tạo đơn trùng khi khách bấm nhiều lần |
+| Audit | Ghi lại các thao tác quan trọng của nhân viên |

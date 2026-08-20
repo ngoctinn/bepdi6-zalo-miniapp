@@ -1,561 +1,266 @@
-# Food Order — Database Design
+# Database Design
 
-## 1. Nguyên tắc
+## 1. Sơ đồ quan hệ
 
-- PostgreSQL là database chính.
-- Dữ liệu Order phải giữ lịch sử.
-- Giá tại thời điểm mua phải được snapshot.
-- Không lưu dữ liệu quan trọng chỉ ở Redis.
-- Quan hệ giữa các entity phải rõ ràng.
-- Không thiết kế inventory/POS trong MVP.
+```
+Customer ──1:N── Address
+Customer ──1:N── Order ──1:N── OrderItem ──1:N── OrderItemOption
+                 Order ──1:1── Payment
+                 Order ──1:N── Notification
 
----
+Category ──1:N── Product ──1:N── OptionGroup ──1:N── Option
 
-## 2. Entity Overview
-
-```text
-Customer
-   │
-   ├── Address
-   │
-   └── Order
-          │
-          ├── OrderItem
-          │      └── OrderItemOption
-          │
-          └── Payment
-
-Category
-   │
-   └── Product
-          │
-          └── ProductOption
-
-Voucher
-   │
-   └── VoucherUsage
-
-Order
-   │
-   └── Notification
-
-User
-   └── Role
+Voucher ──1:N── VoucherUsage
 ```
 
 ---
 
-## 3. Customer
+## 2. Customers
 
-```text
-customers
------------
-id
-zalo_user_id
-name
-phone
-created_at
-updated_at
-```
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| zalo_user_id | VARCHAR(100) | UNIQUE, định danh Zalo |
+| name | VARCHAR(255) | |
+| phone | VARCHAR(20) | |
+| avatar_url | TEXT | |
+| created_at | TIMESTAMPTZ | |
+| updated_at | TIMESTAMPTZ | |
 
-`zalo_user_id` dùng để nhận diện Customer.
+## 3. Addresses
 
----
-
-## 4. Address
-
-```text
-addresses
------------
-id
-customer_id
-label
-recipient_name
-phone
-address_text
-latitude
-longitude
-is_default
-created_at
-updated_at
-```
-
-Ví dụ:
-
-```text
-label = "Nhà"
-address_text = "..."
-latitude = ...
-longitude = ...
-```
-
-Customer có nhiều Address.
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| customer_id | BIGINT | FK → customers |
+| label | VARCHAR(100) | "Nhà", "Công ty" |
+| recipient_name | VARCHAR(255) | |
+| phone | VARCHAR(20) | |
+| address_text | TEXT | |
+| latitude | DECIMAL(10,8) | |
+| longitude | DECIMAL(11,8) | |
+| is_default | BOOLEAN | |
+| created_at | TIMESTAMPTZ | |
+| updated_at | TIMESTAMPTZ | |
 
 ---
 
-## 5. Category
+## 4. Categories
 
-```text
-categories
------------
-id
-name
-description
-image_url
-sort_order
-status
-created_at
-updated_at
-```
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| name | VARCHAR(255) | |
+| description | TEXT | |
+| image_url | TEXT | |
+| sort_order | INT | |
+| status | VARCHAR(50) | ACTIVE, INACTIVE |
+| created_at | TIMESTAMPTZ | |
+| updated_at | TIMESTAMPTZ | |
 
----
+## 5. Products
 
-## 6. Product
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| category_id | BIGINT | FK → categories |
+| name | VARCHAR(255) | |
+| description | TEXT | |
+| image_url | TEXT | |
+| price | DECIMAL(12,2) | |
+| status | VARCHAR(50) | AVAILABLE, OUT_OF_STOCK, INACTIVE |
+| created_at | TIMESTAMPTZ | |
+| updated_at | TIMESTAMPTZ | |
 
-```text
-products
------------
-id
-category_id
-name
-description
-image_url
-product_type
-price
-status
-created_at
-updated_at
-```
+## 6. Option Groups
 
-`product_type`:
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| product_id | BIGINT | FK → products |
+| name | VARCHAR(255) | "Chọn nước", "Thêm topping" |
+| is_required | BOOLEAN | |
+| min_select | INT | |
+| max_select | INT | |
+| sort_order | INT | |
 
-```text
-REGULAR
-COMBO
-```
+## 7. Options
 
-`status`:
-
-```text
-AVAILABLE
-OUT_OF_STOCK
-INACTIVE
-```
-
----
-
-## 7. Product Option
-
-Nếu Product có Option:
-
-```text
-option_groups
---------------
-id
-product_id
-name
-is_required
-min_select
-max_select
-sort_order
-```
-
-Option:
-
-```text
-options
---------
-id
-option_group_id
-name
-price
-status
-sort_order
-```
-
-Ví dụ:
-
-```text
-Combo cơm + nước
-        │
-        └── Option Group: Chọn nước
-                ├── Coca
-                ├── Pepsi
-                └── Trà
-```
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| option_group_id | BIGINT | FK → option_groups |
+| name | VARCHAR(255) | |
+| price | DECIMAL(12,2) | Giá cộng thêm |
+| status | VARCHAR(50) | AVAILABLE, INACTIVE |
+| sort_order | INT | |
 
 ---
 
-## 8. Order
+## 8. Orders
 
-```text
-orders
--------
-id
-order_code
-customer_id
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| order_code | VARCHAR(32) | UNIQUE |
+| customer_id | BIGINT | FK → customers |
+| status | VARCHAR(50) | Xem bảng trạng thái bên dưới |
+| delivery_type | VARCHAR(20) | ASAP, SCHEDULED |
+| recipient_name | VARCHAR(255) | Snapshot |
+| phone | VARCHAR(20) | Snapshot |
+| delivery_address | TEXT | Snapshot |
+| delivery_latitude | DECIMAL(10,8) | Snapshot |
+| delivery_longitude | DECIMAL(11,8) | Snapshot |
+| distance_km | DECIMAL(6,2) | |
+| shipping_fee | DECIMAL(12,2) | |
+| subtotal | DECIMAL(12,2) | |
+| discount | DECIMAL(12,2) | |
+| total_amount | DECIMAL(12,2) | |
+| voucher_id | BIGINT | Nullable |
+| payment_method | VARCHAR(30) | COD, BANK_TRANSFER |
+| note | TEXT | |
+| scheduled_delivery_at | TIMESTAMPTZ | Nullable, chỉ khi SCHEDULED |
+| confirmed_at | TIMESTAMPTZ | |
+| completed_at | TIMESTAMPTZ | |
+| cancelled_at | TIMESTAMPTZ | |
+| cancellation_reason | VARCHAR(255) | |
+| created_at | TIMESTAMPTZ | |
+| updated_at | TIMESTAMPTZ | |
 
-status
+**Trạng thái đơn hàng:** PENDING_CONFIRMATION, CONFIRMED, PREPARING, READY, DELIVERING, COMPLETED, CANCELLED.
 
-delivery_type
-delivery_address
-delivery_latitude
-delivery_longitude
-distance_km
-shipping_fee
+**Lưu ý:** Các trường recipient_name, phone, delivery_address, delivery_latitude, delivery_longitude là snapshot cố định tại thời điểm đặt đơn. Không phụ thuộc vào bảng addresses.
 
-subtotal
-discount
-total_amount
+## 9. Order Items
 
-voucher_id
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| order_id | BIGINT | FK → orders |
+| product_id | BIGINT | FK → products |
+| product_name | VARCHAR(255) | Snapshot tên món |
+| unit_price | DECIMAL(12,2) | Snapshot giá tại thời điểm đặt |
+| quantity | INT | |
+| note | VARCHAR(255) | |
+| subtotal | DECIMAL(12,2) | |
+| created_at | TIMESTAMPTZ | |
 
-payment_method
+## 10. Order Item Options
 
-scheduled_delivery_at
-
-confirmed_at
-completed_at
-cancelled_at
-
-cancellation_reason
-
-created_at
-updated_at
-```
-
-Order lưu snapshot thông tin giao hàng để lịch sử không bị ảnh hưởng khi Customer thay đổi Address.
-
----
-
-## 9. Order Status
-
-```text
-PENDING_CONFIRMATION
-CONFIRMED
-PREPARING
-READY
-DELIVERING
-COMPLETED
-CANCELLED
-```
-
----
-
-## 10. Order Item
-
-```text
-order_items
------------
-id
-order_id
-product_id
-
-product_name
-unit_price
-quantity
-
-note
-
-subtotal
-created_at
-```
-
-`product_name` và `unit_price` là snapshot.
-
-Không phụ thuộc hoàn toàn vào Product hiện tại.
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| order_item_id | BIGINT | FK → order_items |
+| option_id | BIGINT | FK → options |
+| option_name | VARCHAR(255) | Snapshot |
+| price | DECIMAL(12,2) | Snapshot |
+| quantity | INT | |
 
 ---
 
-## 11. Order Item Option
+## 11. Payments
 
-```text
-order_item_options
-------------------
-id
-order_item_id
-option_id
-
-option_name
-price
-quantity
-```
-
-`option_name` và `price` được snapshot.
-
----
-
-## 12. Payment
-
-```text
-payments
---------
-id
-order_id
-method
-status
-amount
-transaction_reference
-paid_at
-verified_by
-created_at
-updated_at
-```
-
-Method:
-
-```text
-COD
-BANK_TRANSFER
-```
-
-Status:
-
-```text
-UNPAID
-PENDING
-PAID
-FAILED
-REFUNDED
-```
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| order_id | BIGINT | UNIQUE FK → orders |
+| method | VARCHAR(30) | COD, BANK_TRANSFER |
+| status | VARCHAR(30) | UNPAID, PENDING, PAID, FAILED, REFUNDED |
+| amount | DECIMAL(12,2) | |
+| transaction_reference | VARCHAR(100) | |
+| qr_code_url | TEXT | |
+| paid_at | TIMESTAMPTZ | |
+| verified_by | BIGINT | ID nhân viên xác nhận |
+| created_at | TIMESTAMPTZ | |
+| updated_at | TIMESTAMPTZ | |
 
 ---
 
-## 13. Voucher
+## 12. Vouchers
 
-```text
-vouchers
---------
-id
-code
-name
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| code | VARCHAR(50) | UNIQUE |
+| name | VARCHAR(255) | |
+| discount_type | VARCHAR(20) | FIXED, PERCENTAGE |
+| discount_value | DECIMAL(12,2) | |
+| minimum_order_value | DECIMAL(12,2) | |
+| maximum_discount | DECIMAL(12,2) | Áp dụng cho PERCENTAGE |
+| usage_limit | INT | Tổng lượt dùng toàn hệ thống |
+| usage_per_customer | INT | Lượt dùng tối đa trên từng khách |
+| start_at | TIMESTAMPTZ | |
+| end_at | TIMESTAMPTZ | |
+| status | VARCHAR(30) | ACTIVE, INACTIVE |
+| created_at | TIMESTAMPTZ | |
+| updated_at | TIMESTAMPTZ | |
 
-discount_type
-discount_value
+## 13. Voucher Usages
 
-minimum_order_value
-maximum_discount
-
-usage_limit
-usage_per_customer
-
-start_at
-end_at
-
-status
-
-created_at
-updated_at
-```
-
-Discount type:
-
-```text
-FIXED
-PERCENTAGE
-```
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| voucher_id | BIGINT | FK → vouchers |
+| customer_id | BIGINT | FK → customers |
+| order_id | BIGINT | FK → orders |
+| discount_amount | DECIMAL(12,2) | |
+| used_at | TIMESTAMPTZ | |
 
 ---
 
-## 14. Voucher Usage
+## 14. Notifications
 
-```text
-voucher_usages
---------------
-id
-voucher_id
-customer_id
-order_id
-discount_amount
-used_at
-```
-
-Dùng để kiểm tra Customer đã sử dụng Voucher bao nhiêu lần.
-
----
-
-## 15. Notification
-
-```text
-notifications
--------------
-id
-customer_id
-order_id
-
-type
-title
-message
-
-is_read
-created_at
-read_at
-```
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| customer_id | BIGINT | FK → customers |
+| order_id | BIGINT | FK → orders, nullable |
+| type | VARCHAR(50) | ORDER_STATUS, PROMOTION |
+| title | VARCHAR(255) | |
+| message | TEXT | |
+| is_read | BOOLEAN | |
+| created_at | TIMESTAMPTZ | |
+| read_at | TIMESTAMPTZ | |
 
 ---
 
-## 16. User / Staff
+## 15. Users (Nhân viên / Admin)
 
-```text
-users
------
-id
-name
-phone
-email
-password_hash
-role_id
-status
-created_at
-updated_at
-```
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| name | VARCHAR(255) | |
+| phone | VARCHAR(20) | UNIQUE |
+| email | VARCHAR(255) | UNIQUE |
+| password_hash | VARCHAR(255) | |
+| role | VARCHAR(50) | STAFF, ADMIN |
+| status | VARCHAR(50) | ACTIVE, INACTIVE |
+| created_at | TIMESTAMPTZ | |
+| updated_at | TIMESTAMPTZ | |
 
-Role:
+## 16. Audit Logs
 
-```text
-roles
------
-id
-name
-```
-
-Ví dụ:
-
-```text
-STAFF
-ADMIN
-```
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK |
+| user_id | BIGINT | FK → users |
+| action | VARCHAR(100) | UPDATE_ORDER_STATUS, VERIFY_PAYMENT |
+| entity_type | VARCHAR(50) | ORDER, PRODUCT, PAYMENT |
+| entity_id | BIGINT | |
+| old_data | JSONB | |
+| new_data | JSONB | |
+| created_at | TIMESTAMPTZ | |
 
 ---
 
-## 17. Audit Log
+## 17. Indexes cần đánh
 
-```text
-audit_logs
-----------
-id
-user_id
-action
-entity_type
-entity_id
-old_data
-new_data
-created_at
-```
-
-Ví dụ:
-
-```text
-user_id: 10
-action: UPDATE_ORDER_STATUS
-entity_type: ORDER
-entity_id: 1001
-
-old_data:
-PENDING_CONFIRMATION
-
-new_data:
-CONFIRMED
-```
-
----
-
-## 18. Relationships
-
-```text
-Customer 1 ─── N Address
-
-Customer 1 ─── N Order
-
-Category 1 ─── N Product
-
-Product 1 ─── N OptionGroup
-
-OptionGroup 1 ─── N Option
-
-Order 1 ─── N OrderItem
-
-OrderItem 1 ─── N OrderItemOption
-
-Order 1 ─── 1 Payment
-
-Voucher 1 ─── N VoucherUsage
-
-Customer 1 ─── N VoucherUsage
-
-Order 1 ─── N Notification
-```
-
----
-
-## 19. Order Price Snapshot
-
-Đây là nguyên tắc quan trọng.
-
-Không được tính lại Order cũ bằng Product.price hiện tại.
-
-Ví dụ:
-
-```text
-Product:
-Cơm sườn = 35.000đ
-
-OrderItem:
-product_id = 1
-product_name = "Cơm sườn"
-unit_price = 35.000đ
-quantity = 2
-```
-
-Sau đó Product đổi giá:
-
-```text
-Cơm sườn = 40.000đ
-```
-
-Order cũ vẫn:
-
-```text
-35.000 × 2 = 70.000đ
-```
-
----
-
-## 20. Address Snapshot
-
-Order cũng phải lưu:
-
-```text
-delivery_address
-delivery_latitude
-delivery_longitude
-```
-
-Không chỉ lưu `address_id`.
-
-Lý do:
-
-Customer có thể sửa địa chỉ sau khi đặt Order.
-
-Order cũ vẫn phải giữ đúng địa chỉ tại thời điểm đặt.
-
----
-
-## 21. MVP không cần các bảng
-
-Chưa cần:
-
-```text
-inventory
-ingredients
-recipes
-suppliers
-tables
-kitchen_stations
-drivers
-delivery_tracking
-loyalty_points
-reviews
-```
-
-Có thể bổ sung sau.
+| Bảng | Cột |
+| :--- | :--- |
+| customers | zalo_user_id |
+| orders | customer_id, status, created_at |
+| orders | order_code |
+| order_items | order_id |
+| vouchers | code, status |
+| voucher_usages | voucher_id, customer_id |
+| notifications | customer_id, is_read |
