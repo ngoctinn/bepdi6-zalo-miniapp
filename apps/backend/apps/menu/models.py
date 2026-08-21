@@ -10,7 +10,17 @@ class Category(models.Model):
 
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, default="")
-    image_url = models.TextField(blank=True, default="")
+    image = models.ImageField(
+        upload_to="categories/%Y/%m/",
+        blank=True,
+        null=True,
+        help_text="File ảnh danh mục",
+    )
+    image_url = models.TextField(
+        blank=True,
+        default="",
+        help_text="URL ảnh danh mục (tự động lấy từ file tải lên hoặc dán link ngoài)",
+    )
     sort_order = models.IntegerField(default=0)
     status = models.CharField(
         max_length=50,
@@ -29,6 +39,12 @@ class Category(models.Model):
     def __str__(self) -> str:
         return str(self.name)
 
+    @property
+    def effective_image_url(self) -> str:
+        if self.image:
+            return self.image.url
+        return self.image_url
+
 
 class Product(models.Model):
     """Product (food/beverage item) model."""
@@ -45,7 +61,17 @@ class Product(models.Model):
     )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, default="")
-    image_url = models.TextField(blank=True, default="")
+    image = models.ImageField(
+        upload_to="products/%Y/%m/",
+        blank=True,
+        null=True,
+        help_text="File ảnh món ăn",
+    )
+    image_url = models.TextField(
+        blank=True,
+        default="",
+        help_text="URL ảnh món ăn (tự động lấy từ file tải lên hoặc dán link ngoài)",
+    )
     price = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(
         max_length=50,
@@ -63,6 +89,12 @@ class Product(models.Model):
 
     def __str__(self) -> str:
         return str(self.name)
+
+    @property
+    def effective_image_url(self) -> str:
+        if self.image:
+            return self.image.url
+        return self.image_url
 
 
 class OptionGroup(models.Model):

@@ -33,6 +33,8 @@ class OptionGroupSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     category_id = serializers.IntegerField(required=True)
+    image_url = serializers.CharField(source="effective_image_url", read_only=True)
+    image = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     class Meta:
         model = Product
@@ -41,6 +43,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "category_id",
             "name",
             "description",
+            "image",
             "image_url",
             "price",
             "status",
@@ -49,6 +52,8 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     option_groups = OptionGroupSerializer(many=True, read_only=True)
+    image_url = serializers.CharField(source="effective_image_url", read_only=True)
+    image = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     class Meta:
         model = Product
@@ -57,6 +62,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             "category_id",
             "name",
             "description",
+            "image",
             "image_url",
             "price",
             "status",
@@ -65,12 +71,16 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    image_url = serializers.CharField(source="effective_image_url", read_only=True)
+    image = serializers.ImageField(required=False, allow_null=True, write_only=True)
+
     class Meta:
         model = Category
         fields = [
             "id",
             "name",
             "description",
+            "image",
             "image_url",
             "sort_order",
             "status",

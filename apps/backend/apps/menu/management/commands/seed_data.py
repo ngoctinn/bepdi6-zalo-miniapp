@@ -1,7 +1,9 @@
 from decimal import Decimal
+
 from django.core.management.base import BaseCommand
-from apps.customers.models import Customer, User, Address
-from apps.menu.models import Category, Product, OptionGroup, Option
+
+from apps.customers.models import Address, Customer, User
+from apps.menu.models import Category, Option, OptionGroup, Product
 from apps.vouchers.models import Voucher
 
 
@@ -24,14 +26,19 @@ class Command(BaseCommand):
         if created:
             admin_user.set_password("admin123")
             admin_user.save()
-            self.stdout.write(self.style.SUCCESS("Created admin user (admin / admin123)"))
+            self.stdout.write(
+                self.style.SUCCESS("Created admin user (admin / admin123)")
+            )
         else:
             self.stdout.write("Admin user already exists.")
 
         # 2. Categories
         cat_rice, _ = Category.objects.get_or_create(
             name="Cơm Tấm Truyền Thống",
-            defaults={"description": "Hạt tấm thơm lừng, thịt ướp đậm đà chuẩn vị Sài Gòn", "sort_order": 1},
+            defaults={
+                "description": "Hạt tấm thơm lừng, thịt ướp đậm đà chuẩn vị Sài Gòn",
+                "sort_order": 1,
+            },
         )
         cat_drink, _ = Category.objects.get_or_create(
             name="Nước Giải Khát & Trà",
@@ -76,7 +83,12 @@ class Command(BaseCommand):
         group_egg, _ = OptionGroup.objects.get_or_create(
             product=p1,
             name="Món Thêm",
-            defaults={"is_required": False, "min_select": 0, "max_select": 3, "sort_order": 1},
+            defaults={
+                "is_required": False,
+                "min_select": 0,
+                "max_select": 3,
+                "sort_order": 1,
+            },
         )
         Option.objects.get_or_create(
             option_group=group_egg,
@@ -127,4 +139,8 @@ class Command(BaseCommand):
             },
         )
 
-        self.stdout.write(self.style.SUCCESS("Successfully seeded sample menu, vouchers, customer, and address!"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                "Successfully seeded sample menu, vouchers, customer, and address!"
+            )
+        )

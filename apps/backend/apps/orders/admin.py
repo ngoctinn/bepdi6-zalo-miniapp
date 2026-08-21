@@ -1,5 +1,6 @@
 from django.contrib import admin
-from apps.orders.models import Order, OrderItem, OrderItemOption, AuditLog
+
+from apps.orders.models import AuditLog, Order, OrderItem, OrderItemOption
 
 admin.site.register(Order)
 admin.site.register(OrderItem)

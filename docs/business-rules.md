@@ -12,6 +12,10 @@
 
 **BR-PROD-005** — Đơn giá và giá tùy chọn phải được snapshot cố định vào đơn hàng tại thời điểm đặt. Giá menu thay đổi sau đó không ảnh hưởng đến đơn cũ.
 
+**BR-PROD-006** — Ảnh món ăn và danh mục phải được chuẩn hóa lưu trữ qua Object Storage (Cloudflare R2 / AWS S3 / Media Storage). Khi tải lên, hệ thống tự động nén định dạng WebP và tối ưu kích thước để đảm bảo thời gian tải dưới 500ms trên thiết bị di động.
+
+**BR-PROD-007** — Hỗ trợ cả 2 phương thức nhập ảnh: Tải file trực tiếp (Admin Upload) hoặc dán đường dẫn ảnh tĩnh (Direct CDN URL).
+
 ---
 
 ## 2. Khách hàng và Địa chỉ
