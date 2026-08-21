@@ -1,9 +1,16 @@
+from decimal import Decimal
+
+from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 from rest_framework import permissions, status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.customers.models import Address, Customer
+from apps.customers.models import Address
+from apps.customers.permissions import IsStaffOrAdminUser
+from apps.customers.views import get_current_customer
 from apps.orders.models import Order
 from apps.orders.serializers import (
     CheckoutPreviewRequestSerializer,
@@ -12,39 +19,12 @@ from apps.orders.serializers import (
     OrderListSerializer,
     PaymentSerializer,
 )
-from apps.orders.services import OrderProcessingError, OrderService
-
-
-def get_current_customer(request) -> Customer:
-    """Helper to resolve customer from authenticated user or fallback header for dev/testing."""
-    if hasattr(request.user, "customer_profile"):
-        return request.user.customer_profile
-
-    # For dev / JWT authenticated customer mapping
-    zalo_user_id = getattr(request.user, "zalo_user_id", None)
-    if zalo_user_id:
-        customer, _ = Customer.objects.get_or_create(
-            zalo_user_id=zalo_user_id,
-            defaults={"name": request.user.username or "Khách Zalo"},
-        )
-        return customer
-
-    # Dev/Mock fallback
-    cust_id = request.headers.get("X-Customer-ID") or request.query_params.get(
-        "customer_id"
-    )
-    if cust_id:
-        try:
-            return Customer.objects.get(pk=cust_id)
-        except Customer.DoesNotExist:
-            pass
-
-    # Default fallback customer for initial development
-    customer, _ = Customer.objects.get_or_create(
-        zalo_user_id="zalo_default_guest",
-        defaults={"name": "Khách mặc định", "phone": "0900000000"},
-    )
-    return customer
+from apps.orders.services import (
+    InvalidStateTransitionError,
+    OrderProcessingError,
+    OrderService,
+)
+from apps.payments.models import Payment
 
 
 class CheckoutPreviewView(APIView):
@@ -206,3 +186,203 @@ class OrderPaymentDetailView(APIView):
 
         serializer = PaymentSerializer(order.payment)
         return Response(serializer.data)
+
+
+# ----------------------------------------------------------------------
+# Admin / Staff Order Management Views (BR-SEC-002, BR-ORD-004, BR-PAY-004)
+# ----------------------------------------------------------------------
+
+
+class AdminOrderListView(APIView):
+    """
+    GET /api/v1/admin/orders
+    List all orders with query filters: status, date, search.
+    """
+
+    permission_classes = [IsStaffOrAdminUser]
+
+    def get(self, request):
+        queryset = (
+            Order.objects.select_related("customer", "payment")
+            .prefetch_related("items__options")
+            .order_by("-created_at")
+        )
+
+        status_param = request.query_params.get("status")
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+
+        date_param = request.query_params.get("date")
+        if date_param:
+            queryset = queryset.filter(created_at__date=date_param)
+
+        search_param = request.query_params.get("search")
+        if search_param:
+            queryset = queryset.filter(
+                Q(order_code__icontains=search_param)
+                | Q(recipient_name__icontains=search_param)
+                | Q(phone__icontains=search_param)
+            )
+
+        serializer = OrderDetailSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class AdminOrderConfirmView(APIView):
+    """
+    POST /api/v1/admin/orders/{id}/confirm
+    Staff confirms order via phone call.
+    BR-ORD-004: Cannot edit items if payment method is BANK_TRANSFER (VietQR).
+    """
+
+    permission_classes = [IsStaffOrAdminUser]
+
+    def post(self, request, pk: int):
+        try:
+            order = Order.objects.get(pk=pk)
+        except Order.DoesNotExist:
+            raise NotFound("Đơn hàng không tồn tại.") from None
+
+        # Check if staff tries to modify items on a VietQR order
+        edited_items = request.data.get("items")
+        if edited_items and order.payment_method == Order.PaymentMethod.BANK_TRANSFER:
+            raise ValidationError(
+                {
+                    "code": "CANNOT_MODIFY_VIETQR_ORDER",
+                    "message": "Không được phép sửa đơn thanh toán qua VietQR. Phải hủy đơn để khách đặt lại (BR-ORD-004).",
+                }
+            )
+
+        # Update order status to CONFIRMED
+        try:
+            updated_order = OrderService.update_order_status(
+                order=order,
+                new_status=Order.Status.CONFIRMED,
+                user=request.user if request.user.is_authenticated else None,
+            )
+        except InvalidStateTransitionError as e:
+            raise ValidationError({"code": e.code, "message": e.message}) from None
+
+        return Response(OrderDetailSerializer(updated_order).data)
+
+
+class AdminOrderCancelView(APIView):
+    """
+    POST /api/v1/admin/orders/{id}/cancel
+    Cancels order with mandatory cancellation reason.
+    """
+
+    permission_classes = [IsStaffOrAdminUser]
+
+    def post(self, request, pk: int):
+        try:
+            order = Order.objects.get(pk=pk)
+        except Order.DoesNotExist:
+            raise NotFound("Đơn hàng không tồn tại.") from None
+
+        reason = str(request.data.get("reason", "")).strip()
+        if not reason:
+            raise ValidationError(
+                {
+                    "code": "MISSING_CANCEL_REASON",
+                    "message": "Bắt buộc phải nhập lý do hủy đơn hàng.",
+                }
+            )
+
+        try:
+            cancelled_order = OrderService.update_order_status(
+                order=order,
+                new_status=Order.Status.CANCELLED,
+                user=request.user if request.user.is_authenticated else None,
+                reason=reason,
+            )
+        except InvalidStateTransitionError as e:
+            raise ValidationError({"code": e.code, "message": e.message}) from None
+
+        return Response(OrderDetailSerializer(cancelled_order).data)
+
+
+class AdminOrderStatusUpdateView(APIView):
+    """
+    POST /api/v1/admin/orders/{id}/status
+    Updates order status according to strict state machine.
+    """
+
+    permission_classes = [IsStaffOrAdminUser]
+
+    def post(self, request, pk: int):
+        try:
+            order = Order.objects.get(pk=pk)
+        except Order.DoesNotExist:
+            raise NotFound("Đơn hàng không tồn tại.") from None
+
+        new_status = request.data.get("status")
+        if not new_status:
+            raise ValidationError(
+                {
+                    "code": "MISSING_STATUS",
+                    "message": "Trường 'status' là bắt buộc.",
+                }
+            )
+
+        reason = str(request.data.get("reason", "")).strip()
+        try:
+            updated_order = OrderService.update_order_status(
+                order=order,
+                new_status=new_status,
+                user=request.user if request.user.is_authenticated else None,
+                reason=reason,
+            )
+        except InvalidStateTransitionError as e:
+            raise ValidationError({"code": e.code, "message": e.message}) from None
+
+        return Response(OrderDetailSerializer(updated_order).data)
+
+
+class AdminOrderPaymentVerifyView(APIView):
+    """
+    POST /api/v1/admin/orders/{id}/payment/verify
+    Verifies bank transfer / VietQR payment manually (BR-PAY-004).
+    """
+
+    permission_classes = [IsStaffOrAdminUser]
+
+    def post(self, request, pk: int):
+        try:
+            order = Order.objects.select_related("payment").get(pk=pk)
+        except Order.DoesNotExist:
+            raise NotFound("Đơn hàng không tồn tại.") from None
+
+        payment = getattr(order, "payment", None)
+        if not payment:
+            raise ValidationError(
+                {
+                    "code": "PAYMENT_NOT_FOUND",
+                    "message": "Đơn hàng chưa có thông tin thanh toán.",
+                }
+            )
+
+        actual_paid = request.data.get("actual_paid_amount")
+        if actual_paid is None:
+            actual_paid = order.total_amount
+        actual_paid = Decimal(str(actual_paid))
+
+        note = str(request.data.get("note", "")).strip()
+        if actual_paid != order.total_amount and not note:
+            raise ValidationError(
+                {
+                    "code": "PAYMENT_AMOUNT_MISMATCH",
+                    "message": "Số tiền thực nhận bị lệch so với tổng đơn. Bắt buộc phải nhập ghi chú (note) lý do (BR-PAY-004).",
+                }
+            )
+
+        with transaction.atomic():
+            payment.status = Payment.Status.PAID
+            payment.paid_at = timezone.now()
+            payment.actual_paid_amount = actual_paid
+            payment.note = note
+            if request.user.is_authenticated:
+                payment.verified_by = request.user
+            payment.save()
+
+        return Response(PaymentSerializer(payment).data)

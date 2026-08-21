@@ -32,6 +32,8 @@ class OptionGroupSerializer(serializers.ModelSerializer):
 
 
 class ProductListSerializer(serializers.ModelSerializer):
+    category_id = serializers.IntegerField(required=True)
+
     class Meta:
         model = Product
         fields = [

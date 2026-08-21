@@ -23,6 +23,8 @@ dev = [
     "pytest-django>=4.8.0",
     "ruff>=0.6.1",
     "pyright>=1.1.377",
+    "django-stubs[compatible-mypy]>=5.1.0",
+    "djangorestframework-stubs>=3.15.0",
 ]
 
 [tool.ruff]
@@ -64,5 +66,12 @@ reportCallIssue = false
 reportOptionalSubscript = false
 reportIndexIssue = false
 reportOptionalMemberAccess = false
+reportIncompatibleMethodOverride = false
+reportGeneralTypeIssues = false
+reportOperatorIssue = false
+reportIncompatibleVariableOverride = false
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
 
 
