@@ -1,5 +1,7 @@
 """Django settings for Bep Di 6 project."""
 
+import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -103,6 +105,14 @@ DATABASES = {
         "DATABASE_URL", default="postgres://postgres:postgres@localhost:5432/bepdi6_db"
     )
 }
+if "pytest" in sys.modules or os.environ.get("USE_SQLITE_TEST", "").lower() in (
+    "true",
+    "1",
+):
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    }
 
 # Cache (Redis)
 CACHES = {
@@ -113,6 +123,9 @@ CACHES = {
         "LOCATION": env("REDIS_URL"),
     }
 }
+
+# Custom User Model
+AUTH_USER_MODEL = "customers.User"
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
