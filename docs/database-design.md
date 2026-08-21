@@ -103,6 +103,7 @@ Voucher ──1:N── VoucherUsage
 | :--- | :--- | :--- |
 | id | BIGSERIAL | PK |
 | order_code | VARCHAR(32) | UNIQUE |
+| idempotency_key | VARCHAR(100) | Định danh chống trùng đơn |
 | customer_id | BIGINT | FK → customers |
 | status | VARCHAR(50) | Xem bảng trạng thái bên dưới |
 | delivery_type | VARCHAR(20) | ASAP, SCHEDULED |
@@ -170,6 +171,8 @@ Voucher ──1:N── VoucherUsage
 | transaction_reference | VARCHAR(100) | |
 | qr_code_url | TEXT | |
 | paid_at | TIMESTAMPTZ | |
+| actual_paid_amount | DECIMAL(12,2) | Số tiền thực nhận (VietQR) |
+| note | TEXT | Ghi chú lệch tiền |
 | verified_by | BIGINT | ID nhân viên xác nhận |
 | created_at | TIMESTAMPTZ | |
 | updated_at | TIMESTAMPTZ | |
@@ -204,6 +207,7 @@ Voucher ──1:N── VoucherUsage
 | customer_id | BIGINT | FK → customers |
 | order_id | BIGINT | FK → orders |
 | discount_amount | DECIMAL(12,2) | |
+| status | VARCHAR(30) | APPLIED, RELEASED |
 | used_at | TIMESTAMPTZ | |
 
 ---
@@ -229,6 +233,7 @@ Voucher ──1:N── VoucherUsage
 | Cột | Kiểu | Ghi chú |
 | :--- | :--- | :--- |
 | id | BIGSERIAL | PK |
+| zalo_user_id | VARCHAR(100) | Nullable, định danh Zalo nhận thông báo OA |
 | name | VARCHAR(255) | |
 | phone | VARCHAR(20) | UNIQUE |
 | email | VARCHAR(255) | UNIQUE |
@@ -260,6 +265,7 @@ Voucher ──1:N── VoucherUsage
 | customers | zalo_user_id |
 | orders | customer_id, status, created_at |
 | orders | order_code |
+| orders | customer_id, idempotency_key | UNIQUE |
 | order_items | order_id |
 | vouchers | code, status |
 | voucher_usages | voucher_id, customer_id |

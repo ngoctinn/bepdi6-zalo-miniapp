@@ -25,9 +25,8 @@
 └──────────────────────┘    └──────────────────────────┘
 
 External Services:
-  - Zalo OpenAPI (xác thực, giải mã SĐT)
-  - Zalo Notification Service / OA (thông báo đơn hàng)
-  - Mapping / Routing API (tính khoảng cách)
+  - Zalo OpenAPI (xác thực, giải mã SĐT, gửi tin nhắn Zalo OA nhân viên)
+  - Zalo Notification Service / OA (thông báo khách hàng)
   - VietQR (tạo mã QR thanh toán)
 ```
 
@@ -57,7 +56,7 @@ Chịu trách nhiệm toàn bộ logic nghiệp vụ:
 | Customer Service | Quản lý hồ sơ khách hàng, địa chỉ |
 | Menu Service | Danh mục, món ăn, tùy chọn món |
 | Order Service | Tạo đơn, snapshot dữ liệu, chuyển trạng thái |
-| Shipping Service | Tính khoảng cách qua Routing API, áp biểu phí ship |
+| Shipping Service | Tính khoảng cách nội bộ bằng công thức Haversine, áp biểu phí ship |
 | Voucher Service | Validate mã, tính giảm giá, ghi nhận lượt dùng |
 | Payment Service | Quản lý trạng thái thanh toán, tạo VietQR, xác nhận thủ công |
 
@@ -90,9 +89,8 @@ Không sử dụng Redis làm nơi lưu trữ chính. PostgreSQL là source of t
 
 | Dịch vụ | Mục đích |
 | :--- | :--- |
-| Zalo OpenAPI | Xác thực người dùng, giải mã SĐT từ token |
-| Zalo Notification Service | Gửi thông báo trạng thái đơn qua ZNS hoặc OA |
-| Mapping / Routing API | Tính khoảng cách đường đi thực tế giữa shop và khách |
+| Zalo OpenAPI | Xác thực người dùng, giải mã SĐT, gửi tin nhắn Zalo OA cảnh báo đơn cho nhân viên |
+| Zalo Notification Service | Gửi thông báo trạng thái đơn qua ZNS (tối ưu cước) hoặc OA |
 | VietQR | Tạo mã QR thanh toán chuẩn NAPAS chứa số tiền và mã đơn |
 
 ---

@@ -34,7 +34,7 @@
 
 **BR-ORD-003** — Đơn mới luôn bắt đầu ở trạng thái PENDING_CONFIRMATION.
 
-**BR-ORD-004** — Nhân viên phải gọi điện cho khách để xác nhận. Nhân viên có quyền điều chỉnh món, số lượng, thời gian trước khi xác nhận.
+**BR-ORD-004** — Nhân viên phải gọi điện cho khách để xác nhận. Nhân viên chỉ có quyền điều chỉnh món, số lượng, thời gian trước khi xác nhận ĐỐI VỚI ĐƠN COD. Nếu đơn thanh toán qua VietQR, nhân viên KHÔNG ĐƯỢC PHÉP sửa đơn. Nếu bắt buộc sửa, nhân viên phải hủy đơn để khách đặt lại.
 
 **BR-ORD-005** — Sau khi đơn được CONFIRMED, khách không thể tự hủy trên ứng dụng.
 
@@ -60,7 +60,7 @@ Có thể hủy (CANCELLED) từ các trạng thái: PENDING_CONFIRMATION, CONFI
 
 **BR-DELI-001** — Đơn chỉ được chấp nhận nếu khoảng cách nằm trong bán kính giao hàng tối đa.
 
-**BR-DELI-002** — Khoảng cách tính bằng Mapping/Routing API dựa trên tọa độ shop và khách.
+**BR-DELI-002** — Khoảng cách tính bằng công thức đường chim bay (Haversine) nhân với hệ số bù trừ (x1.3) hoàn toàn nội bộ Backend, không gọi API bản đồ bên ngoài.
 
 **BR-DELI-003** — Phí ship do backend tính tự động theo bảng biểu phí của shop, không nhận từ frontend.
 
@@ -78,6 +78,8 @@ Có thể hủy (CANCELLED) từ các trạng thái: PENDING_CONFIRMATION, CONFI
 
 **BR-VOU-004** — Số tiền giảm không được vượt quá giới hạn giảm tối đa và không vượt quá tạm tính đơn.
 
+**BR-VOU-005** — Nếu đơn hàng bị hủy (CANCELLED) hoặc nhân viên sửa đơn COD làm giá trị đơn không còn thỏa điều kiện voucher, hệ thống phải tự động hoàn lại lượt dùng (RELEASED) cho voucher.
+
 ---
 
 ## 7. Thanh toán
@@ -88,12 +90,23 @@ Có thể hủy (CANCELLED) từ các trạng thái: PENDING_CONFIRMATION, CONFI
 
 **BR-PAY-003** — Đơn COD chỉ được đánh dấu đã thanh toán sau khi giao hàng thành công.
 
-**BR-PAY-004** — Không thể xác nhận thanh toán nếu số tiền thực nhận không khớp tổng đơn.
+**BR-PAY-004** — Nếu số tiền khách chuyển khoản qua VietQR bị lệch (thừa/thiếu) so với tổng đơn, Admin phải tự thương lượng và khi xác nhận thanh toán thủ công bắt buộc phải nhập số tiền thực nhận (`actual_paid_amount`) và lý do (`note`).
 
 ---
 
 ## 8. Phân quyền
-
+ 
 **BR-SEC-001** — Khách chỉ xem được đơn hàng, thông báo và địa chỉ của chính mình.
 
 **BR-SEC-002** — Chỉ tài khoản Staff hoặc Admin mới được truy cập các chức năng quản trị.
+
+---
+
+## 9. Thông báo & Trải nghiệm Người dùng (UX/Operation)
+
+**BR-NOTI-001** — Mọi đơn mới (`PENDING_CONFIRMATION`) phải tự động kích hoạt Celery task gửi tin nhắn cảnh báo kèm tóm tắt đơn qua Zalo OA đến tài khoản Zalo cá nhân của nhân viên trực ca.
+
+**BR-NOTI-002** — ZNS chỉ được kích hoạt khi đơn sang trạng thái `DELIVERING` và khi cờ cấu hình `ENABLE_ZNS_NOTIFICATION = True`. Mọi trạng thái khác ưu tiên in-app notification và Zalo OA message.
+
+**BR-UX-001** — Frontend Checkout bắt buộc khóa nút bấm (disable) ngay khi người dùng chạm "Đặt hàng" để triệt tiêu spam request từ phía UI.
+

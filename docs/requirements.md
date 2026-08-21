@@ -62,13 +62,13 @@ Quản lý bàn, POS, điều phối bếp, tồn kho, nguyên liệu, shipper, 
 - Giỏ hàng lưu tại client, không bắt buộc khôi phục khi đóng app.
 - Khi checkout, backend kiểm tra lại toàn bộ: trạng thái món, giá hiện tại, tùy chọn, địa chỉ, khoảng cách, phí ship, voucher.
 - Hỗ trợ 2 kiểu thời gian giao: giao ngay hoặc hẹn giờ.
-- Sử dụng Idempotency-Key để chống tạo đơn trùng.
+- Frontend lập tức disable nút "Đặt hàng" (loading state) ngay khi bấm để chống spam; Backend sử dụng `Idempotency-Key` để loại bỏ hoàn toàn đơn trùng lặp.
 
 ### 3.4 Giao hàng
 
 - Giới hạn bán kính giao hàng tối đa. Ngoài bán kính thì từ chối.
-- Khoảng cách tính bằng Mapping/Routing API dựa trên tọa độ shop và khách.
-- Phí ship tính lũy tiến theo khoảng cách, do backend quyết định.
+- Khoảng cách tính bằng công thức đường chim bay (Haversine) nhân với hệ số bù trừ (x1.3) hoàn toàn nội bộ trên Backend.
+- Phí ship tính lũy tiến theo khoảng cách sau khi bù trừ, do backend quyết định.
 - Cửa hàng tự giao hoặc thuê bên thứ ba. Không quản lý shipper trong hệ thống.
 
 ### 3.5 Đơn hàng
@@ -102,9 +102,9 @@ Thanh toán có vòng đời riêng, độc lập với trạng thái đơn.
 
 ### 3.8 Thông báo và CSKH
 
-- Thông báo in-app khi đơn hàng đổi trạng thái.
-- Gửi thông báo qua ZNS hoặc tin nhắn Zalo OA.
-- Nút chat hỗ trợ mở trực tiếp khung chat với Zalo OA của quán.
+- **Khách hàng**: Nhận thông báo in-app miễn phí cho mọi trạng thái; tin nhắn Zalo OA nếu đã follow; chỉ gửi 1 tin nhắn ZNS khi đơn chuyển sang `DELIVERING` để tối ưu chi phí (quản lý qua feature flag `ENABLE_ZNS_NOTIFICATION`).
+- **Nhân viên / Quản trị**: Nhận tin nhắn cảnh báo tức thì qua **Zalo OA vào tài khoản Zalo cá nhân** mỗi khi có đơn mới; Web Admin có cơ chế unlock Autoplay âm thanh ("Bắt đầu ca làm").
+- **CSKH**: Nút chat hỗ trợ mở trực tiếp khung chat với Zalo OA của quán.
 
 ---
 

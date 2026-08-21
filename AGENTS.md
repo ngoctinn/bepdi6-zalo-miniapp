@@ -35,8 +35,9 @@
 - **Idempotency**: Require `Idempotency-Key` header on `POST /orders` and payment endpoints.
 - **Snapshots**: Snapshot item prices, option prices, and shipping addresses into the order record at checkout.
 - **Business Logic**: Never calculate pricing, shipping fees, or voucher discounts on the frontend.
-- **Async**: Route all external network requests (ZNS, Zalo OpenAPI, Routing API) through Celery tasks.
+- **Async**: Route all external network requests (ZNS, Zalo OpenAPI) through Celery tasks.
 - **Envelope**: Return API responses as `{success: true, data: ...}` or `{success: false, error: {code, message}}`.
+- **UI Spam**: Always disable order submit buttons on initial click in Frontend components.
 
 ---
 

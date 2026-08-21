@@ -1,35 +1,34 @@
-# ADR 006: Tính phí ship bằng Mapping/Routing API phía Backend
+# ADR 006: Tính phí ship bằng công thức đường chim bay (Haversine) có hệ số bù
 
 **Status:** Accepted
-**Date:** 2026-08-20
+**Date:** 2026-08-21
 
 ## Context
 
-Phí ship phải được tính dựa trên khoảng cách thực tế từ shop đến khách. Cần quyết định cách tính khoảng cách và ai là người quyết định phí ship.
+Phí ship cần được tính toán dựa trên khoảng cách giữa khách hàng và cửa hàng. Việc gọi API bên thứ 3 (Routing API) đồng bộ trong lúc checkout tạo ra bottleneck lớn, rủi ro làm sập luồng đặt hàng nếu API lỗi hoặc timeout.
 
 ## Decision Drivers
 
-- Phí ship phải chính xác theo đường đi thực tế, không phải đường chim bay.
-- Không được để frontend tự tính và gửi lên.
-- Cần hỗ trợ giới hạn bán kính giao hàng tối đa.
+- Tránh phụ thuộc vào dịch vụ bên ngoài trong luồng Checkout.
+- Tốc độ tính toán phải cực nhanh (nội bộ server).
+- Vẫn phải đảm bảo khoảng cách tính ra sát với thực tế, không bị lỗ phí ship.
 
 ## Considered Options
 
 | Option | Ưu điểm | Nhược điểm |
 | :--- | :--- | :--- |
-| Tính đường chim bay (Haversine) | Đơn giản, không cần API bên ngoài | Không chính xác, đường đi thực tế có thể gấp đôi |
-| **Routing API phía Backend** | Khoảng cách đường đi thực tế, chính xác | Phụ thuộc API bên ngoài, tốn chi phí theo request |
-| Routing API phía Frontend | Giảm tải backend | Không an toàn, khách có thể sửa kết quả |
+| Routing API phía Backend | Khoảng cách đường đi thực tế, chính xác | Phụ thuộc API bên ngoài, dễ lỗi timeout, tốn chi phí |
+| **Haversine + Hệ số bù (1.3x)** | Tốc độ tính toán tức thì, không phụ thuộc bên ngoài, không tốn phí | Không chính xác 100% nhưng đủ an toàn |
 
 ## Decision
 
-Backend gọi Mapping/Routing API để tính khoảng cách đường đi thực tế giữa tọa độ shop và tọa độ khách. Sau đó áp dụng bảng biểu phí do shop cấu hình để ra phí ship.
+Chọn **Haversine formula kết hợp hệ số nhân 1.3** để tính toán khoảng cách nội bộ hoàn toàn trên Backend.
 
-Frontend chỉ gửi tọa độ địa chỉ, không gửi khoảng cách hay phí ship.
+Công thức: `Khoảng cách tính phí = Khoảng cách đường chim bay (Haversine) * 1.3`
 
-Bảng biểu phí mẫu:
+Bảng biểu phí mẫu áp dụng trên khoảng cách tính phí này:
 
-| Khoảng cách | Phí ship |
+| Khoảng cách (sau bù trừ) | Phí ship |
 | :--- | :--- |
 | 0 – 2 km | 10.000đ |
 | 2 – 5 km | 15.000đ |
@@ -38,5 +37,5 @@ Bảng biểu phí mẫu:
 
 ## Consequences
 
-- **Tốt:** Phí ship chính xác, chống gian lận, hỗ trợ giới hạn bán kính giao hàng.
-- **Chấp nhận:** Phụ thuộc API bên ngoài, cần xử lý fallback khi API lỗi. Có thể cache kết quả cho cùng tọa độ trong thời gian ngắn để giảm chi phí.
+- **Tốt:** Checkout cực nhanh, không bao giờ bị block bởi dịch vụ bản đồ bên ngoài, tiết kiệm hoàn toàn chi phí gọi API bản đồ.
+- **Chấp nhận:** Sẽ có sai số so với đường thực tế ở các khu vực đường hẻm zíc zắc hoặc qua sông, tuy nhiên hệ số 1.3 đã bù đắp phần lớn rủi ro này.
