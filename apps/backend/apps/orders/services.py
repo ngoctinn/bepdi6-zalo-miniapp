@@ -7,6 +7,11 @@ from django.utils import timezone
 
 from apps.customers.models import Address, Customer, User
 from apps.menu.models import Option, Product
+from apps.notifications.tasks import (
+    send_in_app_notification,
+    send_zalo_oa_staff_alert,
+    send_zns_order_delivering,
+)
 from apps.orders.models import AuditLog, Order, OrderItem, OrderItemOption
 from apps.payments.models import Payment
 from apps.shipping.services import (
@@ -144,10 +149,17 @@ class OrderService:
                     "PRODUCT_NOT_FOUND", f"Món '{product.name}' hiện ngưng phục vụ."
                 )
 
-            # Validate options
+            # Validate options and option group rules (BR-PROD-004)
             item_price = product.price
             validated_options = []
             if option_ids:
+                # Check for duplicate option IDs in the same item
+                if len(set(option_ids)) != len(option_ids):
+                    raise OrderProcessingError(
+                        "INVALID_OPTION",
+                        f"Không được chọn trùng lặp tùy chọn trong món '{product.name}'.",
+                    )
+
                 options = Option.objects.filter(
                     pk__in=option_ids, option_group__product=product
                 )
@@ -165,6 +177,24 @@ class OrderService:
                         )
                     item_price += opt.price
                     validated_options.append(opt)
+
+            # Enforce OptionGroup min_select / max_select / is_required rules (BR-PROD-004)
+            option_groups = product.option_groups.all()
+            for group in option_groups:
+                selected_in_group = [
+                    opt for opt in validated_options if opt.option_group_id == group.id
+                ]
+                count = len(selected_in_group)
+                if group.is_required and count < group.min_select:
+                    raise OrderProcessingError(
+                        "INVALID_OPTION",
+                        f"Món '{product.name}' yêu cầu chọn tối thiểu {group.min_select} tùy chọn trong nhóm '{group.name}'.",
+                    )
+                if group.max_select > 0 and count > group.max_select:
+                    raise OrderProcessingError(
+                        "INVALID_OPTION",
+                        f"Món '{product.name}' chỉ cho phép chọn tối đa {group.max_select} tùy chọn trong nhóm '{group.name}'.",
+                    )
 
             item_subtotal = item_price * quantity
             subtotal += item_subtotal
@@ -326,6 +356,17 @@ class OrderService:
                 discount_amount=calculation["discount"],
             )
 
+        # Trigger async notifications after database transaction commits (BR-NOTI-001)
+        transaction.on_commit(lambda: send_zalo_oa_staff_alert.delay(order.id))
+        transaction.on_commit(
+            lambda: send_in_app_notification.delay(
+                customer_id=customer.id,
+                title="Đơn hàng đã được đặt",
+                message=f"Đơn hàng #{order.order_code} đã được gửi đến Bếp Dì 6. Quán sẽ sớm liên hệ xác nhận!",
+                order_id=order.id,
+            )
+        )
+
         return order
 
     @classmethod
@@ -374,5 +415,44 @@ class OrderService:
             old_data=old_data,
             new_data={"status": new_status, "reason": reason},
         )
+
+        # Trigger async notifications on commit (BR-NOTI-001, BR-NOTI-002)
+        if new_status == Order.Status.CONFIRMED:
+            transaction.on_commit(
+                lambda: send_in_app_notification.delay(
+                    customer_id=order.customer_id,
+                    title="Đơn hàng đã được xác nhận",
+                    message=f"Đơn hàng #{order.order_code} đã được xác nhận và đang bắt đầu chế biến!",
+                    order_id=order.id,
+                )
+            )
+        elif new_status == Order.Status.DELIVERING:
+            transaction.on_commit(lambda: send_zns_order_delivering.delay(order.id))
+            transaction.on_commit(
+                lambda: send_in_app_notification.delay(
+                    customer_id=order.customer_id,
+                    title="Đơn hàng đang được giao",
+                    message=f"Đơn hàng #{order.order_code} đang trên đường giao đến bạn!",
+                    order_id=order.id,
+                )
+            )
+        elif new_status == Order.Status.COMPLETED:
+            transaction.on_commit(
+                lambda: send_in_app_notification.delay(
+                    customer_id=order.customer_id,
+                    title="Đơn hàng hoàn tất",
+                    message=f"Đơn hàng #{order.order_code} đã hoàn thành. Cảm ơn bạn đã ủng hộ Bếp Dì 6!",
+                    order_id=order.id,
+                )
+            )
+        elif new_status == Order.Status.CANCELLED:
+            transaction.on_commit(
+                lambda: send_in_app_notification.delay(
+                    customer_id=order.customer_id,
+                    title="Đơn hàng đã bị hủy",
+                    message=f"Đơn hàng #{order.order_code} đã bị hủy. Lý do: {reason or 'Không có'}",
+                    order_id=order.id,
+                )
+            )
 
         return order

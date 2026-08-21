@@ -172,3 +172,55 @@ def test_order_status_state_machine_transitions(test_setup):
     # COMPLETED cannot be cancelled (Terminal state)
     with pytest.raises(InvalidStateTransitionError):
         OrderService.update_order_status(order=order, new_status=Order.Status.CANCELLED)
+
+
+@pytest.mark.django_db
+def test_order_option_group_bounds_validation(test_setup):
+    customer = test_setup["customer"]
+    address = test_setup["address"]
+    product = test_setup["product"]
+    option = test_setup["option"]
+
+    # Make option group required with min=1, max=1
+    group = test_setup["product"].option_groups.first()
+    group.is_required = True
+    group.min_select = 1
+    group.max_select = 1
+    group.save()
+
+    # 1. Missing required option selection -> Error
+    with pytest.raises(OrderProcessingError) as exc:
+        OrderService.create_order(
+            customer=customer,
+            idempotency_key="idemp_missing_opt",
+            address=address,
+            items_data=[{"product_id": product.id, "quantity": 1, "option_ids": []}],
+        )
+    assert exc.value.code == "INVALID_OPTION"
+
+    # 2. Duplicate option id selection -> Error
+    with pytest.raises(OrderProcessingError) as exc_dup:
+        OrderService.create_order(
+            customer=customer,
+            idempotency_key="idemp_dup_opt",
+            address=address,
+            items_data=[
+                {
+                    "product_id": product.id,
+                    "quantity": 1,
+                    "option_ids": [option.id, option.id],
+                }
+            ],
+        )
+    assert exc_dup.value.code == "INVALID_OPTION"
+
+    # 3. Valid single option -> Success
+    valid_order = OrderService.create_order(
+        customer=customer,
+        idempotency_key="idemp_valid_opt",
+        address=address,
+        items_data=[
+            {"product_id": product.id, "quantity": 1, "option_ids": [option.id]}
+        ],
+    )
+    assert valid_order.id is not None
