@@ -50,3 +50,19 @@ addopts = "-ra -q"
 pythonpath = ["apps/backend"]
 DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
+
+[tool.pyright]
+include = ["apps/backend"]
+extraPaths = ["apps/backend"]
+pythonVersion = "3.11"
+reportMissingImports = true
+reportMissingTypeStubs = false
+reportAttributeAccessIssue = false
+reportArgumentType = false
+reportAssignmentType = false
+reportCallIssue = false
+reportOptionalSubscript = false
+reportIndexIssue = false
+reportOptionalMemberAccess = false
+
+

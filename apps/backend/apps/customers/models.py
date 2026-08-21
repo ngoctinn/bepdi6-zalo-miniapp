@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class User(AbstractUser):
@@ -33,10 +34,10 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
+    class Meta(AbstractUser.Meta):
         db_table = "users"
-        verbose_name = "Người dùng"
-        verbose_name_plural = "Người dùng"
+        verbose_name = _("Người dùng")
+        verbose_name_plural = _("Người dùng")
 
     def __str__(self) -> str:
         return f"{self.username} ({self.get_role_display()})"
