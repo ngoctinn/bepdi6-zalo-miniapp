@@ -126,7 +126,7 @@ class Command(BaseCommand):
                 "avatar_url": "https://avatar.iran.liara.run/public/boy",
             },
         )
-        Address.objects.get_or_create(
+        addr, _ = Address.objects.get_or_create(
             customer=cust,
             label="Nhà riêng",
             defaults={
@@ -139,8 +139,73 @@ class Command(BaseCommand):
             },
         )
 
+        # 7. Mock Sample Orders for Testing
+        from apps.orders.services import OrderService
+
+        # Đơn 1: Đơn mới chờ xác nhận (PENDING_CONFIRMATION) - Chuyển khoản VietQR
+        opt_egg = Option.objects.filter(option_group=group_egg).first()
+        try:
+            OrderService.create_order(
+                customer=cust,
+                idempotency_key="idemp_seed_order_001",
+                address=addr,
+                items_data=[
+                    {
+                        "product_id": p1.id,
+                        "quantity": 2,
+                        "option_ids": [opt_egg.id] if opt_egg else [],
+                        "note": "Ít mỡ hành, giao trước sảnh A",
+                    },
+                    {
+                        "product_id": p3.id,
+                        "quantity": 2,
+                        "option_ids": [],
+                        "note": "Ít đá",
+                    },
+                ],
+                delivery_type="ASAP",
+                payment_method="BANK_TRANSFER",
+                voucher_code="BEPDI6CHAOBAN",
+                note="Gọi điện trước khi đến 5 phút nhé quán!",
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Created sample order #1 (VietQR / PENDING_CONFIRMATION)"
+                )
+            )
+        except Exception as e:
+            self.stdout.write(f"Sample order 1 note: {e}")
+
+        # Đơn 2: Đơn COD đang giao hàng (DELIVERING)
+        try:
+            order2 = OrderService.create_order(
+                customer=cust,
+                idempotency_key="idemp_seed_order_002",
+                address=addr,
+                items_data=[
+                    {
+                        "product_id": p2.id,
+                        "quantity": 1,
+                        "option_ids": [],
+                        "note": "Nhiều nước mắm chua ngọt",
+                    },
+                ],
+                delivery_type="ASAP",
+                payment_method="COD",
+                note="Giao gấp giùm mình",
+            )
+            OrderService.update_order_status(order=order2, new_status="CONFIRMED")
+            OrderService.update_order_status(order=order2, new_status="PREPARING")
+            OrderService.update_order_status(order=order2, new_status="READY")
+            OrderService.update_order_status(order=order2, new_status="DELIVERING")
+            self.stdout.write(
+                self.style.SUCCESS("Created sample order #2 (COD / DELIVERING)")
+            )
+        except Exception as e:
+            self.stdout.write(f"Sample order 2 note: {e}")
+
         self.stdout.write(
             self.style.SUCCESS(
-                "Successfully seeded sample menu, vouchers, customer, and address!"
+                "Successfully seeded sample menu, vouchers, customer, address, and sample orders!"
             )
         )
