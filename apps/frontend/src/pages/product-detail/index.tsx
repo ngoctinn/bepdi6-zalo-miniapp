@@ -250,14 +250,12 @@ export default function ProductDetailPage() {
         {/* Product Basic Info */}
         <div className="bg-white p-4">
           <div className="flex items-start justify-between gap-3">
-            <h1 className="text-lg font-bold leading-snug text-neutral900">
+            <h1 className="text-base font-normal leading-snug text-black">
               {product.name}
             </h1>
-            <div className="whitespace-nowrap text-lg font-extrabold text-[#0F172A]">
+            <div className="whitespace-nowrap text-base font-normal text-black">
               {formatCurrency(product.price)}
-              <span className="ml-0.5 text-xs font-semibold text-slate-600">
-                đ
-              </span>
+              <span className="ml-0.5 text-xs text-neutral-500">đ</span>
             </div>
           </div>
           {product.description && (
@@ -368,9 +366,9 @@ export default function ProductDetailPage() {
 
         <div className="mb-3 flex items-center justify-between">
           <Text className="text-xs text-neutral500">Tạm tính</Text>
-          <div className="text-base font-extrabold text-[#0F172A]">
+          <div className="text-base font-extrabold text-[#1E293B]">
             {formatCurrency(totalPrice)}
-            <span className="ml-0.5 text-xs font-semibold text-slate-600">
+            <span className="ml-0.5 text-xs font-semibold text-slate-500">
               đ
             </span>
           </div>

@@ -16,28 +16,30 @@ export default function CategoryList({
   return (
     <div
       className={cn(
-        "horizontal-scroll w-full min-w-0 select-none gap-2 scroll-smooth pr-4",
+        "horizontal-scroll w-full min-w-0 select-none items-center gap-2 scroll-smooth py-1 pr-2",
         props.className,
       )}
       {...props}
     >
-      {categories.map((category) => (
-        <button
-          type="button"
-          key={category.id}
-          className={cn(
-            "text-center text-xs font-medium",
-            "flex shrink-0 items-center justify-center rounded-xl px-3.5 py-2 transition-all active:scale-95",
-            "shadow-2xs whitespace-nowrap",
-            String(category.id) === String(selectedId)
-              ? "shadow-xs border border-primary bg-primary text-white"
-              : "border border-stone-200/80 bg-white text-stone-700 hover:bg-stone-50",
-          )}
-          onClick={() => onCategorySelect?.(category)}
-        >
-          <span>{category.name}</span>
-        </button>
-      ))}
+      {categories.map((category) => {
+        const isSelected = String(category.id) === String(selectedId);
+        return (
+          <button
+            type="button"
+            key={category.id}
+            className={cn(
+              "flex shrink-0 items-center justify-center rounded-full px-4 py-1.5 text-xs transition-all active:scale-95",
+              "whitespace-nowrap select-none",
+              isSelected
+                ? "border border-primary bg-emerald-500/15 font-bold text-primary shadow-xs"
+                : "border border-black/5 bg-black/[0.03] font-medium text-stone-600 hover:bg-black/[0.06]",
+            )}
+            onClick={() => onCategorySelect?.(category)}
+          >
+            <span>{category.name}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

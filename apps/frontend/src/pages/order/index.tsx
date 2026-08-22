@@ -45,17 +45,25 @@ export default function OrderPage() {
   }, [orders, activeTab]);
 
   return (
-    <div className="relative flex h-full flex-col bg-elevation-01">
-      <div className="mx-3.5 mt-2">
-        <Tabs<OrderTab>
-          tabs={tabs}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          fullWidth
-        />
+    <div className="relative flex h-full flex-col bg-transparent">
+      {/* Sticky Header: Tên trang + Tabs dùng chung gradient vàng đồng bộ với Trang chủ */}
+      <div className="sticky top-0 z-30 flex flex-col bg-yellow-gradient pb-2">
+        <div className="header-margin px-3.5 pt-3 pb-1">
+          <h1 className="text-[17px] font-extrabold tracking-tight text-green800">
+            Đơn Hàng Của Tôi
+          </h1>
+        </div>
+        <div className="w-full bg-transparent px-3.5 py-1">
+          <Tabs<OrderTab>
+            tabs={tabs}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+            fullWidth
+          />
+        </div>
       </div>
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-3.5 py-3 pb-20">
+      <div className="no-scrollbar flex-1 overflow-y-auto px-3.5 py-3 pb-24">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Spinner />
@@ -78,7 +86,7 @@ export default function OrderPage() {
               Bạn chưa có đơn hàng nào trong mục này. Hãy đặt món ngay nhé!
             </p>
             <Button
-              onClick={() => navigate("/menu")}
+              onClick={() => navigate("/")}
               className="rounded-xl bg-primary px-6 py-2 text-xs font-semibold text-white"
             >
               Xem thực đơn

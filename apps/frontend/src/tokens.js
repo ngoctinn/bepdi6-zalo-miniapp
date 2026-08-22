@@ -78,6 +78,7 @@ const base = {
     neutral800: "#292524",
     neutral900: "#1C1917",
 
+    yellow25: "#FFFEF7",
     yellow50: "#FEFCE8",
     yellow100: "#FEF9C3",
     yellow200: "#FEF08A",
@@ -126,20 +127,21 @@ const base = {
 
 const semantic = {
   colors: {
-    primary: "#15803D", // Xanh lá cây tươi đậm F&B miền Tây
-    primaryLight: "#DCFCE7",
-    brandYellow: "#FEF08A", // Vàng nhạt ấm cúng
-    background: "#FFFDF0", // Nền app: vàng sáng ấm áp, tươi tắn
-    surface: "#FFFFFF",
-    surfaceSubtle: "#FEF9C3",
-    price: "#0F172A", // Giá tiền: đen xám xanh đậm (Slate-900)
+    primary: base.colors.green600, // #16A34A — Xanh lá tươi sáng
+    primaryDark: base.colors.green800, // #166534 — Màu xanh đậm nhất cho tên quán
+    primaryLight: base.colors.green100, // #DCFCE7
+    brandYellow: base.colors.yellow100, // #FEF9C3
+    background: base.colors.yellow25, // #FFFEF7
+    surface: base.colors.white,
+    surfaceSubtle: base.colors.yellow100,
+    price: base.colors.neutral900, // Giá tiền: đen đậm
     text: {
       primary: base.colors.neutral900,
       secondary: base.colors.neutral600,
       tertiary: base.colors.neutral500,
       disabled: base.colors.neutral400,
-      title: base.colors.neutral900,
-      price: "#0F172A", // Đen xám xanh đậm
+      title: base.colors.green800, // Tên quán màu xanh đậm nhất
+      price: base.colors.neutral900,
     },
     border: {
       primary: base.colors.neutral200,
@@ -147,10 +149,10 @@ const semantic = {
     icon: {
       tertiary: base.colors.neutral500,
     },
-    accent: "#16A34A",
-    info: "#0284C7",
-    warning: "#D97706",
-    danger: "#DC2626",
+    accent: base.colors.green600,
+    info: base.colors.blue500,
+    warning: base.colors.yellow600,
+    danger: base.colors.red600,
     components: {
       list: {
         title: base.colors.neutral900,
@@ -181,14 +183,14 @@ const semantic = {
         },
       },
       sub_cate: {
-        border: "#FEF08A",
+        border: base.colors.yellow200,
       },
       chip: {
         backgroundColor: base.colors.white,
         textOnBackground: base.colors.neutral600,
         border: base.colors.neutral200,
         selected: {
-          backgroundColor: "#15803D",
+          backgroundColor: base.colors.green600,
           textOnBackground: base.colors.white,
         },
         feature: {
@@ -197,7 +199,7 @@ const semantic = {
             textOnBackground: base.colors.neutral600,
           },
           selected: {
-            backgroundColor: "#15803D",
+            backgroundColor: base.colors.green600,
             textOnBackground: base.colors.white,
           },
         },
@@ -205,11 +207,15 @@ const semantic = {
     },
   },
   backgroundImage: {
-    "peach-fade": `linear-gradient(
-                    180deg,
-                    rgba(254, 240, 138, 0.55) 0%,
-                    rgba(255, 253, 240, 0) 100%
-                  )`,
+    "yellow-gradient": `linear-gradient(
+                          180deg,
+                          #FEF08A 0%,
+                          #FEF08A 30%,
+                          #FEF9C3 60%,
+                          #FEFCE8 90%,
+                          #FFFEF7 100%
+                        )`,
+    "peach-fade": "none",
   },
   text: {
     common: {

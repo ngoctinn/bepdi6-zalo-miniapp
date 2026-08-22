@@ -15,11 +15,6 @@ const NAV_ITEMS = [
     icon: HomeIcon,
   },
   {
-    name: copy.nav.menu,
-    path: "/menu",
-    icon: MenuIcon,
-  },
-  {
     name: copy.nav.order,
     path: "/order",
     icon: OrderIcon,

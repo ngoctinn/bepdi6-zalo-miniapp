@@ -6,7 +6,7 @@
       "dark": "white"
     },
     "statusBar": "transparent",
-    "headerColor": "#FFFDF0",
+    "headerColor": "#FEF08A",
     "actionBarHidden": true,
     "hideIOSSafeAreaBottom": true,
     "hideAndroidBottomNavigationBar": false

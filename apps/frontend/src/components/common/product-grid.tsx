@@ -38,7 +38,7 @@ export default function ProductGrid({
       {category && (
         <SectionTitle title={category} image={categoryImg} hideIcon={true} />
       )}
-      <div className="mt-2 grid flex-none grid-cols-2 place-items-center gap-2 md:grid-cols-3">
+      <div className="mt-2 grid grid-cols-2 gap-3 md:grid-cols-3">
         {products.map((product) => (
           <ProductCard
             onClick={() => {

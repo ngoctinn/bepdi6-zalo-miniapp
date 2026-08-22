@@ -175,7 +175,7 @@ export default function CheckoutPage() {
           Hãy chọn các món ăn thơm ngon từ thực đơn Bếp Dì 6 nhé!
         </p>
         <Button
-          onClick={() => navigate("/menu")}
+          onClick={() => navigate("/")}
           className="bg-primary text-white"
         >
           Xem thực đơn
@@ -185,7 +185,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-elevation-01">
+    <div className="flex h-full flex-col bg-transparent">
       <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto p-3.5 pb-32">
         {/* Banner Quán đóng cửa nếu có */}
         {shopInfo && !shopInfo.is_open && (
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
         )}
 
         {/* Địa chỉ giao hàng */}
-        <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-3.5">
+        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-bold text-neutral800">
               📍 ĐỊA CHỈ GIAO HÀNG
@@ -237,7 +237,7 @@ export default function CheckoutPage() {
           ) : (
             <div
               onClick={() => navigate("/select-location")}
-              className="bg-neutral50 flex cursor-pointer items-center justify-between rounded-lg border border-dashed border-neutral300 p-3 text-xs text-neutral600"
+              className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-neutral300 bg-transparent p-3 text-xs text-neutral600"
             >
               <span>+ Vui lòng thêm địa chỉ nhận hàng</span>
               <ChevronRightIcon className="h-4 w-4 text-neutral400" />
@@ -246,7 +246,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Danh sách món ăn */}
-        <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-3.5">
+        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-bold text-neutral800">
               🍲 MÓN ĐÃ CHỌN ({cartItems.length})
@@ -255,13 +255,13 @@ export default function CheckoutPage() {
               size="small"
               type="neutral"
               className="bg-transparent p-0 text-xs font-medium text-primary"
-              onClick={() => navigate("/menu")}
+              onClick={() => navigate("/")}
             >
               + Thêm món
             </Button>
           </div>
 
-          <div className="space-y-3 divide-y divide-neutral100">
+          <div className="space-y-3 divide-y divide-black/5">
             {cartItems.map((item) => (
               <div key={item.id} className="flex gap-3 pt-2 first:pt-0">
                 <img
@@ -270,10 +270,10 @@ export default function CheckoutPage() {
                     "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&auto=format&fit=crop&q=60"
                   }
                   alt={item.product_name}
-                  className="h-12 w-12 shrink-0 rounded-lg bg-neutral100 object-cover"
+                  className="h-12 w-12 shrink-0 rounded-xl bg-amber-100/40 object-cover ring-1 ring-black/5"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold text-neutral900">
+                  <div className="truncate text-sm font-normal text-black">
                     {item.product_name}
                   </div>
                   {item.options && item.options.length > 0 && (
@@ -286,7 +286,7 @@ export default function CheckoutPage() {
                       "{item.note}"
                     </div>
                   )}
-                  <div className="mt-1 text-xs font-extrabold text-[#0F172A]">
+                  <div className="mt-1 text-xs font-normal text-black">
                     {formatCurrency(item.unit_price)}đ
                   </div>
                 </div>
@@ -310,18 +310,18 @@ export default function CheckoutPage() {
           </div>
 
           {/* Ghi chú đơn hàng */}
-          <div className="mt-3 border-t border-neutral100 pt-3">
+          <div className="mt-3 border-t border-black/5 pt-3">
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Ghi chú thêm cho shipper hoặc quán..."
-              className="text-xs"
+              className="bg-transparent text-xs"
             />
           </div>
         </div>
 
         {/* Mã Khuyến Mãi (Voucher) */}
-        <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-3.5">
+        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
           <span className="mb-2 block text-xs font-bold text-neutral800">
             🎟️ MÃ GIẢM GIÁ (VOUCHER)
           </span>
@@ -332,7 +332,7 @@ export default function CheckoutPage() {
                 setVoucherCodeInput(e.target.value.toUpperCase())
               }
               placeholder="Nhập mã voucher..."
-              className="text-xs uppercase"
+              className="bg-transparent text-xs uppercase"
               disabled={Boolean(appliedVoucherCode)}
             />
             {appliedVoucherCode ? (
@@ -366,17 +366,17 @@ export default function CheckoutPage() {
         </div>
 
         {/* Phương Thức Thanh Toán */}
-        <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-3.5">
+        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
           <span className="mb-2.5 block text-xs font-bold text-neutral800">
             💳 PHƯƠNG THỨC THANH TOÁN
           </span>
           <div className="space-y-2">
             <label
               onClick={() => setPaymentMethod("COD")}
-              className={`flex cursor-pointer items-center justify-between rounded-lg border p-2.5 transition-all ${
+              className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
                 paymentMethod === "COD"
-                  ? "border-primary bg-primary/5 font-semibold text-neutral900"
-                  : "border-neutral200 text-neutral600"
+                  ? "border-primary bg-emerald-500/10 font-semibold text-neutral900"
+                  : "border-black/5 bg-transparent text-neutral600"
               }`}
             >
               <div className="flex items-center gap-2 text-xs">
@@ -394,10 +394,10 @@ export default function CheckoutPage() {
 
             <label
               onClick={() => setPaymentMethod("BANK_TRANSFER")}
-              className={`flex cursor-pointer items-center justify-between rounded-lg border p-2.5 transition-all ${
+              className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
                 paymentMethod === "BANK_TRANSFER"
-                  ? "border-primary bg-primary/5 font-semibold text-neutral900"
-                  : "border-neutral200 text-neutral600"
+                  ? "border-primary bg-emerald-500/10 font-semibold text-neutral900"
+                  : "border-black/5 bg-transparent text-neutral600"
               }`}
             >
               <div className="flex items-center gap-2 text-xs">
@@ -416,7 +416,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Bảng tính chi phí (Server Calculated Preview) */}
-        <div className="shadow-2xs space-y-2 rounded-xl border border-neutral100 bg-white p-3.5 text-xs">
+        <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
           <span className="mb-1 block text-xs font-bold text-neutral800">
             📋 CHI TIẾT THANH TOÁN
           </span>
@@ -457,9 +457,9 @@ export default function CheckoutPage() {
             </div>
           ) : null}
 
-          <div className="flex items-center justify-between border-t border-neutral100 pt-2 text-sm font-bold text-neutral900">
+          <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-bold text-neutral900">
             <span>Tổng thanh toán</span>
-            <span className="text-lg font-extrabold text-[#0F172A]">
+            <span className="text-lg font-extrabold text-[#1E293B]">
               {formatCurrency(previewData?.total_amount || 0)}đ
             </span>
           </div>
@@ -467,7 +467,7 @@ export default function CheckoutPage() {
       </div>
 
       {/* Nút bấm Đặt hàng cố định đáy màn hình (Idempotency Safe & Anti-Spam) */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral200 bg-white px-4 py-3 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md">
         <Button
           onClick={handlePlaceOrder}
           disabled={

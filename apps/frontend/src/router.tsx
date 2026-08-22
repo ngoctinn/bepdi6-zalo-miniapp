@@ -2,7 +2,6 @@ import { createBrowserRouter } from "react-router-dom";
 import Layout from "./components/layout";
 import { getBasePath } from "./utils/zma";
 import HomePage from "./pages/home";
-import MenuPage from "./pages/menu";
 import OrderPage from "./pages/order";
 import ProfilePage from "./pages/profile";
 import SearchPage from "./pages/search";
@@ -19,24 +18,30 @@ const router = createBrowserRouter(
       path: "/",
       element: <Layout />,
       children: [
-        { path: "/", element: <HomePage /> },
-        { path: "/menu", element: <MenuPage /> },
+        {
+          path: "/",
+          element: <HomePage />,
+          handle: { hideHeader: true },
+        },
+        {
+          path: "/menu",
+          element: <HomePage />,
+          handle: { hideHeader: true },
+        },
         {
           path: "/order",
           element: <OrderPage />,
           handle: {
             hideCart: true,
+            hideHeader: true,
           },
         },
         {
           path: "/profile",
           element: <ProfilePage />,
           handle: {
-            title: copy.header.profile,
-            back: false,
-            whiteBackground: true,
-            headerPosition: "sticky",
             hideCart: true,
+            hideHeader: true,
           },
         },
         { path: "/menu/search", element: <SearchPage /> },
@@ -55,7 +60,6 @@ const router = createBrowserRouter(
           handle: {
             title: "Xác nhận đơn hàng",
             back: true,
-            whiteBackground: true,
             hideFooter: true,
             headerPosition: "sticky",
           },

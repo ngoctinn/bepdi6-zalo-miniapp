@@ -38,8 +38,8 @@ export default function CartSheet({
 
   return (
     <Sheet autoHeight visible={visible} onClose={onClose}>
-      <div className="relative flex max-h-[70vh] w-full flex-col overflow-y-scroll bg-[#FAFAF5]">
-        <div className="flex items-center px-4 py-2">
+      <div className="relative flex max-h-[75vh] w-full flex-col overflow-y-scroll bg-background">
+        <div className="flex items-center px-4 py-3 border-b border-black/5">
           <Button
             onClick={onClose}
             className="absolute flex h-8 w-8 items-center justify-center bg-transparent active:bg-transparent"
@@ -49,12 +49,12 @@ export default function CartSheet({
           >
             <CloseIcon />
           </Button>
-          <div className="flex-1 py-1 text-center text-xlarge-m">
+          <div className="flex-1 py-1 text-center text-base font-bold text-green800">
             {copy.common.updateCart}
           </div>
         </div>
 
-        <div className="w-full overflow-y-auto bg-[#FEFCE8] p-2">
+        <div className="w-full overflow-y-auto bg-transparent p-3">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-4 py-16">
               <div className="mb-4 flex h-32 w-32 items-center justify-center rounded-full bg-neutral100">

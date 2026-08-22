@@ -24,41 +24,46 @@ export function Tabs<T extends string>({
   className = "",
 }: TabsProps<T>) {
   return (
-    <div className={cn("rounded-xl bg-white p-1", className)}>
-      <div className="flex gap-1">
-        {tabs.map((tab) => {
-          const isActive = tab.value === activeTab;
-          return (
-            <button
-              key={tab.value}
-              onClick={() => onChange(tab.value)}
-              className={cn(
-                "flex items-center justify-center rounded-xl px-2.5 py-2 text-small transition-colors",
-                fullWidth ? "w-full" : "w-auto",
-                isActive ? "bg-primary !text-white" : "!text-text-secondary",
-              )}
-              type="button"
-            >
-              {tab.icon && (
-                <span className="mr-2 flex-shrink-0">{tab.icon}</span>
-              )}
-              <span className="truncate">{tab.label}</span>
-              {tab.badge !== undefined && (
-                <span
-                  className={cn(
-                    "ml-2 rounded-full px-1.5 text-xs",
-                    isActive
-                      ? "bg-white/20 text-white"
-                      : "bg-primary/10 text-primary",
-                  )}
-                >
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+    <div
+      className={cn(
+        "horizontal-scroll w-full min-w-0 select-none items-center gap-2 scroll-smooth bg-transparent py-1",
+        fullWidth ? "flex justify-between" : "flex",
+        className,
+      )}
+    >
+      {tabs.map((tab) => {
+        const isActive = tab.value === activeTab;
+        return (
+          <button
+            key={tab.value}
+            onClick={() => onChange(tab.value)}
+            className={cn(
+              "flex shrink-0 items-center justify-center rounded-full px-4 py-1.5 text-xs transition-all active:scale-95",
+              "whitespace-nowrap select-none",
+              fullWidth ? "flex-1" : "w-auto",
+              isActive
+                ? "border border-primary bg-emerald-500/15 font-bold text-primary shadow-xs"
+                : "border border-black/5 bg-black/[0.03] font-medium text-stone-600 hover:bg-black/[0.06]",
+            )}
+            type="button"
+          >
+            {tab.icon && <span className="mr-1.5 flex-shrink-0">{tab.icon}</span>}
+            <span className="truncate">{tab.label}</span>
+            {tab.badge !== undefined && (
+              <span
+                className={cn(
+                  "ml-1.5 rounded-full px-1.5 text-[10px] font-bold",
+                  isActive
+                    ? "bg-primary text-white"
+                    : "bg-black/10 text-stone-600",
+                )}
+              >
+                {tab.badge}
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

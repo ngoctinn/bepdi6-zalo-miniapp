@@ -27,7 +27,7 @@ export default function CartItemCard({
     "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&auto=format&fit=crop&q=60";
 
   return (
-    <div className="flex gap-3 rounded-xl border border-stone-200/40 bg-[#F5F4EE] p-3 shadow-sm">
+    <div className="flex gap-3 rounded-2xl border border-black/5 bg-transparent p-3 shadow-xs">
       <img
         draggable={false}
         src={imageUrl}
@@ -51,11 +51,9 @@ export default function CartItemCard({
           </Text>
         )}
 
-        <div className="mt-1 text-xs font-extrabold text-[#0F172A]">
+        <div className="mt-1 text-xs font-normal text-black">
           {formatCurrency(itemUnitPrice)}
-          <span className="ml-0.5 text-xxsmall font-semibold text-slate-600">
-            đ
-          </span>
+          <span className="ml-0.5 text-xxsmall text-neutral-500">đ</span>
         </div>
 
         {onEdit && (

@@ -42,8 +42,8 @@ export default function CheckoutSheet({
 
   return (
     <Sheet autoHeight visible={visible} onClose={onClose}>
-      <div className="flex max-h-[70vh] flex-col bg-white">
-        <div className="relative flex items-center px-4 py-2">
+      <div className="flex max-h-[75vh] flex-col bg-background">
+        <div className="relative flex items-center px-4 py-3 border-b border-black/5">
           <Button
             onClick={onClose}
             className="absolute flex h-8 w-8 items-center justify-center bg-transparent active:bg-transparent"
@@ -53,12 +53,12 @@ export default function CheckoutSheet({
           >
             <CloseIcon />
           </Button>
-          <div className="flex-1 py-1 text-center text-xlarge-m">
+          <div className="flex-1 py-1 text-center text-base font-bold text-green800">
             {copy.cart.title}
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-elevation-01 p-2">
+        <div className="flex-1 overflow-y-auto bg-transparent p-3">
           <div className="flex flex-col gap-2">
             {items.map((item) => (
               <CartItemCard

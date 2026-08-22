@@ -19,7 +19,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
   return (
     <div
       onClick={() => navigate(`/order/${order.id}`)}
-      className="shadow-2xs w-full cursor-pointer rounded-xl border border-neutral100 bg-white p-3.5 transition-transform active:scale-[0.99]"
+      className="w-full cursor-pointer rounded-2xl border border-black/5 bg-transparent p-3.5 transition-all active:scale-[0.99] active:bg-black/[0.02]"
     >
       <div className="mb-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -31,42 +31,42 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
           </span>
         </div>
         <span
-          className={`rounded-full px-2 py-0.5 text-xxsmall font-bold ${
+          className={`rounded-full px-2.5 py-0.5 text-xxsmall font-bold ${
             isCancelled
-              ? "bg-red-100 text-red-700"
+              ? "bg-red-500/10 text-red-600 border border-red-200/50"
               : isCompleted
-                ? "bg-green-100 text-green-700"
-                : "bg-amber-100 text-amber-800"
+                ? "bg-emerald-500/15 text-primary border border-primary/30"
+                : "bg-amber-500/15 text-amber-800 border border-amber-300/50"
           }`}
         >
           {order.status_display || order.status}
         </span>
       </div>
 
-      <div className="bg-neutral50 mb-2.5 space-y-1 rounded-lg p-2 text-xs">
+      <div className="mb-2.5 space-y-1 rounded-xl border border-black/5 bg-black/[0.02] p-2.5 text-xs">
         {order.items?.map((item) => (
           <div
             key={item.id}
-            className="flex items-center justify-between text-neutral700"
+            className="flex items-center justify-between text-neutral800"
           >
-            <span className="truncate pr-2">
+            <span className="truncate pr-2 font-normal">
               {item.product_name}{" "}
               <span className="font-normal text-neutral400">
                 x{item.quantity}
               </span>
             </span>
-            <span className="shrink-0 font-semibold">
+            <span className="shrink-0 font-normal text-black">
               {formatCurrency(item.subtotal)}đ
             </span>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-between border-t border-neutral100 pt-1 text-xs">
+      <div className="flex items-center justify-between border-t border-black/5 pt-1.5 text-xs">
         <span className="text-neutral500">
           Tổng cộng ({totalQuantity} món):
         </span>
-        <span className="text-sm font-extrabold text-[#0F172A]">
+        <span className="text-sm font-normal text-black">
           {formatCurrency(order.total_amount)}đ
         </span>
       </div>

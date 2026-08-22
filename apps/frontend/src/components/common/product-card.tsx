@@ -1,6 +1,7 @@
 import { Product } from "@/types/product.types";
 import { formatCurrency } from "@/utils/format";
 import { useNavigate } from "react-router-dom";
+import { useCartStore } from "@/stores/cart.store";
 
 interface ProductCardProps {
   product: Product;
@@ -14,6 +15,7 @@ export default function ProductCard({
   onAddToCart,
 }: ProductCardProps) {
   const navigate = useNavigate();
+  const { items, addToCart, updateQuantity, removeFromCart } = useCartStore();
 
   const handleCardClick = () => {
     if (onClick) {
@@ -31,12 +33,59 @@ export default function ProductCard({
 
   const isOutOfStock = product.status === "OUT_OF_STOCK";
 
+  // Số lượng của món này hiện có trong giỏ hàng
+  const cartItemsForProduct = items.filter(
+    (item) => item.product_id === product.id,
+  );
+  const totalQuantityInCart = cartItemsForProduct.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
+
+  const hasRequiredOptions =
+    product.option_groups &&
+    product.option_groups.some(
+      (group) => group.is_required && group.options && group.options.length > 0,
+    );
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onAddToCart) {
+      onAddToCart();
+      return;
+    }
+
+    if (totalQuantityInCart === 0) {
+      // Khi chưa chọn: Bấm dấu + luôn mở trang chi tiết món ăn
+      navigate(`/product/${product.id}`);
+      return;
+    }
+
+    // Khi đã có trong giỏ hàng: Tăng số lượng
+    if (cartItemsForProduct.length > 0) {
+      const lastItem = cartItemsForProduct[cartItemsForProduct.length - 1];
+      updateQuantity(lastItem.id, lastItem.quantity + 1);
+    }
+  };
+
+  const handleQuickDecrease = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (cartItemsForProduct.length === 0) return;
+
+    const lastItem = cartItemsForProduct[cartItemsForProduct.length - 1];
+    if (lastItem.quantity > 1) {
+      updateQuantity(lastItem.id, lastItem.quantity - 1);
+    } else {
+      removeFromCart(lastItem.id);
+    }
+  };
+
   return (
     <div
       className="group flex w-full cursor-pointer flex-col transition-all active:opacity-85"
       onClick={handleCardClick}
     >
-      {/* Large Product Image */}
+      {/* Large Product Image with Quantity Badge */}
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-amber-100/40 shadow-xs ring-1 ring-black/5">
         {isOutOfStock && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/45 backdrop-blur-[2px]">
@@ -45,6 +94,13 @@ export default function ProductCard({
             </span>
           </div>
         )}
+
+        {totalQuantityInCart > 0 && (
+          <div className="absolute right-2 top-2 z-20 flex h-6 min-w-[24px] items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-white shadow-md">
+            {totalQuantityInCart}
+          </div>
+        )}
+
         <img
           draggable={false}
           src={imageUrl}
@@ -56,7 +112,7 @@ export default function ProductCard({
 
       {/* Product Info & Price Below */}
       <div className="mt-2 flex flex-col">
-        <div className="line-clamp-2 min-h-[38px] text-[14px] font-bold leading-snug text-neutral-900">
+        <div className="line-clamp-2 min-h-[36px] text-[13.5px] font-normal leading-snug text-black">
           {product.name}
         </div>
         {product.description && (
@@ -67,41 +123,86 @@ export default function ProductCard({
       </div>
 
       <div className="mt-1 flex items-center justify-between pt-1">
-        <div className="text-[15px] font-extrabold tracking-tight text-[#0F172A]">
+        <div className="text-[14px] font-normal text-black">
           {formatCurrency(product.price)}
-          <span className="ml-0.5 text-xs font-semibold text-slate-600">
-            đ
-          </span>
+          <span className="ml-0.5 text-xs text-neutral-500">đ</span>
         </div>
 
         {!isOutOfStock && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onAddToCart) {
-                onAddToCart();
-              } else {
-                handleCardClick();
-              }
-            }}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0F172A] text-white shadow-xs transition-transform active:scale-90"
-            aria-label="Thêm vào giỏ"
-          >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
+          <div>
+            {totalQuantityInCart > 0 ? (
+              <div
+                className="flex items-center gap-1.5"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={handleQuickDecrease}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-emerald-50 text-primary transition-transform active:scale-90"
+                  aria-label="Giảm số lượng"
+                >
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </button>
+
+                <span className="min-w-[16px] text-center text-xs font-extrabold text-[#1E293B]">
+                  {totalQuantityInCart}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleQuickAdd}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-xs transition-transform active:scale-90"
+                  aria-label="Tăng số lượng"
+                >
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleQuickAdd}
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-xs transition-transform active:scale-90"
+                aria-label="Thêm vào giỏ"
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

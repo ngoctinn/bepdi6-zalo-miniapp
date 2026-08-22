@@ -282,7 +282,7 @@ export default function OrderDetailPage() {
         )}
 
         {/* Địa chỉ giao hàng */}
-        <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-3.5">
+        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
           <span className="mb-2 block text-xs font-bold text-neutral800">
             📍 ĐỊA CHỈ NHẬN HÀNG
           </span>
@@ -302,20 +302,20 @@ export default function OrderDetailPage() {
         </div>
 
         {/* Danh sách món ăn */}
-        <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-3.5">
+        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
           <span className="mb-2.5 block text-xs font-bold text-neutral800">
             🍲 CHI TIẾT MÓN ĂN ({order.items.length})
           </span>
-          <div className="space-y-3 divide-y divide-neutral100">
+          <div className="space-y-3 divide-y divide-black/5">
             {order.items.map((item) => (
               <div
                 key={item.id}
                 className="flex items-start justify-between pt-2 first:pt-0"
               >
                 <div className="flex-1 pr-3">
-                  <div className="text-xs font-bold text-neutral900">
+                  <div className="text-xs font-normal text-black">
                     {item.product_name}{" "}
-                    <span className="font-normal text-primary">
+                    <span className="font-normal text-neutral500">
                       x{item.quantity}
                     </span>
                   </div>
@@ -330,7 +330,7 @@ export default function OrderDetailPage() {
                     </div>
                   )}
                 </div>
-                <span className="whitespace-nowrap text-xs font-semibold text-neutral900">
+                <span className="whitespace-nowrap text-xs font-normal text-black">
                   {formatCurrency(item.subtotal)}đ
                 </span>
               </div>
@@ -339,7 +339,7 @@ export default function OrderDetailPage() {
         </div>
 
         {/* Chi tiết thanh toán */}
-        <div className="shadow-2xs space-y-2 rounded-xl border border-neutral100 bg-white p-3.5 text-xs">
+        <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
           <span className="mb-1 block text-xs font-bold text-neutral800">
             📋 TỔNG CỘNG HÓA ĐƠN
           </span>
@@ -357,9 +357,9 @@ export default function OrderDetailPage() {
               <span>-{formatCurrency(order.discount)}đ</span>
             </div>
           )}
-          <div className="flex items-center justify-between border-t border-neutral100 pt-2 text-sm font-bold text-neutral900">
+          <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-bold text-neutral900">
             <span>Tổng thanh toán</span>
-            <span className="text-base text-primary">
+            <span className="text-lg font-extrabold text-[#1E293B]">
               {formatCurrency(order.total_amount)}đ
             </span>
           </div>

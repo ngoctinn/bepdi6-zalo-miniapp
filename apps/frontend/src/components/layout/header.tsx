@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Button, Text } from "zmp-ui";
-import Logo from "../common/logo";
+import { Button } from "zmp-ui";
 import { BackIcon } from "../common/vectors";
-import { copy, theme } from "@/constants/copy";
+import { theme } from "@/constants/copy";
 
 interface HeaderProps {
   title?: string;
@@ -40,11 +39,10 @@ export default function Header({ title, back, position }: HeaderProps) {
 
   return (
     <div
-      className={`${positionClass} header-margin left-0 top-0 z-20 flex h-12 w-full items-center gap-1.5 bg-background px-4 py-2 pr-24`}
+      className={`${positionClass} header-margin left-0 top-0 z-20 flex h-12 w-full items-center bg-yellow-gradient px-4 py-2 pr-24`}
     >
-      <Logo />
-      <div className="truncate text-base font-bold text-primary">
-        {copy.brand.name}
+      <div className="truncate text-base font-extrabold text-green800">
+        Bếp Dì 6 - Mắm Chưng Miền Tây
       </div>
     </div>
   );
