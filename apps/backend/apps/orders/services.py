@@ -14,6 +14,7 @@ from apps.notifications.tasks import (
 )
 from apps.orders.models import AuditLog, Order, OrderItem, OrderItemOption
 from apps.payments.models import Payment
+from apps.shipping.models import ShopConfig
 from apps.shipping.services import (
     ShippingService,
 )
@@ -82,10 +83,15 @@ class OrderService:
 
     @classmethod
     def generate_vietqr_url(cls, amount: Decimal, order_code: str) -> str:
-        """Generates VietQR quick pay image link."""
-        bank_id = getattr(settings, "VIETQR_BANK_ID", "MB")
-        account_no = getattr(settings, "VIETQR_ACCOUNT_NO", "")
-        account_name = getattr(settings, "VIETQR_ACCOUNT_NAME", "BEP DI 6")
+        """Generates VietQR quick pay image link using dynamic shop config."""
+        config = ShopConfig.get_solo()
+        bank_id = config.vietqr_bank_id or getattr(settings, "VIETQR_BANK_ID", "MB")
+        account_no = config.vietqr_account_no or getattr(
+            settings, "VIETQR_ACCOUNT_NO", ""
+        )
+        account_name = config.vietqr_account_name or getattr(
+            settings, "VIETQR_ACCOUNT_NAME", "BEP DI 6"
+        )
         amount_int = int(amount)
         return (
             f"https://img.vietqr.io/image/{bank_id}-{account_no}-compact2.png"
@@ -102,21 +108,27 @@ class OrderService:
     ) -> dict:
         """
         Validates cart items, options, calculates subtotal, distance, shipping fee, discount, total.
+        Enforces BR-SHOP-002 (Shop Open), BR-SHOP-003 (Min Order Amount), BR-DELI-003 (Freeship & Tiers).
         Returns calculated breakdown dict.
         """
         if not items_data:
             raise OrderProcessingError("INVALID_CART", "Giỏ hàng không được để trống.")
 
-        # 1. Shipping calculation
-        shipping_info = ShippingService.calculate_shipping(
-            destination_lat=address.latitude,
-            destination_lon=address.longitude,
-        )
-        if not shipping_info["is_deliverable"]:
+        # 0. Check Shop Open status & operational hours (BR-SHOP-002)
+        shop_config = ShopConfig.get_solo()
+        if not shop_config.is_open:
             raise OrderProcessingError(
-                "OUT_OF_DELIVERY_RADIUS",
-                "Địa chỉ giao hàng nằm ngoài bán kính phục vụ của cửa hàng.",
+                "SHOP_CLOSED",
+                "Quán hiện đang tạm ngưng nhận đơn hàng trực tuyến. Vui lòng quay lại sau!",
             )
+
+        now_time = timezone.localtime().time()
+        if shop_config.open_time and shop_config.close_time:
+            if not (shop_config.open_time <= now_time <= shop_config.close_time):
+                raise OrderProcessingError(
+                    "SHOP_CLOSED",
+                    f"Quán chỉ nhận đơn trong khung giờ {shop_config.open_time.strftime('%H:%M')} - {shop_config.close_time.strftime('%H:%M')}.",
+                )
 
         # 2. Validate products & options and compute subtotal
         subtotal = Decimal("0.00")
@@ -209,6 +221,28 @@ class OrderService:
                     "subtotal": item_subtotal,
                     "options": validated_options,
                 }
+            )
+
+        # Enforce Minimum Order Amount (BR-SHOP-003)
+        if (
+            shop_config.min_order_amount > Decimal("0.00")
+            and subtotal < shop_config.min_order_amount
+        ):
+            raise OrderProcessingError(
+                "ORDER_AMOUNT_BELOW_MINIMUM",
+                f"Đơn hàng phải đạt tối thiểu {shop_config.min_order_amount:,.0f}đ để được đặt giao.",
+            )
+
+        # 2. Shipping calculation (distance, tiers, freeship)
+        shipping_info = ShippingService.calculate_shipping(
+            destination_lat=address.latitude,
+            destination_lon=address.longitude,
+            order_subtotal=subtotal,
+        )
+        if not shipping_info["is_deliverable"]:
+            raise OrderProcessingError(
+                "OUT_OF_DELIVERY_RADIUS",
+                "Địa chỉ giao hàng nằm ngoài bán kính phục vụ của cửa hàng.",
             )
 
         # 3. Voucher calculation

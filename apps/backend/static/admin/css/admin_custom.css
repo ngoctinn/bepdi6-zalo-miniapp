@@ -1,0 +1,70 @@
+/*
+ * Django Unfold Mobile Optimization & Vietnamese Localization
+ */
+
+/* 1. Khoảng đệm đáy trang trên mobile để floating action bar không che các dòng cuối */
+#changelist-form,
+.result-list-wrapper {
+    padding-bottom: 5.5rem;
+}
+
+/* 2. Fix thanh Action Bar trên Mobile (màn hình < 1024px) */
+/* Unfold mặc định dùng x-bind:style="{left: sidebarDesktopOpen ? sidebarWidth : 0}" khiến trên mobile thanh action bị đẩy lệch tuốt sang phải ngoài màn hình */
+@media (max-width: 1023px) {
+    #changelist-actions-wrapper,
+    div:has(> #changelist-actions-wrapper) {
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+    }
+
+    #changelist-actions {
+        width: calc(100% - 1rem) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+}
+
+/* 3. Việt hóa nhãn tự sinh checkbox */
+@media (max-width: 1024px) {
+    td[data-label*="Select Record"]::before,
+    td[data-label*="Select record"]::before {
+        content: "Chọn đơn hàng" !important;
+    }
+
+    /* Chỉ mở rộng chiều cao cho riêng cột danh sách món đặt nhiều dòng trên mobile */
+    td.field-items_summary_display {
+        height: auto !important;
+        min-height: 45px !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+}
+
+/* 4. Trên Desktop: Giữ các cột ngắn (Người nhận, Tổng tiền, Ngày giờ, Điện thoại, Mã đơn...) trên 1 dòng */
+@media (min-width: 1024px) {
+    td.field-recipient_name,
+    td.field-total_amount_formatted,
+    td.field-created_at_formatted,
+    td.field-phone,
+    td.field-order_code,
+    td.field-status_badge,
+    td.field-payment_badge,
+    td.field-is_required_badge,
+    td.field-is_default_badge,
+    td.field-price_display,
+    td.field-unit_price_display,
+    td.field-subtotal_display,
+    td.field-date_joined_formatted,
+    td.field-start_at_formatted,
+    td.field-end_at_formatted,
+    td.field-used_at_formatted,
+    td.field-paid_at_formatted,
+    td.field-updated_at_formatted,
+    td.field-role_badge,
+    td.field-read_badge {
+        white-space: nowrap !important;
+    }
+}

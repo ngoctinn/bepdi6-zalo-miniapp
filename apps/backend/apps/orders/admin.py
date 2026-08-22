@@ -1,26 +1,60 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from unfold.admin import ModelAdmin, StackedInline, TabularInline
+from unfold.decorators import action, display
 
 from apps.orders.models import AuditLog, Order, OrderItem, OrderItemOption
 from apps.payments.models import Payment
 
 
-class OrderItemOptionInline(admin.TabularInline):
+class OrderItemOptionInline(TabularInline):
     model = OrderItemOption
     extra = 0
+    hide_title = True
     readonly_fields = ["option_name", "price", "quantity"]
 
 
-class OrderItemInline(admin.StackedInline):
+class OrderItemInline(StackedInline):
     model = OrderItem
     extra = 0
-    readonly_fields = ["product_name", "unit_price", "quantity", "subtotal", "note"]
+    hide_title = True
+    readonly_fields = [
+        "product_name",
+        "unit_price",
+        "quantity",
+        "subtotal",
+        "note",
+        "options_display",
+    ]
+    fields = [
+        "product_name",
+        "unit_price",
+        "quantity",
+        "subtotal",
+        "note",
+        "options_display",
+    ]
+
+    @display(description="Tùy chọn đã chọn")
+    def options_display(self, obj):
+        options = obj.options.all()
+        if not options.exists():
+            return "-"
+        items_html = "".join(
+            f'<li style="margin-bottom: 2px;">• <b>{opt.option_name}</b> (+{opt.price:,.0f}đ x{opt.quantity})</li>'
+            for opt in options
+        )
+        return format_html(
+            '<ul style="margin: 0; padding-left: 0; list-style-type: none; font-size: 0.875rem;">{}</ul>',
+            format_html(items_html),
+        )
 
 
-class PaymentInline(admin.StackedInline):
+class PaymentInline(StackedInline):
     model = Payment
     extra = 0
     can_delete = False
+    hide_title = True
     fields = [
         "method",
         "status",
@@ -35,29 +69,49 @@ class PaymentInline(admin.StackedInline):
 
     @admin.display(description="Mã VietQR Preview")
     def vietqr_preview(self, obj):
-        if obj.qr_code_url:
-            return format_html(
-                '<a href="{}" target="_blank"><img src="{}" style="max-width: 200px; border-radius: 8px; border: 1px solid #ddd;" /></a>',
-                obj.qr_code_url,
-                obj.qr_code_url,
+        if not obj or not obj.order:
+            return "Không có"
+        if obj.method == Payment.Method.BANK_TRANSFER:
+            from apps.orders.services import OrderService
+
+            qr_url = obj.qr_code_url or OrderService.generate_vietqr_url(
+                obj.amount, obj.order.order_code
             )
-        return "Không có"
+            return format_html(
+                '<div style="margin-top: 4px;">'
+                '<a href="{}" target="_blank" title="Bấm để mở ảnh QR kích thước lớn">'
+                '<img src="{}" style="max-width: 220px; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" />'
+                "</a>"
+                '<p style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">(Bấm vào ảnh để xem toàn màn hình)</p>'
+                "</div>",
+                qr_url,
+                qr_url,
+            )
+        return "Không áp dụng (Tiền mặt COD)"
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ModelAdmin):
     list_display = [
         "order_code",
+        "items_summary_display",
         "recipient_name",
         "phone",
         "status_badge",
-        "payment_status_badge",
-        "total_amount_display",
-        "payment_method",
-        "created_at",
+        "payment_badge",
+        "total_amount_formatted",
+        "created_at_formatted",
     ]
+    list_display_links = ["order_code", "items_summary_display"]
     list_filter = ["status", "payment__status", "payment_method", "created_at"]
-    search_fields = ["order_code", "recipient_name", "phone", "delivery_address"]
+    search_fields = [
+        "order_code",
+        "recipient_name",
+        "phone",
+        "delivery_address",
+        "items__product_name",
+    ]
+    date_hierarchy = "created_at"
     readonly_fields = [
         "order_code",
         "idempotency_key",
@@ -68,58 +122,152 @@ class OrderAdmin(admin.ModelAdmin):
         "total_amount",
         "created_at",
     ]
-    inlines = [PaymentInline, OrderItemInline]
+    inlines = [OrderItemInline, PaymentInline]
     actions = [
         "action_confirm_orders",
-        "action_verify_vietqr_paid",
         "action_mark_preparing",
         "action_mark_ready",
         "action_mark_delivering",
         "action_mark_completed",
+        "action_verify_vietqr_paid",
+        "action_cancel_orders",
     ]
 
-    @admin.display(description="Trạng thái đơn")
-    def status_badge(self, obj):
-        colors = {
-            Order.Status.PENDING_CONFIRMATION: "#EAB308",  # Yellow
-            Order.Status.CONFIRMED: "#3B82F6",  # Blue
-            Order.Status.PREPARING: "#8B5CF6",  # Purple
-            Order.Status.READY: "#06B6D4",  # Cyan
-            Order.Status.DELIVERING: "#F97316",  # Orange
-            Order.Status.COMPLETED: "#10B981",  # Green
-            Order.Status.CANCELLED: "#EF4444",  # Red
-        }
-        color = colors.get(obj.status, "#6B7280")
-        return format_html(
-            '<span style="background-color: {}; color: white; padding: 4px 10px; border-radius: 9999px; font-weight: bold; font-size: 11px;">{}</span>',
-            color,
-            obj.get_status_display(),
-        )
-
-    @admin.display(description="Thanh toán")
-    def payment_status_badge(self, obj):
-        if not hasattr(obj, "payment"):
+    @display(description="Món đặt")
+    def items_summary_display(self, obj):
+        items = obj.items.prefetch_related("options").all()
+        if not items.exists():
             return "-"
-        status = obj.payment.status
-        colors = {
-            Payment.Status.PAID: "#10B981",  # Green
-            Payment.Status.UNPAID: "#EF4444",  # Red
-            Payment.Status.PENDING: "#F59E0B",  # Orange
-            Payment.Status.REFUNDED: "#6B7280",  # Gray
-        }
-        color = colors.get(status, "#6B7280")
+        lines = []
+        for item in items:
+            item_part = [f"<div><b>{item.product_name}</b> x{item.quantity}</div>"]
+            for o in item.options.all():
+                item_part.append(
+                    f'<div style="color: #64748b; font-size: 0.8125rem; padding-left: 6px;">+ {o.option_name}</div>'
+                )
+            if item.note:
+                item_part.append(
+                    f'<div style="color: #0284c7; font-size: 0.8125rem; padding-left: 6px; font-style: italic;">{item.note}</div>'
+                )
+            lines.append("".join(item_part))
+        if obj.note:
+            lines.append(
+                f'<div style="color: #b45309; font-size: 0.8125rem; font-style: italic;">{obj.note}</div>'
+            )
         return format_html(
-            '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 11px;">{}</span>',
-            color,
-            obj.payment.get_status_display(),
+            '<div style="line-height: 1.35; display: flex; flex-direction: column; gap: 4px; text-align: left;">{}</div>',
+            format_html("".join(lines)),
         )
 
-    @admin.display(description="Tổng tiền")
-    def total_amount_display(self, obj):
-        formatted_price = f"{obj.total_amount:,.0f}đ"
-        return format_html("<b>{}</b>", formatted_price)
+    @display(
+        description="Trạng thái đơn",
+        ordering="status",
+        label={
+            Order.Status.PENDING_CONFIRMATION: "warning",
+            Order.Status.CONFIRMED: "info",
+            Order.Status.PREPARING: "info",
+            Order.Status.READY: "info",
+            Order.Status.DELIVERING: "info",
+            Order.Status.COMPLETED: "success",
+            Order.Status.CANCELLED: "danger",
+        },
+    )
+    def status_badge(self, obj):
+        return obj.status, obj.get_status_display()
 
-    @admin.action(description="✅ [Nhân viên] Xác nhận ĐÃ NHẬN TIỀN VietQR (PAID)")
+    @display(
+        description="Thanh toán",
+        ordering="payment__status",
+        label={
+            Payment.Status.UNPAID: "warning",
+            Payment.Status.PENDING: "warning",
+            Payment.Status.PAID: "success",
+            Payment.Status.FAILED: "danger",
+            Payment.Status.REFUNDED: "info",
+        },
+    )
+    def payment_badge(self, obj):
+        if not hasattr(obj, "payment"):
+            return None, "-"
+        return obj.payment.status, obj.payment.get_status_display()
+
+    @display(description="Tổng tiền", ordering="total_amount")
+    def total_amount_formatted(self, obj):
+        return f"{obj.total_amount:,.0f} đ"
+
+    @display(description="Thời gian đặt", ordering="created_at")
+    def created_at_formatted(self, obj):
+        from django.utils import timezone
+
+        local_time = timezone.localtime(obj.created_at)
+        return local_time.strftime("%d/%m/%Y %H:%M")
+
+    @action(description="✅ Xác nhận đơn")
+    def action_confirm_orders(self, request, queryset):
+        from apps.orders.services import OrderService
+
+        count = 0
+        for order in queryset:
+            if order.status == Order.Status.PENDING_CONFIRMATION:
+                OrderService.update_order_status(
+                    order, Order.Status.CONFIRMED, user=request.user
+                )
+                count += 1
+        self.message_user(request, f"Đã xác nhận {count} đơn hàng.")
+
+    @action(description="🍳 Chuyển bếp làm món")
+    def action_mark_preparing(self, request, queryset):
+        from apps.orders.services import OrderService
+
+        count = 0
+        for order in queryset:
+            if order.status == Order.Status.CONFIRMED:
+                OrderService.update_order_status(
+                    order, Order.Status.PREPARING, user=request.user
+                )
+                count += 1
+        self.message_user(request, f"Đã chuyển {count} đơn sang làm món.")
+
+    @action(description="📦 Báo đã làm xong")
+    def action_mark_ready(self, request, queryset):
+        from apps.orders.services import OrderService
+
+        count = 0
+        for order in queryset:
+            if order.status == Order.Status.PREPARING:
+                OrderService.update_order_status(
+                    order, Order.Status.READY, user=request.user
+                )
+                count += 1
+        self.message_user(request, f"Đã chuyển {count} đơn sang sẵn sàng giao.")
+
+    @action(description="🛵 Bàn giao shipper")
+    def action_mark_delivering(self, request, queryset):
+        from apps.orders.services import OrderService
+
+        count = 0
+        for order in queryset:
+            if order.status == Order.Status.READY:
+                OrderService.update_order_status(
+                    order, Order.Status.DELIVERING, user=request.user
+                )
+                count += 1
+        self.message_user(request, f"Đã chuyển {count} đơn sang đang giao.")
+
+    @action(description="🎉 Giao thành công")
+    def action_mark_completed(self, request, queryset):
+        from apps.orders.services import OrderService
+
+        count = 0
+        for order in queryset:
+            if order.status == Order.Status.DELIVERING:
+                OrderService.update_order_status(
+                    order, Order.Status.COMPLETED, user=request.user
+                )
+                count += 1
+        self.message_user(request, f"Đã hoàn tất {count} đơn hàng.")
+
+    @action(description="💳 Xác nhận thanh toán")
     def action_verify_vietqr_paid(self, request, queryset):
         from django.utils import timezone
 
@@ -137,69 +285,99 @@ class OrderAdmin(admin.ModelAdmin):
                     payment.verified_by = request.user
                 payment.save()
                 count += 1
-        self.message_user(
-            request, f"Đã xác nhận thanh toán thành công cho {count} đơn hàng."
-        )
+        self.message_user(request, f"Đã xác nhận thanh toán {count} đơn hàng.")
 
-    @admin.action(description="📞 [Nhân viên] Xác nhận đơn hàng (CONFIRMED)")
-    def action_confirm_orders(self, request, queryset):
+    @action(description="❌ Hủy đơn hàng")
+    def action_cancel_orders(self, request, queryset):
         from apps.orders.services import OrderService
 
         count = 0
         for order in queryset:
-            if order.status == Order.Status.PENDING_CONFIRMATION:
+            if order.status in [
+                Order.Status.PENDING_CONFIRMATION,
+                Order.Status.CONFIRMED,
+                Order.Status.PREPARING,
+                Order.Status.READY,
+            ]:
                 OrderService.update_order_status(
-                    order, Order.Status.CONFIRMED, user=request.user
+                    order,
+                    Order.Status.CANCELLED,
+                    cancellation_reason="Hủy bởi quản trị viên",
+                    user=request.user,
                 )
                 count += 1
-        self.message_user(request, f"Đã xác nhận {count} đơn hàng.")
-
-    @admin.action(description="🍳 Chuyển sang Đang chế biến (PREPARING)")
-    def action_mark_preparing(self, request, queryset):
-        from apps.orders.services import OrderService
-
-        for order in queryset:
-            if order.status == Order.Status.CONFIRMED:
-                OrderService.update_order_status(
-                    order, Order.Status.PREPARING, user=request.user
-                )
-
-    @admin.action(description="🍱 Chuyển sang Sẵn sàng giao (READY)")
-    def action_mark_ready(self, request, queryset):
-        from apps.orders.services import OrderService
-
-        for order in queryset:
-            if order.status == Order.Status.PREPARING:
-                OrderService.update_order_status(
-                    order, Order.Status.READY, user=request.user
-                )
-
-    @admin.action(description="🛵 Chuyển sang Đang giao hàng (DELIVERING)")
-    def action_mark_delivering(self, request, queryset):
-        from apps.orders.services import OrderService
-
-        for order in queryset:
-            if order.status == Order.Status.READY:
-                OrderService.update_order_status(
-                    order, Order.Status.DELIVERING, user=request.user
-                )
-
-    @admin.action(description="🎉 Chuyển sang Hoàn tất đơn (COMPLETED)")
-    def action_mark_completed(self, request, queryset):
-        from apps.orders.services import OrderService
-
-        for order in queryset:
-            if order.status == Order.Status.DELIVERING:
-                OrderService.update_order_status(
-                    order, Order.Status.COMPLETED, user=request.user
-                )
+        self.message_user(request, f"Đã hủy {count} đơn hàng.")
 
 
 @admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ["id", "order", "product_name", "unit_price", "quantity", "subtotal"]
+class OrderItemAdmin(ModelAdmin):
+    list_display = [
+        "id",
+        "order",
+        "product_name",
+        "unit_price_display",
+        "quantity",
+        "subtotal_display",
+    ]
+    list_display_links = ["id", "product_name"]
     inlines = [OrderItemOptionInline]
 
+    @display(description="Đơn giá", ordering="unit_price")
+    def unit_price_display(self, obj):
+        return f"{obj.unit_price:,.0f} đ"
 
-admin.site.register(OrderItemOption)
-admin.site.register(AuditLog)
+    @display(description="Thành tiền", ordering="subtotal")
+    def subtotal_display(self, obj):
+        return f"{obj.subtotal:,.0f} đ"
+
+
+@admin.register(OrderItemOption)
+class OrderItemOptionAdmin(ModelAdmin):
+    list_display = ["id", "order_item", "option_name", "price_display", "quantity"]
+    list_display_links = ["id", "option_name"]
+    search_fields = ["option_name", "order_item__order__order_code"]
+    raw_id_fields = ["order_item"]
+
+    @display(description="Giá", ordering="price")
+    def price_display(self, obj):
+        return f"+{obj.price:,.0f} đ"
+
+
+@admin.register(AuditLog)
+class AuditLogAdmin(ModelAdmin):
+    list_display = [
+        "id",
+        "action",
+        "entity_type",
+        "entity_id",
+        "user",
+        "created_at_formatted",
+    ]
+    list_display_links = ["id", "action"]
+    list_filter = ["action", "entity_type", "created_at"]
+    search_fields = ["action", "entity_type", "entity_id", "user__username"]
+    readonly_fields = [
+        "user",
+        "action",
+        "entity_type",
+        "entity_id",
+        "old_data",
+        "new_data",
+        "created_at",
+    ]
+
+    @display(description="Thời gian ghi nhận", ordering="created_at")
+    def created_at_formatted(self, obj):
+        from django.utils import timezone
+
+        local_time = timezone.localtime(obj.created_at)
+        return local_time.strftime("%d/%m/%Y %H:%M")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

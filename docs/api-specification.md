@@ -225,6 +225,14 @@ Request body tương tự checkout preview, bổ sung note và scheduled_deliver
 | :--- | :--- | :--- |
 | GET/POST/PATCH/DELETE | /admin/vouchers[/{id}] | CRUD voucher |
 
+### Cấu hình Quán (Shop Settings)
+
+| Method | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| GET | /shop/info | Khách xem thông tin quán (tên, hotline, địa chỉ, giờ mở cửa, VietQR info, freeship) |
+| GET | /admin/shop/config | Admin/Staff xem đầy đủ cấu hình quán |
+| PATCH / PUT | /admin/shop/config | Admin cập nhật cấu hình quán, biểu phí ship, thông tin ngân hàng |
+
 ---
 
 ## 10. Mã lỗi
@@ -236,6 +244,8 @@ Request body tương tự checkout preview, bổ sung note và scheduled_deliver
 | PRODUCT_NOT_FOUND | Không tìm thấy món |
 | PRODUCT_OUT_OF_STOCK | Món đã hết |
 | INVALID_OPTION | Tùy chọn không hợp lệ |
+| SHOP_CLOSED | Quán hiện đang tạm đóng cửa hoặc ngoài giờ phục vụ |
+| ORDER_AMOUNT_BELOW_MINIMUM | Giá trị đơn hàng chưa đạt mức tối thiểu |
 | OUT_OF_DELIVERY_RADIUS | Ngoài bán kính giao hàng |
 | VOUCHER_INVALID | Mã giảm giá không hợp lệ |
 | VOUCHER_EXPIRED | Mã giảm giá hết hạn |

@@ -6,6 +6,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from django.templatetags.static import static
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,6 +43,9 @@ ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 # Application definition
 DJANGO_APPS = [
+    "unfold",  # Must be before django.contrib.admin
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -84,7 +88,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -144,14 +148,24 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-LANGUAGE_CODE = "vi-vn"
+LANGUAGE_CODE = "vi"
 TIME_ZONE = "Asia/Ho_Chi_Minh"
 USE_I18N = True
 USE_TZ = True
+USE_L10N = False
+
+# Date/Time format configurations for Admin UI
+DATETIME_FORMAT = "d/m/Y H:i"
+DATE_FORMAT = "d/m/Y"
+SHORT_DATETIME_FORMAT = "d/m/Y H:i"
+SHORT_DATE_FORMAT = "d/m/Y"
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -228,3 +242,131 @@ ZALO_OA_ACCESS_TOKEN = env("ZALO_OA_ACCESS_TOKEN")
 VIETQR_BANK_ID = env("VIETQR_BANK_ID")
 VIETQR_ACCOUNT_NO = env("VIETQR_ACCOUNT_NO")
 VIETQR_ACCOUNT_NAME = env("VIETQR_ACCOUNT_NAME")
+
+# Django Unfold Theme Configuration
+UNFOLD = {
+    "SITE_TITLE": "Bếp Dì 6 - Quản Trị",
+    "SITE_HEADER": "Bếp Dì 6 Admin",
+    "SITE_SUBHEADER": "Hệ thống quản lý đặt món & vận hành",
+    "SITE_SYMBOL": "restaurant",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": False,
+    "STYLES": [
+        lambda request: static("admin/css/admin_custom.css"),
+    ],
+    "COLORS": {
+        "primary": {
+            "50": "254 242 242",
+            "100": "254 226 226",
+            "200": "254 202 202",
+            "300": "252 165 165",
+            "400": "248 113 113",
+            "500": "239 68 68",
+            "600": "220 38 38",
+            "700": "185 28 28",
+            "800": "153 27 27",
+            "900": "127 29 29",
+            "950": "69 10 10",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": "Vận Hành Đơn Hàng",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Đơn hàng",
+                        "icon": "receipt_long",
+                        "link": lambda request: "/admin/orders/order/",
+                    },
+                    {
+                        "title": "Giao dịch thanh toán",
+                        "icon": "payments",
+                        "link": lambda request: "/admin/payments/payment/",
+                    },
+                    {
+                        "title": "Nhật ký kiểm toán",
+                        "icon": "history",
+                        "link": lambda request: "/admin/orders/auditlog/",
+                    },
+                ],
+            },
+            {
+                "title": "Quản Lý Thực Đơn",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Danh mục món",
+                        "icon": "category",
+                        "link": lambda request: "/admin/menu/category/",
+                    },
+                    {
+                        "title": "Món ăn",
+                        "icon": "restaurant",
+                        "link": lambda request: "/admin/menu/product/",
+                    },
+                    {
+                        "title": "Nhóm tùy chọn",
+                        "icon": "tune",
+                        "link": lambda request: "/admin/menu/optiongroup/",
+                    },
+                    {
+                        "title": "Tùy chọn món",
+                        "icon": "checklist",
+                        "link": lambda request: "/admin/menu/option/",
+                    },
+                ],
+            },
+            {
+                "title": "Khách Hàng & Khuyến Mãi",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Khách hàng Zalo",
+                        "icon": "people",
+                        "link": lambda request: "/admin/customers/customer/",
+                    },
+                    {
+                        "title": "Địa chỉ giao hàng",
+                        "icon": "location_on",
+                        "link": lambda request: "/admin/customers/address/",
+                    },
+                    {
+                        "title": "Mã giảm giá",
+                        "icon": "loyalty",
+                        "link": lambda request: "/admin/vouchers/voucher/",
+                    },
+                    {
+                        "title": "Lịch sử dùng mã",
+                        "icon": "history_edu",
+                        "link": lambda request: "/admin/vouchers/voucherusage/",
+                    },
+                ],
+            },
+            {
+                "title": "Hệ Thống & Cài Đặt",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Cấu hình quán & Phí ship",
+                        "icon": "storefront",
+                        "link": lambda request: "/admin/shipping/shopconfig/",
+                    },
+                    {
+                        "title": "Tài khoản nhân viên",
+                        "icon": "badge",
+                        "link": lambda request: "/admin/customers/user/",
+                    },
+                    {
+                        "title": "Thông báo hệ thống",
+                        "icon": "notifications",
+                        "link": lambda request: "/admin/notifications/notification/",
+                    },
+                ],
+            },
+        ],
+    },
+}

@@ -249,8 +249,8 @@ Voucher ──1:N── VoucherUsage
 | :--- | :--- | :--- |
 | id | BIGSERIAL | PK |
 | user_id | BIGINT | FK → users |
-| action | VARCHAR(100) | UPDATE_ORDER_STATUS, VERIFY_PAYMENT |
-| entity_type | VARCHAR(50) | ORDER, PRODUCT, PAYMENT |
+| action | VARCHAR(100) | UPDATE_ORDER_STATUS, VERIFY_PAYMENT, UPDATE_SHOP_CONFIG |
+| entity_type | VARCHAR(50) | ORDER, PRODUCT, PAYMENT, SHOP_CONFIG |
 | entity_id | BIGINT | |
 | old_data | JSONB | |
 | new_data | JSONB | |
@@ -258,7 +258,33 @@ Voucher ──1:N── VoucherUsage
 
 ---
 
-## 17. Indexes cần đánh
+## 17. Shop Configs (Singleton)
+
+| Cột | Kiểu | Ghi chú |
+| :--- | :--- | :--- |
+| id | BIGSERIAL | PK (Singleton id=1) |
+| shop_name | VARCHAR(255) | Tên quán ("Bếp Dì 6") |
+| hotline | VARCHAR(20) | Số hotline CSKH |
+| address_text | TEXT | Địa chỉ thực tế |
+| latitude | DECIMAL(10,8) | Vĩ độ quán |
+| longitude | DECIMAL(11,8) | Kinh độ quán |
+| is_open | BOOLEAN | Mở/đóng nhận đơn |
+| open_time | TIME | Giờ mở cửa hàng ngày |
+| close_time | TIME | Giờ đóng cửa hàng ngày |
+| min_order_amount | DECIMAL(12,2) | Giá trị đơn tối thiểu để đặt (0 = không giới hạn) |
+| max_delivery_radius_km | DECIMAL(4,2) | Bán kính giao tối đa (VD: 7.0km) |
+| haversine_multiplier | DECIMAL(3,2) | Hệ số bù trừ đường đi (VD: 1.3) |
+| shipping_tiers | JSONB | Bảng bậc thang phí ship `[{from_km, to_km, fee}]` |
+| min_order_for_freeship | DECIMAL(12,2) | Ngưỡng đơn được freeship (0 = tắt) |
+| vietqr_bank_id | VARCHAR(20) | Mã ngân hàng VietQR (MB, VCB,...) |
+| vietqr_account_no | VARCHAR(50) | Số tài khoản nhận tiền |
+| vietqr_account_name | VARCHAR(255) | Tên chủ tài khoản |
+| announcement_banner | TEXT | Thông báo hiển thị đầu app (Nullable) |
+| updated_at | TIMESTAMPTZ | |
+
+---
+
+## 18. Indexes cần đánh
 
 | Bảng | Cột |
 | :--- | :--- |

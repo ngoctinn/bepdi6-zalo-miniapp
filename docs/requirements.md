@@ -24,7 +24,7 @@ Hệ thống đặt đồ ăn online trên Zalo Mini App, phục vụ khách hà
 | Theo dõi | Xem trạng thái đơn, lịch sử đơn hàng |
 | Thông báo | Thông báo in-app, ZNS / Zalo OA khi đổi trạng thái |
 | CSKH | Chat trực tiếp với OA qua nút hỗ trợ |
-| Quản trị | Quản lý danh mục, món, voucher, đơn hàng, xác nhận thanh toán |
+| Quản trị | Quản lý danh mục, món, voucher, đơn hàng, xác nhận thanh toán, cấu hình quán |
 
 ### Không có trong MVP
 
@@ -60,15 +60,15 @@ Quản lý bàn, POS, điều phối bếp, tồn kho, nguyên liệu, shipper, 
 ### 3.3 Giỏ hàng và Checkout
 
 - Giỏ hàng lưu tại client, không bắt buộc khôi phục khi đóng app.
-- Khi checkout, backend kiểm tra lại toàn bộ: trạng thái món, giá hiện tại, tùy chọn, địa chỉ, khoảng cách, phí ship, voucher.
+- Khi checkout, backend kiểm tra lại toàn bộ: trạng thái mở cửa của quán, giá trị đơn tối thiểu, trạng thái món, giá hiện tại, tùy chọn, địa chỉ, khoảng cách, phí ship, chính sách freeship, voucher.
 - Hỗ trợ 2 kiểu thời gian giao: giao ngay hoặc hẹn giờ.
 - Frontend lập tức disable nút "Đặt hàng" (loading state) ngay khi bấm để chống spam; Backend sử dụng `Idempotency-Key` để loại bỏ hoàn toàn đơn trùng lặp.
 
 ### 3.4 Giao hàng
 
-- Giới hạn bán kính giao hàng tối đa. Ngoài bán kính thì từ chối.
+- Giới hạn bán kính giao hàng tối đa (cấu hình trong Shop Settings). Ngoài bán kính thì từ chối.
 - Khoảng cách tính bằng công thức đường chim bay (Haversine) nhân với hệ số bù trừ (x1.3) hoàn toàn nội bộ trên Backend.
-- Phí ship tính lũy tiến theo khoảng cách sau khi bù trừ, do backend quyết định.
+- Phí ship tính lũy tiến theo bảng bậc thang cự ly (`shipping_tiers`) do Admin cấu hình, có hỗ trợ miễn phí ship cho đơn đạt ngưỡng (`min_order_for_freeship`).
 - Cửa hàng tự giao hoặc thuê bên thứ ba. Không quản lý shipper trong hệ thống.
 
 ### 3.5 Đơn hàng
@@ -91,7 +91,7 @@ Quy trình xử lý:
 | Phương thức | Mô tả |
 | :--- | :--- |
 | COD | Khách trả tiền mặt khi nhận hàng |
-| Chuyển khoản | Hiển thị mã VietQR chứa số tiền và mã đơn. Nhân viên đối soát và xác nhận thủ công |
+| Chuyển khoản | Hiển thị mã VietQR chứa số tiền và mã đơn dựa trên cấu hình ngân hàng của quán. Nhân viên đối soát và xác nhận thủ công |
 
 Thanh toán có vòng đời riêng, độc lập với trạng thái đơn.
 
@@ -105,6 +105,14 @@ Thanh toán có vòng đời riêng, độc lập với trạng thái đơn.
 - **Khách hàng**: Nhận thông báo in-app miễn phí cho mọi trạng thái; tin nhắn Zalo OA nếu đã follow; chỉ gửi 1 tin nhắn ZNS khi đơn chuyển sang `DELIVERING` để tối ưu chi phí (quản lý qua feature flag `ENABLE_ZNS_NOTIFICATION`).
 - **Nhân viên / Quản trị**: Nhận tin nhắn cảnh báo tức thì qua **Zalo OA vào tài khoản Zalo cá nhân** mỗi khi có đơn mới; Web Admin có cơ chế unlock Autoplay âm thanh ("Bắt đầu ca làm").
 - **CSKH**: Nút chat hỗ trợ mở trực tiếp khung chat với Zalo OA của quán.
+
+### 3.9 Cấu hình Quán (Shop Settings)
+
+- **Thông tin chung**: Tên quán, hotline CSKH, địa chỉ quán, tọa độ GPS, banner thông báo.
+- **Vận hành**: Bật/tắt mở quán (`is_open`), khung giờ mở/đóng cửa (`open_time`, `close_time`).
+- **Ràng buộc đơn hàng**: Giá trị đơn tối thiểu để đặt hàng (`min_order_amount`).
+- **Vận chuyển**: Bán kính giao tối đa, hệ số đường đi, bảng bậc thang phí ship (`shipping_tiers`), ngưỡng miễn phí ship (`min_order_for_freeship`).
+- **Thanh toán VietQR**: Ngân hàng, số tài khoản, tên chủ tài khoản nhận tiền.
 
 ---
 

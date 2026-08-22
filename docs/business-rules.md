@@ -62,11 +62,11 @@ Có thể hủy (CANCELLED) từ các trạng thái: PENDING_CONFIRMATION, CONFI
 
 ## 5. Giao hàng
 
-**BR-DELI-001** — Đơn chỉ được chấp nhận nếu khoảng cách nằm trong bán kính giao hàng tối đa.
+**BR-DELI-001** — Đơn chỉ được chấp nhận nếu khoảng cách nằm trong bán kính giao hàng tối đa cấu hình (`max_delivery_radius_km`).
 
-**BR-DELI-002** — Khoảng cách tính bằng công thức đường chim bay (Haversine) nhân với hệ số bù trừ (x1.3) hoàn toàn nội bộ Backend, không gọi API bản đồ bên ngoài.
+**BR-DELI-002** — Khoảng cách tính bằng công thức đường chim bay (Haversine) nhân với hệ số bù trừ (`haversine_multiplier`, mặc định 1.3) hoàn toàn nội bộ Backend, không gọi API bản đồ bên ngoài.
 
-**BR-DELI-003** — Phí ship do backend tính tự động theo bảng biểu phí của shop, không nhận từ frontend.
+**BR-DELI-003** — Phí ship do backend tính tự động theo bảng bậc thang cự ly (`shipping_tiers`) của quán. Hỗ trợ miễn phí ship (0đ) khi giá trị tạm tính của đơn hàng đạt hoặc vượt mức `min_order_for_freeship` (nếu có cấu hình > 0).
 
 **BR-DELI-004** — Hỗ trợ 2 hình thức: giao ngay (ASAP) hoặc hẹn giờ (SCHEDULED).
 
@@ -90,7 +90,7 @@ Có thể hủy (CANCELLED) từ các trạng thái: PENDING_CONFIRMATION, CONFI
 
 **BR-PAY-001** — Hỗ trợ 2 phương thức: COD và chuyển khoản ngân hàng.
 
-**BR-PAY-002** — Với chuyển khoản, hệ thống tạo mã VietQR chứa số tiền và mã đơn. Nhân viên đối soát và xác nhận thủ công.
+**BR-PAY-002** — Với chuyển khoản, hệ thống tạo mã VietQR chứa số tiền, mã đơn và thông tin tài khoản ngân hàng từ cấu hình quán. Nhân viên đối soát và xác nhận thủ công.
 
 **BR-PAY-003** — Đơn COD chỉ được đánh dấu đã thanh toán sau khi giao hàng thành công.
 
@@ -102,7 +102,7 @@ Có thể hủy (CANCELLED) từ các trạng thái: PENDING_CONFIRMATION, CONFI
  
 **BR-SEC-001** — Khách chỉ xem được đơn hàng, thông báo và địa chỉ của chính mình.
 
-**BR-SEC-002** — Chỉ tài khoản Staff hoặc Admin mới được truy cập các chức năng quản trị.
+**BR-SEC-002** — Chỉ tài khoản Staff hoặc Admin mới được truy cập các chức năng quản trị. Riêng việc cập nhật Cấu hình Quán (Shop Settings) chỉ dành riêng cho quyền Admin.
 
 ---
 
@@ -113,4 +113,18 @@ Có thể hủy (CANCELLED) từ các trạng thái: PENDING_CONFIRMATION, CONFI
 **BR-NOTI-002** — ZNS chỉ được kích hoạt khi đơn sang trạng thái `DELIVERING` và khi cờ cấu hình `ENABLE_ZNS_NOTIFICATION = True`. Mọi trạng thái khác ưu tiên in-app notification và Zalo OA message.
 
 **BR-UX-001** — Frontend Checkout bắt buộc khóa nút bấm (disable) ngay khi người dùng chạm "Đặt hàng" để triệt tiêu spam request từ phía UI.
+
+---
+
+## 10. Cấu hình Quán (Shop Settings)
+
+**BR-SHOP-001** — Cửa hàng duy trì một bản ghi cấu hình duy nhất (Singleton Pattern). Mọi thông tin mở quán, địa chỉ, ngân hàng và phí ship đều được ưu tiên đọc động từ Database.
+
+**BR-SHOP-002** — Khi quán đóng cửa (`is_open = False` hoặc ngoài giờ hoạt động), backend từ chối tính toán checkout và tạo đơn với mã lỗi `SHOP_CLOSED`.
+
+**BR-SHOP-003** — Khách hàng chỉ có thể đặt đơn khi giá trị tạm tính đạt tối thiểu `min_order_amount` (nếu được cấu hình > 0). Nếu chưa đạt, backend trả về lỗi `ORDER_AMOUNT_BELOW_MINIMUM`.
+
+**BR-SHOP-004** — Bảng bậc thang phí ship (`shipping_tiers`) được lưu dưới dạng danh sách mốc khoảng cách `{from_km, to_km, fee}`. Backend tự động validate tính hợp lệ của các mốc (không âm, mốc sau lớn hơn mốc trước).
+
+**BR-SHOP-005** — Mọi thay đổi trong Cấu hình Quán đều tự động ghi nhận vào `AuditLog` để phục vụ đối soát.
 

@@ -1,0 +1,17 @@
+{% spaceless %}
+    {% with total_parts=parts|length %}
+        {% for part in parts %}
+            {% if total_parts <= 2 or forloop.revcounter <= 2 %}
+                <span class="inline-flex items-center">
+                    <{% if part.link %}a href="{{ part.link }}"{% else %}span{% endif %} class="align-middle inline-block leading-5 min-w-0 font-medium text-font-important-light dark:text-font-important-dark truncate max-w-[140px] sm:max-w-[240px]">
+                        {{ part.title|capfirst }}
+                    </{% if part.link %}a{% else %}span{% endif %}>
+
+                    {% if not forloop.last %}
+                        <span class="material-symbols-outlined inline-block align-middle leading-5 mx-1.5 text-base-400 dark:text-base-500 text-sm">chevron_right</span>
+                    {% endif %}
+                </span>
+            {% endif %}
+        {% endfor %}
+    {% endwith %}
+{% endspaceless %}

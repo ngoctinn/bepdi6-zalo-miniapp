@@ -1,7 +1,7 @@
 import math
 from decimal import Decimal
 
-from django.conf import settings
+from apps.shipping.models import ShopConfig
 
 
 class ShippingCalculationError(Exception):
@@ -53,18 +53,20 @@ class DistanceCalculator:
         destination_lon: float | Decimal,
         shop_lat: float | Decimal | None = None,
         shop_lon: float | Decimal | None = None,
-        multiplier: float | None = None,
+        multiplier: float | Decimal | None = None,
     ) -> Decimal:
         """
         Calculate compensated road distance (Haversine * multiplier).
         Rounds to 2 decimal places.
         """
-        if shop_lat is None:
-            shop_lat = getattr(settings, "SHOP_LATITUDE", 10.7769)
-        if shop_lon is None:
-            shop_lon = getattr(settings, "SHOP_LONGITUDE", 106.7009)
-        if multiplier is None:
-            multiplier = getattr(settings, "HAVERSINE_MULTIPLIER", 1.3)
+        if shop_lat is None or shop_lon is None or multiplier is None:
+            config = ShopConfig.get_solo()
+            if shop_lat is None:
+                shop_lat = config.latitude
+            if shop_lon is None:
+                shop_lon = config.longitude
+            if multiplier is None:
+                multiplier = config.haversine_multiplier
 
         straight_distance = cls.calculate_haversine_distance(
             lat1=shop_lat,
@@ -79,30 +81,56 @@ class DistanceCalculator:
 
 class ShippingFeeCalculator:
     """
-    Calculates progressive shipping fee based on compensated distance.
-    Standard Tier (ADR 006):
-    - 0 <= distance <= 2 km: 10,000 VND
-    - 2 < distance <= 5 km: 15,000 VND
-    - 5 < distance <= 7 km: 20,000 VND
-    - > 7 km: Out of delivery radius
+    Calculates progressive shipping fee based on compensated distance and shop shipping tiers.
+    Supports free delivery threshold (BR-DELI-003).
     """
 
     @classmethod
     def calculate_fee(
         cls,
         distance_km: Decimal | float,
-        max_radius_km: float | None = None,
+        order_subtotal: Decimal | float = Decimal("0.00"),
+        max_radius_km: float | Decimal | None = None,
+        tiers: list[dict] | None = None,
+        min_order_for_freeship: Decimal | float | None = None,
     ) -> Decimal:
+        config = ShopConfig.get_solo()
         if max_radius_km is None:
-            max_radius_km = getattr(settings, "MAX_DELIVERY_RADIUS_KM", 7.0)
+            max_radius_km = config.max_delivery_radius_km
+        if tiers is None:
+            tiers = config.shipping_tiers
+        if min_order_for_freeship is None:
+            min_order_for_freeship = config.min_order_for_freeship
 
         distance = float(distance_km)
+        max_radius = float(max_radius_km)
 
-        if distance > float(max_radius_km):
+        if distance > max_radius:
             raise OutOfDeliveryRadiusError(
-                f"Địa chỉ giao hàng cách quán {distance:.2f}km, vượt quá bán kính tối đa {max_radius_km}km."
+                f"Địa chỉ giao hàng cách quán {distance:.2f}km, vượt quá bán kính tối đa {max_radius:.2f}km."
             )
 
+        # Check Free delivery eligibility (BR-DELI-003)
+        subtotal_dec = Decimal(str(order_subtotal))
+        freeship_dec = Decimal(str(min_order_for_freeship))
+        if freeship_dec > Decimal("0.00") and subtotal_dec >= freeship_dec:
+            return Decimal("0.00")
+
+        # Match against shipping tiers
+        if tiers:
+            for tier in tiers:
+                from_km = float(tier.get("from_km", 0.0))
+                to_km = float(tier.get("to_km", 0.0))
+                fee = tier.get("fee", 0.0)
+                if from_km <= distance <= to_km:
+                    return Decimal(str(fee))
+
+            # If distance <= max_radius but no tier directly matched, pick the highest tier fee
+            sorted_tiers = sorted(tiers, key=lambda x: float(x.get("to_km", 0.0)))
+            if sorted_tiers:
+                return Decimal(str(sorted_tiers[-1].get("fee", 0.0)))
+
+        # Fallback default calculation if no tiers configured
         if distance <= 2.0:
             return Decimal("10000.00")
         elif distance <= 5.0:
@@ -121,6 +149,7 @@ class ShippingService:
         cls,
         destination_lat: float | Decimal,
         destination_lon: float | Decimal,
+        order_subtotal: Decimal | float = Decimal("0.00"),
     ) -> dict:
         """
         Returns:
@@ -136,7 +165,10 @@ class ShippingService:
         )
 
         try:
-            shipping_fee = ShippingFeeCalculator.calculate_fee(distance_km=distance_km)
+            shipping_fee = ShippingFeeCalculator.calculate_fee(
+                distance_km=distance_km,
+                order_subtotal=order_subtotal,
+            )
             return {
                 "distance_km": distance_km,
                 "shipping_fee": shipping_fee,

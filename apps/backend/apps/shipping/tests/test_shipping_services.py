@@ -35,6 +35,7 @@ def test_estimated_distance_with_multiplier():
     assert Decimal("0.70") <= estimated <= Decimal("0.90")
 
 
+@pytest.mark.django_db
 def test_shipping_fee_tiers():
     # Tier 1: <= 2km -> 10,000 VND
     assert ShippingFeeCalculator.calculate_fee(1.5) == Decimal("10000.00")
@@ -53,6 +54,7 @@ def test_shipping_fee_tiers():
         ShippingFeeCalculator.calculate_fee(7.1)
 
 
+@pytest.mark.django_db
 def test_shipping_service_facade():
     # Near location (Deliverable)
     result = ShippingService.calculate_shipping(
