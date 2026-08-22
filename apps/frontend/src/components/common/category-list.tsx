@@ -28,7 +28,8 @@ export default function CategoryList({
       const buttonLeft = activeButton.offsetLeft;
       const buttonWidth = activeButton.offsetWidth;
       const containerWidth = container.offsetWidth;
-      const targetScrollLeft = buttonLeft - containerWidth / 2 + buttonWidth / 2;
+      const targetScrollLeft =
+        buttonLeft - containerWidth / 2 + buttonWidth / 2;
 
       container.scrollTo({
         left: Math.max(0, targetScrollLeft),

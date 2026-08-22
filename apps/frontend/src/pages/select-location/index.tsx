@@ -90,88 +90,86 @@ export default function SelectLocationPage() {
   };
 
   return (
-    <div className="relative flex h-full flex-col bg-background">
+    <div className="flex flex-col gap-3 p-3.5 pb-28">
       {/* Address List */}
-      <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto p-4 pb-28">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Spinner />
-            <Text size="xSmall" className="mt-2 text-neutral400">
-              Đang tải danh sách địa chỉ...
-            </Text>
-          </div>
-        ) : addresses && addresses.length > 0 ? (
-          addresses.map((addr) => {
-            const isSelected = selectedAddress?.id === addr.id;
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-16">
+          <Spinner />
+          <Text size="xSmall" className="mt-2 text-neutral400">
+            Đang tải danh sách địa chỉ...
+          </Text>
+        </div>
+      ) : addresses && addresses.length > 0 ? (
+        addresses.map((addr) => {
+          const isSelected = selectedAddress?.id === addr.id;
 
-            return (
-              <div
-                key={addr.id}
-                onClick={() => handleSelectAddress(addr)}
-                className={`flex cursor-pointer items-start justify-between rounded-2xl border p-3.5 transition-all ${
-                  isSelected
-                    ? "shadow-xs border-green600 bg-green50/50"
-                    : "border-black/5 bg-transparent active:bg-black/[0.02]"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 text-green600">
-                    <MapPinIconSolid />
+          return (
+            <div
+              key={addr.id}
+              onClick={() => handleSelectAddress(addr)}
+              className={`flex cursor-pointer items-start justify-between rounded-2xl border p-3.5 transition-all ${
+                isSelected
+                  ? "shadow-xs border-green600 bg-green50/50"
+                  : "border-black/5 bg-transparent active:bg-black/[0.02]"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 text-green600">
+                  <MapPinIconSolid />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-neutral900">
+                      {addr.recipient_name}
+                    </span>
+                    <span className="text-xs font-medium text-neutral500">
+                      {addr.phone}
+                    </span>
+                    {addr.is_default && (
+                      <span className="py-0.2 rounded-full border border-green600/30 bg-green50 px-2 text-xxxsmall font-bold text-green800">
+                        Mặc định
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-neutral900">
-                        {addr.recipient_name}
-                      </span>
-                      <span className="text-xs font-medium text-neutral500">
-                        {addr.phone}
-                      </span>
-                      {addr.is_default && (
-                        <span className="py-0.2 rounded-full border border-green600/30 bg-green50 px-2 text-xxxsmall font-bold text-green800">
-                          Mặc định
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-1 text-xs leading-relaxed text-neutral600">
-                      {addr.address_text}
-                    </div>
+                  <div className="mt-1 text-xs leading-relaxed text-neutral600">
+                    {addr.address_text}
                   </div>
                 </div>
-
-                <Button
-                  size="small"
-                  type="neutral"
-                  className="rounded-lg bg-transparent p-1 text-xxsmall text-red-500 hover:bg-red-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
-                      deleteAddressMutation.mutate(addr.id);
-                    }
-                  }}
-                >
-                  Xóa
-                </Button>
               </div>
-            );
-          })
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <MapPinIcon className="mb-2 h-12 w-12 text-neutral300" />
-            <p className="text-sm font-medium text-neutral700">
-              Chưa có địa chỉ giao hàng nào
-            </p>
-            <p className="mt-1 text-xs text-neutral400">
-              Thêm địa chỉ để Bếp Dì 6 tính phí giao hàng và giao tận nơi nhé!
-            </p>
-            <Button
-              className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-green800"
-              onClick={() => setIsModalOpen(true)}
-            >
-              + Thêm địa chỉ mới
-            </Button>
-          </div>
-        )}
-      </div>
+
+              <Button
+                size="small"
+                type="neutral"
+                className="rounded-lg bg-transparent p-1 text-xxsmall text-red-500 hover:bg-red-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
+                    deleteAddressMutation.mutate(addr.id);
+                  }
+                }}
+              >
+                Xóa
+              </Button>
+            </div>
+          );
+        })
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <MapPinIcon className="mb-2 h-12 w-12 text-neutral300" />
+          <p className="text-sm font-medium text-neutral700">
+            Chưa có địa chỉ giao hàng nào
+          </p>
+          <p className="mt-1 text-xs text-neutral400">
+            Thêm địa chỉ để Bếp Dì 6 tính phí giao hàng và giao tận nơi nhé!
+          </p>
+          <Button
+            className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-green800"
+            onClick={() => setIsModalOpen(true)}
+          >
+            + Thêm địa chỉ mới
+          </Button>
+        </div>
+      )}
 
       {/* Modal Thêm Địa Chỉ Mới */}
       <Modal

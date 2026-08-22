@@ -181,280 +181,274 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-transparent">
-      <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto p-3.5 pb-32">
-        {/* Banner Quán đóng cửa nếu có */}
-        {shopInfo && !shopInfo.is_open && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-            <b>Quán đang ngưng nhận đơn.</b> Bạn có thể xem thực đơn và quay lại
-            vào giờ mở cửa.
+    <div className="flex flex-col gap-3 p-3.5 pb-32">
+      {/* Banner Quán đóng cửa nếu có */}
+      {shopInfo && !shopInfo.is_open && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+          <b>Quán đang ngưng nhận đơn.</b> Bạn có thể xem thực đơn và quay lại
+          vào giờ mở cửa.
+        </div>
+      )}
+
+      {/* Địa chỉ giao hàng */}
+      <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-xs font-bold text-neutral800">
+            ĐỊA CHỈ GIAO HÀNG
+          </span>
+          <Button
+            size="small"
+            type="neutral"
+            className="bg-transparent p-0 text-xs font-semibold text-primary"
+            onClick={() => navigate("/select-location")}
+          >
+            {selectedAddress ? "Thay đổi" : "Chọn địa chỉ"}
+          </Button>
+        </div>
+
+        {selectedAddress ? (
+          <div
+            onClick={() => navigate("/select-location")}
+            className="flex cursor-pointer items-start gap-2.5"
+          >
+            <div className="mt-0.5 text-primary">
+              <MapPinIcon className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-neutral900">
+                  {selectedAddress.recipient_name}
+                </span>
+                <span className="text-xs text-neutral600">
+                  {selectedAddress.phone}
+                </span>
+              </div>
+              <div className="mt-0.5 text-xs leading-relaxed text-neutral600">
+                {selectedAddress.address_text}
+              </div>
+            </div>
+            <ChevronRightIcon className="h-4 w-4 self-center text-neutral400" />
+          </div>
+        ) : (
+          <div
+            onClick={() => navigate("/select-location")}
+            className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-neutral300 bg-transparent p-3 text-xs text-neutral600"
+          >
+            <span>+ Vui lòng thêm địa chỉ nhận hàng</span>
+            <ChevronRightIcon className="h-4 w-4 text-neutral400" />
+          </div>
+        )}
+      </div>
+
+      {/* Danh sách món ăn */}
+      <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-xs font-bold text-neutral800">
+            MÓN ĐÃ CHỌN ({cartItems.length})
+          </span>
+          <Button
+            size="small"
+            type="neutral"
+            className="bg-transparent p-0 text-xs font-medium text-primary"
+            onClick={() => navigate("/")}
+          >
+            + Thêm món
+          </Button>
+        </div>
+
+        <div className="space-y-3 divide-y divide-black/5">
+          {cartItems.map((item) => (
+            <div key={item.id} className="flex gap-3 pt-2 first:pt-0">
+              <img
+                src={
+                  item.product_image ||
+                  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&auto=format&fit=crop&q=60"
+                }
+                alt={item.product_name}
+                className="h-12 w-12 shrink-0 rounded-xl bg-amber-100/40 object-cover ring-1 ring-black/5"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-normal text-black">
+                  {item.product_name}
+                </div>
+                {item.options && item.options.length > 0 && (
+                  <div className="mt-0.5 truncate text-xxsmall text-neutral500">
+                    + {formatVariantWithPercentage(item.options)}
+                  </div>
+                )}
+                {item.note && (
+                  <div className="mt-0.5 text-xxsmall italic text-amber-700">
+                    "{item.note}"
+                  </div>
+                )}
+                <div className="mt-1 text-xs font-normal text-black">
+                  {formatCurrency(item.unit_price)}đ
+                </div>
+              </div>
+
+              <div className="self-center">
+                <QuantityStepper
+                  value={item.quantity}
+                  minValue={0}
+                  size="small"
+                  variant="rounded"
+                  onDecrease={() =>
+                    updateQuantity(item.id, Math.max(0, item.quantity - 1))
+                  }
+                  onIncrease={() => updateQuantity(item.id, item.quantity + 1)}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Ghi chú đơn hàng */}
+        <div className="mt-3 border-t border-black/5 pt-3">
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Ghi chú thêm cho shipper hoặc quán..."
+            className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-xs text-neutral900 placeholder:text-neutral400 focus:border-green600 focus:outline-none focus:ring-1 focus:ring-green600/30"
+          />
+        </div>
+      </div>
+
+      {/* Mã Khuyến Mãi (Voucher) */}
+      <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
+        <span className="mb-2 block text-xs font-bold text-neutral800">
+          MÃ GIẢM GIÁ
+        </span>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={voucherCodeInput}
+            onChange={(e) => setVoucherCodeInput(e.target.value.toUpperCase())}
+            placeholder="Nhập mã voucher..."
+            className="flex-1 rounded-xl border border-black/10 bg-transparent px-3 py-2 text-xs uppercase text-neutral900 placeholder:text-neutral400 focus:border-green600 focus:outline-none focus:ring-1 focus:ring-green600/30"
+            disabled={Boolean(appliedVoucherCode)}
+          />
+          {appliedVoucherCode ? (
+            <Button
+              size="small"
+              type="neutral"
+              className="bg-red-50 px-3 text-xs font-semibold text-red-600"
+              onClick={handleRemoveVoucher}
+            >
+              Gỡ
+            </Button>
+          ) : (
+            <Button
+              size="small"
+              className="bg-primary px-4 text-xs font-semibold text-white"
+              onClick={handleApplyVoucher}
+              disabled={!voucherCodeInput.trim()}
+            >
+              Áp dụng
+            </Button>
+          )}
+        </div>
+        {appliedVoucherCode &&
+          previewData?.discount &&
+          previewData.discount > 0 && (
+            <div className="mt-2 rounded-lg bg-green-50 p-2 text-xs font-medium text-green-700">
+              Đã áp dụng mã <b>{appliedVoucherCode}</b> (-
+              {formatCurrency(previewData.discount)}đ)
+            </div>
+          )}
+      </div>
+
+      {/* Phương Thức Thanh Toán */}
+      <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
+        <span className="mb-2.5 block text-xs font-bold text-neutral800">
+          PHƯƠNG THỨC THANH TOÁN
+        </span>
+        <div className="space-y-2">
+          <label
+            onClick={() => setPaymentMethod("COD")}
+            className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
+              paymentMethod === "COD"
+                ? "border-green600 bg-emerald-500/10 font-semibold text-neutral900"
+                : "border-black/5 bg-transparent text-neutral600"
+            }`}
+          >
+            <span className="text-xs">Tiền mặt khi nhận hàng (COD)</span>
+            <input
+              type="radio"
+              name="payment_method"
+              checked={paymentMethod === "COD"}
+              onChange={() => setPaymentMethod("COD")}
+              className="accent-primary"
+            />
+          </label>
+
+          <label
+            onClick={() => setPaymentMethod("BANK_TRANSFER")}
+            className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
+              paymentMethod === "BANK_TRANSFER"
+                ? "border-green600 bg-emerald-500/10 font-semibold text-neutral900"
+                : "border-black/5 bg-transparent text-neutral600"
+            }`}
+          >
+            <span className="text-xs">Chuyển khoản VietQR tự động</span>
+            <input
+              type="radio"
+              name="payment_method"
+              checked={paymentMethod === "BANK_TRANSFER"}
+              onChange={() => setPaymentMethod("BANK_TRANSFER")}
+              className="accent-primary"
+            />
+          </label>
+        </div>
+      </div>
+
+      {/* Bảng tính chi phí (Server Calculated Preview) */}
+      <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
+        <span className="mb-1 block text-xs font-bold text-neutral800">
+          CHI TIẾT THANH TOÁN
+        </span>
+
+        {previewError && (
+          <div className="rounded-md bg-red-50 p-2 text-xs font-medium text-red-600">
+            {previewError}
           </div>
         )}
 
-        {/* Địa chỉ giao hàng */}
-        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-bold text-neutral800">
-              ĐỊA CHỈ GIAO HÀNG
-            </span>
-            <Button
-              size="small"
-              type="neutral"
-              className="bg-transparent p-0 text-xs font-semibold text-primary"
-              onClick={() => navigate("/select-location")}
-            >
-              {selectedAddress ? "Thay đổi" : "Chọn địa chỉ"}
-            </Button>
-          </div>
-
-          {selectedAddress ? (
-            <div
-              onClick={() => navigate("/select-location")}
-              className="flex cursor-pointer items-start gap-2.5"
-            >
-              <div className="mt-0.5 text-primary">
-                <MapPinIcon className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-neutral900">
-                    {selectedAddress.recipient_name}
-                  </span>
-                  <span className="text-xs text-neutral600">
-                    {selectedAddress.phone}
-                  </span>
-                </div>
-                <div className="mt-0.5 text-xs leading-relaxed text-neutral600">
-                  {selectedAddress.address_text}
-                </div>
-              </div>
-              <ChevronRightIcon className="h-4 w-4 self-center text-neutral400" />
-            </div>
-          ) : (
-            <div
-              onClick={() => navigate("/select-location")}
-              className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-neutral300 bg-transparent p-3 text-xs text-neutral600"
-            >
-              <span>+ Vui lòng thêm địa chỉ nhận hàng</span>
-              <ChevronRightIcon className="h-4 w-4 text-neutral400" />
-            </div>
-          )}
-        </div>
-
-        {/* Danh sách món ăn */}
-        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-bold text-neutral800">
-              MÓN ĐÃ CHỌN ({cartItems.length})
-            </span>
-            <Button
-              size="small"
-              type="neutral"
-              className="bg-transparent p-0 text-xs font-medium text-primary"
-              onClick={() => navigate("/")}
-            >
-              + Thêm món
-            </Button>
-          </div>
-
-          <div className="space-y-3 divide-y divide-black/5">
-            {cartItems.map((item) => (
-              <div key={item.id} className="flex gap-3 pt-2 first:pt-0">
-                <img
-                  src={
-                    item.product_image ||
-                    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&auto=format&fit=crop&q=60"
-                  }
-                  alt={item.product_name}
-                  className="h-12 w-12 shrink-0 rounded-xl bg-amber-100/40 object-cover ring-1 ring-black/5"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-normal text-black">
-                    {item.product_name}
-                  </div>
-                  {item.options && item.options.length > 0 && (
-                    <div className="mt-0.5 truncate text-xxsmall text-neutral500">
-                      + {formatVariantWithPercentage(item.options)}
-                    </div>
-                  )}
-                  {item.note && (
-                    <div className="mt-0.5 text-xxsmall italic text-amber-700">
-                      "{item.note}"
-                    </div>
-                  )}
-                  <div className="mt-1 text-xs font-normal text-black">
-                    {formatCurrency(item.unit_price)}đ
-                  </div>
-                </div>
-
-                <div className="self-center">
-                  <QuantityStepper
-                    value={item.quantity}
-                    minValue={0}
-                    size="small"
-                    variant="rounded"
-                    onDecrease={() =>
-                      updateQuantity(item.id, Math.max(0, item.quantity - 1))
-                    }
-                    onIncrease={() =>
-                      updateQuantity(item.id, item.quantity + 1)
-                    }
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Ghi chú đơn hàng */}
-          <div className="mt-3 border-t border-black/5 pt-3">
-            <input
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Ghi chú thêm cho shipper hoặc quán..."
-              className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-xs text-neutral900 placeholder:text-neutral400 focus:border-green600 focus:outline-none focus:ring-1 focus:ring-green600/30"
-            />
-          </div>
-        </div>
-
-        {/* Mã Khuyến Mãi (Voucher) */}
-        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
-          <span className="mb-2 block text-xs font-bold text-neutral800">
-            MÃ GIẢM GIÁ
+        <div className="flex justify-between text-neutral600">
+          <span>Tạm tính món ăn</span>
+          <span className="font-normal text-black">
+            {formatCurrency(previewData?.subtotal || 0)}đ
           </span>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={voucherCodeInput}
-              onChange={(e) =>
-                setVoucherCodeInput(e.target.value.toUpperCase())
-              }
-              placeholder="Nhập mã voucher..."
-              className="flex-1 rounded-xl border border-black/10 bg-transparent px-3 py-2 text-xs uppercase text-neutral900 placeholder:text-neutral400 focus:border-green600 focus:outline-none focus:ring-1 focus:ring-green600/30"
-              disabled={Boolean(appliedVoucherCode)}
-            />
-            {appliedVoucherCode ? (
-              <Button
-                size="small"
-                type="neutral"
-                className="bg-red-50 px-3 text-xs font-semibold text-red-600"
-                onClick={handleRemoveVoucher}
-              >
-                Gỡ
-              </Button>
+        </div>
+
+        <div className="flex justify-between text-neutral600">
+          <span>
+            Phí giao hàng{" "}
+            {previewData?.distance_km
+              ? `(${previewData.distance_km.toFixed(1)} km)`
+              : ""}
+          </span>
+          <span className="font-normal text-black">
+            {previewData?.shipping_fee ? (
+              `${formatCurrency(previewData.shipping_fee)}đ`
             ) : (
-              <Button
-                size="small"
-                className="bg-primary px-4 text-xs font-semibold text-white"
-                onClick={handleApplyVoucher}
-                disabled={!voucherCodeInput.trim()}
-              >
-                Áp dụng
-              </Button>
+              <span className="font-normal text-green-700">Miễn phí</span>
             )}
-          </div>
-          {appliedVoucherCode &&
-            previewData?.discount &&
-            previewData.discount > 0 && (
-              <div className="mt-2 rounded-lg bg-green-50 p-2 text-xs font-medium text-green-700">
-                Đã áp dụng mã <b>{appliedVoucherCode}</b> (-
-                {formatCurrency(previewData.discount)}đ)
-              </div>
-            )}
+          </span>
         </div>
 
-        {/* Phương Thức Thanh Toán */}
-        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
-          <span className="mb-2.5 block text-xs font-bold text-neutral800">
-            PHƯƠNG THỨC THANH TOÁN
+        {previewData?.discount ? (
+          <div className="flex justify-between font-normal text-green-700">
+            <span>Giảm giá voucher</span>
+            <span>-{formatCurrency(previewData.discount)}đ</span>
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-normal text-black">
+          <span>Tổng thanh toán</span>
+          <span className="text-base font-bold text-green800">
+            {formatCurrency(previewData?.total_amount || 0)}đ
           </span>
-          <div className="space-y-2">
-            <label
-              onClick={() => setPaymentMethod("COD")}
-              className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
-                paymentMethod === "COD"
-                  ? "border-green600 bg-emerald-500/10 font-semibold text-neutral900"
-                  : "border-black/5 bg-transparent text-neutral600"
-              }`}
-            >
-              <span className="text-xs">Tiền mặt khi nhận hàng (COD)</span>
-              <input
-                type="radio"
-                name="payment_method"
-                checked={paymentMethod === "COD"}
-                onChange={() => setPaymentMethod("COD")}
-                className="accent-primary"
-              />
-            </label>
-
-            <label
-              onClick={() => setPaymentMethod("BANK_TRANSFER")}
-              className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
-                paymentMethod === "BANK_TRANSFER"
-                  ? "border-green600 bg-emerald-500/10 font-semibold text-neutral900"
-                  : "border-black/5 bg-transparent text-neutral600"
-              }`}
-            >
-              <span className="text-xs">Chuyển khoản VietQR tự động</span>
-              <input
-                type="radio"
-                name="payment_method"
-                checked={paymentMethod === "BANK_TRANSFER"}
-                onChange={() => setPaymentMethod("BANK_TRANSFER")}
-                className="accent-primary"
-              />
-            </label>
-          </div>
-        </div>
-
-        {/* Bảng tính chi phí (Server Calculated Preview) */}
-        <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
-          <span className="mb-1 block text-xs font-bold text-neutral800">
-            CHI TIẾT THANH TOÁN
-          </span>
-
-          {previewError && (
-            <div className="rounded-md bg-red-50 p-2 text-xs font-medium text-red-600">
-              {previewError}
-            </div>
-          )}
-
-          <div className="flex justify-between text-neutral600">
-            <span>Tạm tính món ăn</span>
-            <span className="font-normal text-black">
-              {formatCurrency(previewData?.subtotal || 0)}đ
-            </span>
-          </div>
-
-          <div className="flex justify-between text-neutral600">
-            <span>
-              Phí giao hàng{" "}
-              {previewData?.distance_km
-                ? `(${previewData.distance_km.toFixed(1)} km)`
-                : ""}
-            </span>
-            <span className="font-normal text-black">
-              {previewData?.shipping_fee ? (
-                `${formatCurrency(previewData.shipping_fee)}đ`
-              ) : (
-                <span className="font-normal text-green-700">Miễn phí</span>
-              )}
-            </span>
-          </div>
-
-          {previewData?.discount ? (
-            <div className="flex justify-between font-normal text-green-700">
-              <span>Giảm giá voucher</span>
-              <span>-{formatCurrency(previewData.discount)}đ</span>
-            </div>
-          ) : null}
-
-          <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-normal text-black">
-            <span>Tổng thanh toán</span>
-            <span className="text-base font-bold text-green800">
-              {formatCurrency(previewData?.total_amount || 0)}đ
-            </span>
-          </div>
         </div>
       </div>
 

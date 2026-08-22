@@ -60,7 +60,6 @@ const router = createBrowserRouter(
           handle: {
             title: "Địa chỉ nhận hàng",
             back: true,
-            whiteBackground: true,
             hideFooter: true,
             headerPosition: "sticky",
           },
@@ -71,7 +70,6 @@ const router = createBrowserRouter(
           handle: {
             title: "Đặt hàng thành công",
             back: false,
-            whiteBackground: true,
             hideFooter: true,
           },
         },
@@ -81,7 +79,6 @@ const router = createBrowserRouter(
           handle: {
             title: "Chi tiết đơn hàng",
             back: true,
-            whiteBackground: true,
             hideFooter: true,
             headerPosition: "sticky",
             hideCart: true,

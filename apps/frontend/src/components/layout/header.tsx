@@ -12,37 +12,25 @@ interface HeaderProps {
 export default function Header({ title, back, position }: HeaderProps) {
   const navigate = useNavigate();
 
-  const positionClass = position || (title ? "fixed" : "sticky");
-
-  if (title) {
-    return (
-      <div
-        className={`${positionClass} header-margin shadow-2xs left-0 top-0 z-20 flex h-12 w-full items-center gap-2 border-b border-neutral100 bg-white px-4 py-2 pr-24`}
-        style={{ color: theme.colors.text.primary }}
-      >
-        {back && (
-          <Button
-            className="flex h-8 w-8 items-center justify-center bg-transparent p-0 active:bg-transparent"
-            type="neutral"
-            size="small"
-            onClick={() => navigate(-1)}
-          >
-            <BackIcon className="h-5 w-5 text-neutral800" />
-          </Button>
-        )}
-        <div className="truncate text-base font-bold text-neutral900">
-          {title}
-        </div>
-      </div>
-    );
-  }
+  const positionClass = position || (title ? "sticky" : "sticky");
 
   return (
     <div
-      className={`${positionClass} header-margin left-0 top-0 z-20 flex h-12 w-full items-center bg-yellow-gradient px-4 py-2 pr-24`}
+      className={`${positionClass} top-0 z-30 flex flex-col bg-yellow-gradient pb-2`}
     >
-      <div className="truncate text-base font-extrabold text-redTerracotta">
-        Bếp Dì 6 - Mắm Chưng Miền Tây
+      <div className="header-margin flex h-10 items-center gap-2 px-3.5 pr-24 pt-2">
+        {back && (
+          <button
+            type="button"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-neutral800 transition-all active:scale-95"
+            onClick={() => navigate(-1)}
+          >
+            <BackIcon className="h-5 w-5" />
+          </button>
+        )}
+        <h1 className="truncate text-[17px] font-extrabold tracking-tight text-redTerracotta">
+          {title || "Bếp Dì 6 - Mắm Chưng Miền Tây"}
+        </h1>
       </div>
     </div>
   );
