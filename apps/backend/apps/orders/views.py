@@ -41,12 +41,37 @@ class CheckoutPreviewView(APIView):
         data = serializer.validated_data
 
         customer = get_current_customer(request)
-        address_id = data["address_id"]
+        address_id = data.get("address_id")
+        lat = data.get("delivery_latitude")
+        lng = data.get("delivery_longitude")
 
-        try:
-            address = Address.objects.get(pk=address_id, customer=customer)
-        except Address.DoesNotExist:
-            raise NotFound("Địa chỉ giao hàng không tồn tại.") from None
+        if address_id:
+            try:
+                address = Address.objects.get(pk=address_id, customer=customer)
+            except Address.DoesNotExist:
+                raise NotFound("Địa chỉ giao hàng không tồn tại.") from None
+        elif lat is not None and lng is not None:
+            address = Address(
+                customer=customer,
+                recipient_name=customer.name or "Khách hàng",
+                phone=customer.phone or "0900000000",
+                address_text="Vị trí đã chọn",
+                latitude=lat,
+                longitude=lng,
+            )
+        else:
+            address = Address.objects.filter(customer=customer, is_default=True).first()
+            if not address:
+                address = Address.objects.filter(customer=customer).first()
+            if not address:
+                address = Address(
+                    customer=customer,
+                    recipient_name=customer.name or "Khách hàng",
+                    phone=customer.phone or "0900000000",
+                    address_text="TP.HCM",
+                    latitude=Decimal("10.762622"),
+                    longitude=Decimal("106.660172"),
+                )
 
         try:
             calc_result = OrderService.validate_and_calculate_cart(
@@ -104,12 +129,28 @@ class OrderListCreateView(APIView):
         data = serializer.validated_data
 
         customer = get_current_customer(request)
-        address_id = data["address_id"]
+        address_id = data.get("address_id")
 
-        try:
-            address = Address.objects.get(pk=address_id, customer=customer)
-        except Address.DoesNotExist:
-            raise NotFound("Địa chỉ giao hàng không tồn tại.") from None
+        if address_id:
+            try:
+                address = Address.objects.get(pk=address_id, customer=customer)
+            except Address.DoesNotExist:
+                raise NotFound("Địa chỉ giao hàng không tồn tại.") from None
+        else:
+            lat = data.get("delivery_latitude") or Decimal("10.762622")
+            lng = data.get("delivery_longitude") or Decimal("106.660172")
+            rec_name = data.get("recipient_name") or customer.name or "Khách hàng"
+            phone_num = data.get("phone") or customer.phone or "0900000000"
+            addr_text = data.get("delivery_address") or "Địa chỉ giao hàng"
+            address = Address.objects.create(
+                customer=customer,
+                recipient_name=rec_name,
+                phone=phone_num,
+                address_text=addr_text,
+                latitude=lat,
+                longitude=lng,
+                is_default=False,
+            )
 
         try:
             order = OrderService.create_order(
@@ -188,6 +229,35 @@ class OrderPaymentDetailView(APIView):
         return Response(serializer.data)
 
 
+class CustomerOrderCancelView(APIView):
+    """
+    POST /api/v1/orders/{id}/cancel
+    Customer cancels own order when in PENDING_CONFIRMATION (BR-ORD-005).
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, pk: int):
+        customer = get_current_customer(request)
+        try:
+            order = Order.objects.get(pk=pk, customer=customer)
+        except Order.DoesNotExist:
+            raise NotFound("Đơn hàng không tồn tại.") from None
+
+        reason = str(request.data.get("reason", "")).strip() or "Khách hàng tự hủy đơn"
+
+        try:
+            cancelled_order = OrderService.cancel_order_by_customer(
+                order=order,
+                customer=customer,
+                reason=reason,
+            )
+        except (OrderProcessingError, InvalidStateTransitionError) as e:
+            raise ValidationError({"code": e.code, "message": e.message}) from None
+
+        return Response(OrderDetailSerializer(cancelled_order).data)
+
+
 # ----------------------------------------------------------------------
 # Admin / Staff Order Management Views (BR-SEC-002, BR-ORD-004, BR-PAY-004)
 # ----------------------------------------------------------------------
@@ -233,6 +303,7 @@ class AdminOrderConfirmView(APIView):
     POST /api/v1/admin/orders/{id}/confirm
     Staff confirms order via phone call.
     BR-ORD-004: Cannot edit items if payment method is BANK_TRANSFER (VietQR).
+    Allows editing items for COD orders and recalculates totals / voucher.
     """
 
     permission_classes = [IsStaffOrAdminUser]
@@ -243,24 +314,19 @@ class AdminOrderConfirmView(APIView):
         except Order.DoesNotExist:
             raise NotFound("Đơn hàng không tồn tại.") from None
 
-        # Check if staff tries to modify items on a VietQR order
         edited_items = request.data.get("items")
-        if edited_items and order.payment_method == Order.PaymentMethod.BANK_TRANSFER:
-            raise ValidationError(
-                {
-                    "code": "CANNOT_MODIFY_VIETQR_ORDER",
-                    "message": "Không được phép sửa đơn thanh toán qua VietQR. Phải hủy đơn để khách đặt lại (BR-ORD-004).",
-                }
-            )
+        note = request.data.get("note")
+        scheduled_delivery_at = request.data.get("scheduled_delivery_at")
 
-        # Update order status to CONFIRMED
         try:
-            updated_order = OrderService.update_order_status(
+            updated_order = OrderService.confirm_order(
                 order=order,
-                new_status=Order.Status.CONFIRMED,
                 user=request.user if request.user.is_authenticated else None,
+                edited_items=edited_items,
+                note=note,
+                scheduled_delivery_at=scheduled_delivery_at,
             )
-        except InvalidStateTransitionError as e:
+        except (OrderProcessingError, InvalidStateTransitionError) as e:
             raise ValidationError({"code": e.code, "message": e.message}) from None
 
         return Response(OrderDetailSerializer(updated_order).data)

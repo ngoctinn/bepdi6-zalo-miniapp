@@ -144,7 +144,7 @@ class AuthService:
             username=f"zalo_{customer.zalo_user_id}",
             defaults={
                 "zalo_user_id": customer.zalo_user_id,
-                "role": User.Role.STAFF if False else "STAFF",
+                "role": User.Role.CUSTOMER,
             },
         )
 

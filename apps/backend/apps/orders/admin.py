@@ -1,5 +1,6 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 from unfold.admin import ModelAdmin, StackedInline, TabularInline
 from unfold.decorators import action, display
 
@@ -40,13 +41,14 @@ class OrderItemInline(StackedInline):
         options = obj.options.all()
         if not options.exists():
             return "-"
-        items_html = "".join(
-            f'<li style="margin-bottom: 2px;">• <b>{opt.option_name}</b> (+{opt.price:,.0f}đ x{opt.quantity})</li>'
-            for opt in options
+        items_html = format_html_join(
+            "",
+            '<li style="margin-bottom: 2px;">• <b>{}</b> (+{:,.0f}đ x{})</li>',
+            ((opt.option_name, opt.price, opt.quantity) for opt in options),
         )
         return format_html(
             '<ul style="margin: 0; padding-left: 0; list-style-type: none; font-size: 0.875rem;">{}</ul>',
-            format_html(items_html),
+            items_html,
         )
 
 
@@ -138,25 +140,37 @@ class OrderAdmin(ModelAdmin):
         items = obj.items.prefetch_related("options").all()
         if not items.exists():
             return "-"
-        lines = []
+        parts = []
         for item in items:
-            item_part = [f"<div><b>{item.product_name}</b> x{item.quantity}</div>"]
+            parts.append(
+                format_html(
+                    "<div><b>{}</b> x{}</div>", item.product_name, item.quantity
+                )
+            )
             for o in item.options.all():
-                item_part.append(
-                    f'<div style="color: #64748b; font-size: 0.8125rem; padding-left: 6px;">+ {o.option_name}</div>'
+                parts.append(
+                    format_html(
+                        '<div style="color: #64748b; font-size: 0.8125rem; padding-left: 6px;">+ {}</div>',
+                        o.option_name,
+                    )
                 )
             if item.note:
-                item_part.append(
-                    f'<div style="color: #0284c7; font-size: 0.8125rem; padding-left: 6px; font-style: italic;">{item.note}</div>'
+                parts.append(
+                    format_html(
+                        '<div style="color: #0284c7; font-size: 0.8125rem; padding-left: 6px; font-style: italic;">{}</div>',
+                        item.note,
+                    )
                 )
-            lines.append("".join(item_part))
         if obj.note:
-            lines.append(
-                f'<div style="color: #b45309; font-size: 0.8125rem; font-style: italic;">{obj.note}</div>'
+            parts.append(
+                format_html(
+                    '<div style="color: #b45309; font-size: 0.8125rem; font-style: italic;">{}</div>',
+                    obj.note,
+                )
             )
         return format_html(
             '<div style="line-height: 1.35; display: flex; flex-direction: column; gap: 4px; text-align: left;">{}</div>',
-            format_html("".join(lines)),
+            mark_safe("".join(str(p) for p in parts)),
         )
 
     @display(

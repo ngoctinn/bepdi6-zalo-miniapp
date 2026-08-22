@@ -33,3 +33,14 @@ def test_zalo_auth_api(api_client):
     customer = Customer.objects.get(zalo_user_id="zalo_user_123")
     assert customer.name == "Nguyễn Văn Test"
     assert customer.phone == "0987654321"
+
+    # Verify associated user has Role.CUSTOMER (BR-SEC-002)
+    from apps.customers.models import User
+
+    user = User.objects.get(username="zalo_zalo_user_123")
+    assert user.role == User.Role.CUSTOMER
+
+    # Verify customer is FORBIDDEN on admin endpoints
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {result['access_token']}")
+    admin_res = api_client.get("/api/v1/admin/orders")
+    assert admin_res.status_code == 403

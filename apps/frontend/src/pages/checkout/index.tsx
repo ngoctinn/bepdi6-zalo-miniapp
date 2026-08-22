@@ -186,21 +186,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="flex h-full flex-col bg-elevation-01">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b border-neutral200 bg-white px-4">
-        <Button
-          className="flex h-8 w-8 items-center justify-center bg-transparent p-0 active:bg-transparent"
-          type="neutral"
-          size="small"
-          onClick={() => navigate(-1)}
-        >
-          <BackIcon className="text-neutral900" />
-        </Button>
-        <h1 className="text-base font-bold text-neutral900">
-          Xác nhận đơn hàng
-        </h1>
-      </div>
-
       <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto p-3.5 pb-32">
         {/* Banner Quán đóng cửa nếu có */}
         {shopInfo && !shopInfo.is_open && (

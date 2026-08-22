@@ -9,6 +9,7 @@ class User(AbstractUser):
     class Role(models.TextChoices):
         STAFF = "STAFF", "Nhân viên"
         ADMIN = "ADMIN", "Quản trị viên"
+        CUSTOMER = "CUSTOMER", "Khách hàng"
 
     class Status(models.TextChoices):
         ACTIVE = "ACTIVE", "Đang hoạt động"
@@ -27,7 +28,7 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=50,
         choices=Role.choices,
-        default=Role.STAFF,
+        default=Role.CUSTOMER,
         verbose_name="Vai trò",
     )
     status = models.CharField(

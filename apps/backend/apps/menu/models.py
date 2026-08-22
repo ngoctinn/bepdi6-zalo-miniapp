@@ -40,7 +40,7 @@ class Category(models.Model):
         ordering = ["sort_order", "id"]
 
     def __str__(self) -> str:
-        return str(self.name)
+        return self.name
 
     @property
     def effective_image_url(self) -> str:
@@ -95,7 +95,7 @@ class Product(models.Model):
         ordering = ["id"]
 
     def __str__(self) -> str:
-        return str(self.name)
+        return self.name
 
     @property
     def effective_image_url(self) -> str:

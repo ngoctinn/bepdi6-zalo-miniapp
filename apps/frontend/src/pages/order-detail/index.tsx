@@ -99,17 +99,9 @@ export default function OrderDetailPage() {
 
   return (
     <div className="flex h-full flex-col bg-elevation-01">
-      {/* Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-neutral200 bg-white px-4">
-        <div className="flex items-center gap-2">
-          <Button
-            className="flex h-8 w-8 items-center justify-center bg-transparent p-0 active:bg-transparent"
-            type="neutral"
-            size="small"
-            onClick={() => navigate("/order")}
-          >
-            <BackIcon className="text-neutral900" />
-          </Button>
+      <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto p-3.5 pb-24">
+        {/* Order Info Card */}
+        <div className="shadow-2xs flex items-center justify-between rounded-xl border border-neutral100 bg-white p-3.5">
           <div>
             <h1 className="text-sm font-bold text-neutral900">
               Đơn hàng #{order.order_code}
@@ -118,21 +110,18 @@ export default function OrderDetailPage() {
               {new Date(order.created_at).toLocaleString("vi-VN")}
             </span>
           </div>
+          <span
+            className={`rounded-full px-2.5 py-1 text-xxsmall font-bold ${
+              isCancelled
+                ? "bg-red-100 text-red-700"
+                : order.status === "COMPLETED"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-amber-100 text-amber-800"
+            }`}
+          >
+            {order.status_display || order.status}
+          </span>
         </div>
-        <span
-          className={`rounded-full px-2.5 py-1 text-xxsmall font-bold ${
-            isCancelled
-              ? "bg-red-100 text-red-700"
-              : order.status === "COMPLETED"
-                ? "bg-green-100 text-green-700"
-                : "bg-amber-100 text-amber-800"
-          }`}
-        >
-          {order.status_display || order.status}
-        </span>
-      </div>
-
-      <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto p-3.5 pb-24">
         {/* Timeline Trạng Thái Đơn Hàng */}
         <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-4">
           <span className="mb-3 block text-xs font-bold text-neutral800">

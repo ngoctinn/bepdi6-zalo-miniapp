@@ -1,5 +1,6 @@
 import os
 import sys
+
 import django
 
 # Setup Django Environment
@@ -8,8 +9,10 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from decimal import Decimal
+
+from apps.menu.models import Category, Option, OptionGroup, Product
 from apps.shipping.models import ShopConfig
-from apps.menu.models import Category, Product, OptionGroup, Option
+
 
 def run():
     print("🚀 Đang cấu hình thông tin quán ShopConfig...")
@@ -25,7 +28,7 @@ def run():
     config.min_order_amount = Decimal("30000")
     config.min_order_for_freeship = Decimal("200000")
     config.announcement_banner = "Freeship đơn từ 200k • Giao nhanh 30-45 phút"
-    
+
     # Bảng phí ship bậc thang JSON
     config.shipping_tiers = [
         {"from_km": 0.0, "to_km": 2.0, "fee": 15000.0},
@@ -37,7 +40,7 @@ def run():
     print("✅ Đã cập nhật ShopConfig & Shipping Tiers!")
 
     print("🍳 Đang cập nhật Danh mục & Món ăn...")
-    
+
     # 1. Danh mục
     cat_combo, _ = Category.objects.get_or_create(
         name="Combo Tiết Kiệm",
@@ -45,8 +48,8 @@ def run():
             "description": "Combo món chính kèm nước uống tiết kiệm",
             "sort_order": 1,
             "status": "ACTIVE",
-            "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80"
-        }
+            "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80",
+        },
     )
 
     cat_bun, _ = Category.objects.get_or_create(
@@ -55,8 +58,8 @@ def run():
             "description": "Bún nước tương, bún mắm tép, bún thịt nướng đậm vị",
             "sort_order": 2,
             "status": "ACTIVE",
-            "image_url": "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=400&auto=format&fit=crop&q=80"
-        }
+            "image_url": "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=400&auto=format&fit=crop&q=80",
+        },
     )
 
     cat_mam, _ = Category.objects.get_or_create(
@@ -65,8 +68,8 @@ def run():
             "description": "Mắm chưng thịt, ba rọi xào mắm ruốc chuẩn vị gia truyền",
             "sort_order": 3,
             "status": "ACTIVE",
-            "image_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&auto=format&fit=crop&q=80"
-        }
+            "image_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&auto=format&fit=crop&q=80",
+        },
     )
 
     cat_nuoc, _ = Category.objects.get_or_create(
@@ -75,8 +78,8 @@ def run():
             "description": "Latte sữa gấu mát lạnh sảng khoái 700ml",
             "sort_order": 4,
             "status": "ACTIVE",
-            "image_url": "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&auto=format&fit=crop&q=80"
-        }
+            "image_url": "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&auto=format&fit=crop&q=80",
+        },
     )
 
     cat_trangmieng, _ = Category.objects.get_or_create(
@@ -85,8 +88,8 @@ def run():
             "description": "Sầu riêng nướng và món tráng miệng hấp dẫn",
             "sort_order": 5,
             "status": "ACTIVE",
-            "image_url": "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&auto=format&fit=crop&q=80"
-        }
+            "image_url": "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&auto=format&fit=crop&q=80",
+        },
     )
 
     # 2. Danh sách món ăn chi tiết
@@ -109,7 +112,7 @@ def run():
                         {"name": "70% đường (Vừa)", "price": Decimal("0")},
                         {"name": "50% đường (Ít ngọt)", "price": Decimal("0")},
                         {"name": "0% đường", "price": Decimal("0")},
-                    ]
+                    ],
                 },
                 {
                     "name": "Chọn mức đá",
@@ -120,7 +123,7 @@ def run():
                         {"name": "100% đá (Bình thường)", "price": Decimal("0")},
                         {"name": "50% đá (Ít đá)", "price": Decimal("0")},
                         {"name": "Đá riêng", "price": Decimal("2000")},
-                    ]
+                    ],
                 },
                 {
                     "name": "Topping thêm",
@@ -131,9 +134,9 @@ def run():
                         {"name": "Trân châu đen dẻo", "price": Decimal("6000")},
                         {"name": "Trân châu trắng 3Q", "price": Decimal("7000")},
                         {"name": "Thạch củ năng", "price": Decimal("8000")},
-                    ]
-                }
-            ]
+                    ],
+                },
+            ],
         },
         {
             "category": cat_nuoc,
@@ -151,7 +154,7 @@ def run():
                         {"name": "100% đường (Bình thường)", "price": Decimal("0")},
                         {"name": "70% đường (Vừa)", "price": Decimal("0")},
                         {"name": "50% đường (Ít ngọt)", "price": Decimal("0")},
-                    ]
+                    ],
                 },
                 {
                     "name": "Topping thêm",
@@ -161,9 +164,9 @@ def run():
                     "options": [
                         {"name": "Trân châu trắng 3Q", "price": Decimal("7000")},
                         {"name": "Thạch dừa non", "price": Decimal("6000")},
-                    ]
-                }
-            ]
+                    ],
+                },
+            ],
         },
         {
             "category": cat_nuoc,
@@ -181,11 +184,10 @@ def run():
                         {"name": "100% đường (Bình thường)", "price": Decimal("0")},
                         {"name": "70% đường (Vừa)", "price": Decimal("0")},
                         {"name": "50% đường (Ít ngọt)", "price": Decimal("0")},
-                    ]
+                    ],
                 }
-            ]
+            ],
         },
-
         # Bún & Món Trộn Miền Tây
         {
             "category": cat_bun,
@@ -204,7 +206,7 @@ def run():
                         {"name": "Thêm 1 phần thịt luộc", "price": Decimal("18000")},
                         {"name": "Thêm đậu hủ chiên", "price": Decimal("10000")},
                         {"name": "Thêm bún", "price": Decimal("5000")},
-                    ]
+                    ],
                 },
                 {
                     "name": "Khẩu vị ớt",
@@ -214,10 +216,13 @@ def run():
                     "options": [
                         {"name": "Nước tương cay vừa", "price": Decimal("0")},
                         {"name": "Nước tương cay nhiều", "price": Decimal("0")},
-                        {"name": "Nước tương không ớt (để riêng)", "price": Decimal("0")},
-                    ]
-                }
-            ]
+                        {
+                            "name": "Nước tương không ớt (để riêng)",
+                            "price": Decimal("0"),
+                        },
+                    ],
+                },
+            ],
         },
         {
             "category": cat_bun,
@@ -234,9 +239,9 @@ def run():
                     "options": [
                         {"name": "Thêm chả giò rế", "price": Decimal("12000")},
                         {"name": "Thêm đậu hủ chiên", "price": Decimal("10000")},
-                    ]
+                    ],
                 }
-            ]
+            ],
         },
         {
             "category": cat_bun,
@@ -254,9 +259,9 @@ def run():
                         {"name": "Thêm 1 xiên thịt nướng", "price": Decimal("18000")},
                         {"name": "Thêm chả giò", "price": Decimal("12000")},
                         {"name": "Thêm nem nướng", "price": Decimal("15000")},
-                    ]
+                    ],
                 }
-            ]
+            ],
         },
         {
             "category": cat_bun,
@@ -273,9 +278,9 @@ def run():
                     "options": [
                         {"name": "Thêm 1 chén mắm tép", "price": Decimal("25000")},
                         {"name": "Thêm đĩa thịt luộc", "price": Decimal("25000")},
-                    ]
+                    ],
                 }
-            ]
+            ],
         },
         {
             "category": cat_bun,
@@ -284,7 +289,6 @@ def run():
             "description": "Bún trộn cùng mắm tép đu đủ giòn cay chua ngọt và rau sống miền Tây thanh mát dễ ăn.",
             "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80",
         },
-
         # Sầu riêng nướng
         {
             "category": cat_trangmieng,
@@ -293,7 +297,6 @@ def run():
             "description": "Sầu riêng Ri6 hạt lép nướng giấy bạc xém cạnh thơm lừng nức mũi, vị ngọt béo dẻo quánh khó cưỡng.",
             "image_url": "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=600&auto=format&fit=crop&q=80",
         },
-
         # Combo ưu đãi
         {
             "category": cat_combo,
@@ -309,9 +312,12 @@ def run():
                     "max_select": 1,
                     "options": [
                         {"name": "Cơm sườn nướng mật ong", "price": Decimal("0")},
-                        {"name": "Cơm mắm chưng thịt trứng muối", "price": Decimal("0")},
+                        {
+                            "name": "Cơm mắm chưng thịt trứng muối",
+                            "price": Decimal("0"),
+                        },
                         {"name": "Cơm ba rọi xào mắm ruốc", "price": Decimal("0")},
-                    ]
+                    ],
                 },
                 {
                     "name": "Chọn nước uống",
@@ -322,9 +328,9 @@ def run():
                         {"name": "Matcha latte sữa gấu", "price": Decimal("0")},
                         {"name": "Sâm dứa sữa gấu 700ml", "price": Decimal("0")},
                         {"name": "Trà chanh tắc hoa đậu biếc", "price": Decimal("0")},
-                    ]
-                }
-            ]
+                    ],
+                },
+            ],
         },
         {
             "category": cat_combo,
@@ -341,7 +347,7 @@ def run():
                     "options": [
                         {"name": "Bánh mì thịt nướng Dì 6", "price": Decimal("0")},
                         {"name": "Bánh mì xíu mại trứng muối", "price": Decimal("0")},
-                    ]
+                    ],
                 },
                 {
                     "name": "Chọn nước uống",
@@ -352,9 +358,9 @@ def run():
                         {"name": "Cà phê sữa đá pha phin", "price": Decimal("0")},
                         {"name": "Trà đào hạt chia", "price": Decimal("0")},
                         {"name": "Sâm dứa sữa gấu", "price": Decimal("5000")},
-                    ]
-                }
-            ]
+                    ],
+                },
+            ],
         },
         {
             "category": cat_combo,
@@ -370,8 +376,11 @@ def run():
                     "max_select": 1,
                     "options": [
                         {"name": "Bún thịt nướng đậm vị", "price": Decimal("0")},
-                        {"name": "Bún nước tương chả giò đậu hủ", "price": Decimal("0")},
-                    ]
+                        {
+                            "name": "Bún nước tương chả giò đậu hủ",
+                            "price": Decimal("0"),
+                        },
+                    ],
                 },
                 {
                     "name": "Chọn nước",
@@ -381,11 +390,10 @@ def run():
                     "options": [
                         {"name": "Trà chanh sả mật ong", "price": Decimal("0")},
                         {"name": "Matcha latte sữa gấu", "price": Decimal("10000")},
-                    ]
-                }
-            ]
+                    ],
+                },
+            ],
         },
-
         # Combo đóng hộp
         {
             "category": cat_mam,
@@ -412,7 +420,7 @@ def run():
                 "description": item_data.get("description", ""),
                 "image_url": item_data.get("image_url", ""),
                 "status": "AVAILABLE",
-            }
+            },
         )
 
         if "option_groups" in item_data:
@@ -436,6 +444,7 @@ def run():
                     )
 
     print(f"🎉 Đã seed thành công toàn bộ {len(menu_items)} món ăn cho Bếp Dì 6!")
+
 
 if __name__ == "__main__":
     run()

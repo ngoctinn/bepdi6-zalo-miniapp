@@ -172,3 +172,22 @@ def test_order_create_and_get_detail_api(api_client, checkout_setup):
     assert detail["recipient_name"] == address.recipient_name
     assert len(detail["items"]) == 1
     assert detail["items"][0]["product_name"] == prod.name
+
+    # 5. Customer cancels order while in PENDING_CONFIRMATION -> Success (BR-ORD-005)
+    res_cancel = api_client.post(
+        f"/api/v1/orders/{order_id}/cancel",
+        {"reason": "Đặt nhầm món"},
+        format="json",
+        HTTP_X_CUSTOMER_ID=str(customer.id),
+    )
+    assert res_cancel.status_code == 200
+    assert res_cancel.json()["data"]["status"] == "CANCELLED"
+
+    # 6. Re-cancelling or cancelling when not PENDING_CONFIRMATION -> Rejected
+    res_re_cancel = api_client.post(
+        f"/api/v1/orders/{order_id}/cancel",
+        format="json",
+        HTTP_X_CUSTOMER_ID=str(customer.id),
+    )
+    assert res_re_cancel.status_code == 400
+    assert res_re_cancel.json()["error"]["code"] == "INVALID_STATE_TRANSITION"

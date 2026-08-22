@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.menu.models import Category, Option, OptionGroup, Product
+from apps.menu.utils import optimize_image_to_webp
 
 
 class OptionSerializer(serializers.ModelSerializer):
@@ -33,7 +34,7 @@ class OptionGroupSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     category_id = serializers.IntegerField(required=True)
-    image_url = serializers.CharField(source="effective_image_url", read_only=True)
+    image_url = serializers.CharField(required=False, allow_blank=True, default="")
     image = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     class Meta:
@@ -49,10 +50,27 @@ class ProductListSerializer(serializers.ModelSerializer):
             "status",
         ]
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["image_url"] = instance.effective_image_url
+        return data
+
+    def create(self, validated_data):
+        image = validated_data.get("image")
+        if image:
+            validated_data["image"] = optimize_image_to_webp(image)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        image = validated_data.get("image")
+        if image:
+            validated_data["image"] = optimize_image_to_webp(image)
+        return super().update(instance, validated_data)
+
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     option_groups = OptionGroupSerializer(many=True, read_only=True)
-    image_url = serializers.CharField(source="effective_image_url", read_only=True)
+    image_url = serializers.CharField(required=False, allow_blank=True, default="")
     image = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     class Meta:
@@ -69,9 +87,14 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             "option_groups",
         ]
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["image_url"] = instance.effective_image_url
+        return data
+
 
 class CategorySerializer(serializers.ModelSerializer):
-    image_url = serializers.CharField(source="effective_image_url", read_only=True)
+    image_url = serializers.CharField(required=False, allow_blank=True, default="")
     image = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     class Meta:
@@ -85,3 +108,20 @@ class CategorySerializer(serializers.ModelSerializer):
             "sort_order",
             "status",
         ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["image_url"] = instance.effective_image_url
+        return data
+
+    def create(self, validated_data):
+        image = validated_data.get("image")
+        if image:
+            validated_data["image"] = optimize_image_to_webp(image)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        image = validated_data.get("image")
+        if image:
+            validated_data["image"] = optimize_image_to_webp(image)
+        return super().update(instance, validated_data)

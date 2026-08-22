@@ -14,12 +14,34 @@ class CartItemInputSerializer(serializers.Serializer):
     option_ids = serializers.ListField(
         child=serializers.IntegerField(), required=False, default=list
     )
+    options = serializers.ListField(required=False, default=list)
     note = serializers.CharField(required=False, allow_blank=True, default="")
+
+    def to_internal_value(self, data):
+        ret = super().to_internal_value(data)
+        if not ret.get("option_ids") and "options" in data:
+            raw_options = data.get("options", [])
+            extracted_ids = []
+            for opt in raw_options:
+                if isinstance(opt, dict):
+                    opt_id = opt.get("option_id") or opt.get("id") or opt.get("option")
+                    if opt_id is not None:
+                        extracted_ids.append(int(opt_id))
+                elif isinstance(opt, (int, str)) and str(opt).isdigit():
+                    extracted_ids.append(int(opt))
+            ret["option_ids"] = extracted_ids
+        return ret
 
 
 class CheckoutPreviewRequestSerializer(serializers.Serializer):
     items = CartItemInputSerializer(many=True, required=True, allow_empty=False)
-    address_id = serializers.IntegerField(required=True)
+    address_id = serializers.IntegerField(required=False, allow_null=True)
+    delivery_latitude = serializers.DecimalField(
+        max_digits=10, decimal_places=8, required=False, allow_null=True
+    )
+    delivery_longitude = serializers.DecimalField(
+        max_digits=11, decimal_places=8, required=False, allow_null=True
+    )
     delivery_type = serializers.ChoiceField(
         choices=Order.DeliveryType.choices, default=Order.DeliveryType.ASAP
     )
@@ -32,6 +54,11 @@ class CheckoutPreviewRequestSerializer(serializers.Serializer):
 
 
 class OrderCreateRequestSerializer(CheckoutPreviewRequestSerializer):
+    recipient_name = serializers.CharField(required=False, allow_blank=True, default="")
+    phone = serializers.CharField(required=False, allow_blank=True, default="")
+    delivery_address = serializers.CharField(
+        required=False, allow_blank=True, default=""
+    )
     note = serializers.CharField(required=False, allow_blank=True, default="")
     scheduled_delivery_at = serializers.DateTimeField(required=False, allow_null=True)
 

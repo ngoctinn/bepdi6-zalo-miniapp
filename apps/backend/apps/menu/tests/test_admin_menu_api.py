@@ -53,3 +53,22 @@ def test_admin_category_crud_and_product_toggle(admin_client):
     assert res_toggle2.status_code == 200
     prod.refresh_from_db()
     assert prod.status == Product.Status.AVAILABLE
+
+    # 5. Create product with direct CDN image_url (BR-PROD-007)
+    cdn_url = "https://cdn.bepdi6.vn/images/food/bap-xao.webp"
+    res_cdn_prod = admin_client.post(
+        "/api/v1/admin/products",
+        {
+            "category_id": cat_id,
+            "name": "Bắp xào phô mai",
+            "price": "40000.00",
+            "image_url": cdn_url,
+            "status": "AVAILABLE",
+        },
+        format="json",
+    )
+    assert res_cdn_prod.status_code == 201
+    assert res_cdn_prod.json()["data"]["image_url"] == cdn_url
+    prod2 = Product.objects.get(pk=res_cdn_prod.json()["data"]["id"])
+    assert prod2.image_url == cdn_url
+    assert prod2.effective_image_url == cdn_url

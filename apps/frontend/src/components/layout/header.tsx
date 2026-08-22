@@ -18,31 +18,34 @@ export default function Header({ title, back, position }: HeaderProps) {
   if (title) {
     return (
       <div
-        className={`${positionClass} header-margin left-0 top-0 z-10 flex h-12 w-full items-center gap-2 bg-background px-4 py-2`}
+        className={`${positionClass} header-margin shadow-2xs left-0 top-0 z-20 flex h-12 w-full items-center gap-2 border-b border-neutral100 bg-white px-4 py-2 pr-24`}
         style={{ color: theme.colors.text.primary }}
       >
         {back && (
           <Button
-            className="w-fit bg-transparent p-1 active:bg-transparent"
+            className="flex h-8 w-8 items-center justify-center bg-transparent p-0 active:bg-transparent"
             type="neutral"
             size="small"
-            fullWidth
             onClick={() => navigate(-1)}
           >
-            <BackIcon className="text-header_title text-text-primary" />
+            <BackIcon className="h-5 w-5 text-neutral800" />
           </Button>
         )}
-        <div className="text-header_title">{title}</div>
+        <div className="truncate text-base font-bold text-neutral900">
+          {title}
+        </div>
       </div>
     );
   }
 
   return (
     <div
-      className={`${positionClass} header-margin left-0 top-0 flex h-12 w-full items-center gap-1.5 px-4 py-2`}
+      className={`${positionClass} header-margin left-0 top-0 z-20 flex h-12 w-full items-center gap-1.5 bg-background px-4 py-2 pr-24`}
     >
       <Logo />
-      <div className="text-header_title text-primary">{copy.brand.name}</div>
+      <div className="truncate text-base font-bold text-primary">
+        {copy.brand.name}
+      </div>
     </div>
   );
 }

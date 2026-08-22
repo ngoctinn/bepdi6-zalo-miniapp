@@ -416,7 +416,7 @@ class OrderService:
         Updates order status following state machine rules (BR-STAT-001, BR-STAT-002).
         Records audit logs and releases voucher if cancelled.
         """
-        current_status = str(order.status)
+        current_status = order.status
         allowed_next = cls.VALID_TRANSITIONS.get(current_status, [])
 
         if new_status not in allowed_next:
@@ -432,6 +432,19 @@ class OrderService:
             order.confirmed_at = now
         elif new_status == Order.Status.COMPLETED:
             order.completed_at = now
+            # BR-PAY-003: COD order is marked as PAID upon successful delivery completion
+            if order.payment_method == Order.PaymentMethod.COD:
+                try:
+                    payment = getattr(order, "payment", None)
+                    if payment and payment.status != Payment.Status.PAID:
+                        payment.status = Payment.Status.PAID
+                        payment.paid_at = now
+                        payment.actual_paid_amount = order.total_amount
+                        payment.save(
+                            update_fields=["status", "paid_at", "actual_paid_amount"]
+                        )
+                except Payment.DoesNotExist:
+                    pass
         elif new_status == Order.Status.CANCELLED:
             order.cancelled_at = now
             order.cancellation_reason = reason
@@ -490,3 +503,250 @@ class OrderService:
             )
 
         return order
+
+    @classmethod
+    @transaction.atomic
+    def confirm_order(
+        cls,
+        order: Order,
+        user: User | None = None,
+        edited_items: list[dict] | None = None,
+        note: str | None = None,
+        scheduled_delivery_at=None,
+    ) -> Order:
+        """
+        Staff confirms order via phone call.
+        Enforces BR-ORD-004:
+        - If payment_method is BANK_TRANSFER (VietQR), editing items is prohibited.
+        - If COD and edited_items is provided, recalculate items, subtotal, voucher eligibility, and totals.
+        - Enforces BR-VOU-005: If edited order value no longer qualifies for voucher, release voucher.
+        """
+        if order.status != Order.Status.PENDING_CONFIRMATION:
+            raise InvalidStateTransitionError(
+                f"Chỉ có thể xác nhận đơn hàng đang ở trạng thái '{Order.Status.PENDING_CONFIRMATION}'."
+            )
+
+        if edited_items is not None and len(edited_items) > 0:
+            if order.payment_method == Order.PaymentMethod.BANK_TRANSFER:
+                raise OrderProcessingError(
+                    "CANNOT_MODIFY_VIETQR_ORDER",
+                    "Không được phép sửa đơn thanh toán qua VietQR. Phải hủy đơn để khách đặt lại (BR-ORD-004).",
+                )
+
+            # Re-validate and compute items
+            subtotal = Decimal("0.00")
+            validated_items = []
+
+            for item in edited_items:
+                product_id = item.get("product_id")
+                quantity = int(item.get("quantity", 1))
+                item_note = str(item.get("note", "")).strip()
+                option_ids = item.get("option_ids", [])
+
+                if quantity <= 0:
+                    raise OrderProcessingError(
+                        "INVALID_QUANTITY", "Số lượng món phải lớn hơn 0."
+                    )
+
+                try:
+                    product = Product.objects.get(pk=product_id)
+                except Product.DoesNotExist:
+                    raise OrderProcessingError(
+                        "PRODUCT_NOT_FOUND", f"Món #{product_id} không tồn tại."
+                    ) from None
+
+                if product.status == Product.Status.OUT_OF_STOCK:
+                    raise OrderProcessingError(
+                        "PRODUCT_OUT_OF_STOCK", f"Món '{product.name}' đã hết hàng."
+                    )
+                if product.status == Product.Status.INACTIVE:
+                    raise OrderProcessingError(
+                        "PRODUCT_NOT_FOUND", f"Món '{product.name}' hiện ngưng phục vụ."
+                    )
+
+                item_price = product.price
+                validated_options = []
+                if option_ids:
+                    if len(set(option_ids)) != len(option_ids):
+                        raise OrderProcessingError(
+                            "INVALID_OPTION",
+                            f"Không được chọn trùng lặp tùy chọn trong món '{product.name}'.",
+                        )
+                    options = Option.objects.filter(
+                        pk__in=option_ids, option_group__product=product
+                    )
+                    if len(options) != len(option_ids):
+                        raise OrderProcessingError(
+                            "INVALID_OPTION",
+                            f"Một số tùy chọn của món '{product.name}' không hợp lệ.",
+                        )
+                    for opt in options:
+                        if opt.status == Option.Status.INACTIVE:
+                            raise OrderProcessingError(
+                                "INVALID_OPTION",
+                                f"Tùy chọn '{opt.name}' hiện không khả dụng.",
+                            )
+                        item_price += opt.price
+                        validated_options.append(opt)
+
+                # Validate option groups min/max
+                for group in product.option_groups.all():
+                    selected_in_group = [
+                        opt
+                        for opt in validated_options
+                        if opt.option_group_id == group.id
+                    ]
+                    count = len(selected_in_group)
+                    if group.is_required and count < group.min_select:
+                        raise OrderProcessingError(
+                            "INVALID_OPTION",
+                            f"Món '{product.name}' yêu cầu chọn tối thiểu {group.min_select} tùy chọn trong nhóm '{group.name}'.",
+                        )
+                    if group.max_select > 0 and count > group.max_select:
+                        raise OrderProcessingError(
+                            "INVALID_OPTION",
+                            f"Món '{product.name}' chỉ cho phép chọn tối đa {group.max_select} tùy chọn trong nhóm '{group.name}'.",
+                        )
+
+                item_subtotal = item_price * quantity
+                subtotal += item_subtotal
+                validated_items.append(
+                    {
+                        "product": product,
+                        "product_name": product.name,
+                        "unit_price": product.price,
+                        "quantity": quantity,
+                        "note": item_note,
+                        "subtotal": item_subtotal,
+                        "options": validated_options,
+                    }
+                )
+
+            # Voucher check (BR-VOU-005)
+            discount = Decimal("0.00")
+            voucher = order.voucher
+            if voucher:
+                if subtotal < voucher.minimum_order_value:
+                    # Release voucher if minimum order value is not met
+                    VoucherService.release_voucher(order=order)
+                    voucher = None
+                    discount = Decimal("0.00")
+                else:
+                    if voucher.discount_type == Voucher.DiscountType.FIXED:
+                        discount = voucher.discount_value
+                    elif voucher.discount_type == Voucher.DiscountType.PERCENTAGE:
+                        discount = subtotal * (voucher.discount_value / Decimal("100"))
+                        if (
+                            voucher.maximum_discount
+                            and discount > voucher.maximum_discount
+                        ):
+                            discount = voucher.maximum_discount
+                    if discount > subtotal:
+                        discount = subtotal
+
+            total_amount = subtotal + order.shipping_fee - discount
+            if total_amount < Decimal("0.00"):
+                total_amount = Decimal("0.00")
+
+            old_items_data = [
+                {
+                    "name": it.product_name,
+                    "quantity": it.quantity,
+                    "subtotal": float(it.subtotal),
+                }
+                for it in order.items.all()
+            ]
+
+            # Replace items in database
+            order.items.all().delete()
+            for v_item in validated_items:
+                order_item = OrderItem.objects.create(
+                    order=order,
+                    product=v_item["product"],
+                    product_name=v_item["product_name"],
+                    unit_price=v_item["unit_price"],
+                    quantity=v_item["quantity"],
+                    note=v_item["note"],
+                    subtotal=v_item["subtotal"],
+                )
+                for opt in v_item["options"]:
+                    OrderItemOption.objects.create(
+                        order_item=order_item,
+                        option=opt,
+                        option_name=opt.name,
+                        price=opt.price,
+                        quantity=1,
+                    )
+
+            order.subtotal = subtotal
+            order.discount = discount
+            order.total_amount = total_amount
+            order.voucher = voucher
+
+            # Update Payment amount
+            try:
+                payment = order.payment
+                payment.amount = total_amount
+                payment.save(update_fields=["amount"])
+            except Payment.DoesNotExist:
+                pass
+
+            AuditLog.objects.create(
+                user=user,
+                action="EDIT_COD_ORDER_ITEMS",
+                entity_type="ORDER",
+                entity_id=order.id,
+                old_data={"items": old_items_data, "subtotal": float(order.subtotal)},
+                new_data={
+                    "items": [
+                        {
+                            "name": it["product_name"],
+                            "quantity": it["quantity"],
+                            "subtotal": float(it["subtotal"]),
+                        }
+                        for it in validated_items
+                    ],
+                    "subtotal": float(subtotal),
+                    "total_amount": float(total_amount),
+                },
+            )
+
+        if note is not None and note.strip():
+            order.note = note.strip()
+        if scheduled_delivery_at is not None:
+            order.scheduled_delivery_at = scheduled_delivery_at
+
+        # Transition status to CONFIRMED
+        return cls.update_order_status(
+            order=order,
+            new_status=Order.Status.CONFIRMED,
+            user=user,
+        )
+
+    @classmethod
+    @transaction.atomic
+    def cancel_order_by_customer(
+        cls,
+        order: Order,
+        customer: Customer,
+        reason: str = "Khách hàng tự hủy đơn",
+    ) -> Order:
+        """
+        Customer cancels own order while in PENDING_CONFIRMATION state (BR-ORD-005, BR-SEC-001).
+        """
+        if order.customer_id != customer.id:
+            raise OrderProcessingError(
+                "FORBIDDEN", "Bạn không có quyền hủy đơn hàng của người khác."
+            )
+
+        if order.status != Order.Status.PENDING_CONFIRMATION:
+            raise InvalidStateTransitionError(
+                "Đơn hàng đã được quán tiếp nhận/xác nhận, không thể tự hủy trên ứng dụng (BR-ORD-005)."
+            )
+
+        return cls.update_order_status(
+            order=order,
+            new_status=Order.Status.CANCELLED,
+            user=None,
+            reason=reason,
+        )

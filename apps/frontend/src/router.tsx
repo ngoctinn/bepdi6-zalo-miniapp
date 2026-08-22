@@ -53,7 +53,7 @@ const router = createBrowserRouter(
           path: "/checkout",
           element: <CheckoutPage />,
           handle: {
-            title: copy.header.delivery,
+            title: "Xác nhận đơn hàng",
             back: true,
             whiteBackground: true,
             hideFooter: true,
@@ -64,19 +64,19 @@ const router = createBrowserRouter(
           path: "/select-location",
           element: <SelectLocationPage />,
           handle: {
+            title: "Địa chỉ nhận hàng",
             back: true,
-            title: copy.header.selectLocation,
+            whiteBackground: true,
             hideFooter: true,
             headerPosition: "sticky",
-            whiteBackground: true,
-            hideHeader: true,
           },
         },
         {
           path: "/order-success",
           element: <OrderSuccessPage />,
           handle: {
-            title: copy.header.confirmation,
+            title: "Đặt hàng thành công",
+            back: false,
             whiteBackground: true,
             hideFooter: true,
           },
@@ -85,7 +85,7 @@ const router = createBrowserRouter(
           path: "/order/:orderId",
           element: <OrderDetailPage />,
           handle: {
-            title: " ",
+            title: "Chi tiết đơn hàng",
             back: true,
             whiteBackground: true,
             hideFooter: true,
