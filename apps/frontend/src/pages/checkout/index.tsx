@@ -286,7 +286,7 @@ export default function CheckoutPage() {
                       "{item.note}"
                     </div>
                   )}
-                  <div className="mt-1 text-xs font-bold text-primary">
+                  <div className="mt-1 text-xs font-extrabold text-[#0F172A]">
                     {formatCurrency(item.unit_price)}đ
                   </div>
                 </div>
@@ -459,7 +459,7 @@ export default function CheckoutPage() {
 
           <div className="flex items-center justify-between border-t border-neutral100 pt-2 text-sm font-bold text-neutral900">
             <span>Tổng thanh toán</span>
-            <span className="text-base text-primary">
+            <span className="text-lg font-extrabold text-[#0F172A]">
               {formatCurrency(previewData?.total_amount || 0)}đ
             </span>
           </div>

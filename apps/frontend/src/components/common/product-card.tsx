@@ -33,43 +33,45 @@ export default function ProductCard({
 
   return (
     <div
-      className="group flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-stone-200/50 bg-[#FAFAF5] p-2.5 shadow-sm transition-all active:scale-[0.98]"
+      className="group flex w-full cursor-pointer flex-col transition-all active:opacity-85"
       onClick={handleCardClick}
     >
-      <div>
-        <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-stone-200/40">
-          {isOutOfStock && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/45 backdrop-blur-[2px]">
-              <span className="rounded-md bg-black/75 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white">
-                TẠM HẾT
-              </span>
-            </div>
-          )}
-          <img
-            draggable={false}
-            src={imageUrl}
-            alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-        </div>
-
-        <div className="mt-2 flex flex-col">
-          <div className="line-clamp-2 min-h-[36px] text-[13.5px] font-semibold leading-snug text-stone-800">
-            {product.name}
+      {/* Large Product Image */}
+      <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-amber-100/40 shadow-xs ring-1 ring-black/5">
+        {isOutOfStock && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/45 backdrop-blur-[2px]">
+            <span className="rounded-md bg-black/75 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white">
+              TẠM HẾT
+            </span>
           </div>
-          {product.description && (
-            <div className="mt-0.5 line-clamp-1 text-[11.5px] leading-snug text-stone-400">
-              {product.description}
-            </div>
-          )}
-        </div>
+        )}
+        <img
+          draggable={false}
+          src={imageUrl}
+          alt={product.name}
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+        />
       </div>
 
-      <div className="mt-auto flex items-center justify-between pt-2.5">
-        <div className="text-[15px] font-bold text-primary">
+      {/* Product Info & Price Below */}
+      <div className="mt-2 flex flex-col">
+        <div className="line-clamp-2 min-h-[38px] text-[14px] font-bold leading-snug text-neutral-900">
+          {product.name}
+        </div>
+        {product.description && (
+          <div className="mt-0.5 line-clamp-1 text-[11.5px] leading-snug text-neutral-500">
+            {product.description}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-1 flex items-center justify-between pt-1">
+        <div className="text-[15px] font-extrabold tracking-tight text-[#0F172A]">
           {formatCurrency(product.price)}
-          <span className="ml-0.5 text-xs font-semibold">đ</span>
+          <span className="ml-0.5 text-xs font-semibold text-slate-600">
+            đ
+          </span>
         </div>
 
         {!isOutOfStock && (
@@ -83,7 +85,7 @@ export default function ProductCard({
                 handleCardClick();
               }
             }}
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0F172A] text-white shadow-xs transition-transform active:scale-90"
             aria-label="Thêm vào giỏ"
           >
             <svg

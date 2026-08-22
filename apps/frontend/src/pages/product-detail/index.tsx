@@ -253,9 +253,11 @@ export default function ProductDetailPage() {
             <h1 className="text-lg font-bold leading-snug text-neutral900">
               {product.name}
             </h1>
-            <div className="whitespace-nowrap text-lg font-bold text-primary">
+            <div className="whitespace-nowrap text-lg font-extrabold text-[#0F172A]">
               {formatCurrency(product.price)}
-              <span className="ml-0.5 text-xs font-normal">đ</span>
+              <span className="ml-0.5 text-xs font-semibold text-slate-600">
+                đ
+              </span>
             </div>
           </div>
           {product.description && (
@@ -366,9 +368,11 @@ export default function ProductDetailPage() {
 
         <div className="mb-3 flex items-center justify-between">
           <Text className="text-xs text-neutral500">Tạm tính</Text>
-          <div className="text-base font-bold text-primary">
+          <div className="text-base font-extrabold text-[#0F172A]">
             {formatCurrency(totalPrice)}
-            <span className="ml-0.5 text-xs font-medium">đ</span>
+            <span className="ml-0.5 text-xs font-semibold text-slate-600">
+              đ
+            </span>
           </div>
         </div>
 

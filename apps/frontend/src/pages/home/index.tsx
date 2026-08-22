@@ -89,13 +89,10 @@ export default function HomePage() {
         {isLoadingProducts ? (
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="space-y-2 rounded-2xl border border-stone-200/40 bg-[#FAFAF5] p-2.5 shadow-sm"
-              >
-                <div className="aspect-square animate-pulse rounded-xl bg-stone-200/50" />
-                <div className="h-4 animate-pulse rounded-md bg-stone-200/50" />
-                <div className="h-4 w-2/3 animate-pulse rounded-md bg-stone-200/50" />
+              <div key={i} className="flex flex-col space-y-2">
+                <div className="aspect-square animate-pulse rounded-2xl bg-amber-200/30" />
+                <div className="h-4 animate-pulse rounded-md bg-amber-200/30" />
+                <div className="h-4 w-2/3 animate-pulse rounded-md bg-amber-200/30" />
               </div>
             ))}
           </div>

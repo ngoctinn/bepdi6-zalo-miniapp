@@ -51,9 +51,11 @@ export default function CartItemCard({
           </Text>
         )}
 
-        <div className="mt-1 text-xs font-bold text-primary">
+        <div className="mt-1 text-xs font-extrabold text-[#0F172A]">
           {formatCurrency(itemUnitPrice)}
-          <span className="ml-0.5 text-xxsmall font-medium">đ</span>
+          <span className="ml-0.5 text-xxsmall font-semibold text-slate-600">
+            đ
+          </span>
         </div>
 
         {onEdit && (

@@ -66,7 +66,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
         <span className="text-neutral500">
           Tổng cộng ({totalQuantity} món):
         </span>
-        <span className="text-sm font-bold text-primary">
+        <span className="text-sm font-extrabold text-[#0F172A]">
           {formatCurrency(order.total_amount)}đ
         </span>
       </div>

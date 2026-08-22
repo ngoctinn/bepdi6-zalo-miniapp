@@ -129,15 +129,17 @@ const semantic = {
     primary: "#15803D", // Xanh lá cây tươi đậm F&B miền Tây
     primaryLight: "#DCFCE7",
     brandYellow: "#FEF08A", // Vàng nhạt ấm cúng
-    background: "#FEFCE8", // Nền app: vàng kem 60%
-    surface: "#FAFAF5", // Bề mặt card: warm off-white dịu mắt, không gây tương phản cao
-    surfaceSubtle: "#F5F4EE", // Bề mặt đệm: nền skeleton, placeholder
+    background: "#FFFDF0", // Nền app: vàng sáng ấm áp, tươi tắn
+    surface: "#FFFFFF",
+    surfaceSubtle: "#FEF9C3",
+    price: "#0F172A", // Giá tiền: đen xám xanh đậm (Slate-900)
     text: {
       primary: base.colors.neutral900,
       secondary: base.colors.neutral600,
       tertiary: base.colors.neutral500,
       disabled: base.colors.neutral400,
       title: base.colors.neutral900,
+      price: "#0F172A", // Đen xám xanh đậm
     },
     border: {
       primary: base.colors.neutral200,
@@ -205,8 +207,8 @@ const semantic = {
   backgroundImage: {
     "peach-fade": `linear-gradient(
                     180deg,
-                    rgba(254, 240, 138, 0.45) 0%,
-                    rgba(254, 252, 232, 0) 100%
+                    rgba(254, 240, 138, 0.55) 0%,
+                    rgba(255, 253, 240, 0) 100%
                   )`,
   },
   text: {
