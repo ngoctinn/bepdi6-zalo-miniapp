@@ -29,10 +29,10 @@ export default function CategoryList({
             key={category.id}
             className={cn(
               "flex shrink-0 items-center justify-center rounded-full px-4 py-1.5 text-xs transition-all active:scale-95",
-              "whitespace-nowrap select-none",
+              "select-none whitespace-nowrap",
               isSelected
-                ? "border border-primary bg-emerald-500/15 font-bold text-primary shadow-xs"
-                : "border border-black/5 bg-black/[0.03] font-medium text-stone-600 hover:bg-black/[0.06]",
+                ? "shadow-xs border border-green600 bg-emerald-500/15 font-bold text-green800"
+                : "border border-black/5 bg-black/[0.03] font-medium text-stone-600 hover:bg-emerald-500/10 hover:text-green800",
             )}
             onClick={() => onCategorySelect?.(category)}
           >

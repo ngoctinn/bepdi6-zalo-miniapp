@@ -20,7 +20,4 @@ export interface CartStore {
   clearCart: () => void;
   totalItems: number;
   subtotal: number;
-  checkoutSheetVisible: boolean;
-  openCheckoutSheet: () => void;
-  closeCheckoutSheet: () => void;
 }

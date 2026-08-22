@@ -108,14 +108,14 @@ export default function SelectLocationPage() {
               <div
                 key={addr.id}
                 onClick={() => handleSelectAddress(addr)}
-                className={`flex cursor-pointer items-start justify-between rounded-xl border bg-white p-3.5 transition-all ${
+                className={`flex cursor-pointer items-start justify-between rounded-2xl border p-3.5 transition-all ${
                   isSelected
-                    ? "shadow-xs border-primary bg-primary/5"
-                    : "active:bg-neutral50 border-neutral200"
+                    ? "shadow-xs border-green600 bg-green50/50"
+                    : "border-black/5 bg-transparent active:bg-black/[0.02]"
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 text-primary">
+                  <div className="mt-0.5 text-green600">
                     <MapPinIconSolid />
                   </div>
                   <div>
@@ -127,7 +127,7 @@ export default function SelectLocationPage() {
                         {addr.phone}
                       </span>
                       {addr.is_default && (
-                        <span className="py-0.2 rounded bg-primary/10 px-1.5 text-xxxsmall font-semibold text-primary">
+                        <span className="py-0.2 rounded-full border border-green600/30 bg-green50 px-2 text-xxxsmall font-bold text-green800">
                           Mặc định
                         </span>
                       )}
@@ -141,7 +141,7 @@ export default function SelectLocationPage() {
                 <Button
                   size="small"
                   type="neutral"
-                  className="rounded bg-transparent p-1 text-xxsmall text-red-500 hover:bg-red-50"
+                  className="rounded-lg bg-transparent p-1 text-xxsmall text-red-500 hover:bg-red-50"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
@@ -164,7 +164,7 @@ export default function SelectLocationPage() {
               Thêm địa chỉ để Bếp Dì 6 tính phí giao hàng và giao tận nơi nhé!
             </p>
             <Button
-              className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white"
+              className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-green800"
               onClick={() => setIsModalOpen(true)}
             >
               + Thêm địa chỉ mới
@@ -237,7 +237,7 @@ export default function SelectLocationPage() {
             <Button
               size="small"
               type="neutral"
-              className="w-full rounded-lg border border-primary/40 bg-primary/5 py-2 text-xs text-primary"
+              className="w-full rounded-lg border border-primary/40 bg-primary/5 py-2 text-xs text-primary hover:bg-green50"
               onClick={handleGetCurrentLocation}
               loading={isGettingLocation}
             >
@@ -254,7 +254,7 @@ export default function SelectLocationPage() {
               Hủy
             </Button>
             <Button
-              className="flex-1 bg-primary font-semibold text-white"
+              className="flex-1 bg-primary font-semibold text-white hover:bg-green800"
               onClick={handleCreateAddress}
               loading={createAddressMutation.isPending}
             >
@@ -265,7 +265,7 @@ export default function SelectLocationPage() {
       </Modal>
 
       {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-neutral200 bg-white p-4 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 border-t border-black/5 bg-background/95 p-4 shadow-lg backdrop-blur-md">
         <Button
           fullWidth
           onClick={() => setIsModalOpen(true)}

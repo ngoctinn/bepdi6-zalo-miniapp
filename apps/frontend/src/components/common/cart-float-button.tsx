@@ -1,11 +1,8 @@
-import { useState } from "react";
-import { CartIcon } from "./vectors";
+import { useState, useMemo } from "react";
 import CartSheet from "./cart-sheet";
-import CheckoutSheet from "./checkout-sheet";
+import ProductDetailSheet from "./product-detail-sheet";
 import { useCartStore } from "@/stores/cart.store";
-import { Button } from "zmp-ui";
-import { copy } from "@/constants/copy";
-import { formatCount, formatCurrency } from "@/utils/format";
+import { formatCurrency } from "@/utils/format";
 import { useNavigate } from "react-router-dom";
 
 interface CartFloatButtonProps {
@@ -15,27 +12,43 @@ interface CartFloatButtonProps {
 export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
   const navigate = useNavigate();
   const [cartSheetVisible, setCartSheetVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState<{
+    productId: number;
+    cartItemId: string;
+  } | null>(null);
 
-  const {
-    items,
-    subtotal,
-    updateQuantity,
-    checkoutSheetVisible,
-    closeCheckoutSheet,
-    openCheckoutSheet,
-  } = useCartStore();
+  const items = useCartStore((state) => state.items);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+
+  const subtotal = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const optionsPrice = (item.options || []).reduce(
+        (optSum, opt) => optSum + Number(opt.price || 0) * (opt.quantity || 1),
+        0,
+      );
+      return (
+        sum + (Number(item.unit_price || 0) + optionsPrice) * item.quantity
+      );
+    }, 0);
+  }, [items]);
 
   const handleUpdateQuantity = (id: string, quantity: number) => {
     updateQuantity(id, quantity);
   };
 
-  const handleConfirmCart = () => {
-    setCartSheetVisible(false);
-    openCheckoutSheet();
+  const handleEditCartItem = (itemId: string) => {
+    const item = items.find((i) => i.id === itemId);
+    if (item) {
+      setEditingItem({
+        productId: item.product_id,
+        cartItemId: item.id,
+      });
+      setCartSheetVisible(false);
+    }
   };
 
-  const handleCheckout = () => {
-    closeCheckoutSheet();
+  const handleConfirmCart = () => {
+    setCartSheetVisible(false);
     navigate("/checkout");
   };
 
@@ -87,14 +100,20 @@ export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
         items={items}
         onUpdateQuantity={handleUpdateQuantity}
         onConfirm={handleConfirmCart}
+        onEdit={handleEditCartItem}
       />
 
-      <CheckoutSheet
-        visible={checkoutSheetVisible}
-        onClose={closeCheckoutSheet}
-        items={items}
-        onCheckout={handleCheckout}
-      />
+      {editingItem && (
+        <ProductDetailSheet
+          productId={editingItem.productId}
+          editCartItemId={editingItem.cartItemId}
+          visible={Boolean(editingItem)}
+          onClose={() => {
+            setEditingItem(null);
+            setCartSheetVisible(true);
+          }}
+        />
+      )}
     </>
   );
 }

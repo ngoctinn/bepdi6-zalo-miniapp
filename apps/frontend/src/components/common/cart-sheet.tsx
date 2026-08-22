@@ -1,5 +1,4 @@
 import { Button, Sheet, Text } from "zmp-ui";
-import { useNavigate } from "react-router-dom";
 import { CloseIcon } from "./vectors";
 import CartItemCard from "./cart-item-card";
 import { CartItem } from "@/types/cart.types";
@@ -13,6 +12,7 @@ interface CartSheetProps {
   items: CartItem[];
   onUpdateQuantity: (id: string, quantity: number) => void;
   onConfirm: () => void;
+  onEdit?: (itemId: string) => void;
 }
 
 export default function CartSheet({
@@ -21,16 +21,11 @@ export default function CartSheet({
   items,
   onUpdateQuantity,
   onConfirm,
+  onEdit,
 }: CartSheetProps) {
-  const navigate = useNavigate();
-
   const handleEdit = (itemId: string) => {
-    const item = items.find((i) => i.id === itemId);
-    if (item) {
-      navigate(
-        `/product/${item.product_id}?editCartItemId=${encodeURIComponent(itemId)}`,
-      );
-      onClose();
+    if (onEdit) {
+      onEdit(itemId);
     }
   };
 
@@ -39,7 +34,7 @@ export default function CartSheet({
   return (
     <Sheet autoHeight visible={visible} onClose={onClose}>
       <div className="relative flex max-h-[75vh] w-full flex-col overflow-y-scroll bg-background">
-        <div className="flex items-center px-4 py-3 border-b border-black/5">
+        <div className="flex items-center border-b border-black/5 px-4 py-3">
           <Button
             onClick={onClose}
             className="absolute flex h-8 w-8 items-center justify-center bg-transparent active:bg-transparent"
@@ -95,20 +90,17 @@ export default function CartSheet({
         </div>
 
         {items.length > 0 && (
-          <div className="border-divider01 border-t px-4 py-4">
-            <div className="mb-4 flex items-center justify-between">
-              <Text className="text-base font-medium">{copy.common.total}</Text>
-              <Text className="text-base font-bold text-primary">
-                {formatCurrency(totalAmount)}đ
-              </Text>
+          <div className="border-t border-black/5 bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onConfirm}
+                className="flex flex-1 items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:bg-green800 active:scale-[0.98]"
+              >
+                <span>Thanh toán</span>
+                <span>{formatCurrency(totalAmount)}đ</span>
+              </button>
             </div>
-            <Button
-              onClick={onConfirm}
-              className="w-full rounded-lg bg-primary py-3 font-medium text-white active:bg-primary active:opacity-50"
-              fullWidth
-            >
-              {copy.common.confirm}
-            </Button>
           </div>
         )}
       </div>

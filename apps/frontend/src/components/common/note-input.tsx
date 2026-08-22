@@ -21,22 +21,22 @@ export default function NoteInput({
   placeholder,
   className,
 }: NoteInputProps) {
-  const MAX = maxLength ?? 40;
+  const MAX = maxLength ?? 100;
   return (
-    <div className={cn("m-3 space-y-1", className)}>
-      {!hideLabel && (
+    <div className={cn("w-full space-y-1", className)}>
+      {!hideLabel && label && (
         <Text size="xSmall" className="text-text-primary">
-          {label ?? copy.product.note}
+          {label}
         </Text>
       )}
 
-      <Input.TextArea
+      <textarea
         value={value}
         onChange={(e) => onChange?.(e.target.value.slice(0, MAX))}
         maxLength={MAX}
         placeholder={placeholder ?? copy.product.notePlaceholder}
-        showCount
-        className="h-24 w-full"
+        className="w-full rounded-xl border border-black/10 bg-transparent p-3 text-xs text-neutral900 placeholder:text-neutral400 focus:border-green600 focus:outline-none focus:ring-1 focus:ring-green600/30"
+        rows={3}
       />
     </div>
   );

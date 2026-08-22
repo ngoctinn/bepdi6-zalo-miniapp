@@ -27,7 +27,7 @@ export default function CartItemCard({
     "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&auto=format&fit=crop&q=60";
 
   return (
-    <div className="flex gap-3 rounded-2xl border border-black/5 bg-transparent p-3 shadow-xs">
+    <div className="shadow-xs flex gap-3 rounded-2xl border border-black/5 bg-transparent p-3">
       <img
         draggable={false}
         src={imageUrl}

@@ -33,10 +33,10 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
         <span
           className={`rounded-full px-2.5 py-0.5 text-xxsmall font-bold ${
             isCancelled
-              ? "bg-red-500/10 text-red-600 border border-red-200/50"
+              ? "border border-red-200/50 bg-red-500/10 text-red-600"
               : isCompleted
-                ? "bg-emerald-500/15 text-primary border border-primary/30"
-                : "bg-amber-500/15 text-amber-800 border border-amber-300/50"
+                ? "border border-primary/30 bg-emerald-500/15 text-primary"
+                : "border border-amber-300/50 bg-amber-500/15 text-amber-800"
           }`}
         >
           {order.status_display || order.status}

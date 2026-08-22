@@ -1,5 +1,6 @@
 import CategoryList from "@/components/common/category-list";
 import ProductCard from "@/components/common/product-card";
+import ProductDetailSheet from "@/components/common/product-detail-sheet";
 import { useCategories } from "@/services/category/category.queries";
 import { useProducts } from "@/services/product/product.queries";
 import { Category } from "@/types/category.types";
@@ -11,6 +12,9 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   );
+  const [selectedProductId, setSelectedProductId] = useState<
+    string | number | null
+  >(null);
 
   useEffect(() => {
     if (categories && categories.length > 0 && !selectedCategory) {
@@ -27,7 +31,7 @@ export default function HomePage() {
       {/* Sticky Header: Tên quán + Thanh tab danh mục dùng dải gradient vàng */}
       <div className="sticky top-0 z-30 flex flex-col bg-yellow-gradient pb-2">
         {/* Tên quán */}
-        <div className="header-margin px-3.5 pt-3 pb-1">
+        <div className="header-margin px-3.5 pb-1 pt-3">
           <h1 className="text-[17px] font-extrabold tracking-tight text-green800">
             Bếp Dì 6 - Mắm Chưng Miền Tây
           </h1>
@@ -55,7 +59,7 @@ export default function HomePage() {
       </div>
 
       {/* Danh sách món ăn */}
-      <div className="flex flex-col gap-3.5 px-3.5 pt-2 pb-24">
+      <div className="flex flex-col gap-3.5 px-3.5 pb-24 pt-2">
         {isLoadingProducts ? (
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (
@@ -69,7 +73,11 @@ export default function HomePage() {
         ) : products && products.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                onClick={() => setSelectedProductId(product.id)}
+              />
             ))}
           </div>
         ) : (
@@ -78,6 +86,13 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {/* Product Detail Sheet 80vh theo chuẩn Zalo */}
+      <ProductDetailSheet
+        productId={selectedProductId}
+        visible={Boolean(selectedProductId)}
+        onClose={() => setSelectedProductId(null)}
+      />
     </div>
   );
 }

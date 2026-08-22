@@ -56,8 +56,12 @@ export default function ProductCard({
     }
 
     if (totalQuantityInCart === 0) {
-      // Khi chưa chọn: Bấm dấu + luôn mở trang chi tiết món ăn
-      navigate(`/product/${product.id}`);
+      // Khi chưa chọn: Bấm dấu + kích hoạt mở Sheet chi tiết món ăn
+      if (onClick) {
+        onClick();
+      } else {
+        navigate(`/product/${product.id}`);
+      }
       return;
     }
 
@@ -86,7 +90,7 @@ export default function ProductCard({
       onClick={handleCardClick}
     >
       {/* Large Product Image with Quantity Badge */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-amber-100/40 shadow-xs ring-1 ring-black/5">
+      <div className="shadow-xs relative aspect-square w-full overflow-hidden rounded-2xl bg-amber-100/40 ring-1 ring-black/5">
         {isOutOfStock && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/45 backdrop-blur-[2px]">
             <span className="rounded-md bg-black/75 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white">
@@ -162,7 +166,7 @@ export default function ProductCard({
                 <button
                   type="button"
                   onClick={handleQuickAdd}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-xs transition-transform active:scale-90"
+                  className="shadow-xs flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white transition-transform active:scale-90"
                   aria-label="Tăng số lượng"
                 >
                   <svg
@@ -184,7 +188,7 @@ export default function ProductCard({
               <button
                 type="button"
                 onClick={handleQuickAdd}
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white shadow-xs transition-transform active:scale-90"
+                className="shadow-xs flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white transition-transform active:scale-90"
                 aria-label="Thêm vào giỏ"
               >
                 <svg

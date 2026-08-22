@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "@/components/common/product-card";
+import ProductDetailSheet from "@/components/common/product-detail-sheet";
 import SearchBar from "@/components/common/search-bar";
 import { useProducts } from "@/services/product/product.queries";
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [selectedProductId, setSelectedProductId] = useState<
+    string | number | null
+  >(null);
 
   const { data: products, isLoading } = useProducts(
     searchQuery.trim() ? { search: searchQuery.trim() } : undefined,
@@ -47,7 +51,11 @@ export default function SearchPage() {
         ) : products && products.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                onClick={() => setSelectedProductId(product.id)}
+              />
             ))}
           </div>
         ) : (
@@ -60,6 +68,13 @@ export default function SearchPage() {
           </div>
         )}
       </div>
+
+      {/* Product Detail Sheet 80vh */}
+      <ProductDetailSheet
+        productId={selectedProductId}
+        visible={Boolean(selectedProductId)}
+        onClose={() => setSelectedProductId(null)}
+      />
     </div>
   );
 }

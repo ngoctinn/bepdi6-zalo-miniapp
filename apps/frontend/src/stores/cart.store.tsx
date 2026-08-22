@@ -22,10 +22,6 @@ const saveCart = (items: CartItem[]) => {
 
 export const useCartStore = create<CartStore>((set, get) => ({
   items: loadSavedCart(),
-  checkoutSheetVisible: false,
-
-  openCheckoutSheet: () => set({ checkoutSheetVisible: true }),
-  closeCheckoutSheet: () => set({ checkoutSheetVisible: false }),
 
   addToCart: (itemData) => {
     const { items } = get();
@@ -105,10 +101,12 @@ export const useCartStore = create<CartStore>((set, get) => ({
   get subtotal() {
     return get().items.reduce((sum, item) => {
       const optionsPrice = (item.options || []).reduce(
-        (optSum, opt) => optSum + opt.price * opt.quantity,
+        (optSum, opt) => optSum + Number(opt.price || 0) * (opt.quantity || 1),
         0,
       );
-      return sum + (item.unit_price + optionsPrice) * item.quantity;
+      return (
+        sum + (Number(item.unit_price || 0) + optionsPrice) * item.quantity
+      );
     }, 0);
   },
 }));

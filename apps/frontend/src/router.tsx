@@ -5,7 +5,6 @@ import HomePage from "./pages/home";
 import OrderPage from "./pages/order";
 import ProfilePage from "./pages/profile";
 import SearchPage from "./pages/search";
-import ProductDetailPage from "./pages/product-detail";
 import CheckoutPage from "./pages/checkout";
 import SelectLocationPage from "./pages/select-location";
 import OrderSuccessPage from "./pages/order-success";
@@ -45,15 +44,6 @@ const router = createBrowserRouter(
           },
         },
         { path: "/menu/search", element: <SearchPage /> },
-        {
-          path: "/product/:id",
-          element: <ProductDetailPage />,
-          handle: {
-            whiteBackground: true,
-            hideFooter: true,
-            hideHeader: true,
-          },
-        },
         {
           path: "/checkout",
           element: <CheckoutPage />,
