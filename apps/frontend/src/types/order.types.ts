@@ -52,6 +52,8 @@ export interface OrderItemResponse {
   options: OrderItemOptionResponse[];
 }
 
+export type DeliveryType = "DELIVERY" | "PICKUP";
+
 export interface PaymentResponse {
   id: number;
   method: PaymentMethod;
@@ -69,6 +71,7 @@ export interface Order {
   customer?: number;
   status: OrderStatus;
   status_display?: string;
+  delivery_type?: DeliveryType;
   recipient_name: string;
   phone: string;
   delivery_address: string;
@@ -92,8 +95,9 @@ export interface Order {
 
 export interface CheckoutPreviewRequest {
   items: OrderItemPayload[];
-  delivery_latitude: number;
-  delivery_longitude: number;
+  delivery_type?: DeliveryType;
+  delivery_latitude?: number;
+  delivery_longitude?: number;
   voucher_code?: string;
 }
 
@@ -109,11 +113,12 @@ export interface CheckoutPreviewResponse {
 }
 
 export interface CreateOrderRequest {
+  delivery_type?: DeliveryType;
   recipient_name: string;
   phone: string;
-  delivery_address: string;
-  delivery_latitude: number;
-  delivery_longitude: number;
+  delivery_address?: string;
+  delivery_latitude?: number;
+  delivery_longitude?: number;
   payment_method: PaymentMethod;
   note?: string;
   voucher_code?: string;

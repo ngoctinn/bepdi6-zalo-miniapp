@@ -224,3 +224,34 @@ def test_order_option_group_bounds_validation(test_setup):
         ],
     )
     assert valid_order.id is not None
+
+
+@pytest.mark.django_db
+def test_create_pickup_order_success(test_setup):
+    customer = test_setup["customer"]
+    product = test_setup["product"]
+
+    # Đơn Pickup không cần address_id và shipping_fee = 0đ
+    order = OrderService.create_order(
+        customer=customer,
+        idempotency_key="idemp_pickup_test_1",
+        items_data=[{"product_id": product.id, "quantity": 2}],
+        delivery_type=Order.DeliveryType.PICKUP,
+        recipient_name="Khách Tự Lấy",
+        phone="0911223344",
+    )
+
+    assert order.id is not None
+    assert order.delivery_type == Order.DeliveryType.PICKUP
+    assert order.shipping_fee == Decimal("0.00")
+    assert order.distance_km == Decimal("0.00")
+    assert order.recipient_name == "Khách Tự Lấy"
+    assert order.phone == "0911223344"
+    assert "[Nhận tại quán]" in order.delivery_address
+
+    # Kiểm tra luồng trạng thái chuyển trực tiếp READY -> COMPLETED
+    OrderService.update_order_status(order, Order.Status.CONFIRMED)
+    OrderService.update_order_status(order, Order.Status.PREPARING)
+    OrderService.update_order_status(order, Order.Status.READY)
+    completed_order = OrderService.update_order_status(order, Order.Status.COMPLETED)
+    assert completed_order.status == Order.Status.COMPLETED

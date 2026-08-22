@@ -43,7 +43,7 @@ class CheckoutPreviewRequestSerializer(serializers.Serializer):
         max_digits=11, decimal_places=8, required=False, allow_null=True
     )
     delivery_type = serializers.ChoiceField(
-        choices=Order.DeliveryType.choices, default=Order.DeliveryType.ASAP
+        choices=Order.DeliveryType.choices, default=Order.DeliveryType.DELIVERY
     )
     voucher_code = serializers.CharField(
         required=False, allow_blank=True, allow_null=True

@@ -13,9 +13,14 @@ import {
   usePreviewCheckout,
 } from "@/services/order/order.mutations";
 import { useShopInfo } from "@/services/shop/shop.queries";
+import { useAuth } from "@/hooks/use-auth";
 import { Button, Input, Text, useSnackbar } from "zmp-ui";
 import { formatCurrency } from "@/utils/format";
-import { CheckoutPreviewResponse, PaymentMethod } from "@/types/order.types";
+import {
+  CheckoutPreviewResponse,
+  DeliveryType,
+  PaymentMethod,
+} from "@/types/order.types";
 import { formatVariantWithPercentage } from "@/utils/cart";
 
 // Hàm sinh UUID v4 cho Idempotency-Key
@@ -30,6 +35,7 @@ function generateUUID() {
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { openSnackbar } = useSnackbar();
+  const { customer } = useAuth();
 
   // Stores
   const { items: cartItems, updateQuantity, clearCart } = useCartStore();
@@ -37,6 +43,9 @@ export default function CheckoutPage() {
   const { data: shopInfo } = useShopInfo();
 
   // State
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>("DELIVERY");
+  const [pickupName, setPickupName] = useState("");
+  const [pickupPhone, setPickupPhone] = useState("");
   const [note, setNote] = useState("");
   const [voucherCodeInput, setVoucherCodeInput] = useState("");
   const [appliedVoucherCode, setAppliedVoucherCode] = useState<string>("");
@@ -44,6 +53,14 @@ export default function CheckoutPage() {
   const [previewData, setPreviewData] =
     useState<CheckoutPreviewResponse | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+
+  // Prefill customer info for Pickup
+  useEffect(() => {
+    if (customer) {
+      if (!pickupName && customer.name) setPickupName(customer.name);
+      if (!pickupPhone && customer.phone) setPickupPhone(customer.phone);
+    }
+  }, [customer]);
 
   // Idempotency Key cố định cho phiên thanh toán hiện tại
   const idempotencyKeyRef = useRef<string>(generateUUID());
@@ -66,7 +83,7 @@ export default function CheckoutPage() {
     [cartItems],
   );
 
-  // Gọi Preview Checkout từ Backend khi giỏ hàng / địa chỉ / voucher thay đổi
+  // Gọi Preview Checkout từ Backend khi giỏ hàng / địa chỉ / hình thức nhận / voucher thay đổi
   useEffect(() => {
     if (cartItems.length === 0) {
       setPreviewData(null);
@@ -79,8 +96,9 @@ export default function CheckoutPage() {
     previewMutation.mutate(
       {
         items: orderItemsPayload,
-        delivery_latitude: lat,
-        delivery_longitude: lng,
+        delivery_type: deliveryType,
+        delivery_latitude: deliveryType === "DELIVERY" ? lat : undefined,
+        delivery_longitude: deliveryType === "DELIVERY" ? lng : undefined,
         voucher_code: appliedVoucherCode || undefined,
       },
       {
@@ -95,7 +113,7 @@ export default function CheckoutPage() {
         },
       },
     );
-  }, [cartItems, selectedAddress, appliedVoucherCode]);
+  }, [cartItems, selectedAddress, deliveryType, appliedVoucherCode]);
 
   const handleApplyVoucher = () => {
     if (!voucherCodeInput.trim()) return;
@@ -113,13 +131,30 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!selectedAddress) {
+    if (deliveryType === "DELIVERY" && !selectedAddress) {
       openSnackbar({
         text: "Vui lòng chọn địa chỉ nhận hàng",
         type: "warning",
       });
       navigate("/select-location");
       return;
+    }
+
+    if (deliveryType === "PICKUP") {
+      if (!pickupName.trim()) {
+        openSnackbar({
+          text: "Vui lòng nhập tên người nhận món tại quán",
+          type: "warning",
+        });
+        return;
+      }
+      if (!pickupPhone.trim()) {
+        openSnackbar({
+          text: "Vui lòng nhập số điện thoại người nhận",
+          type: "warning",
+        });
+        return;
+      }
     }
 
     if (shopInfo && !shopInfo.is_open) {
@@ -136,18 +171,32 @@ export default function CheckoutPage() {
     }
 
     try {
+      const payload =
+        deliveryType === "PICKUP"
+          ? {
+              delivery_type: "PICKUP" as DeliveryType,
+              recipient_name: pickupName.trim(),
+              phone: pickupPhone.trim(),
+              payment_method: paymentMethod,
+              note: note.trim() || undefined,
+              voucher_code: appliedVoucherCode || undefined,
+              items: orderItemsPayload,
+            }
+          : {
+              delivery_type: "DELIVERY" as DeliveryType,
+              recipient_name: selectedAddress?.recipient_name || "",
+              phone: selectedAddress?.phone || "",
+              delivery_address: selectedAddress?.address_text || "",
+              delivery_latitude: selectedAddress?.latitude || 10.762622,
+              delivery_longitude: selectedAddress?.longitude || 106.660172,
+              payment_method: paymentMethod,
+              note: note.trim() || undefined,
+              voucher_code: appliedVoucherCode || undefined,
+              items: orderItemsPayload,
+            };
+
       const order = await createOrderMutation.mutateAsync({
-        payload: {
-          recipient_name: selectedAddress.recipient_name,
-          phone: selectedAddress.phone,
-          delivery_address: selectedAddress.address_text,
-          delivery_latitude: selectedAddress.latitude,
-          delivery_longitude: selectedAddress.longitude,
-          payment_method: paymentMethod,
-          note: note.trim() || undefined,
-          voucher_code: appliedVoucherCode || undefined,
-          items: orderItemsPayload,
-        },
+        payload,
         idempotencyKey: idempotencyKeyRef.current,
       });
 
@@ -159,7 +208,6 @@ export default function CheckoutPage() {
         text: err instanceof Error ? err.message : "Đặt hàng thất bại",
         type: "error",
       });
-      // Tạo Idempotency Key mới cho lần thử tiếp theo nếu lỗi mạng
       idempotencyKeyRef.current = generateUUID();
     }
   };
@@ -180,6 +228,22 @@ export default function CheckoutPage() {
     );
   }
 
+  // Fallback calculation directly from cart store if preview response is delayed
+  const cartSubtotal = useMemo(() => {
+    return cartItems.reduce(
+      (sum, item) => sum + item.unit_price * item.quantity,
+      0,
+    );
+  }, [cartItems]);
+
+  const displaySubtotal = previewData?.subtotal ?? cartSubtotal;
+  const displayShippingFee =
+    deliveryType === "PICKUP" ? 0 : (previewData?.shipping_fee ?? 0);
+  const displayDiscount = previewData?.discount ?? 0;
+  const displayTotal =
+    previewData?.total_amount ??
+    Math.max(0, displaySubtotal + displayShippingFee - displayDiscount);
+
   return (
     <div className="flex flex-col gap-3 p-3.5 pb-32">
       {/* Banner Quán đóng cửa nếu có */}
@@ -190,55 +254,157 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      {/* Địa chỉ giao hàng */}
-      <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-xs font-bold text-neutral800">
-            ĐỊA CHỈ GIAO HÀNG
-          </span>
-          <Button
-            size="small"
-            type="neutral"
-            className="bg-transparent p-0 text-xs font-semibold text-primary"
-            onClick={() => navigate("/select-location")}
+      {/* Tab chuyển đổi: Giao tận nơi vs Tự đến lấy */}
+      <div className="flex rounded-xl border border-black/5 bg-black/[0.03] p-1">
+        <button
+          type="button"
+          onClick={() => setDeliveryType("DELIVERY")}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
+            deliveryType === "DELIVERY"
+              ? "shadow-xs border border-green600 bg-emerald-500/15 text-green800"
+              : "text-stone-600 hover:text-green800"
+          }`}
+        >
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
           >
-            {selectedAddress ? "Thay đổi" : "Chọn địa chỉ"}
-          </Button>
-        </div>
-
-        {selectedAddress ? (
-          <div
-            onClick={() => navigate("/select-location")}
-            className="flex cursor-pointer items-start gap-2.5"
+            <rect x="1" y="3" width="15" height="13" rx="2" />
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+            <circle cx="5.5" cy="18.5" r="2.5" />
+            <circle cx="18.5" cy="18.5" r="2.5" />
+          </svg>
+          <span>Giao tận nơi</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setDeliveryType("PICKUP")}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
+            deliveryType === "PICKUP"
+              ? "shadow-xs border border-green600 bg-emerald-500/15 text-green800"
+              : "text-stone-600 hover:text-green800"
+          }`}
+        >
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
           >
-            <div className="mt-0.5 text-primary">
-              <MapPinIcon className="h-5 w-5" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-neutral900">
-                  {selectedAddress.recipient_name}
-                </span>
-                <span className="text-xs text-neutral600">
-                  {selectedAddress.phone}
-                </span>
-              </div>
-              <div className="mt-0.5 text-xs leading-relaxed text-neutral600">
-                {selectedAddress.address_text}
-              </div>
-            </div>
-            <ChevronRightIcon className="h-4 w-4 self-center text-neutral400" />
-          </div>
-        ) : (
-          <div
-            onClick={() => navigate("/select-location")}
-            className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-neutral300 bg-transparent p-3 text-xs text-neutral600"
-          >
-            <span>+ Vui lòng thêm địa chỉ nhận hàng</span>
-            <ChevronRightIcon className="h-4 w-4 text-neutral400" />
-          </div>
-        )}
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+          <span>Tự đến lấy</span>
+        </button>
       </div>
+
+      {/* Khung Thông Tin Nhận Hàng (Không lồng thẻ phức tạp) */}
+      {deliveryType === "DELIVERY" ? (
+        <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-bold text-neutral800">
+              ĐỊA CHỈ GIAO HÀNG
+            </span>
+            <Button
+              size="small"
+              type="neutral"
+              className="bg-transparent p-0 text-xs font-semibold text-primary"
+              onClick={() => navigate("/select-location")}
+            >
+              {selectedAddress ? "Thay đổi" : "Chọn địa chỉ"}
+            </Button>
+          </div>
+
+          {selectedAddress ? (
+            <div
+              onClick={() => navigate("/select-location")}
+              className="flex cursor-pointer items-start gap-2.5"
+            >
+              <div className="mt-0.5 text-primary">
+                <MapPinIcon className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-neutral900">
+                    {selectedAddress.recipient_name}
+                  </span>
+                  <span className="text-xs text-neutral600">
+                    {selectedAddress.phone}
+                  </span>
+                </div>
+                <div className="mt-0.5 text-xs leading-relaxed text-neutral600">
+                  {selectedAddress.address_text}
+                </div>
+              </div>
+              <ChevronRightIcon className="h-4 w-4 self-center text-neutral400" />
+            </div>
+          ) : (
+            <div
+              onClick={() => navigate("/select-location")}
+              className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-neutral300 bg-transparent p-3 text-xs text-neutral600"
+            >
+              <span>+ Vui lòng thêm địa chỉ nhận hàng</span>
+              <ChevronRightIcon className="h-4 w-4 text-neutral400" />
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Thông tin Lấy tại quán (Pickup - Phẳng, không lồng card) */
+        <div className="space-y-3 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
+          <div>
+            <div className="text-xs leading-relaxed text-neutral700">
+              <div className="font-semibold text-neutral900">
+                {shopInfo?.shop_name || "Bếp Dì 6 - Mắm Chưng Miền Tây"}
+              </div>
+              <div className="text-neutral600">
+                {shopInfo?.address_text ||
+                  "123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh"}
+              </div>
+              {shopInfo?.hotline && (
+                <div className="mt-0.5 text-xxsmall font-medium text-primary">
+                  Hotline: {shopInfo.hotline}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 border-t border-black/5 pt-1">
+            <div>
+              <label className="mb-1 block font-semibold text-neutral700">
+                Tên người lấy *
+              </label>
+              <input
+                type="text"
+                value={pickupName}
+                onChange={(e) => setPickupName(e.target.value)}
+                placeholder="Tên của bạn"
+                className="w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900 focus:border-green600"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block font-semibold text-neutral700">
+                Số điện thoại *
+              </label>
+              <input
+                type="text"
+                value={pickupPhone}
+                onChange={(e) => setPickupPhone(e.target.value)}
+                placeholder="0901234567"
+                className="w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900 focus:border-green600"
+              />
+            </div>
+          </div>
+          <div className="text-xxsmall italic text-neutral500">
+            Quán sẽ chuẩn bị món ngay và gửi thông báo khi sẵn sàng (~15-20
+            phút).
+          </div>
+        </div>
+      )}
 
       {/* Danh sách món ăn */}
       <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
@@ -417,7 +583,7 @@ export default function CheckoutPage() {
         <div className="flex justify-between text-neutral600">
           <span>Tạm tính món ăn</span>
           <span className="font-normal text-black">
-            {formatCurrency(previewData?.subtotal || 0)}đ
+            {formatCurrency(displaySubtotal)}đ
           </span>
         </div>
 
@@ -429,25 +595,25 @@ export default function CheckoutPage() {
               : ""}
           </span>
           <span className="font-normal text-black">
-            {previewData?.shipping_fee ? (
-              `${formatCurrency(previewData.shipping_fee)}đ`
+            {displayShippingFee > 0 ? (
+              `${formatCurrency(displayShippingFee)}đ`
             ) : (
               <span className="font-normal text-green-700">Miễn phí</span>
             )}
           </span>
         </div>
 
-        {previewData?.discount ? (
+        {displayDiscount > 0 ? (
           <div className="flex justify-between font-normal text-green-700">
             <span>Giảm giá voucher</span>
-            <span>-{formatCurrency(previewData.discount)}đ</span>
+            <span>-{formatCurrency(displayDiscount)}đ</span>
           </div>
         ) : null}
 
         <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-normal text-black">
           <span>Tổng thanh toán</span>
           <span className="text-base font-bold text-green800">
-            {formatCurrency(previewData?.total_amount || 0)}đ
+            {formatCurrency(displayTotal)}đ
           </span>
         </div>
       </div>
@@ -458,7 +624,6 @@ export default function CheckoutPage() {
           onClick={handlePlaceOrder}
           disabled={
             createOrderMutation.isPending ||
-            previewMutation.isPending ||
             cartItems.length === 0 ||
             (shopInfo ? !shopInfo.is_open : false) ||
             Boolean(previewError)
@@ -467,7 +632,7 @@ export default function CheckoutPage() {
         >
           {createOrderMutation.isPending
             ? "Đang xử lý tạo đơn..."
-            : `ĐẶT HÀNG • ${formatCurrency(previewData?.total_amount || 0)}đ`}
+            : `ĐẶT HÀNG • ${formatCurrency(displayTotal)}đ`}
         </Button>
       </div>
     </div>

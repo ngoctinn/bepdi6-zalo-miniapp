@@ -14,8 +14,10 @@ class Order(models.Model):
         CANCELLED = "CANCELLED", "Đã hủy"
 
     class DeliveryType(models.TextChoices):
-        ASAP = "ASAP", "Giao ngay"
-        SCHEDULED = "SCHEDULED", "Hẹn giờ"
+        DELIVERY = "DELIVERY", "Giao tận nơi"
+        PICKUP = "PICKUP", "Tự đến lấy tại quán"
+        ASAP = "ASAP", "Giao ngay (Cũ)"
+        SCHEDULED = "SCHEDULED", "Hẹn giờ (Cũ)"
 
     class PaymentMethod(models.TextChoices):
         COD = "COD", "Tiền mặt khi nhận hàng"
@@ -47,8 +49,8 @@ class Order(models.Model):
     delivery_type = models.CharField(
         max_length=20,
         choices=DeliveryType.choices,
-        default=DeliveryType.ASAP,
-        verbose_name="Hình thức giao",
+        default=DeliveryType.DELIVERY,
+        verbose_name="Hình thức nhận hàng",
     )
 
     # Shipping snapshot

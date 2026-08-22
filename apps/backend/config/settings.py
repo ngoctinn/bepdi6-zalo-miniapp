@@ -6,6 +6,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from corsheaders.defaults import default_headers
 from django.templatetags.static import static
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -196,7 +197,11 @@ if USE_S3_STORAGE:
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "idempotency-key",
+    "x-requested-with",
+]
 
 # Django REST Framework
 REST_FRAMEWORK = {

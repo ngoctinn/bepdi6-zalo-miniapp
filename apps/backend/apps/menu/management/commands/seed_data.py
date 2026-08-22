@@ -1,4 +1,5 @@
 from decimal import Decimal
+
 from django.core.management.base import BaseCommand
 
 from apps.customers.models import Address, Customer, User
@@ -25,7 +26,9 @@ class Command(BaseCommand):
         if created:
             admin_user.set_password("admin123")
             admin_user.save()
-            self.stdout.write(self.style.SUCCESS("Created admin user (admin / admin123)"))
+            self.stdout.write(
+                self.style.SUCCESS("Created admin user (admin / admin123)")
+            )
 
         # 2. Ẩn các sản phẩm mẫu cũ thay vì xóa để tránh vi phạm ProtectedError với OrderItem
         Product.objects.all().update(status=Product.Status.INACTIVE)
@@ -333,11 +336,28 @@ class Command(BaseCommand):
                     og, _ = OptionGroup.objects.get_or_create(
                         product=p,
                         name="Chọn thêm topping",
-                        defaults={"is_required": False, "min_select": 0, "max_select": 3, "sort_order": 1},
+                        defaults={
+                            "is_required": False,
+                            "min_select": 0,
+                            "max_select": 3,
+                            "sort_order": 1,
+                        },
                     )
-                    Option.objects.get_or_create(option_group=og, name="Thêm Chả Giò", defaults={"price": Decimal("12000.00")})
-                    Option.objects.get_or_create(option_group=og, name="Thêm Thịt Nướng", defaults={"price": Decimal("18000.00")})
-                    Option.objects.get_or_create(option_group=og, name="Thêm Bún", defaults={"price": Decimal("5000.00")})
+                    Option.objects.get_or_create(
+                        option_group=og,
+                        name="Thêm Chả Giò",
+                        defaults={"price": Decimal("12000.00")},
+                    )
+                    Option.objects.get_or_create(
+                        option_group=og,
+                        name="Thêm Thịt Nướng",
+                        defaults={"price": Decimal("18000.00")},
+                    )
+                    Option.objects.get_or_create(
+                        option_group=og,
+                        name="Thêm Bún",
+                        defaults={"price": Decimal("5000.00")},
+                    )
 
         self.stdout.write(
             self.style.SUCCESS(

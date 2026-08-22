@@ -7,17 +7,32 @@ import { formatCurrency } from "@/utils/format";
 import { BackIcon, CheckIcon } from "@/components/common/vectors";
 import { OrderStatus } from "@/types/order.types";
 
-const STATUS_STEPS: Array<{ key: OrderStatus; label: string; icon: string }> = [
-  { key: "PENDING_CONFIRMATION", label: "Chờ xác nhận", icon: "⏳" },
-  { key: "CONFIRMED", label: "Đã xác nhận", icon: "✅" },
-  { key: "PREPARING", label: "Bếp làm món", icon: "🍳" },
-  { key: "READY", label: "Sẵn sàng", icon: "📦" },
-  { key: "DELIVERING", label: "Đang giao", icon: "🛵" },
-  { key: "COMPLETED", label: "Hoàn tất", icon: "🎉" },
+const DELIVERY_STATUS_STEPS: Array<{
+  key: OrderStatus;
+  label: string;
+}> = [
+  { key: "PENDING_CONFIRMATION", label: "Chờ xác nhận" },
+  { key: "CONFIRMED", label: "Đã xác nhận" },
+  { key: "PREPARING", label: "Đang làm" },
+  { key: "READY", label: "Sẵn sàng" },
+  { key: "DELIVERING", label: "Đang giao" },
+  { key: "COMPLETED", label: "Hoàn tất" },
 ];
 
-const getStepIndex = (status: OrderStatus): number => {
-  const index = STATUS_STEPS.findIndex((s) => s.key === status);
+const PICKUP_STATUS_STEPS: Array<{
+  key: OrderStatus;
+  label: string;
+}> = [
+  { key: "PENDING_CONFIRMATION", label: "Chờ xác nhận" },
+  { key: "CONFIRMED", label: "Đã xác nhận" },
+  { key: "PREPARING", label: "Đang làm" },
+  { key: "READY", label: "Mời đến lấy" },
+  { key: "COMPLETED", label: "Đã nhận món" },
+];
+
+const getStepIndex = (status: OrderStatus, isPickup: boolean): number => {
+  const steps = isPickup ? PICKUP_STATUS_STEPS : DELIVERY_STATUS_STEPS;
+  const index = steps.findIndex((s) => s.key === status);
   return index > -1 ? index : 0;
 };
 
@@ -85,8 +100,10 @@ export default function OrderDetailPage() {
     );
   }
 
+  const isPickup = order.delivery_type === "PICKUP";
+  const steps = isPickup ? PICKUP_STATUS_STEPS : DELIVERY_STATUS_STEPS;
   const isCancelled = order.status === "CANCELLED";
-  const currentStep = getStepIndex(order.status);
+  const currentStep = getStepIndex(order.status, isPickup);
   const isBankTransfer = order.payment_method === "BANK_TRANSFER";
   const isPaid = order.payment?.status === "PAID";
   const qrUrl =
@@ -102,9 +119,20 @@ export default function OrderDetailPage() {
       {/* Order Info */}
       <div className="flex items-center justify-between rounded-2xl border border-black/5 bg-transparent p-3.5">
         <div>
-          <h1 className="text-sm font-bold text-neutral900">
-            Đơn hàng #{order.order_code}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-sm font-bold text-neutral900">
+              Đơn hàng #{order.order_code}
+            </h1>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                isPickup
+                  ? "border border-amber-300/50 bg-amber-500/10 text-amber-800"
+                  : "border border-primary/30 bg-emerald-500/10 text-primary"
+              }`}
+            >
+              {isPickup ? "Tự đến lấy" : "Giao tận nơi"}
+            </span>
+          </div>
           <span className="text-xxsmall text-neutral500">
             {new Date(order.created_at).toLocaleString("vi-VN")}
           </span>
@@ -140,38 +168,38 @@ export default function OrderDetailPage() {
         ) : (
           <div className="relative flex items-start justify-between pt-2">
             {/* Progress Line */}
-            <div className="absolute left-4 right-4 top-5 -z-0 h-0.5 bg-black/10" />
+            <div className="absolute left-4 right-4 top-4 -z-0 h-0.5 bg-black/10" />
             <div
-              className="absolute left-4 top-5 -z-0 h-0.5 bg-primary transition-all duration-500"
+              className="absolute left-4 top-4 -z-0 h-0.5 bg-primary transition-all duration-500"
               style={{
-                width: `${(currentStep / (STATUS_STEPS.length - 1)) * 90}%`,
+                width: `${(currentStep / Math.max(1, steps.length - 1)) * 90}%`,
               }}
             />
 
-            {STATUS_STEPS.map((step, idx) => {
+            {steps.map((step, idx) => {
               const isPassed = idx <= currentStep;
               const isCurrent = idx === currentStep;
 
               return (
                 <div
                   key={step.key}
-                  className="z-10 flex w-14 flex-col items-center text-center"
+                  className="z-10 flex w-12 flex-col items-center text-center"
                 >
                   <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-full text-xs transition-all ${
+                    className={`flex h-6 w-6 items-center justify-center rounded-full text-xs transition-all ${
                       isPassed
                         ? "shadow-xs bg-primary text-white"
                         : "bg-black/10 text-neutral400"
                     } ${isCurrent ? "scale-110 ring-4 ring-primary/20" : ""}`}
                   >
                     {isPassed && idx < currentStep ? (
-                      <CheckIcon className="h-3.5 w-3.5" />
+                      <CheckIcon className="h-3 w-3" />
                     ) : (
-                      <span>{step.icon}</span>
+                      <span className="text-[10px]">{idx + 1}</span>
                     )}
                   </div>
                   <span
-                    className={`mt-1.5 text-xxxsmall leading-tight ${
+                    className={`mt-1.5 text-[10px] leading-tight ${
                       isCurrent
                         ? "font-bold text-primary"
                         : isPassed
@@ -281,14 +309,14 @@ export default function OrderDetailPage() {
         </div>
       )}
 
-      {/* Địa chỉ giao hàng */}
+      {/* Thông tin nhận hàng (Giao tận nơi vs Tự đến lấy) */}
       <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
         <span className="mb-2 block text-xs font-bold text-neutral800">
-          ĐỊA CHỈ NHẬN HÀNG
+          {isPickup ? "ĐỊA ĐIỂM ĐẾN LẤY MÓN" : "ĐỊA CHỈ GIAO HÀNG"}
         </span>
         <div className="space-y-1 text-xs text-neutral800">
           <div className="font-semibold">
-            {order.recipient_name} • {order.phone}
+            Người nhận: {order.recipient_name} • {order.phone}
           </div>
           <div className="leading-relaxed text-neutral600">
             {order.delivery_address}
@@ -350,9 +378,15 @@ export default function OrderDetailPage() {
           </span>
         </div>
         <div className="flex justify-between text-neutral600">
-          <span>Phí giao hàng ({order.distance_km?.toFixed(1)} km)</span>
+          <span>
+            {isPickup
+              ? "Hình thức"
+              : `Phí giao hàng (${order.distance_km?.toFixed(1)} km)`}
+          </span>
           <span className="font-normal text-black">
-            {formatCurrency(order.shipping_fee)}đ
+            {isPickup
+              ? "Tự đến lấy (0đ)"
+              : `${formatCurrency(order.shipping_fee)}đ`}
           </span>
         </div>
         {order.discount > 0 && (

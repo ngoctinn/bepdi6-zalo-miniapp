@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from apps.customers.models import Address
 from apps.customers.permissions import IsStaffOrAdminUser
 from apps.customers.views import get_current_customer
+from apps.menu.models import Product
 from apps.orders.models import Order
 from apps.orders.serializers import (
     CheckoutPreviewRequestSerializer,
@@ -45,33 +46,39 @@ class CheckoutPreviewView(APIView):
         lat = data.get("delivery_latitude")
         lng = data.get("delivery_longitude")
 
-        if address_id:
-            try:
-                address = Address.objects.get(pk=address_id, customer=customer)
-            except Address.DoesNotExist:
-                raise NotFound("Địa chỉ giao hàng không tồn tại.") from None
-        elif lat is not None and lng is not None:
-            address = Address(
-                customer=customer,
-                recipient_name=customer.name or "Khách hàng",
-                phone=customer.phone or "0900000000",
-                address_text="Vị trí đã chọn",
-                latitude=lat,
-                longitude=lng,
-            )
-        else:
-            address = Address.objects.filter(customer=customer, is_default=True).first()
-            if not address:
-                address = Address.objects.filter(customer=customer).first()
-            if not address:
+        delivery_type = data.get("delivery_type", Order.DeliveryType.DELIVERY)
+        address = None
+
+        if delivery_type != Order.DeliveryType.PICKUP:
+            if address_id:
+                try:
+                    address = Address.objects.get(pk=address_id, customer=customer)
+                except Address.DoesNotExist:
+                    raise NotFound("Địa chỉ giao hàng không tồn tại.") from None
+            elif lat is not None and lng is not None:
                 address = Address(
                     customer=customer,
                     recipient_name=customer.name or "Khách hàng",
                     phone=customer.phone or "0900000000",
-                    address_text="TP.HCM",
-                    latitude=Decimal("10.762622"),
-                    longitude=Decimal("106.660172"),
+                    address_text="Vị trí đã chọn",
+                    latitude=lat,
+                    longitude=lng,
                 )
+            else:
+                address = Address.objects.filter(
+                    customer=customer, is_default=True
+                ).first()
+                if not address:
+                    address = Address.objects.filter(customer=customer).first()
+                if not address:
+                    address = Address(
+                        customer=customer,
+                        recipient_name=customer.name or "Khách hàng",
+                        phone=customer.phone or "0900000000",
+                        address_text="TP.HCM",
+                        latitude=Decimal("10.762622"),
+                        longitude=Decimal("106.660172"),
+                    )
 
         try:
             calc_result = OrderService.validate_and_calculate_cart(
@@ -79,20 +86,45 @@ class CheckoutPreviewView(APIView):
                 items_data=data["items"],
                 address=address,
                 voucher_code=data.get("voucher_code"),
+                delivery_type=delivery_type,
+            )
+            return Response(
+                {
+                    "subtotal": calc_result["subtotal"],
+                    "distance_km": calc_result["distance_km"],
+                    "shipping_fee": calc_result["shipping_fee"],
+                    "discount": calc_result["discount"],
+                    "total_amount": calc_result["total_amount"],
+                    "is_deliverable": calc_result["is_deliverable"],
+                }
             )
         except OrderProcessingError as e:
-            raise ValidationError({"code": e.code, "message": e.message}) from None
+            if e.code in [
+                "OUT_OF_DELIVERY_RADIUS",
+                "ORDER_AMOUNT_BELOW_MINIMUM",
+                "MISSING_ADDRESS",
+            ]:
+                # Tính subtotal chính xác từ Product trong database
+                subtotal = Decimal("0.00")
+                for item in data.get("items", []):
+                    qty = int(item.get("quantity", 1))
+                    pid = item.get("product_id")
+                    p = Product.objects.filter(pk=pid).first()
+                    if p:
+                        subtotal += p.price * qty
 
-        return Response(
-            {
-                "subtotal": calc_result["subtotal"],
-                "distance_km": calc_result["distance_km"],
-                "shipping_fee": calc_result["shipping_fee"],
-                "discount": calc_result["discount"],
-                "total_amount": calc_result["total_amount"],
-                "is_deliverable": calc_result["is_deliverable"],
-            }
-        )
+                return Response(
+                    {
+                        "subtotal": subtotal,
+                        "distance_km": Decimal("0.00"),
+                        "shipping_fee": Decimal("0.00"),
+                        "discount": Decimal("0.00"),
+                        "total_amount": subtotal,
+                        "is_deliverable": False,
+                        "message": e.message,
+                    }
+                )
+            raise ValidationError({"code": e.code, "message": e.message}) from None
 
 
 class OrderListCreateView(APIView):
@@ -129,36 +161,41 @@ class OrderListCreateView(APIView):
         data = serializer.validated_data
 
         customer = get_current_customer(request)
+        delivery_type = data.get("delivery_type", Order.DeliveryType.DELIVERY)
         address_id = data.get("address_id")
+        rec_name = data.get("recipient_name") or customer.name or "Khách hàng"
+        phone_num = data.get("phone") or customer.phone or "0900000000"
 
-        if address_id:
-            try:
-                address = Address.objects.get(pk=address_id, customer=customer)
-            except Address.DoesNotExist:
-                raise NotFound("Địa chỉ giao hàng không tồn tại.") from None
-        else:
-            lat = data.get("delivery_latitude") or Decimal("10.762622")
-            lng = data.get("delivery_longitude") or Decimal("106.660172")
-            rec_name = data.get("recipient_name") or customer.name or "Khách hàng"
-            phone_num = data.get("phone") or customer.phone or "0900000000"
-            addr_text = data.get("delivery_address") or "Địa chỉ giao hàng"
-            address = Address.objects.create(
-                customer=customer,
-                recipient_name=rec_name,
-                phone=phone_num,
-                address_text=addr_text,
-                latitude=lat,
-                longitude=lng,
-                is_default=False,
-            )
+        address = None
+        if delivery_type != Order.DeliveryType.PICKUP:
+            if address_id:
+                try:
+                    address = Address.objects.get(pk=address_id, customer=customer)
+                except Address.DoesNotExist:
+                    raise NotFound("Địa chỉ giao hàng không tồn tại.") from None
+            else:
+                lat = data.get("delivery_latitude") or Decimal("10.762622")
+                lng = data.get("delivery_longitude") or Decimal("106.660172")
+                addr_text = data.get("delivery_address") or "Địa chỉ giao hàng"
+                address = Address.objects.create(
+                    customer=customer,
+                    recipient_name=rec_name,
+                    phone=phone_num,
+                    address_text=addr_text,
+                    latitude=lat,
+                    longitude=lng,
+                    is_default=False,
+                )
 
         try:
             order = OrderService.create_order(
                 customer=customer,
                 idempotency_key=idempotency_key.strip(),
                 address=address,
+                recipient_name=rec_name,
+                phone=phone_num,
                 items_data=data["items"],
-                delivery_type=data.get("delivery_type", Order.DeliveryType.ASAP),
+                delivery_type=delivery_type,
                 payment_method=data.get(
                     "payment_method", Order.PaymentMethod.BANK_TRANSFER
                 ),

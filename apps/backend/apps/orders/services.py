@@ -66,6 +66,7 @@ class OrderService:
         ],
         Order.Status.READY: [
             Order.Status.DELIVERING,
+            Order.Status.COMPLETED,  # Cho phép hoàn thành trực tiếp đối với đơn PICKUP
         ],
         Order.Status.DELIVERING: [
             Order.Status.COMPLETED,
@@ -103,12 +104,14 @@ class OrderService:
         cls,
         customer: Customer,
         items_data: list[dict],
-        address: Address,
+        address: Address | None = None,
         voucher_code: str | None = None,
+        delivery_type: str = Order.DeliveryType.DELIVERY,
     ) -> dict:
         """
         Validates cart items, options, calculates subtotal, distance, shipping fee, discount, total.
         Enforces BR-SHOP-002 (Shop Open), BR-SHOP-003 (Min Order Amount), BR-DELI-003 (Freeship & Tiers).
+        For PICKUP delivery_type, shipping fee and distance are 0.
         Returns calculated breakdown dict.
         """
         if not items_data:
@@ -223,27 +226,40 @@ class OrderService:
                 }
             )
 
-        # Enforce Minimum Order Amount (BR-SHOP-003)
+        # Enforce Minimum Order Amount for Delivery (BR-SHOP-003)
         if (
-            shop_config.min_order_amount > Decimal("0.00")
+            delivery_type != Order.DeliveryType.PICKUP
+            and shop_config.min_order_amount > Decimal("0.00")
             and subtotal < shop_config.min_order_amount
         ):
             raise OrderProcessingError(
                 "ORDER_AMOUNT_BELOW_MINIMUM",
-                f"Đơn hàng phải đạt tối thiểu {shop_config.min_order_amount:,.0f}đ để được đặt giao.",
+                f"Đơn hàng giao tận nơi phải đạt tối thiểu {shop_config.min_order_amount:,.0f}đ.",
             )
 
-        # 2. Shipping calculation (distance, tiers, freeship)
-        shipping_info = ShippingService.calculate_shipping(
-            destination_lat=address.latitude,
-            destination_lon=address.longitude,
-            order_subtotal=subtotal,
-        )
-        if not shipping_info["is_deliverable"]:
-            raise OrderProcessingError(
-                "OUT_OF_DELIVERY_RADIUS",
-                "Địa chỉ giao hàng nằm ngoài bán kính phục vụ của cửa hàng.",
+        # 2. Shipping calculation
+        if delivery_type == Order.DeliveryType.PICKUP:
+            shipping_fee = Decimal("0.00")
+            distance_km = Decimal("0.00")
+            is_deliverable = True
+        else:
+            if not address:
+                raise OrderProcessingError(
+                    "MISSING_ADDRESS", "Vui lòng cung cấp địa chỉ nhận hàng."
+                )
+            shipping_info = ShippingService.calculate_shipping(
+                destination_lat=address.latitude,
+                destination_lon=address.longitude,
+                order_subtotal=subtotal,
             )
+            if not shipping_info["is_deliverable"]:
+                raise OrderProcessingError(
+                    "OUT_OF_DELIVERY_RADIUS",
+                    "Địa chỉ giao hàng nằm ngoài bán kính phục vụ của cửa hàng.",
+                )
+            shipping_fee = shipping_info["shipping_fee"]
+            distance_km = shipping_info["distance_km"]
+            is_deliverable = True
 
         # 3. Voucher calculation
         discount = Decimal("0.00")
@@ -258,8 +274,6 @@ class OrderService:
             except VoucherValidationError as e:
                 raise OrderProcessingError(e.code, e.message) from None
 
-        shipping_fee = shipping_info["shipping_fee"]
-        distance_km = shipping_info["distance_km"]
         total_amount = subtotal + shipping_fee - discount
         if total_amount < Decimal("0.00"):
             total_amount = Decimal("0.00")
@@ -270,7 +284,7 @@ class OrderService:
             "shipping_fee": shipping_fee,
             "discount": discount,
             "total_amount": total_amount,
-            "is_deliverable": True,
+            "is_deliverable": is_deliverable,
             "voucher": voucher_obj,
             "validated_items": validated_items,
         }
@@ -281,9 +295,11 @@ class OrderService:
         cls,
         customer: Customer,
         idempotency_key: str,
-        address: Address,
         items_data: list[dict],
-        delivery_type: str = Order.DeliveryType.ASAP,
+        address: Address | None = None,
+        recipient_name: str = "",
+        phone: str = "",
+        delivery_type: str = Order.DeliveryType.DELIVERY,
         payment_method: str = Order.PaymentMethod.COD,
         voucher_code: str | None = None,
         note: str = "",
@@ -292,6 +308,7 @@ class OrderService:
         """
         Creates order transactionally with idempotency guard.
         Enforces BR-ORD-001, BR-ORD-002, BR-ORD-003, BR-PROD-005.
+        Supports both DELIVERY and PICKUP orders.
         """
         if not idempotency_key:
             raise OrderProcessingError(
@@ -311,7 +328,37 @@ class OrderService:
             items_data=items_data,
             address=address,
             voucher_code=voucher_code,
+            delivery_type=delivery_type,
         )
+
+        shop_config = ShopConfig.get_solo()
+        if delivery_type == Order.DeliveryType.PICKUP:
+            rec_name = (
+                recipient_name
+                or (address.recipient_name if address else "")
+                or customer.name
+                or "Khách hàng"
+            )
+            rec_phone = (
+                phone
+                or (address.phone if address else "")
+                or customer.phone
+                or "0900000000"
+            )
+            delivery_address = f"[Nhận tại quán] {shop_config.address_text}"
+            delivery_lat = shop_config.latitude
+            delivery_lon = shop_config.longitude
+        else:
+            if not address:
+                raise OrderProcessingError(
+                    "MISSING_ADDRESS",
+                    "Địa chỉ nhận hàng là bắt buộc cho đơn giao tận nơi.",
+                )
+            rec_name = recipient_name or address.recipient_name
+            rec_phone = phone or address.phone
+            delivery_address = address.address_text
+            delivery_lat = address.latitude
+            delivery_lon = address.longitude
 
         order_code = cls.generate_order_code()
 
@@ -322,11 +369,11 @@ class OrderService:
                 customer=customer,
                 status=Order.Status.PENDING_CONFIRMATION,
                 delivery_type=delivery_type,
-                recipient_name=address.recipient_name,
-                phone=address.phone,
-                delivery_address=address.address_text,
-                delivery_latitude=address.latitude,
-                delivery_longitude=address.longitude,
+                recipient_name=rec_name,
+                phone=rec_phone,
+                delivery_address=delivery_address,
+                delivery_latitude=delivery_lat,
+                delivery_longitude=delivery_lon,
                 distance_km=calculation["distance_km"],
                 shipping_fee=calculation["shipping_fee"],
                 subtotal=calculation["subtotal"],
