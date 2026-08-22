@@ -28,7 +28,10 @@ export default function Layout() {
           position={headerPosition}
         />
       )}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div
+        id="main-scroll-container"
+        className="min-h-0 flex-1 overflow-y-auto"
+      >
         <Outlet />
       </div>
       {!hideFooter && (

@@ -102,12 +102,14 @@ const base = {
     red600: "#DC2626",
     red700: "#B91C1C",
     red800: "#991B1B",
+    redTerracotta: "#C0392B", // Đỏ đất sáng (Bright Terracotta Red / Warm Clay) chuẩn nhận diện ẩm thực cao cấp
+    redTerracottaDark: "#A93226",
 
-    blue100: "#E0F2FE",
-    blue500: "#0284C7",
-    blue600: "#0369A1",
+    blue100: "#DCFCE7", // Remapped to green100
+    blue500: "#16A34A", // Remapped to green600
+    blue600: "#15803D", // Remapped to green700
 
-    divider01: "rgba(0, 0, 0, 0.08)",
+    divider01: "rgba(0, 0, 0, 0.05)",
   },
   opacity: {
     opacity10: "0.1",
@@ -128,29 +130,29 @@ const base = {
 const semantic = {
   colors: {
     primary: base.colors.green600, // #16A34A — Xanh lá tươi sáng
-    primaryDark: base.colors.green800, // #166534 — Màu xanh đậm nhất cho tên quán
+    primaryDark: base.colors.green800, // #166534
     primaryLight: base.colors.green100, // #DCFCE7
     brandYellow: base.colors.yellow100, // #FEF9C3
     background: base.colors.yellow25, // #FFFEF7
-    surface: base.colors.white,
-    surfaceSubtle: base.colors.yellow100,
+    surface: "transparent",
+    surfaceSubtle: "rgba(0,0,0,0.02)",
     price: base.colors.neutral900, // Giá tiền: đen đậm
     text: {
       primary: base.colors.neutral900,
       secondary: base.colors.neutral600,
       tertiary: base.colors.neutral500,
       disabled: base.colors.neutral400,
-      title: base.colors.green800, // Tên quán màu xanh đậm nhất
+      title: base.colors.redTerracotta, // Tên quán màu đỏ đất sáng (#C0392B) nổi bật, ấm cúng và kích thích vị giác
       price: base.colors.neutral900,
     },
     border: {
-      primary: base.colors.neutral200,
+      primary: "rgba(0, 0, 0, 0.05)",
     },
     icon: {
       tertiary: base.colors.neutral500,
     },
     accent: base.colors.green600,
-    info: base.colors.blue500,
+    info: base.colors.green600,
     warning: base.colors.yellow600,
     danger: base.colors.red600,
     components: {

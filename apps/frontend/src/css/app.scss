@@ -1,8 +1,54 @@
 @import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap");
 
 :root {
-  --zaui-light-bottom-navigation-divider-color: transparent;
+  /* ZaUI Primary Theme Overrides — 100% Green600 System */
+  --zaui-light-color-primary: #16a34a;
+  --zaui-dark-color-primary: #16a34a;
   --zaui-primary-color: #16a34a;
+  --zaui-light-color-on-primary: #ffffff;
+  --zaui-dark-color-on-primary: #ffffff;
+
+  /* Button Overrides */
+  --zaui-light-button-primary-background: #16a34a;
+  --zaui-light-button-primary-background-pressed: #15803d;
+  --zaui-light-button-secondary-background: #dcfce7;
+  --zaui-light-button-secondary-background-pressed: #bbf7d0;
+  --zaui-light-button-secondary-text: #166534;
+  --zaui-light-button-secondary-icon: #166534;
+  --zaui-light-button-tertiary-text: #16a34a;
+  --zaui-light-button-tertiary-icon: #16a34a;
+  --zaui-light-button-tertiary-background-pressed: #f0fdf4;
+
+  /* Input & Textbox Focus Overrides */
+  --zaui-light-input-hover-border-color: #16a34a;
+  --zaui-dark-input-hover-border-color: #16a34a;
+  --zaui-light-input-border-color: rgba(0, 0, 0, 0.1);
+
+  /* Checkbox & Radio Overrides */
+  --zaui-light-checkbox-checked-background: #16a34a;
+  --zaui-light-radio-checked-background: #16a34a;
+
+  /* Tabbar Overrides */
+  --zaui-light-tabbar-active-line: #16a34a;
+  --zaui-light-bottom-navigation-active-color: #16a34a;
+  --zaui-light-bottom-navigation-divider-color: transparent;
+
+  /* Spinner & Misc Overrides */
+  --zaui-light-spinner-dot-color: #16a34a;
+  --zaui-light-progress-completed: #16a34a;
+  --zaui-light-switch-bg-color: #16a34a;
+  --zaui-light-picker-option-selected-color: #16a34a;
+  --zaui-light-option-selected-color: #16a34a;
+}
+
+/* Eliminate native focus blue rings globally */
+input:focus,
+textarea:focus,
+button:focus,
+select:focus {
+  outline: none !important;
+  border-color: #16a34a !important;
+  box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.25) !important;
 }
 
 * {

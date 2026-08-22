@@ -41,7 +41,7 @@ export default function Header({ title, back, position }: HeaderProps) {
     <div
       className={`${positionClass} header-margin left-0 top-0 z-20 flex h-12 w-full items-center bg-yellow-gradient px-4 py-2 pr-24`}
     >
-      <div className="truncate text-base font-extrabold text-green800">
+      <div className="truncate text-base font-extrabold text-redTerracotta">
         Bếp Dì 6 - Mắm Chưng Miền Tây
       </div>
     </div>

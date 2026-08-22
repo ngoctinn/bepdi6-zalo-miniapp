@@ -98,10 +98,10 @@ export default function OrderDetailPage() {
     )}`;
 
   return (
-    <div className="flex h-full flex-col bg-elevation-01">
+    <div className="flex h-full flex-col bg-transparent">
       <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto p-3.5 pb-24">
-        {/* Order Info Card */}
-        <div className="shadow-2xs flex items-center justify-between rounded-xl border border-neutral100 bg-white p-3.5">
+        {/* Order Info */}
+        <div className="flex items-center justify-between rounded-2xl border border-black/5 bg-transparent p-3.5">
           <div>
             <h1 className="text-sm font-bold text-neutral900">
               Đơn hàng #{order.order_code}
@@ -113,24 +113,25 @@ export default function OrderDetailPage() {
           <span
             className={`rounded-full px-2.5 py-1 text-xxsmall font-bold ${
               isCancelled
-                ? "bg-red-100 text-red-700"
+                ? "border border-red-200/50 bg-red-500/10 text-red-600"
                 : order.status === "COMPLETED"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-amber-100 text-amber-800"
+                  ? "border border-primary/30 bg-emerald-500/15 text-primary"
+                  : "border border-amber-300/50 bg-amber-500/15 text-amber-800"
             }`}
           >
             {order.status_display || order.status}
           </span>
         </div>
+
         {/* Timeline Trạng Thái Đơn Hàng */}
-        <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-4">
+        <div className="rounded-2xl border border-black/5 bg-transparent p-4">
           <span className="mb-3 block text-xs font-bold text-neutral800">
-            📍 TIẾN TRÌNH ĐƠN HÀNG
+            TIẾN TRÌNH ĐƠN HÀNG
           </span>
 
           {isCancelled ? (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-              ❌ Đơn hàng đã bị hủy.
+            <div className="rounded-xl border border-red-200/50 bg-red-50 p-3 text-xs text-red-700">
+              Đơn hàng đã bị hủy.
               {order.cancellation_reason && (
                 <span className="mt-0.5 block text-neutral600">
                   Lý do: {order.cancellation_reason}
@@ -140,7 +141,7 @@ export default function OrderDetailPage() {
           ) : (
             <div className="relative flex items-start justify-between pt-2">
               {/* Progress Line */}
-              <div className="absolute left-4 right-4 top-5 -z-0 h-0.5 bg-neutral200" />
+              <div className="absolute left-4 right-4 top-5 -z-0 h-0.5 bg-black/10" />
               <div
                 className="absolute left-4 top-5 -z-0 h-0.5 bg-primary transition-all duration-500"
                 style={{
@@ -161,7 +162,7 @@ export default function OrderDetailPage() {
                       className={`flex h-7 w-7 items-center justify-center rounded-full text-xs transition-all ${
                         isPassed
                           ? "shadow-xs bg-primary text-white"
-                          : "bg-neutral200 text-neutral400"
+                          : "bg-black/10 text-neutral400"
                       } ${isCurrent ? "scale-110 ring-4 ring-primary/20" : ""}`}
                     >
                       {isPassed && idx < currentStep ? (
@@ -190,10 +191,10 @@ export default function OrderDetailPage() {
 
         {/* Khối Thanh Toán VietQR Tức Thì (Nếu chọn BANK_TRANSFER) */}
         {isBankTransfer && !isCancelled && (
-          <div className="shadow-2xs bg-primary/2 rounded-xl border border-primary/20 bg-white p-4">
+          <div className="rounded-2xl border border-primary/20 bg-emerald-500/5 p-4">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-bold text-neutral900">
-                📲 QUÉT MÃ VIETQR ĐỂ THANH TOÁN
+                QUÉT MÃ VIETQR ĐỂ THANH TOÁN
               </span>
               <span
                 className={`rounded px-2 py-0.5 text-xxsmall font-bold ${
@@ -202,13 +203,13 @@ export default function OrderDetailPage() {
                     : "animate-pulse bg-amber-100 text-amber-800"
                 }`}
               >
-                {isPaid ? "✅ Đã thanh toán" : "⏳ Chờ thanh toán"}
+                {isPaid ? "Đã thanh toán" : "Chờ thanh toán"}
               </span>
             </div>
 
             {!isPaid ? (
               <div className="mt-3 flex flex-col items-center space-y-3 text-center">
-                <div className="shadow-xs inline-block rounded-xl border border-neutral200 bg-white p-2">
+                <div className="inline-block rounded-2xl border border-black/10 bg-white p-2.5 shadow-sm">
                   <img
                     src={qrUrl}
                     alt="VietQR Bep Di 6"
@@ -216,7 +217,7 @@ export default function OrderDetailPage() {
                   />
                 </div>
 
-                <div className="w-full space-y-2 rounded-lg border border-neutral200 bg-white p-3 text-left text-xs">
+                <div className="w-full space-y-2 rounded-xl border border-black/5 bg-black/[0.02] p-3 text-left text-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-neutral500">Ngân hàng:</span>
                     <span className="font-bold text-neutral900">
@@ -245,7 +246,7 @@ export default function OrderDetailPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-neutral500">Số tiền:</span>
-                    <span className="text-sm font-bold text-red-600">
+                    <span className="text-sm font-bold text-green800">
                       {formatCurrency(order.total_amount)}đ
                     </span>
                   </div>
@@ -284,7 +285,7 @@ export default function OrderDetailPage() {
         {/* Địa chỉ giao hàng */}
         <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
           <span className="mb-2 block text-xs font-bold text-neutral800">
-            📍 ĐỊA CHỈ NHẬN HÀNG
+            ĐỊA CHỈ NHẬN HÀNG
           </span>
           <div className="space-y-1 text-xs text-neutral800">
             <div className="font-semibold">
@@ -304,7 +305,7 @@ export default function OrderDetailPage() {
         {/* Danh sách món ăn */}
         <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
           <span className="mb-2.5 block text-xs font-bold text-neutral800">
-            🍲 CHI TIẾT MÓN ĂN ({order.items.length})
+            CHI TIẾT MÓN ĂN ({order.items.length})
           </span>
           <div className="space-y-3 divide-y divide-black/5">
             {order.items.map((item) => (
@@ -341,25 +342,29 @@ export default function OrderDetailPage() {
         {/* Chi tiết thanh toán */}
         <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
           <span className="mb-1 block text-xs font-bold text-neutral800">
-            📋 TỔNG CỘNG HÓA ĐƠN
+            TỔNG CỘNG HÓA ĐƠN
           </span>
           <div className="flex justify-between text-neutral600">
             <span>Tạm tính</span>
-            <span>{formatCurrency(order.subtotal)}đ</span>
+            <span className="font-normal text-black">
+              {formatCurrency(order.subtotal)}đ
+            </span>
           </div>
           <div className="flex justify-between text-neutral600">
             <span>Phí giao hàng ({order.distance_km?.toFixed(1)} km)</span>
-            <span>{formatCurrency(order.shipping_fee)}đ</span>
+            <span className="font-normal text-black">
+              {formatCurrency(order.shipping_fee)}đ
+            </span>
           </div>
           {order.discount > 0 && (
-            <div className="flex justify-between font-medium text-green-700">
+            <div className="flex justify-between font-normal text-green-700">
               <span>Giảm giá</span>
               <span>-{formatCurrency(order.discount)}đ</span>
             </div>
           )}
-          <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-bold text-neutral900">
+          <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-normal text-black">
             <span>Tổng thanh toán</span>
-            <span className="text-lg font-extrabold text-[#1E293B]">
+            <span className="text-base font-bold text-green800">
               {formatCurrency(order.total_amount)}đ
             </span>
           </div>
@@ -368,13 +373,13 @@ export default function OrderDetailPage() {
 
       {/* Footer Action: Hủy đơn nếu còn Chờ xác nhận */}
       {order.status === "PENDING_CONFIRMATION" && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral200 bg-white p-3 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 p-3 shadow-lg backdrop-blur-md">
           <Button
             size="small"
             type="neutral"
             onClick={handleCancelOrder}
             loading={isCancelling}
-            className="w-full rounded-xl border border-red-300 bg-red-50 py-2.5 text-xs font-semibold text-red-600"
+            className="w-full rounded-xl border border-red-300/50 bg-red-50 py-2.5 text-xs font-semibold text-red-600"
           >
             Hủy đơn hàng này
           </Button>

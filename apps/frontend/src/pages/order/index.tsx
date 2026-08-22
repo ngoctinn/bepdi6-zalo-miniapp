@@ -49,7 +49,7 @@ export default function OrderPage() {
       {/* Sticky Header: Tên trang + Tabs dùng chung gradient vàng đồng bộ với Trang chủ */}
       <div className="sticky top-0 z-30 flex flex-col bg-yellow-gradient pb-2">
         <div className="header-margin px-3.5 pb-1 pt-3">
-          <h1 className="text-[17px] font-extrabold tracking-tight text-green800">
+          <h1 className="text-[17px] font-extrabold tracking-tight text-redTerracotta">
             Đơn Hàng Của Tôi
           </h1>
         </div>

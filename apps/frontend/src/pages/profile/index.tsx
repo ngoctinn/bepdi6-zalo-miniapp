@@ -26,7 +26,7 @@ export default function ProfilePage() {
       {/* Sticky Header: Gradient vàng đồng bộ toàn hệ thống */}
       <div className="sticky top-0 z-30 flex flex-col bg-yellow-gradient pb-4">
         <div className="header-margin px-3.5 pb-1 pt-3">
-          <h1 className="text-[17px] font-extrabold tracking-tight text-green800">
+          <h1 className="text-[17px] font-extrabold tracking-tight text-redTerracotta">
             Tài Khoản Của Tôi
           </h1>
         </div>
@@ -84,7 +84,7 @@ export default function ProfilePage() {
             onClick={handleDevelopingClick}
           >
             <div className="flex items-center gap-3 text-sm font-medium text-neutral800">
-              <div className="text-blue-600">
+              <div className="text-emerald-600">
                 <ProfileUserIcon className="h-5 w-5" />
               </div>
               <div>Trung tâm hỗ trợ & CSKH</div>
