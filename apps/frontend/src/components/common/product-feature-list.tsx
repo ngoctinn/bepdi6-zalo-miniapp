@@ -23,7 +23,7 @@ export default function ProductFeatureList({
               "cursor-pointer whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium",
               feature.id === selectedId
                 ? "bg-yellow100 text-orange600"
-                : "bg-neutral100 text-gray500",
+                : "text-gray500 bg-neutral100",
             )}
           >
             {feature.name}

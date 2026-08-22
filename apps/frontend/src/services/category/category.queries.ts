@@ -1,23 +1,13 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { categoryService } from "./category.api";
-import {
-  GET_LIST_OF_CATEGORY_KEY,
-  GET_LIST_OF_SUBCATEGORY_KEY,
-} from "@/constants/api";
-import { Category, SubCategory } from "@/types/category.types";
+import { Category } from "../../types/category.types";
+
+export const CATEGORIES_QUERY_KEY = ["categories"] as const;
 
 export function useCategories() {
   return useQuery<Category[]>({
-    queryKey: [GET_LIST_OF_CATEGORY_KEY],
+    queryKey: CATEGORIES_QUERY_KEY,
     queryFn: categoryService.getCategories,
-    placeholderData: keepPreviousData,
-  });
-}
-
-export function useSubCategories(categoryId: string) {
-  return useQuery<SubCategory[]>({
-    queryKey: [GET_LIST_OF_SUBCATEGORY_KEY, categoryId],
-    queryFn: () => categoryService.getSubCategories(categoryId),
-    placeholderData: keepPreviousData,
+    staleTime: 5 * 60 * 1000,
   });
 }

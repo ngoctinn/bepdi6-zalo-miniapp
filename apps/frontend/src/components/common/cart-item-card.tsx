@@ -21,30 +21,45 @@ export default function CartItemCard({
   onUpdateQuantity,
   onEdit,
 }: CartItemCardProps) {
-  const itemPrice = calculateCartItemPrice(item);
+  const itemUnitPrice = calculateCartItemPrice(item);
+  const imageUrl =
+    item.product_image ||
+    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&auto=format&fit=crop&q=60";
 
   return (
-    <div className="flex gap-3 rounded-lg bg-white p-2">
+    <div className="flex gap-3 rounded-xl border border-stone-200/40 bg-[#F5F4EE] p-3 shadow-sm">
       <img
         draggable={false}
-        src={item.productImage}
-        alt={item.productName}
-        className="h-10 w-10 rounded-lg object-cover"
+        src={imageUrl}
+        alt={item.product_name}
+        className="h-14 w-14 shrink-0 rounded-lg bg-neutral100 object-cover"
       />
-      <div className="flex-1">
-        <Text className="text-base font-medium">{item.productName}</Text>
-        <Text size="xSmall" className="text-text-secondary">
-          {formatVariantWithPercentage(item.selectedVariants, {
-            emptyLabel: variant === "editable" ? copy.common.defaultOption : "",
-          })}
+      <div className="min-w-0 flex-1">
+        <Text className="truncate text-sm font-semibold text-neutral900">
+          {item.product_name}
         </Text>
-        <Text className="mt-1 text-sm font-medium text-primary">
-          {formatCurrency(itemPrice)}
-        </Text>
+
+        {item.options && item.options.length > 0 && (
+          <Text className="mt-0.5 line-clamp-1 text-xxsmall text-neutral500">
+            + {formatVariantWithPercentage(item.options)}
+          </Text>
+        )}
+
+        {item.note && (
+          <Text className="mt-0.5 line-clamp-1 text-xxsmall italic text-amber-700">
+            "{item.note}"
+          </Text>
+        )}
+
+        <div className="mt-1 text-xs font-bold text-primary">
+          {formatCurrency(itemUnitPrice)}
+          <span className="ml-0.5 text-xxsmall font-medium">đ</span>
+        </div>
+
         {onEdit && (
           <Button
             onClick={() => onEdit(item.id)}
-            className="mt-1 rounded-full bg-neutral400 px-2 py-1 text-sm text-text-secondary active:bg-neutral400"
+            className="mt-1.5 rounded-full bg-neutral100 px-2.5 py-0.5 text-xxsmall font-medium text-neutral700 active:bg-neutral200"
             size="small"
             type="neutral"
           >
@@ -52,16 +67,19 @@ export default function CartItemCard({
           </Button>
         )}
       </div>
-      <QuantityStepper
-        value={item.quantity}
-        onDecrease={() =>
-          onUpdateQuantity?.(item.id, Math.max(0, item.quantity - 1))
-        }
-        onIncrease={() => onUpdateQuantity?.(item.id, item.quantity + 1)}
-        minValue={0}
-        size="large"
-        variant="rounded"
-      />
+
+      <div className="self-center">
+        <QuantityStepper
+          value={item.quantity}
+          onDecrease={() =>
+            onUpdateQuantity?.(item.id, Math.max(0, item.quantity - 1))
+          }
+          onIncrease={() => onUpdateQuantity?.(item.id, item.quantity + 1)}
+          minValue={0}
+          size="medium"
+          variant="rounded"
+        />
+      </div>
     </div>
   );
 }

@@ -1,47 +1,43 @@
-export interface VariantOption {
-  id: string;
+export interface Option {
+  id: number;
+  option_group: number;
   name: string;
-  extraPrice: number;
-  image?: string;
-  defaultValue?: string | number | boolean;
-  value?: string | number;
-  maxValue?: string | number;
-  step?: number;
+  price: number;
+  status: "AVAILABLE" | "INACTIVE";
+  sort_order?: number;
 }
 
-export interface VariantGroup {
-  id: string;
-  title: string;
-  description: string;
-  type: "SINGLE" | "MULTIPLE" | "ADJUSTMENT" | "QUANTITY";
-  isRequired: boolean;
-  options: VariantOption[];
-}
-
-export interface ProductFeature {
-  id: string;
+export interface OptionGroup {
+  id: number;
+  product: number;
   name: string;
-  icon?: string;
-}
-
-export interface ProductSales {
-  freeShipping?: boolean;
-  discount?: number;
-  specialPrice?: number;
+  is_required: boolean;
+  min_select: number;
+  max_select: number;
+  sort_order?: number;
+  options: Option[];
 }
 
 export interface Product {
   id: number;
+  category: number;
+  category_name?: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
-  image: string;
-  variantGroups: VariantGroup[];
-  features: string[];
+  image?: string;
+  image_url?: string;
+  effective_image_url?: string;
+  status: "AVAILABLE" | "OUT_OF_STOCK" | "INACTIVE";
+  is_featured?: boolean;
+  sort_order?: number;
+  option_groups?: OptionGroup[];
+}
 
-  newMarked?: boolean;
-  sales?: ProductSales;
-
-  categoryId: string;
-  subCategoryId: string;
+export interface ProductListParams {
+  category?: number;
+  search?: string;
+  status?: string;
+  page?: number;
+  page_size?: number;
 }

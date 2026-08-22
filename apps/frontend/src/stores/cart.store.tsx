@@ -1,136 +1,114 @@
 import { create } from "zustand";
-import { CartItem, SelectedVariant } from "@/types/cart.types";
+import { CartItem, CartStore } from "../types/cart.types";
 
-interface CartStore {
-  items: CartItem[];
-  totalItems: number;
-  totalAmount: number;
-  checkoutSheetVisible: boolean;
-  addToCart: (item: Omit<CartItem, "id">) => void;
-  updateCartItem: (id: string, item: Omit<CartItem, "id">) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  removeItem: (id: string) => void;
-  clearCart: () => void;
-  openCheckoutSheet: () => void;
-  closeCheckoutSheet: () => void;
-}
+const CART_STORAGE_KEY = "bepdi6_cart_items";
 
-// Helper function to generate unique ID based on product and variants
-const generateCartItemId = (item: Omit<CartItem, "id">): string => {
-  const variantsString = item.selectedVariants
-    .map((v) => `${v.groupId}-${v.optionId}-${v.quantity || 1}`)
-    .sort()
-    .join("|");
-  return `${item.productId}-${variantsString}-${item.note || ""}`;
+const loadSavedCart = (): CartItem[] => {
+  try {
+    const saved = localStorage.getItem(CART_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
 };
 
-// Helper function to calculate totals
-const calculateTotals = (items: CartItem[]) => {
-  const totalItems = items.reduce((total, item) => total + item.quantity, 0);
-  const totalAmount = items.reduce((total, item) => {
-    const variantsTotal = item.selectedVariants.reduce(
-      (sum, variant) => sum + variant.extraPrice * (variant.quantity || 1),
-      0,
-    );
-    const itemPrice = item.basePrice + variantsTotal;
-    return total + itemPrice * item.quantity;
-  }, 0);
-  return { totalItems, totalAmount };
+const saveCart = (items: CartItem[]) => {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    // Ignore storage errors
+  }
 };
 
-export const useCartStore = create<CartStore>((set) => ({
-  items: [],
-  totalItems: 0,
-  totalAmount: 0,
+export const useCartStore = create<CartStore>((set, get) => ({
+  items: loadSavedCart(),
   checkoutSheetVisible: false,
 
-  addToCart: (newItem) => {
-    const itemId = generateCartItemId(newItem);
+  openCheckoutSheet: () => set({ checkoutSheetVisible: true }),
+  closeCheckoutSheet: () => set({ checkoutSheetVisible: false }),
 
-    set((state) => {
-      const existingItemIndex = state.items.findIndex(
-        (item) => item.id === itemId,
+  addToCart: (itemData) => {
+    const { items } = get();
+
+    // Check trùng món cùng options và cùng ghi chú
+    const optionsSignature = (options?: typeof itemData.options) =>
+      (options || [])
+        .map((o) => `${o.option_id}:${o.quantity}`)
+        .sort()
+        .join("|");
+
+    const newSignature = optionsSignature(itemData.options);
+    const existingIndex = items.findIndex(
+      (item) =>
+        item.product_id === itemData.product_id &&
+        (item.note || "") === (itemData.note || "") &&
+        optionsSignature(item.options) === newSignature,
+    );
+
+    let updatedItems: CartItem[];
+    if (existingIndex > -1) {
+      updatedItems = items.map((item, idx) =>
+        idx === existingIndex
+          ? { ...item, quantity: item.quantity + itemData.quantity }
+          : item,
       );
+    } else {
+      const newItem: CartItem = {
+        ...itemData,
+        id: `cart_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      };
+      updatedItems = [...items, newItem];
+    }
 
-      let newItems: CartItem[];
-      if (existingItemIndex !== -1) {
-        // Item exists, increase quantity
-        newItems = [...state.items];
-        newItems[existingItemIndex] = {
-          ...newItems[existingItemIndex],
-          quantity: newItems[existingItemIndex].quantity + newItem.quantity,
-        };
-      } else {
-        // New item, add to cart
-        newItems = [...state.items, { ...newItem, id: itemId }];
-      }
-
-      const { totalItems, totalAmount } = calculateTotals(newItems);
-      return { items: newItems, totalItems, totalAmount };
-    });
+    saveCart(updatedItems);
+    set({ items: updatedItems });
   },
 
-  updateCartItem: (id, updatedItem) => {
-    set((state) => {
-      // Remove the old item and add the updated one
-      const newItems = state.items.filter((item) => item.id !== id);
-      const newItemId = generateCartItemId(updatedItem);
+  updateCartItem: (id, itemData) => {
+    const { items } = get();
+    const updatedItems = items.map((item) =>
+      item.id === id ? { ...item, ...itemData } : item,
+    );
+    saveCart(updatedItems);
+    set({ items: updatedItems });
+  },
 
-      // Check if the updated item matches an existing item
-      const existingItemIndex = newItems.findIndex(
-        (item) => item.id === newItemId,
-      );
-
-      if (existingItemIndex !== -1) {
-        // Merge quantities if the updated item matches an existing one
-        newItems[existingItemIndex] = {
-          ...newItems[existingItemIndex],
-          quantity: newItems[existingItemIndex].quantity + updatedItem.quantity,
-        };
-      } else {
-        // Add as new item
-        newItems.push({ ...updatedItem, id: newItemId });
-      }
-
-      const { totalItems, totalAmount } = calculateTotals(newItems);
-      return { items: newItems, totalItems, totalAmount };
-    });
+  removeFromCart: (id) => {
+    const { items } = get();
+    const updatedItems = items.filter((item) => item.id !== id);
+    saveCart(updatedItems);
+    set({ items: updatedItems });
   },
 
   updateQuantity: (id, quantity) => {
-    set((state) => {
-      let newItems: CartItem[];
-      if (quantity <= 0) {
-        // Remove item if quantity is 0 or less
-        newItems = state.items.filter((item) => item.id !== id);
-      } else {
-        newItems = state.items.map((item) =>
-          item.id === id ? { ...item, quantity } : item,
-        );
-      }
-
-      const { totalItems, totalAmount } = calculateTotals(newItems);
-      return { items: newItems, totalItems, totalAmount };
-    });
-  },
-
-  removeItem: (id) => {
-    set((state) => {
-      const newItems = state.items.filter((item) => item.id !== id);
-      const { totalItems, totalAmount } = calculateTotals(newItems);
-      return { items: newItems, totalItems, totalAmount };
-    });
+    const { items } = get();
+    if (quantity <= 0) {
+      get().removeFromCart(id);
+      return;
+    }
+    const updatedItems = items.map((item) =>
+      item.id === id ? { ...item, quantity } : item,
+    );
+    saveCart(updatedItems);
+    set({ items: updatedItems });
   },
 
   clearCart: () => {
-    set({ items: [], totalItems: 0, totalAmount: 0 });
+    saveCart([]);
+    set({ items: [] });
   },
 
-  openCheckoutSheet: () => {
-    set({ checkoutSheetVisible: true });
+  get totalItems() {
+    return get().items.reduce((sum, item) => sum + item.quantity, 0);
   },
 
-  closeCheckoutSheet: () => {
-    set({ checkoutSheetVisible: false });
+  get subtotal() {
+    return get().items.reduce((sum, item) => {
+      const optionsPrice = (item.options || []).reduce(
+        (optSum, opt) => optSum + opt.price * opt.quantity,
+        0,
+      );
+      return sum + (item.unit_price + optionsPrice) * item.quantity;
+    }, 0);
   },
 }));

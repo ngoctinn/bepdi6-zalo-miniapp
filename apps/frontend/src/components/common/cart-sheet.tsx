@@ -28,7 +28,7 @@ export default function CartSheet({
     const item = items.find((i) => i.id === itemId);
     if (item) {
       navigate(
-        `/product/${item.productId}?editCartItemId=${encodeURIComponent(itemId)}`,
+        `/product/${item.product_id}?editCartItemId=${encodeURIComponent(itemId)}`,
       );
       onClose();
     }
@@ -38,7 +38,7 @@ export default function CartSheet({
 
   return (
     <Sheet autoHeight visible={visible} onClose={onClose}>
-      <div className="relative flex max-h-[70vh] w-full flex-col overflow-y-scroll bg-white">
+      <div className="relative flex max-h-[70vh] w-full flex-col overflow-y-scroll bg-[#FAFAF5]">
         <div className="flex items-center px-4 py-2">
           <Button
             onClick={onClose}
@@ -54,7 +54,7 @@ export default function CartSheet({
           </div>
         </div>
 
-        <div className="w-full overflow-y-auto bg-elevation-01 p-2">
+        <div className="w-full overflow-y-auto bg-[#FEFCE8] p-2">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-4 py-16">
               <div className="mb-4 flex h-32 w-32 items-center justify-center rounded-full bg-neutral100">
@@ -98,8 +98,8 @@ export default function CartSheet({
           <div className="border-divider01 border-t px-4 py-4">
             <div className="mb-4 flex items-center justify-between">
               <Text className="text-base font-medium">{copy.common.total}</Text>
-              <Text className="text-base font-medium text-primary">
-                {formatCurrency(totalAmount)}
+              <Text className="text-base font-bold text-primary">
+                {formatCurrency(totalAmount)}đ
               </Text>
             </div>
             <Button

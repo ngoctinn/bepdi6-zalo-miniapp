@@ -1,49 +1,28 @@
-import { mockListOfProduct } from "./product.mock";
-import { mockListOfSubCategory } from "../category/category.mock";
+import { api } from "../../lib/api-client";
+import { Product, ProductListParams } from "../../types/product.types";
 
 export const productService = {
-  getProducts: async (categoryId: string, featureId: string) => {
-    const filteredProducts = mockListOfProduct.filter(
-      (product) =>
-        product.categoryId === categoryId &&
-        (featureId ? product.features.includes(featureId) : true),
-    );
-    return filteredProducts;
+  /**
+   * Lấy danh sách món ăn theo category / search query
+   * GET /api/v1/products
+   */
+  getProducts: async (params?: ProductListParams): Promise<Product[]> => {
+    return api.get<Product[]>("products", {
+      params: {
+        category: params?.category,
+        search: params?.search,
+        status: params?.status,
+        page: params?.page,
+        page_size: params?.page_size,
+      },
+    });
   },
 
-  getProductById: async (productId: string | number) => {
-    const product = mockListOfProduct.find(
-      (product) => product.id === Number(productId),
-    );
-    if (!product) {
-      throw new Error(`Product with id ${productId} not found`);
-    }
-    return product;
-  },
-
-  getProductsBySubCategory: async (subCategoryId: string) => {
-    const filteredProducts = mockListOfProduct.filter(
-      (product) => product.subCategoryId === subCategoryId,
-    );
-    return filteredProducts;
-  },
-
-  getProductsGroupBySubCategory: async (
-    categoryId: string,
-    featureId: string,
-  ) => {
-    const filteredProducts = mockListOfProduct.filter(
-      (product) =>
-        product.categoryId === categoryId &&
-        (featureId ? product.features.includes(featureId) : true),
-    );
-
-    const groupedProducts = mockListOfSubCategory.map((subCategory) => ({
-      ...subCategory,
-      products: filteredProducts.filter(
-        (product) => product.subCategoryId === subCategory.id,
-      ),
-    }));
-    return groupedProducts;
+  /**
+   * Lấy chi tiết 1 món ăn kèm các nhóm tùy chọn (OptionGroups & Options)
+   * GET /api/v1/products/:id
+   */
+  getProductById: async (id: number | string): Promise<Product> => {
+    return api.get<Product>(`products/${id}`);
   },
 };

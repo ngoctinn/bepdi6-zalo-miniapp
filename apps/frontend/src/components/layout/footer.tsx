@@ -51,10 +51,8 @@ export default function Footer() {
           <item.icon active={activeKey === item.path} />
           <div
             className={cn(
-              "text-xxxxsmall",
-              activeKey === item.path
-                ? "!text-text-primary"
-                : "!text-text-disabled",
+              "text-xxxxsmall font-medium",
+              activeKey === item.path ? "!text-primary" : "!text-stone-400",
             )}
           >
             {item.name}

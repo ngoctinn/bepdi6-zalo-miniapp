@@ -28,7 +28,7 @@ export default function CheckoutSheet({
     const item = items.find((i) => i.id === itemId);
     if (item) {
       navigate(
-        `/product/${item.productId}?editCartItemId=${encodeURIComponent(itemId)}`,
+        `/product/${item.product_id}?editCartItemId=${encodeURIComponent(itemId)}`,
       );
       onClose();
     }

@@ -12,22 +12,11 @@ export default function SectionTitle({
   hideIcon = false,
 }: SectionTitleProps) {
   return (
-    <Text.Title
-      size="small"
-      className="flex items-center gap-2 text-text-title"
-    >
-      {!hideIcon &&
-        (image ? (
-          <img
-            draggable={false}
-            src={image}
-            alt={title}
-            className="inline-block h-6 w-6 text-center"
-          />
-        ) : (
-          <span> 🔥 </span>
-        ))}
-      <span> {title} </span>
-    </Text.Title>
+    <div className="flex items-center gap-2">
+      <div className="h-4 w-1 rounded-full bg-primary" />
+      <Text.Title size="small" className="text-base font-bold text-stone-900">
+        {title}
+      </Text.Title>
+    </div>
   );
 }

@@ -1,177 +1,72 @@
+import { api } from "../../lib/api-client";
 import {
-  Order,
+  CheckoutPreviewRequest,
+  CheckoutPreviewResponse,
   CreateOrderRequest,
+  Order,
   OrderListResponse,
+  PaymentResponse,
 } from "../../types/order.types";
-import { mockOrders, createMockOrder } from "./order.mock";
-
-// Simulated in-memory storage (sẽ thay bằng API thật sau)
-let orders: Order[] = [...mockOrders];
 
 export const orderService = {
   /**
-   * Tạo order mới từ checkout
-   * TODO: Thay bằng POST /api/orders
+   * Tính toán trước giỏ hàng: Tạm tính, Phí ship theo km, Giảm giá voucher, Tổng cộng
+   * POST /api/v1/checkout/preview
    */
-  createOrder: async (request: CreateOrderRequest): Promise<Order> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const newOrder = createMockOrder(
-      request.items.map((item, idx) => ({
-        id: `temp-${idx}`,
-        ...item,
-      })),
-      request.deliveryType,
-      request.deliveryAddress,
-      request.pickupStoreId,
-      request.paymentMethod,
-      request.note,
-    );
-
-    // Thêm vào đầu list (mới nhất)
-    orders = [newOrder, ...orders];
-
-    return newOrder;
+  previewCheckout: async (
+    payload: CheckoutPreviewRequest,
+  ): Promise<CheckoutPreviewResponse> => {
+    return api.post<CheckoutPreviewResponse>("checkout/preview", payload);
   },
 
   /**
-   * Lấy danh sách orders (có phân trang)
-   * TODO: Thay bằng GET /api/orders?page=1&pageSize=10
+   * Tạo đơn hàng chính thức
+   * POST /api/v1/orders (kèm Idempotency-Key header)
    */
-  getOrders: async (
-    page: number = 1,
-    pageSize: number = 10,
-  ): Promise<OrderListResponse> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedOrders = orders.slice(startIndex, endIndex);
-
-    return {
-      orders: paginatedOrders,
-      total: orders.length,
-      page,
-      pageSize,
-    };
+  createOrder: async (
+    payload: CreateOrderRequest,
+    idempotencyKey: string,
+  ): Promise<Order> => {
+    return api.post<Order>("orders", payload, {
+      idempotencyKey,
+    });
   },
 
   /**
-   * Lấy chi tiết 1 order
-   * TODO: Thay bằng GET /api/orders/:orderId
+   * Lấy danh sách lịch sử đơn hàng của khách
+   * GET /api/v1/orders
    */
-  getOrderById: async (orderId: string): Promise<Order> => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    const order = orders.find((o) => o.id === orderId);
-
-    if (!order) {
-      throw new Error(`Order with ID ${orderId} not found`);
-    }
-
-    return order;
+  getOrders: async (params?: {
+    status?: string;
+    page?: number;
+    page_size?: number;
+  }): Promise<OrderListResponse | Order[]> => {
+    return api.get<OrderListResponse | Order[]>("orders", { params });
   },
 
   /**
-   * Hủy order
-   * TODO: Thay bằng PATCH /api/orders/:orderId/cancel
+   * Lấy chi tiết đơn hàng
+   * GET /api/v1/orders/:id
    */
-  cancelOrder: async (orderId: string): Promise<Order> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const orderIndex = orders.findIndex((o) => o.id === orderId);
-
-    if (orderIndex === -1) {
-      throw new Error(`Order with ID ${orderId} not found`);
-    }
-
-    const order = orders[orderIndex];
-
-    if (!order.canCancel) {
-      throw new Error("Cannot cancel this order");
-    }
-
-    // Update order state
-    const updatedOrder: Order = {
-      ...order,
-      state: "cancelled",
-      stateLabel: "Đã hủy",
-      updatedAt: new Date(),
-      canCancel: false,
-      canReorder: true,
-    };
-
-    orders[orderIndex] = updatedOrder;
-
-    return updatedOrder;
+  getOrderById: async (id: number | string): Promise<Order> => {
+    return api.get<Order>(`orders/${id}`);
   },
 
   /**
-   * Reorder - tạo order mới từ order cũ
-   * TODO: Thay bằng POST /api/orders/:orderId/reorder
+   * Lấy thông tin thanh toán & mã VietQR của đơn
+   * GET /api/v1/orders/:id/payment
    */
-  reorder: async (orderId: string): Promise<Order> => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-
-    const originalOrder = orders.find((o) => o.id === orderId);
-
-    if (!originalOrder) {
-      throw new Error(`Order with ID ${orderId} not found`);
-    }
-
-    if (!originalOrder.canReorder) {
-      throw new Error("Cannot reorder this order");
-    }
-
-    // Tạo order mới với items giống order cũ
-    const newOrder = createMockOrder(
-      originalOrder.items.map((item) => ({
-        ...item,
-        id: "", // Will be regenerated
-      })),
-      originalOrder.deliveryType,
-      originalOrder.deliveryAddress,
-      originalOrder.pickupStore?.id,
-      originalOrder.payment?.method || "cash",
-      originalOrder.note,
-    );
-
-    orders = [newOrder, ...orders];
-
-    return newOrder;
+  getOrderPayment: async (id: number | string): Promise<PaymentResponse> => {
+    return api.get<PaymentResponse>(`orders/${id}/payment`);
   },
 
   /**
-   * Xác nhận đã nhận hàng (cho pickup orders)
-   * TODO: Thay bằng PATCH /api/orders/:orderId/confirm-pickup
+   * Khách tự hủy đơn khi ở trạng thái Chờ xác nhận
+   * POST /api/v1/orders/:id/cancel
    */
-  confirmPickup: async (orderId: string): Promise<Order> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const orderIndex = orders.findIndex((o) => o.id === orderId);
-
-    if (orderIndex === -1) {
-      throw new Error(`Order with ID ${orderId} not found`);
-    }
-
-    const order = orders[orderIndex];
-
-    if (!order.canPickup) {
-      throw new Error("Cannot confirm pickup for this order");
-    }
-
-    const updatedOrder: Order = {
-      ...order,
-      state: "completed",
-      stateLabel: "Hoàn thành",
-      updatedAt: new Date(),
-      canPickup: false,
-      canReorder: true,
-    };
-
-    orders[orderIndex] = updatedOrder;
-
-    return updatedOrder;
+  cancelOrder: async (id: number | string, reason?: string): Promise<Order> => {
+    return api.post<Order>(`orders/${id}/cancel`, {
+      reason: reason || "Khách hàng yêu cầu hủy",
+    });
   },
 };

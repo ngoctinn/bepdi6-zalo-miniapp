@@ -3,47 +3,51 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, Tab } from "@/components/common/tabs";
 import { OrderItemCard } from "@/components/common/order-item-card";
 import CartImg from "@/static/cart.png";
-import { OrderStatus } from "@/types/order.types";
 import { useOrders } from "@/services/order/order.queries";
-import { Spinner, Text } from "zmp-ui";
-import { copy } from "@/constants/copy";
+import { Button, Spinner, Text } from "zmp-ui";
+import { Order, OrderListResponse } from "@/types/order.types";
+
+type OrderTab = "all" | "processing" | "completed" | "cancelled";
 
 export default function OrderPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<OrderStatus>("all");
-  const [page] = useState(1);
+  const [activeTab, setActiveTab] = useState<OrderTab>("all");
 
-  const tabs: Tab<OrderStatus>[] = [
-    { value: "all", label: copy.common.all },
-    { value: "ongoing", label: copy.order.ongoing },
-    { value: "completed", label: copy.order.completedTab },
+  const tabs: Tab<OrderTab>[] = [
+    { value: "all", label: "Tất cả" },
+    { value: "processing", label: "Đang xử lý" },
+    { value: "completed", label: "Hoàn tất" },
+    { value: "cancelled", label: "Đã hủy" },
   ];
 
-  const { data: orderData, isLoading, error } = useOrders(page, 20);
-  const orders = orderData?.orders || [];
+  const { data: orderData, isLoading } = useOrders();
+
+  const orders: Order[] = useMemo(() => {
+    if (!orderData) return [];
+    if (Array.isArray(orderData)) return orderData;
+    return (orderData as OrderListResponse).orders || [];
+  }, [orderData]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       if (activeTab === "all") return true;
-
-      if (activeTab === "ongoing") {
-        return !["completed", "delivered", "cancelled"].includes(order.state);
+      if (activeTab === "processing") {
+        return order.status !== "COMPLETED" && order.status !== "CANCELLED";
       }
-
       if (activeTab === "completed") {
-        return ["completed", "delivered", "cancelled"].includes(order.state);
+        return order.status === "COMPLETED";
       }
-
+      if (activeTab === "cancelled") {
+        return order.status === "CANCELLED";
+      }
       return true;
     });
   }, [orders, activeTab]);
 
-  const emptyOrders = filteredOrders.length === 0;
-
   return (
-    <div className="relative flex h-full flex-col">
+    <div className="relative flex h-full flex-col bg-elevation-01">
       <div className="mx-3.5 mt-2">
-        <Tabs<OrderStatus>
+        <Tabs<OrderTab>
           tabs={tabs}
           activeTab={activeTab}
           onChange={setActiveTab}
@@ -51,31 +55,34 @@ export default function OrderPage() {
         />
       </div>
 
-      <div className="no-scrollbar flex flex-1 justify-center overflow-y-auto px-4 py-3">
-        {!isLoading && emptyOrders ? (
-          <div className="flex h-full max-w-60 flex-col items-center justify-center gap-10">
-            <div className="flex flex-col items-center gap-4">
-              <img
-                src={CartImg}
-                draggable={false}
-                alt={copy.order.empty}
-                className="h-16 w-16"
-              />
-              <div className="flex flex-col items-center gap-2">
-                <div className="text-xlarge-m text-text-primary">
-                  {copy.order.empty}
-                </div>
-                <div className="text-center text-xxsmall text-[#A9A9A9]">
-                  {copy.order.emptyHint}
-                </div>
-              </div>
+      <div className="no-scrollbar flex-1 overflow-y-auto px-3.5 py-3 pb-20">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Spinner />
+            <Text size="xSmall" className="mt-2 text-neutral400">
+              Đang tải danh sách đơn hàng...
+            </Text>
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center gap-4 py-16 text-center">
+            <img
+              src={CartImg}
+              draggable={false}
+              alt="Chưa có đơn hàng"
+              className="h-16 w-16 opacity-60"
+            />
+            <div className="text-sm font-semibold text-neutral700">
+              Không có đơn hàng nào
             </div>
-            <button
+            <p className="max-w-xs text-xs text-neutral400">
+              Bạn chưa có đơn hàng nào trong mục này. Hãy đặt món ngay nhé!
+            </p>
+            <Button
               onClick={() => navigate("/menu")}
-              className="rounded-full border border-border-primary bg-transparent px-20 py-3.5 text-small text-primary active:bg-transparent"
+              className="rounded-xl bg-primary px-6 py-2 text-xs font-semibold text-white"
             >
-              {copy.common.buyNow}
-            </button>
+              Xem thực đơn
+            </Button>
           </div>
         ) : (
           <div className="w-full space-y-3">

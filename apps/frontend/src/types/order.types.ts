@@ -1,98 +1,128 @@
-export type OrderStatus = "all" | "ongoing" | "completed";
+import { Address } from "./customer.types";
 
-export type OrderDeliveryType = "pickup" | "delivery";
+export type OrderStatus =
+  | "PENDING_CONFIRMATION"
+  | "CONFIRMED"
+  | "PREPARING"
+  | "READY"
+  | "DELIVERING"
+  | "COMPLETED"
+  | "CANCELLED";
 
-export type OrderState =
-  | "pending"
-  | "confirmed"
-  | "preparing"
-  | "ready"
-  | "delivering"
-  | "delivered"
-  | "completed"
-  | "cancelled";
+export type PaymentMethod = "COD" | "BANK_TRANSFER";
+export type PaymentStatus =
+  | "UNPAID"
+  | "PENDING"
+  | "PAID"
+  | "FAILED"
+  | "REFUNDED";
 
-export interface OrderItem {
-  id: string;
-  name: string;
-  quantity: number;
+export interface OrderItemOptionPayload {
+  option_id: number;
+  option_name: string;
   price: number;
-  image?: string;
-  note?: string;
-  options?: {
-    name: string;
-    value: string;
-    price?: number;
-  }[];
+  quantity: number;
 }
 
-export interface OrderAddress {
-  recipientName: string;
-  phoneNumber: string;
-  address: string;
-  ward?: string;
-  district?: string;
-  city?: string;
+export interface OrderItemPayload {
+  product_id: number;
+  product_name: string;
+  unit_price: number;
+  quantity: number;
   note?: string;
+  options?: OrderItemOptionPayload[];
 }
 
-export interface OrderPayment {
-  method: "cash" | "zalopay" | "momo" | "credit_card";
+export interface OrderItemOptionResponse {
+  id: number;
+  option: number;
+  option_name: string;
+  price: number;
+  quantity: number;
+}
+
+export interface OrderItemResponse {
+  id: number;
+  product: number;
+  product_name: string;
+  unit_price: number;
+  quantity: number;
   subtotal: number;
-  shippingFee: number;
-  discount: number;
-  total: number;
-  status: "pending" | "paid" | "refunded";
+  note?: string;
+  options: OrderItemOptionResponse[];
+}
+
+export interface PaymentResponse {
+  id: number;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  amount: number;
+  actual_paid_amount?: number;
+  qr_code_url?: string;
+  paid_at?: string;
+  note?: string;
 }
 
 export interface Order {
-  id: string;
-  orderCode?: string;
-  deliveryType: OrderDeliveryType;
-  deliveryTypeLabel: string;
-  state: OrderState;
-  stateLabel: string;
-  items: OrderItem[];
-  createdAt: string | Date;
-  updatedAt?: string | Date;
-  estimatedTime?: string | Date;
-  totalAmount: number;
-  payment?: OrderPayment;
-  deliveryAddress?: OrderAddress;
-  pickupStore?: {
-    id: string;
-    name: string;
-    address: string;
-  };
-  pickupCode?: string;
-  canReorder: boolean;
-  canPickup: boolean;
-  canCancel: boolean;
+  id: number;
+  order_code: string;
+  customer?: number;
+  status: OrderStatus;
+  status_display?: string;
+  recipient_name: string;
+  phone: string;
+  delivery_address: string;
+  delivery_latitude: number;
+  delivery_longitude: number;
+  distance_km: number;
+  shipping_fee: number;
+  subtotal: number;
+  discount: number;
+  total_amount: number;
+  payment_method: PaymentMethod;
   note?: string;
-  userId?: string;
+  created_at: string;
+  confirmed_at?: string;
+  completed_at?: string;
+  cancelled_at?: string;
+  cancellation_reason?: string;
+  items: OrderItemResponse[];
+  payment?: PaymentResponse;
 }
 
-export interface OrderHistory {
-  id: string;
-  orderId: string;
-  state: OrderState;
-  description: string;
-  timestamp: string | Date;
-  actor?: string;
+export interface CheckoutPreviewRequest {
+  items: OrderItemPayload[];
+  delivery_latitude: number;
+  delivery_longitude: number;
+  voucher_code?: string;
+}
+
+export interface CheckoutPreviewResponse {
+  subtotal: number;
+  distance_km: number;
+  shipping_fee: number;
+  discount: number;
+  total_amount: number;
+  voucher_code?: string;
+  is_valid: boolean;
+  message?: string;
 }
 
 export interface CreateOrderRequest {
-  deliveryType: OrderDeliveryType;
-  items: Omit<OrderItem, "id">[];
-  deliveryAddress?: Omit<OrderAddress, "id">;
-  pickupStoreId?: string;
-  paymentMethod: OrderPayment["method"];
+  recipient_name: string;
+  phone: string;
+  delivery_address: string;
+  delivery_latitude: number;
+  delivery_longitude: number;
+  payment_method: PaymentMethod;
   note?: string;
+  voucher_code?: string;
+  items: OrderItemPayload[];
 }
 
 export interface OrderListResponse {
   orders: Order[];
   total: number;
-  page: number;
-  pageSize: number;
+  page?: number;
+  page_size?: number;
 }

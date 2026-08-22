@@ -1,118 +1,74 @@
 import { useNavigate } from "react-router-dom";
 import { Order } from "@/types/order.types";
-import { DrinkIcon } from "./vectors";
-import { Text } from "zmp-ui";
-import { copy } from "@/constants/copy";
 import { formatCurrency } from "@/utils/format";
-import { cn } from "@/utils/cn";
 
 interface OrderItemCardProps {
   order: Order;
-  onReorder?: (orderId: string) => void;
-  onPickup?: (orderId: string) => void;
 }
 
-export function OrderItemCard({
-  order,
-  onReorder,
-  onPickup,
-}: OrderItemCardProps) {
+export function OrderItemCard({ order }: OrderItemCardProps) {
   const navigate = useNavigate();
-  const totalQuantity = order.items.reduce(
+  const totalQuantity = (order.items || []).reduce(
     (sum, item) => sum + item.quantity,
     0,
   );
 
+  const isCancelled = order.status === "CANCELLED";
+  const isCompleted = order.status === "COMPLETED";
+
   return (
     <div
       onClick={() => navigate(`/order/${order.id}`)}
-      className="w-full cursor-pointer rounded-lg bg-white p-4 shadow-sm"
+      className="shadow-2xs w-full cursor-pointer rounded-xl border border-neutral100 bg-white p-3.5 transition-transform active:scale-[0.99]"
     >
-      <div className="mb-3 flex items-start justify-between">
+      <div className="mb-2.5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-5 w-5 items-center justify-center rounded-md bg-primary p-1 text-white">
-            <DrinkIcon />
-          </div>
-          <div className="text-small">{copy.order.title}</div>
-          <span
-            className={cn(
-              "rounded px-2 py-1 text-xxxsmall !text-white",
-              order.deliveryType === "delivery"
-                ? "bg-primary"
-                : "bg-text-primary",
-            )}
-          >
-            {order.deliveryTypeLabel}
+          <span className="text-xs font-bold text-neutral900">
+            #{order.order_code}
+          </span>
+          <span className="text-xxsmall text-neutral400">
+            • {new Date(order.created_at).toLocaleDateString("vi-VN")}
           </span>
         </div>
-        <div className="text-small text-primary">{order.stateLabel}</div>
+        <span
+          className={`rounded-full px-2 py-0.5 text-xxsmall font-bold ${
+            isCancelled
+              ? "bg-red-100 text-red-700"
+              : isCompleted
+                ? "bg-green-100 text-green-700"
+                : "bg-amber-100 text-amber-800"
+          }`}
+        >
+          {order.status_display || order.status}
+        </span>
       </div>
 
-      <div className="mb-3">
-        <div className="flex items-center gap-3">
-          <img
-            src={order.items[0].image}
-            alt={copy.order.title}
-            className="h-15 w-15 rounded-lg object-cover"
-          />
-          <div className="flex flex-1 flex-col gap-2">
-            <div className="text-small-m font-medium text-text-tertiary">
-              {totalQuantity} {copy.common.items}
-            </div>
-            {order.items.map((item) => (
-              <div className="flex justify-between">
-                <div key={item.id} className="text-xxsmall text-text-primary">
-                  {item.name}
-                </div>
-                <div key={item.id} className="text-xxsmall text-text-disabled">
-                  {copy.common.quantityPrefix}
-                  {item.quantity}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between border-b pb-3">
-        <div className="text-xxsmall text-text-disabled">
-          {typeof order.createdAt === "string"
-            ? order.createdAt
-            : new Date(order.createdAt)
-                .toLocaleDateString("en-CA")
-                .replace(/-/g, "/")}
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="text-xxsmall">{copy.common.total}:</div>
-          <div className="text-large-sb">
-            {formatCurrency(order.totalAmount)}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3 flex justify-end gap-2">
-        {order.canReorder && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onReorder?.(order.id);
-            }}
-            className="rounded-lg !border !border-primary !bg-transparent px-3 py-1.5 text-xs text-primary active:!bg-transparent"
+      <div className="bg-neutral50 mb-2.5 space-y-1 rounded-lg p-2 text-xs">
+        {order.items?.map((item) => (
+          <div
+            key={item.id}
+            className="flex items-center justify-between text-neutral700"
           >
-            {copy.order.reorder}
-          </button>
-        )}
-        {order.canPickup && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onPickup?.(order.id);
-            }}
-            className="rounded-lg border border-primary bg-primary px-3 py-1.5 text-xs text-white active:bg-primary"
-          >
-            {copy.common.pickupCode}
-          </button>
-        )}
+            <span className="truncate pr-2">
+              {item.product_name}{" "}
+              <span className="font-normal text-neutral400">
+                x{item.quantity}
+              </span>
+            </span>
+            <span className="shrink-0 font-semibold">
+              {formatCurrency(item.subtotal)}đ
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between border-t border-neutral100 pt-1 text-xs">
+        <span className="text-neutral500">
+          Tổng cộng ({totalQuantity} món):
+        </span>
+        <span className="text-sm font-bold text-primary">
+          {formatCurrency(order.total_amount)}đ
+        </span>
       </div>
     </div>
   );

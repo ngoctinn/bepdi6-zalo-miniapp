@@ -4,42 +4,38 @@ import { CartItem } from "@/types/cart.types";
 type VariantFormatOptions = {
   separator?: string;
   emptyLabel?: string;
-  percentSuffix?: string;
 };
 
-export const calculateCartItemPrice = (item: CartItem) => {
-  const variantsTotal = item.selectedVariants.reduce(
-    (sum, variant) => sum + variant.extraPrice * (variant.quantity || 1),
+export const calculateCartItemPrice = (item: CartItem): number => {
+  const optionsTotal = (item.options || []).reduce(
+    (sum, opt) => sum + opt.price * (opt.quantity || 1),
     0,
   );
-  return item.basePrice + variantsTotal;
+  return item.unit_price + optionsTotal;
 };
 
-export const calculateCartTotal = (items: CartItem[]) =>
+export const calculateCartTotal = (items: CartItem[]): number =>
   items.reduce(
     (sum, item) => sum + calculateCartItemPrice(item) * item.quantity,
     0,
   );
 
 export const formatVariantWithPercentage = (
-  variants: CartItem["selectedVariants"],
-  options: VariantFormatOptions = {},
-) => {
-  const {
-    separator = copy.common.listSeparator,
-    emptyLabel = "",
-    percentSuffix = copy.common.percentSuffix,
-  } = options;
+  options?: CartItem["options"],
+  formatOpts: VariantFormatOptions = {},
+): string => {
+  const { separator = copy.common.listSeparator || ", ", emptyLabel = "" } =
+    formatOpts;
 
-  if (variants.length === 0) {
+  if (!options || options.length === 0) {
     return emptyLabel;
   }
 
-  const parts = variants.map((variant) => {
-    if (variant.quantity && variant.quantity !== 1) {
-      return `${variant.optionName} ${variant.quantity}${percentSuffix}`;
+  const parts = options.map((opt) => {
+    if (opt.quantity && opt.quantity > 1) {
+      return `${opt.option_name} x${opt.quantity}`;
     }
-    return variant.optionName;
+    return opt.option_name;
   });
 
   return parts.join(separator);

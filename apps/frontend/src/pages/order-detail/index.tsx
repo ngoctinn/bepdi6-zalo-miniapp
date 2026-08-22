@@ -1,167 +1,396 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import OrderCheckImg from "@/static/order.png";
-import { useOrderById } from "@/services/order/order.queries";
-import { Button, Spinner, Text } from "zmp-ui";
-import { copy } from "@/constants/copy";
+import { useOrder } from "@/services/order/order.queries";
+import { useCancelOrder } from "@/services/order/order.mutations";
+import { Button, Spinner, Text, useSnackbar } from "zmp-ui";
 import { formatCurrency } from "@/utils/format";
-import { formatOrderDate, getPaymentMethodLabel } from "@/utils/order";
+import { BackIcon, CheckIcon } from "@/components/common/vectors";
+import { OrderStatus } from "@/types/order.types";
+
+const STATUS_STEPS: Array<{ key: OrderStatus; label: string; icon: string }> = [
+  { key: "PENDING_CONFIRMATION", label: "Chờ xác nhận", icon: "⏳" },
+  { key: "CONFIRMED", label: "Đã xác nhận", icon: "✅" },
+  { key: "PREPARING", label: "Bếp làm món", icon: "🍳" },
+  { key: "READY", label: "Sẵn sàng", icon: "📦" },
+  { key: "DELIVERING", label: "Đang giao", icon: "🛵" },
+  { key: "COMPLETED", label: "Hoàn tất", icon: "🎉" },
+];
+
+const getStepIndex = (status: OrderStatus): number => {
+  const index = STATUS_STEPS.findIndex((s) => s.key === status);
+  return index > -1 ? index : 0;
+};
 
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
+  const { openSnackbar } = useSnackbar();
 
-  const { data: order, isLoading, error } = useOrderById(orderId || "");
+  const { data: order, isLoading, error } = useOrder(orderId);
+  const cancelOrderMutation = useCancelOrder();
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    openSnackbar({ text: `Đã sao chép ${label}`, type: "success" });
+  };
+
+  const handleCancelOrder = async () => {
+    if (!orderId) return;
+    if (!confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) return;
+
+    setIsCancelling(true);
+    try {
+      await cancelOrderMutation.mutateAsync({
+        id: orderId,
+        reason: "Khách hàng tự hủy trên ứng dụng",
+      });
+      openSnackbar({ text: "Đã hủy đơn hàng thành công", type: "success" });
+    } catch (err) {
+      openSnackbar({
+        text: err instanceof Error ? err.message : "Không thể hủy đơn hàng",
+        type: "error",
+      });
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center bg-background">
+        <Spinner />
+        <Text size="xSmall" className="mt-2 text-neutral500">
+          Đang tải thông tin đơn hàng...
+        </Text>
+      </div>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-center">
+        <div className="text-4xl">❌</div>
+        <Text size="small" className="font-medium text-neutral700">
+          Không tìm thấy thông tin đơn hàng
+        </Text>
+        <Button
+          size="small"
+          onClick={() => navigate("/order")}
+          className="bg-primary text-white"
+        >
+          Xem danh sách đơn
+        </Button>
+      </div>
+    );
+  }
+
+  const isCancelled = order.status === "CANCELLED";
+  const currentStep = getStepIndex(order.status);
+  const isBankTransfer = order.payment_method === "BANK_TRANSFER";
+  const isPaid = order.payment?.status === "PAID";
+  const qrUrl =
+    order.payment?.qr_code_url ||
+    `https://img.vietqr.io/image/TCB-2907200329-compact2.png?amount=${Math.round(
+      order.total_amount,
+    )}&addInfo=${encodeURIComponent(order.order_code)}&accountName=${encodeURIComponent(
+      "NGUYEN THI TUYET THU",
+    )}`;
 
   return (
     <div className="flex h-full flex-col bg-elevation-01">
-      <div className="no-scrollbar flex-1 overflow-y-auto pb-20">
-        <div className="flex items-end px-4 text-center">
-          <div className="flex w-full items-center justify-between">
-            <div className="flex flex-col gap-2 text-start">
-              <div className="text-xlarge-m">{copy.orderDetail.title}</div>
-              <div className="text-xxsmall text-text-disabled">
-                {copy.orderDetail.thankYou}
-              </div>
-            </div>
-            <img
-              draggable={false}
-              src={OrderCheckImg}
-              alt={copy.orderDetail.title}
-              className="mr-4 aspect-auto h-24"
-            />
+      {/* Header */}
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-neutral200 bg-white px-4">
+        <div className="flex items-center gap-2">
+          <Button
+            className="flex h-8 w-8 items-center justify-center bg-transparent p-0 active:bg-transparent"
+            type="neutral"
+            size="small"
+            onClick={() => navigate("/order")}
+          >
+            <BackIcon className="text-neutral900" />
+          </Button>
+          <div>
+            <h1 className="text-sm font-bold text-neutral900">
+              Đơn hàng #{order.order_code}
+            </h1>
+            <span className="text-xxsmall text-neutral500">
+              {new Date(order.created_at).toLocaleString("vi-VN")}
+            </span>
           </div>
         </div>
+        <span
+          className={`rounded-full px-2.5 py-1 text-xxsmall font-bold ${
+            isCancelled
+              ? "bg-red-100 text-red-700"
+              : order.status === "COMPLETED"
+                ? "bg-green-100 text-green-700"
+                : "bg-amber-100 text-amber-800"
+          }`}
+        >
+          {order.status_display || order.status}
+        </span>
+      </div>
 
-        <div className="mx-3.5 mb-3 rounded-lg bg-white px-4 py-4">
-          <div className="mb-3 text-large-m">{copy.common.orderSummary}</div>
+      <div className="no-scrollbar flex-1 space-y-3 overflow-y-auto p-3.5 pb-24">
+        {/* Timeline Trạng Thái Đơn Hàng */}
+        <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-4">
+          <span className="mb-3 block text-xs font-bold text-neutral800">
+            📍 TIẾN TRÌNH ĐƠN HÀNG
+          </span>
 
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <div className="text-small text-text-secondary">
-                {copy.orderDetail.id}
-              </div>
-              <div className="text-small"># {order?.orderCode}</div>
-            </div>
-
-            <div className="flex justify-between">
-              <div className="text-small text-text-secondary">
-                {copy.orderDetail.date}
-              </div>
-              {order?.createdAt && (
-                <div className="text-small">
-                  {formatOrderDate(order?.createdAt)}
-                </div>
+          {isCancelled ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+              ❌ Đơn hàng đã bị hủy.
+              {order.cancellation_reason && (
+                <span className="mt-0.5 block text-neutral600">
+                  Lý do: {order.cancellation_reason}
+                </span>
               )}
             </div>
+          ) : (
+            <div className="relative flex items-start justify-between pt-2">
+              {/* Progress Line */}
+              <div className="absolute left-4 right-4 top-5 -z-0 h-0.5 bg-neutral200" />
+              <div
+                className="absolute left-4 top-5 -z-0 h-0.5 bg-primary transition-all duration-500"
+                style={{
+                  width: `${(currentStep / (STATUS_STEPS.length - 1)) * 90}%`,
+                }}
+              />
 
-            <div className="flex justify-between">
-              <div className="text-small text-text-secondary">
-                {copy.orderDetail.paymentMethod}
-              </div>
-              <div className="text-small">
-                {order?.payment
-                  ? getPaymentMethodLabel(order.payment.method)
-                  : copy.common.notAvailable}
-              </div>
+              {STATUS_STEPS.map((step, idx) => {
+                const isPassed = idx <= currentStep;
+                const isCurrent = idx === currentStep;
+
+                return (
+                  <div
+                    key={step.key}
+                    className="z-10 flex w-14 flex-col items-center text-center"
+                  >
+                    <div
+                      className={`flex h-7 w-7 items-center justify-center rounded-full text-xs transition-all ${
+                        isPassed
+                          ? "shadow-xs bg-primary text-white"
+                          : "bg-neutral200 text-neutral400"
+                      } ${isCurrent ? "scale-110 ring-4 ring-primary/20" : ""}`}
+                    >
+                      {isPassed && idx < currentStep ? (
+                        <CheckIcon className="h-3.5 w-3.5" />
+                      ) : (
+                        <span>{step.icon}</span>
+                      )}
+                    </div>
+                    <span
+                      className={`mt-1.5 text-xxxsmall leading-tight ${
+                        isCurrent
+                          ? "font-bold text-primary"
+                          : isPassed
+                            ? "font-medium text-neutral800"
+                            : "text-neutral400"
+                      }`}
+                    >
+                      {step.label}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
+          )}
+        </div>
+
+        {/* Khối Thanh Toán VietQR Tức Thì (Nếu chọn BANK_TRANSFER) */}
+        {isBankTransfer && !isCancelled && (
+          <div className="shadow-2xs bg-primary/2 rounded-xl border border-primary/20 bg-white p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-bold text-neutral900">
+                📲 QUÉT MÃ VIETQR ĐỂ THANH TOÁN
+              </span>
+              <span
+                className={`rounded px-2 py-0.5 text-xxsmall font-bold ${
+                  isPaid
+                    ? "bg-green-100 text-green-700"
+                    : "animate-pulse bg-amber-100 text-amber-800"
+                }`}
+              >
+                {isPaid ? "✅ Đã thanh toán" : "⏳ Chờ thanh toán"}
+              </span>
+            </div>
+
+            {!isPaid ? (
+              <div className="mt-3 flex flex-col items-center space-y-3 text-center">
+                <div className="shadow-xs inline-block rounded-xl border border-neutral200 bg-white p-2">
+                  <img
+                    src={qrUrl}
+                    alt="VietQR Bep Di 6"
+                    className="h-52 w-52 object-contain"
+                  />
+                </div>
+
+                <div className="w-full space-y-2 rounded-lg border border-neutral200 bg-white p-3 text-left text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral500">Ngân hàng:</span>
+                    <span className="font-bold text-neutral900">
+                      Techcombank (TCB)
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral500">Số tài khoản:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-primary">
+                        2907200329
+                      </span>
+                      <button
+                        onClick={() => handleCopy("2907200329", "Số tài khoản")}
+                        className="rounded border border-primary/30 px-1.5 py-0.5 text-xxsmall text-primary active:bg-primary/10"
+                      >
+                        Sao chép
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral500">Chủ tài khoản:</span>
+                    <span className="font-bold text-neutral900">
+                      NGUYEN THI TUYET THU
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral500">Số tiền:</span>
+                    <span className="text-sm font-bold text-red-600">
+                      {formatCurrency(order.total_amount)}đ
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral500">Nội dung CK:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono font-bold text-neutral900">
+                        {order.order_code}
+                      </span>
+                      <button
+                        onClick={() =>
+                          handleCopy(order.order_code, "Nội dung chuyển khoản")
+                        }
+                        className="rounded border border-primary/30 px-1.5 py-0.5 text-xxsmall text-primary active:bg-primary/10"
+                      >
+                        Sao chép
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xxsmall italic text-neutral500">
+                  * Hệ thống sẽ tự động cập nhật trạng thái ngay sau khi nhận
+                  được tiền.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-2 rounded-lg bg-green-50 p-2.5 text-xs text-green-700">
+                Đơn hàng đã được xác nhận thanh toán thành công. Bếp Dì 6 đang
+                chuẩn bị món cho bạn!
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Địa chỉ giao hàng */}
+        <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-3.5">
+          <span className="mb-2 block text-xs font-bold text-neutral800">
+            📍 ĐỊA CHỈ NHẬN HÀNG
+          </span>
+          <div className="space-y-1 text-xs text-neutral800">
+            <div className="font-semibold">
+              {order.recipient_name} • {order.phone}
+            </div>
+            <div className="leading-relaxed text-neutral600">
+              {order.delivery_address}
+            </div>
+            {order.note && (
+              <div className="pt-1 italic text-amber-700">
+                Ghi chú: "{order.note}"
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="mx-3.5 mb-3 rounded-lg bg-white px-4 py-4">
-          <div className="mb-3 text-large-m">{copy.orderDetail.items}</div>
-
-          <div className="space-y-4">
-            {order?.items.map((item) => (
-              <div key={item.id} className="flex items-center gap-3">
-                <img
-                  draggable={false}
-                  src={item.image}
-                  alt={item.name}
-                  className="flex h-18 w-18 flex-shrink-0 flex-col items-center justify-center rounded-lg object-cover"
-                />
-                <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
-                  <div className="flex flex-col gap-1">
-                    <div className="text-large-m">{item.name}</div>
-                    {item.options && item.options.length > 0 && (
-                      <div className="text-xxsmall text-text-disabled">
-                        {item.options
-                          .map((opt) => opt.value)
-                          .join(copy.common.listSeparator)}
-                      </div>
-                    )}
-                    {item.note && (
-                      <div className="text-text-secondary">{item.note}</div>
-                    )}
+        {/* Danh sách món ăn */}
+        <div className="shadow-2xs rounded-xl border border-neutral100 bg-white p-3.5">
+          <span className="mb-2.5 block text-xs font-bold text-neutral800">
+            🍲 CHI TIẾT MÓN ĂN ({order.items.length})
+          </span>
+          <div className="space-y-3 divide-y divide-neutral100">
+            {order.items.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-start justify-between pt-2 first:pt-0"
+              >
+                <div className="flex-1 pr-3">
+                  <div className="text-xs font-bold text-neutral900">
+                    {item.product_name}{" "}
+                    <span className="font-normal text-primary">
+                      x{item.quantity}
+                    </span>
                   </div>
-                  <div className="text-xxsmall text-text-primary">
-                    {formatCurrency(item.price)}
-                  </div>
+                  {item.options && item.options.length > 0 && (
+                    <div className="mt-0.5 text-xxsmall text-neutral500">
+                      + {item.options.map((o) => o.option_name).join(", ")}
+                    </div>
+                  )}
+                  {item.note && (
+                    <div className="mt-0.5 text-xxsmall italic text-amber-700">
+                      "{item.note}"
+                    </div>
+                  )}
                 </div>
-                <div className="flex h-full flex-shrink-0 items-center text-right">
-                  <div className="text-xxsmall text-text-disabled">
-                    {copy.common.quantityPrefix}
-                    {item.quantity}
-                  </div>
-                </div>
+                <span className="whitespace-nowrap text-xs font-semibold text-neutral900">
+                  {formatCurrency(item.subtotal)}đ
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mx-3.5 rounded-lg bg-white px-4 py-4">
-          <div className="mb-3 text-large-m">{copy.common.paymentSummary}</div>
-
-          <div className="flex flex-col gap-3">
-            <div className="flex justify-between">
-              <div className="text-text-secondary">
-                {copy.checkout.subtotal}
-              </div>
-              <div>{formatCurrency(order?.payment?.subtotal ?? 0)}đ</div>
+        {/* Chi tiết thanh toán */}
+        <div className="shadow-2xs space-y-2 rounded-xl border border-neutral100 bg-white p-3.5 text-xs">
+          <span className="mb-1 block text-xs font-bold text-neutral800">
+            📋 TỔNG CỘNG HÓA ĐƠN
+          </span>
+          <div className="flex justify-between text-neutral600">
+            <span>Tạm tính</span>
+            <span>{formatCurrency(order.subtotal)}đ</span>
+          </div>
+          <div className="flex justify-between text-neutral600">
+            <span>Phí giao hàng ({order.distance_km?.toFixed(1)} km)</span>
+            <span>{formatCurrency(order.shipping_fee)}đ</span>
+          </div>
+          {order.discount > 0 && (
+            <div className="flex justify-between font-medium text-green-700">
+              <span>Giảm giá</span>
+              <span>-{formatCurrency(order.discount)}đ</span>
             </div>
-
-            <div className="flex justify-between">
-              <div className="text-text-secondary">
-                {copy.common.shippingFee}
-              </div>
-              <div>{formatCurrency(order?.payment?.shippingFee ?? 0)}đ</div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="text-text-secondary">
-                {copy.common.discountLabel}
-              </div>
-              <div className="flex translate-x-1 items-center">
-                <div className="text-orange500">
-                  -{formatCurrency(order?.payment?.discount ?? 0)}đ
-                </div>
-                <svg
-                  className="h-4 w-4 text-text-secondary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            <hr />
-            <div className="flex items-center justify-between">
-              <div className="text-small text-text-secondary">
-                {copy.common.total}:
-              </div>
-              <div className="text-small">
-                {formatCurrency(order?.payment?.total ?? 0)}
-              </div>
-            </div>
+          )}
+          <div className="flex items-center justify-between border-t border-neutral100 pt-2 text-sm font-bold text-neutral900">
+            <span>Tổng thanh toán</span>
+            <span className="text-base text-primary">
+              {formatCurrency(order.total_amount)}đ
+            </span>
           </div>
         </div>
       </div>
+
+      {/* Footer Action: Hủy đơn nếu còn Chờ xác nhận */}
+      {order.status === "PENDING_CONFIRMATION" && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral200 bg-white p-3 shadow-lg">
+          <Button
+            size="small"
+            type="neutral"
+            onClick={handleCancelOrder}
+            loading={isCancelling}
+            className="w-full rounded-xl border border-red-300 bg-red-50 py-2.5 text-xs font-semibold text-red-600"
+          >
+            Hủy đơn hàng này
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

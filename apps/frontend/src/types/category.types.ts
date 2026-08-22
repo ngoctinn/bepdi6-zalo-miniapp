@@ -1,12 +1,10 @@
-export interface SubCategory {
-  id: string;
-  name: string;
-  image?: string;
-}
-
 export interface Category {
-  id: string;
+  id: number;
   name: string;
-  icon?: string;
-  subCategoryIds?: string[];
+  description?: string;
+  image?: string;
+  image_url?: string;
+  effective_image_url?: string;
+  sort_order: number;
+  status: "ACTIVE" | "INACTIVE";
 }

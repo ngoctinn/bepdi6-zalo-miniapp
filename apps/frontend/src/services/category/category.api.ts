@@ -1,18 +1,12 @@
-import { mockListOfCategory, mockListOfSubCategory } from "./category.mock";
+import { api } from "../../lib/api-client";
+import { Category } from "../../types/category.types";
 
 export const categoryService = {
-  getCategories: async () => {
-    // TODO: implement API calls
-    return mockListOfCategory;
-  },
-
-  getSubCategories: async (categoryId: string) => {
-    // TODO: implement API calls
-    const category = mockListOfCategory.find(
-      (category) => category.id === categoryId,
-    );
-    return mockListOfSubCategory.filter((subCategory) =>
-      category?.subCategoryIds?.includes(subCategory.id),
-    );
+  /**
+   * Lấy danh sách danh mục món đang hoạt động
+   * GET /api/v1/categories
+   */
+  getCategories: async (): Promise<Category[]> => {
+    return api.get<Category[]>("categories");
   },
 };

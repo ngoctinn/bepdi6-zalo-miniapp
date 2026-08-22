@@ -61,47 +61,52 @@ const base = {
     black: "900",
   },
   fontFamily: {
-    system: "Roboto, sans-serif",
+    system:
+      '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Roboto", "Segoe UI", "Be Vietnam Pro", sans-serif',
   },
   colors: {
     black: "#000000",
     white: "#FFFFFF",
 
-    neutral100: "#EBEDEF",
-    neutral300: "#909498",
-    neutral900: "#0D0D0D",
-    neutral500: "#EBEDEF",
-    neutral400: "#F7F7F8",
-    peach100: "#FFECE2",
+    neutral100: "#F5F5F4",
+    neutral200: "#E7E5E4",
+    neutral300: "#D6D3D1",
+    neutral400: "#A8A29E",
+    neutral500: "#78716C",
+    neutral600: "#57534E",
+    neutral700: "#44403C",
+    neutral800: "#292524",
+    neutral900: "#1C1917",
 
-    yellow100: "#FFF8E0",
-    yellow200: "#FFC70033",
-    yellow500: "#FAC000",
-    yellow600: "#E0AC00",
-    yellow700: "#B87A00",
+    yellow50: "#FEFCE8",
+    yellow100: "#FEF9C3",
+    yellow200: "#FEF08A",
+    yellow500: "#EAB308",
+    yellow600: "#CA8A04",
+    yellow700: "#A16207",
 
-    orange500: "#FA8B24",
-    orange600: "#EF8F00",
-    orange700: "#FFB661CC",
+    green50: "#F0FDF4",
+    green100: "#DCFCE7",
+    green500: "#22C55E",
+    green600: "#16A34A",
+    green700: "#15803D",
+    green800: "#166534",
 
-    red100: "#FFF0F0",
-    red500: "#FF3333",
-    red600: "#F50000",
-    red700: "#DB0000",
-    red800: "#FA4747",
+    orange500: "#F97316",
+    orange600: "#EA580C",
+    orange700: "#C2410C",
 
-    green100: "#ECF9F0",
-    green500: "#32A458",
+    red100: "#FEE2E2",
+    red500: "#EF4444",
+    red600: "#DC2626",
+    red700: "#B91C1C",
+    red800: "#991B1B",
 
-    blue100: "#F0F7FF",
-    blue200: "#DBEBFF",
-    blue500: "#0068FF",
-    blue600: "#0045AD",
+    blue100: "#E0F2FE",
+    blue500: "#0284C7",
+    blue600: "#0369A1",
 
-    gray500: "#8F8F8F",
-    gray600: "#3F3A38",
-
-    divider01: "#0000001A",
+    divider01: "rgba(0, 0, 0, 0.08)",
   },
   opacity: {
     opacity10: "0.1",
@@ -121,25 +126,29 @@ const base = {
 
 const semantic = {
   colors: {
-    primary: "#A0673D",
-    background: "#F7F7F7",
+    primary: "#15803D", // Xanh lá cây tươi đậm F&B miền Tây
+    primaryLight: "#DCFCE7",
+    brandYellow: "#FEF08A", // Vàng nhạt ấm cúng
+    background: "#FEFCE8", // Nền app: vàng kem 60%
+    surface: "#FAFAF5", // Bề mặt card: warm off-white dịu mắt, không gây tương phản cao
+    surfaceSubtle: "#F5F4EE", // Bề mặt đệm: nền skeleton, placeholder
     text: {
       primary: base.colors.neutral900,
-      secondary: "#767A7F",
-      tertiary: "#6F7071",
-      disabled: "#A9ADB2",
-      title: base.colors.gray600,
+      secondary: base.colors.neutral600,
+      tertiary: base.colors.neutral500,
+      disabled: base.colors.neutral400,
+      title: base.colors.neutral900,
     },
     border: {
-      primary: "#E6E6E6",
+      primary: base.colors.neutral200,
     },
     icon: {
-      tertiary: "#6F7071",
+      tertiary: base.colors.neutral500,
     },
-    accent: base.colors.blue500,
-    info: base.colors.blue600,
-    warning: base.colors.yellow600,
-    danger: base.colors.red700,
+    accent: "#16A34A",
+    info: "#0284C7",
+    warning: "#D97706",
+    danger: "#DC2626",
     components: {
       list: {
         title: base.colors.neutral900,
@@ -148,46 +157,46 @@ const semantic = {
       badge: {
         error: {
           solid: {
-            backgroundColor: base.colors.red500,
+            backgroundColor: base.colors.red600,
             textOnBackground: base.colors.white,
           },
           outline: {
             backgroundColor: base.colors.red100,
-            textOnBackground: base.colors.red500,
+            textOnBackground: base.colors.red600,
           },
         },
         shipping: {
-          backgroundColor: base.colors.orange500,
+          backgroundColor: "#D97706",
           textOnBackground: base.colors.white,
         },
         new: {
-          backgroundColor: base.colors.red800,
+          backgroundColor: base.colors.red600,
           textOnBackground: base.colors.white,
         },
         discount: {
-          backgroundColor: base.colors.red800,
+          backgroundColor: base.colors.red600,
           textOnBackground: base.colors.white,
         },
       },
       sub_cate: {
-        border: "#FFB661CC",
+        border: "#FEF08A",
       },
       chip: {
         backgroundColor: base.colors.white,
-        textOnBackground: base.colors.neutral500,
-        border: base.colors.orange700,
+        textOnBackground: base.colors.neutral600,
+        border: base.colors.neutral200,
         selected: {
-          backgroundColor: base.colors.neutral100,
-          textOnBackground: base.colors.neutral900,
+          backgroundColor: "#15803D",
+          textOnBackground: base.colors.white,
         },
         feature: {
           unselected: {
-            backgroundColor: base.colors.yellow200,
-            textOnBackground: base.colors.gray500,
+            backgroundColor: base.colors.yellow100,
+            textOnBackground: base.colors.neutral600,
           },
           selected: {
-            backgroundColor: base.colors.yellow100,
-            textOnBackground: base.colors.orange600,
+            backgroundColor: "#15803D",
+            textOnBackground: base.colors.white,
           },
         },
       },
@@ -196,10 +205,9 @@ const semantic = {
   backgroundImage: {
     "peach-fade": `linear-gradient(
                     180deg,
-                    rgba(255,195,165,0.5) 0%,
-                    rgba(255,195,165,0) 100%
-                  )
-`,
+                    rgba(254, 240, 138, 0.45) 0%,
+                    rgba(254, 252, 232, 0) 100%
+                  )`,
   },
   text: {
     common: {
@@ -247,7 +255,7 @@ const semantic = {
       notAvailable: "Không khả dụng",
     },
     brand: {
-      name: "La Viet Cafe & Dining",
+      name: "Bếp Dì 6 - Mắm Chưng Miền Tây",
     },
     nav: {
       home: "Trang chủ",
@@ -297,14 +305,14 @@ const semantic = {
       chooseStore: "Chọn cửa hàng",
       cartTitle: "Giỏ hàng của tôi",
       addressPlaceholder: "Nhập thông tin địa chỉ cụ thể",
-      scheduleSample: "Hôm nay 14h00 - 14h30, 20/02/2023",
+      scheduleSample: "Giao hàng tiêu chuẩn (30-45 phút)",
       paymentMethodCash: "Tiền mặt",
       paymentMethodCard: "Thẻ tín dụng",
       paymentMethodZaloPay: "ZaloPay",
       paymentMethodMomo: "MoMo",
       locationHint: "Địa điểm lấy hàng",
-      sampleRecipient: "Bình Nguyễn - 09***828",
-      sampleLocation: "KDC Jamona - Art Gallery",
+      sampleRecipient: "Khách hàng",
+      sampleLocation: "112/3 Bùi Quang Là, Gò Vấp",
       samplePhoneNumber: "0901234567",
       sampleCity: "TP. Hồ Chí Minh",
       createOrderError: "Lỗi tạo đơn hàng",
@@ -355,53 +363,53 @@ const semantic = {
       vouchers: "Phiếu giảm giá",
       supportCenter: "Trung tâm trợ giúp",
       avatarAlt: "Ảnh đại diện của khách hàng",
-      sampleName: "Bình Nguyễn",
-      featureDeveloping: "Chức năng dành cho các bên tích hợp phát triển...",
+      sampleName: "Khách hàng Zalo",
+      featureDeveloping: "Chức năng đang được phát triển...",
     },
     search: {
-      placeholder: "Tìm kiếm",
+      placeholder: "Tìm kiếm món ăn...",
       locationPlaceholder: "Tìm kiếm địa điểm",
-      noResults: "Không tìm thấy sản phẩm nào",
-      resultCount: "Tìm thấy {count} sản phẩm",
+      noResults: "Không tìm thấy món ăn nào",
+      resultCount: "Tìm thấy {count} món ăn",
     },
     selectLocation: {
-      nearestTitle: "Vị trí gần bạn nhất",
+      nearestTitle: "Vị trí của bạn",
       notFound: "Không tìm thấy địa điểm",
     },
     orderDetail: {
       title: "Chi tiết đơn hàng",
-      thankYou: "Rất cảm ơn quý khách đã đặt hàng",
-      id: "ID đơn hàng",
-      date: "Ngày đặt hàng",
+      thankYou: "Rất cảm ơn quý khách đã đặt hàng tại Bếp Dì 6",
+      id: "Mã đơn hàng",
+      date: "Thời gian đặt",
       paymentMethod: "Phương thức thanh toán",
       status: "Trạng thái",
       pickupLocation: "Địa điểm lấy hàng",
       deliveryAddress: "Địa chỉ giao hàng",
-      items: "Chi tiết đơn hàng",
+      items: "Chi tiết món ăn",
       loading: "Đang tải chi tiết đơn hàng...",
       notFound: "Không tìm thấy đơn hàng",
       backToOrders: "Quay lại danh sách đơn hàng",
     },
     orderSuccess: {
-      title: "Thanh toán thành công",
+      title: "Đặt hàng thành công!",
       description:
-        "Đơn hàng của bạn đã được thanh toán thành công. Đơn hàng của bạn sẽ được xử lý trong thời gian sớm nhất.",
+        "Bếp Dì 6 đã tiếp nhận đơn hàng và đang chuẩn bị món ăn thơm ngon cho bạn.",
     },
   },
   fontSize: {
     header_title: [
-      base.fontSize.fs1000,
+      base.fontSize.fs800,
       {
-        lineHeight: "26px",
+        lineHeight: "24px",
         letterSpacing: base.letterSpacing.ls000,
-        fontWeight: base.fontWeight.medium,
+        fontWeight: base.fontWeight.bold,
         fontFamily: base.fontFamily.system,
       },
     ],
     "variant-title": [
-      base.fontSize.fs800,
+      base.fontSize.fs600,
       {
-        lineHeight: "24px",
+        lineHeight: "22px",
         letterSpacing: base.letterSpacing.ls000,
         fontWeight: base.fontWeight.semibold,
         fontFamily: base.fontFamily.system,
@@ -618,8 +626,8 @@ const semantic = {
   backgroundColor: {
     subtle: base.colors.black,
     elevation: {
-      "01": "#F7F7F8",
-      "02": base.colors.white,
+      "01": "#FEFCE8",
+      "02": "#FAFAF5",
     },
   },
   rounded: {

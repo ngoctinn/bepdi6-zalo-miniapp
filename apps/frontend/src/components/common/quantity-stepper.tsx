@@ -49,8 +49,8 @@ export default function QuantityStepper({
 
   const buttonBaseClasses =
     variant === "rounded"
-      ? "rounded-full bg-neutral500 flex items-center justify-center hover:bg-neutral100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      : "flex items-center justify-center";
+      ? "rounded-full flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-primary text-primary bg-transparent active:bg-green-50"
+      : "flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
 
   return (
     <div
@@ -59,12 +59,12 @@ export default function QuantityStepper({
       <button
         onClick={onDecrease}
         disabled={isDecreaseDisabled}
-        className={`${buttonBaseClasses} ${sizeClasses[size].button}`}
+        className={`${buttonBaseClasses} ${sizeClasses[size].button} font-bold`}
       >
-        <span>-</span>
+        <span>−</span>
       </button>
       <span
-        className={`${sizeClasses[size].display} text-normal text-text-secondary`}
+        className={`${sizeClasses[size].display} text-normal font-semibold text-stone-800`}
       >
         {value}
         {displaySuffix}
@@ -72,7 +72,7 @@ export default function QuantityStepper({
       <button
         onClick={onIncrease}
         disabled={isIncreaseDisabled}
-        className={`${buttonBaseClasses} ${sizeClasses[size].button}`}
+        className={`${buttonBaseClasses} ${sizeClasses[size].button} font-bold`}
       >
         <span>+</span>
       </button>
