@@ -67,12 +67,12 @@ export default function CartSheet({
                   />
                 </svg>
               </div>
-              <Text className="mb-1 text-base font-medium text-text-primary">
+              <h3 className="mb-1 text-base font-bold text-neutral-900">
                 {copy.cart.empty}
-              </Text>
-              <Text size="xSmall" className="text-center text-text-secondary">
+              </h3>
+              <p className="max-w-[220px] text-center text-xs text-neutral-500">
                 {copy.cart.emptyHint}
-              </Text>
+              </p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">

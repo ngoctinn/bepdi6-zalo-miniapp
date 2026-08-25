@@ -232,15 +232,19 @@ export default function SelectLocationPage() {
           </div>
 
           <div className="pt-2">
-            <Button
-              size="small"
-              type="neutral"
-              className="w-full rounded-lg border border-primary/40 bg-primary/5 py-2 text-xs text-primary hover:bg-primary/10"
+            <button
+              type="button"
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/40 bg-primary/5 py-2.5 text-xs font-semibold text-primary transition-all hover:bg-primary/10 active:scale-[0.99]"
               onClick={handleGetCurrentLocation}
-              loading={isGettingLocation}
+              disabled={isGettingLocation}
             >
-              📍 Lấy vị trí GPS hiện tại từ Zalo
-            </Button>
+              <MapPinIcon className="h-4 w-4 shrink-0 text-primary" />
+              <span>
+                {isGettingLocation
+                  ? "Đang lấy vị trí..."
+                  : "Lấy vị trí GPS hiện tại từ Zalo"}
+              </span>
+            </button>
           </div>
 
           <div className="flex gap-2 pt-4">
@@ -263,15 +267,15 @@ export default function SelectLocationPage() {
       </Modal>
 
       {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-black/5 bg-background/95 p-4 shadow-lg backdrop-blur-md">
-        <Button
-          fullWidth
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 p-4 shadow-lg backdrop-blur-md">
+        <button
+          type="button"
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white shadow-sm active:opacity-90"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-white shadow-sm transition-all active:scale-[0.99] active:opacity-90"
         >
-          <PlusIcon className="h-4 w-4" />
-          Thêm địa chỉ mới
-        </Button>
+          <PlusIcon className="h-4 w-4 shrink-0" />
+          <span className="leading-none">Thêm địa chỉ mới</span>
+        </button>
       </div>
     </div>
   );

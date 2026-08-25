@@ -214,16 +214,35 @@ export default function CheckoutPage() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="flex h-full flex-col items-center justify-center bg-background p-6 text-center">
-        <h2 className="text-base font-bold text-neutral800">
+      <div className="flex h-full min-h-[60vh] flex-col items-center justify-center bg-background p-6 text-center">
+        <div className="mb-4 flex h-28 w-28 items-center justify-center rounded-full bg-black/[0.03]">
+          <svg
+            className="h-14 w-14 text-neutral-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+            />
+          </svg>
+        </div>
+        <h2 className="mb-1 text-base font-bold text-neutral-900">
           Giỏ hàng của bạn đang trống
         </h2>
-        <p className="mb-4 mt-1 text-xs text-neutral500">
+        <p className="mb-5 max-w-[240px] text-xs text-neutral-500">
           Hãy chọn các món ăn thơm ngon từ thực đơn Bếp Dì 6 nhé!
         </p>
-        <Button onClick={() => navigate("/")} className="bg-primary text-white">
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="rounded-xl bg-primary px-6 py-2.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-primaryDark active:scale-95"
+        >
           Xem thực đơn
-        </Button>
+        </button>
       </div>
     );
   }
@@ -409,17 +428,17 @@ export default function CheckoutPage() {
       {/* Danh sách món ăn */}
       <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs font-bold text-neutral800">
+          <span className="text-xs font-bold text-neutral900">
             MÓN ĐÃ CHỌN ({cartItems.length})
           </span>
-          <Button
-            size="small"
-            type="neutral"
-            className="bg-transparent p-0 text-xs font-medium text-primary"
+          <button
+            type="button"
+            className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95"
             onClick={() => navigate("/")}
           >
-            + Thêm món
-          </Button>
+            <span className="text-sm leading-none">+</span>
+            <span>Thêm món</span>
+          </button>
         </div>
 
         <div className="space-y-3 divide-y divide-black/5">
