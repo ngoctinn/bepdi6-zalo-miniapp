@@ -126,7 +126,7 @@ export default function SelectLocationPage() {
                       {addr.phone}
                     </span>
                     {addr.is_default && (
-                      <span className="py-0.2 rounded-full border border-green600/30 bg-green50 px-2 text-xxxsmall font-bold text-green800">
+                      <span className="py-0.2 rounded-full border border-green-600/30 bg-green50 px-2 text-xxxsmall font-bold text-green-800">
                         Mặc định
                       </span>
                     )}

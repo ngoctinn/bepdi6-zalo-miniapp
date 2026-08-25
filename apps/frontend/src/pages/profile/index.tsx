@@ -23,10 +23,10 @@ export default function ProfilePage() {
 
   return (
     <div className="relative flex h-full flex-col bg-transparent">
-      {/* Sticky Header: Gradient vàng đồng bộ toàn hệ thống */}
-      <div className="sticky top-0 z-30 flex flex-col bg-yellow-gradient pb-4">
+      {/* Sticky Header: Nền sạch sẽ đồng bộ toàn hệ thống */}
+      <div className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-4 backdrop-blur-md">
         <div className="header-margin px-3.5 pb-1 pt-3">
-          <h1 className="text-[17px] font-extrabold tracking-tight text-redTerracotta">
+          <h1 className="text-[17px] font-extrabold tracking-tight text-neutral-900">
             Tài Khoản Của Tôi
           </h1>
         </div>

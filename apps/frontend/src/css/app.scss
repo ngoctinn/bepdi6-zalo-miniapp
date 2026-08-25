@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap");
 
 :root {
-  /* ZaUI Primary Theme Overrides — 100% Green600 System */
+  /* ZaUI Primary Theme Overrides — Emerald 600 Clean Food System */
   --zaui-light-color-primary: #16a34a;
   --zaui-dark-color-primary: #16a34a;
   --zaui-primary-color: #16a34a;
@@ -22,7 +22,7 @@
   /* Input & Textbox Focus Overrides */
   --zaui-light-input-hover-border-color: #16a34a;
   --zaui-dark-input-hover-border-color: #16a34a;
-  --zaui-light-input-border-color: rgba(0, 0, 0, 0.1);
+  --zaui-light-input-border-color: rgba(0, 0, 0, 0.08);
 
   /* Checkbox & Radio Overrides */
   --zaui-light-checkbox-checked-background: #16a34a;
@@ -31,7 +31,7 @@
   /* Tabbar Overrides */
   --zaui-light-tabbar-active-line: #16a34a;
   --zaui-light-bottom-navigation-active-color: #16a34a;
-  --zaui-light-bottom-navigation-divider-color: transparent;
+  --zaui-light-bottom-navigation-divider-color: rgba(0, 0, 0, 0.05);
 
   /* Spinner & Misc Overrides */
   --zaui-light-spinner-dot-color: #16a34a;

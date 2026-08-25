@@ -76,38 +76,31 @@ const base = {
     neutral600: "#57534E",
     neutral700: "#44403C",
     neutral800: "#292524",
-    neutral900: "#1C1917",
+    neutral900: "#0F172A", // Slate 900 cho độ tương phản sắc nét, sạch sẽ
 
-    yellow25: "#FFFEF7",
-    yellow50: "#FEFCE8",
-    yellow100: "#FEF9C3",
-    yellow200: "#FEF08A",
-    yellow500: "#EAB308",
-    yellow600: "#CA8A04",
-    yellow700: "#A16207",
+    stone50: "#FAFAF9",
+    stone100: "#F5F5F4",
+    stone200: "#E7E5E4",
+    stone800: "#292524",
+    stone900: "#1C1917",
 
     green50: "#F0FDF4",
     green100: "#DCFCE7",
     green500: "#22C55E",
-    green600: "#16A34A",
+    green600: "#16A34A", // Emerald 600 - Brand Primary
     green700: "#15803D",
     green800: "#166534",
 
-    orange500: "#F97316",
-    orange600: "#EA580C",
-    orange700: "#C2410C",
+    amber50: "#FFFBEB",
+    amber100: "#FEF3C7",
+    amber500: "#F59E0B",
+    amber600: "#D97706",
+    amber700: "#B45309",
 
     red100: "#FEE2E2",
     red500: "#EF4444",
-    red600: "#DC2626",
+    red600: "#DC2626", // Chỉ dùng cho Semantic Error / Destructive
     red700: "#B91C1C",
-    red800: "#991B1B",
-    redTerracotta: "#C0392B", // Đỏ đất sáng (Bright Terracotta Red / Warm Clay) chuẩn nhận diện ẩm thực cao cấp
-    redTerracottaDark: "#A93226",
-
-    blue100: "#DCFCE7", // Remapped to green100
-    blue500: "#16A34A", // Remapped to green600
-    blue600: "#15803D", // Remapped to green700
 
     divider01: "rgba(0, 0, 0, 0.05)",
   },
@@ -129,20 +122,20 @@ const base = {
 
 const semantic = {
   colors: {
-    primary: base.colors.green600, // #16A34A — Xanh lá tươi sáng
+    primary: base.colors.green600, // #16A34A — Xanh lá tươi sạch
     primaryDark: base.colors.green800, // #166534
     primaryLight: base.colors.green100, // #DCFCE7
-    brandYellow: base.colors.yellow100, // #FEF9C3
-    background: base.colors.yellow25, // #FFFEF7
-    surface: "transparent",
+    brandAccent: base.colors.amber600, // #D97706
+    background: base.colors.stone50, // #FAFAF9 — Nền sạch ấm cúng
+    surface: "#FFFFFF",
     surfaceSubtle: "rgba(0,0,0,0.02)",
-    price: base.colors.neutral900, // Giá tiền: đen đậm
+    price: base.colors.neutral900,
     text: {
       primary: base.colors.neutral900,
       secondary: base.colors.neutral600,
       tertiary: base.colors.neutral500,
       disabled: base.colors.neutral400,
-      title: base.colors.redTerracotta, // Tên quán màu đỏ đất sáng (#C0392B) nổi bật, ấm cúng và kích thích vị giác
+      title: base.colors.neutral900, // Tiêu đề quán sạch sẽ, sắc nét
       price: base.colors.neutral900,
     },
     border: {
@@ -153,7 +146,7 @@ const semantic = {
     },
     accent: base.colors.green600,
     info: base.colors.green600,
-    warning: base.colors.yellow600,
+    warning: base.colors.amber600,
     danger: base.colors.red600,
     components: {
       list: {
@@ -172,11 +165,11 @@ const semantic = {
           },
         },
         shipping: {
-          backgroundColor: "#D97706",
+          backgroundColor: base.colors.amber600,
           textOnBackground: base.colors.white,
         },
         new: {
-          backgroundColor: base.colors.red600,
+          backgroundColor: base.colors.green600,
           textOnBackground: base.colors.white,
         },
         discount: {
@@ -185,7 +178,7 @@ const semantic = {
         },
       },
       sub_cate: {
-        border: base.colors.yellow200,
+        border: base.colors.green100,
       },
       chip: {
         backgroundColor: base.colors.white,
@@ -197,7 +190,7 @@ const semantic = {
         },
         feature: {
           unselected: {
-            backgroundColor: base.colors.yellow100,
+            backgroundColor: base.colors.green50,
             textOnBackground: base.colors.neutral600,
           },
           selected: {
@@ -209,15 +202,8 @@ const semantic = {
     },
   },
   backgroundImage: {
-    "yellow-gradient": `linear-gradient(
-                          180deg,
-                          #FEF08A 0%,
-                          #FEF08A 30%,
-                          #FEF9C3 60%,
-                          #FEFCE8 90%,
-                          #FFFEF7 100%
-                        )`,
-    "peach-fade": "none",
+    "clean-header":
+      "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(250,250,249,0.95) 100%)",
   },
   text: {
     common: {

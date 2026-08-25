@@ -46,10 +46,10 @@ export default function OrderPage() {
 
   return (
     <div className="relative flex h-full flex-col bg-transparent">
-      {/* Sticky Header: Tên trang + Tabs dùng chung gradient vàng đồng bộ với Trang chủ */}
-      <div className="sticky top-0 z-30 flex flex-col bg-yellow-gradient pb-2">
+      {/* Sticky Header: Tên trang + Tabs dùng nền sạch sẽ đồng bộ */}
+      <div className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md">
         <div className="header-margin px-3.5 pb-1 pt-3">
-          <h1 className="text-[17px] font-extrabold tracking-tight text-redTerracotta">
+          <h1 className="text-[17px] font-extrabold tracking-tight text-neutral-900">
             Đơn Hàng Của Tôi
           </h1>
         </div>

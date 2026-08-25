@@ -119,14 +119,14 @@ export default function HomePage() {
 
   return (
     <div className="relative flex flex-col">
-      {/* Sticky Header: Tên quán + Thanh tab danh mục dùng dải gradient vàng */}
+      {/* Sticky Header: Tên quán + Thanh tab danh mục */}
       <div
         id="home-sticky-header"
-        className="sticky top-0 z-30 flex flex-col bg-yellow-gradient pb-2"
+        className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md"
       >
         {/* Tên quán */}
         <div className="header-margin px-3.5 pb-1 pt-3">
-          <h1 className="text-[17px] font-extrabold tracking-tight text-redTerracotta">
+          <h1 className="text-[17px] font-extrabold tracking-tight text-neutral-900">
             Bếp Dì 6 - Mắm Chưng Miền Tây
           </h1>
         </div>
@@ -138,7 +138,7 @@ export default function HomePage() {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-7 w-20 shrink-0 animate-pulse rounded-full bg-amber-200/30"
+                  className="h-7 w-20 shrink-0 animate-pulse rounded-full bg-emerald-100/50"
                 />
               ))}
             </div>

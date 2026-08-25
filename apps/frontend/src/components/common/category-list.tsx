@@ -58,8 +58,8 @@ export default function CategoryList({
               "flex shrink-0 items-center justify-center rounded-full px-4 py-1.5 text-xs transition-all active:scale-95",
               "select-none whitespace-nowrap",
               isSelected
-                ? "shadow-xs border border-green600 bg-emerald-500/15 font-bold text-green800"
-                : "border border-black/5 bg-black/[0.03] font-medium text-stone-600 hover:bg-emerald-500/10 hover:text-green800",
+                ? "shadow-xs border border-green-600 bg-emerald-500/15 font-bold text-green-800"
+                : "border border-black/5 bg-black/[0.03] font-medium text-stone-600 hover:bg-emerald-500/10 hover:text-green-800",
             )}
             onClick={() => onCategorySelect?.(category)}
           >
