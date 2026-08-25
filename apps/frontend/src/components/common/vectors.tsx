@@ -1,13 +1,15 @@
 import { HTMLProps } from "react";
 import { theme } from "@/constants/copy";
 
-export const navIconColors = {
+const iconColors = {
   active: theme.colors.primary, // #4D7C0F — xanh rêu rustic olive khi active
   inactive: "#A8A29E", // stone-400 — trung tính khi inactive
   accent: theme.colors.primary,
   white: theme.colors.white,
   black: theme.colors.black,
 };
+
+export const navIconColors = iconColors;
 
 export function SearchIcon(props: HTMLProps<SVGSVGElement>) {
   return (
