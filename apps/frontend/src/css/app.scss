@@ -53,8 +53,14 @@ select:focus {
 
 * {
   font-family:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
-    "Roboto", "Segoe UI", "Be Vietnam Pro", sans-serif;
+    "Be Vietnam Pro",
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "SF Pro Display",
+    "Roboto",
+    "Segoe UI",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -98,5 +104,5 @@ select:focus {
 }
 
 .zaui-bottom-navigation-item-active .zaui-bottom-navigation-item-label {
-  color: #16a34a;
+  color: #4d7c0f;
 }

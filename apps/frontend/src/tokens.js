@@ -40,7 +40,7 @@ const base = {
     lh600: "22px",
     lh800: "24px",
     lh1400: "30px",
-    lh_full: "100%",
+    lh_full: "1.35",
   },
   letterSpacing: {
     ls000: "0px",
@@ -62,7 +62,7 @@ const base = {
   },
   fontFamily: {
     system:
-      '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Roboto", "Segoe UI", "Be Vietnam Pro", sans-serif',
+      '"Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Roboto", "Segoe UI", sans-serif',
   },
   colors: {
     black: "#000000",
