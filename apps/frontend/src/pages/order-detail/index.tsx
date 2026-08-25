@@ -127,7 +127,7 @@ export default function OrderDetailPage() {
               className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                 isPickup
                   ? "border border-amber-300/50 bg-amber-500/10 text-amber-800"
-                  : "border border-primary/30 bg-emerald-500/10 text-primary"
+                  : "border border-primary/30 bg-primary/10 text-primary"
               }`}
             >
               {isPickup ? "Tự đến lấy" : "Giao tận nơi"}
@@ -142,7 +142,7 @@ export default function OrderDetailPage() {
             isCancelled
               ? "border border-red-200/50 bg-red-500/10 text-red-600"
               : order.status === "COMPLETED"
-                ? "border border-primary/30 bg-emerald-500/15 text-primary"
+                ? "border border-primary/30 bg-primary/15 text-primary"
                 : "border border-amber-300/50 bg-amber-500/15 text-amber-800"
           }`}
         >
@@ -218,7 +218,7 @@ export default function OrderDetailPage() {
 
       {/* Khối Thanh Toán VietQR Tức Thì (Nếu chọn BANK_TRANSFER) */}
       {isBankTransfer && !isCancelled && (
-        <div className="rounded-2xl border border-primary/20 bg-emerald-500/5 p-4">
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-bold text-neutral900">
               QUÉT MÃ VIETQR ĐỂ THANH TOÁN
@@ -226,7 +226,7 @@ export default function OrderDetailPage() {
             <span
               className={`rounded px-2 py-0.5 text-xxsmall font-bold ${
                 isPaid
-                  ? "bg-green-100 text-green-700"
+                  ? "border border-primary/30 bg-primary/15 text-primaryDark"
                   : "animate-pulse bg-amber-100 text-amber-800"
               }`}
             >
@@ -273,7 +273,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-neutral500">Số tiền:</span>
-                  <span className="text-green800 text-sm font-bold">
+                  <span className="text-sm font-bold text-neutral-900">
                     {formatCurrency(order.total_amount)}đ
                   </span>
                 </div>
@@ -301,7 +301,7 @@ export default function OrderDetailPage() {
               </p>
             </div>
           ) : (
-            <div className="mt-2 rounded-lg bg-green-50 p-2.5 text-xs text-green-700">
+            <div className="mt-2 rounded-lg border border-primary/30 bg-primary/10 p-2.5 text-xs text-primaryDark">
               Đơn hàng đã được xác nhận thanh toán thành công. Bếp Dì 6 đang
               chuẩn bị món cho bạn!
             </div>
@@ -318,11 +318,19 @@ export default function OrderDetailPage() {
           <div className="font-semibold">
             Người nhận: {order.recipient_name} • {order.phone}
           </div>
-          <div className="leading-relaxed text-neutral600">
-            {order.delivery_address}
+          <div>
+            {isPickup ? (
+              <span className="text-neutral600">
+                Nhận trực tiếp tại Bếp Dì 6 (TP. Hồ Chí Minh)
+              </span>
+            ) : (
+              <span className="leading-relaxed text-neutral600">
+                {order.delivery_address}
+              </span>
+            )}
           </div>
           {order.note && (
-            <div className="pt-1 italic text-amber-700">
+            <div className="mt-1 text-xxsmall italic text-neutral500">
               Ghi chú: "{order.note}"
             </div>
           )}
@@ -390,14 +398,14 @@ export default function OrderDetailPage() {
           </span>
         </div>
         {order.discount > 0 && (
-          <div className="flex justify-between font-normal text-green-700">
+          <div className="flex justify-between font-normal text-primary">
             <span>Giảm giá</span>
             <span>-{formatCurrency(order.discount)}đ</span>
           </div>
         )}
         <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-normal text-black">
           <span>Tổng thanh toán</span>
-          <span className="text-green800 text-base font-bold">
+          <span className="text-base font-bold text-neutral-900">
             {formatCurrency(order.total_amount)}đ
           </span>
         </div>

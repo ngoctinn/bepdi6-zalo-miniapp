@@ -35,7 +35,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
             isCancelled
               ? "border border-red-200/50 bg-red-500/10 text-red-600"
               : isCompleted
-                ? "border border-primary/30 bg-emerald-500/15 text-primary"
+                ? "border border-primary/30 bg-primary/15 text-primary"
                 : "border border-amber-300/50 bg-amber-500/15 text-amber-800"
           }`}
         >

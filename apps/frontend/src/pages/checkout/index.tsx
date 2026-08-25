@@ -383,7 +383,7 @@ export default function CheckoutPage() {
                 value={pickupName}
                 onChange={(e) => setPickupName(e.target.value)}
                 placeholder="Tên của bạn"
-                className="focus:border-green600 w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900"
+                className="w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
             </div>
             <div>
@@ -395,7 +395,7 @@ export default function CheckoutPage() {
                 value={pickupPhone}
                 onChange={(e) => setPickupPhone(e.target.value)}
                 placeholder="0901234567"
-                className="focus:border-green600 w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900"
+                className="w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
             </div>
           </div>
@@ -602,13 +602,13 @@ export default function CheckoutPage() {
             {displayShippingFee > 0 ? (
               `${formatCurrency(displayShippingFee)}đ`
             ) : (
-              <span className="font-normal text-green-700">Miễn phí</span>
+              <span className="font-normal text-primary">Miễn phí</span>
             )}
           </span>
         </div>
 
         {displayDiscount > 0 ? (
-          <div className="flex justify-between font-normal text-green-700">
+          <div className="flex justify-between font-normal text-primary">
             <span>Giảm giá voucher</span>
             <span>-{formatCurrency(displayDiscount)}đ</span>
           </div>
@@ -616,7 +616,7 @@ export default function CheckoutPage() {
 
         <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-normal text-black">
           <span>Tổng thanh toán</span>
-          <span className="text-green800 text-base font-bold">
+          <span className="text-base font-bold text-neutral-900">
             {formatCurrency(displayTotal)}đ
           </span>
         </div>

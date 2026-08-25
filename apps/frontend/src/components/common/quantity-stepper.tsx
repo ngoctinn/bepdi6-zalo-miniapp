@@ -49,7 +49,7 @@ export default function QuantityStepper({
 
   const buttonBaseClasses =
     variant === "rounded"
-      ? "rounded-full flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-primary text-primary bg-transparent active:bg-green-50"
+      ? "rounded-full flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-primary text-primary bg-transparent active:bg-primary/10"
       : "flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
 
   return (

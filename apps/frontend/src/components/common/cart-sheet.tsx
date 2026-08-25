@@ -44,7 +44,7 @@ export default function CartSheet({
           >
             <CloseIcon />
           </Button>
-          <div className="text-green800 flex-1 py-1 text-center text-base font-bold">
+          <div className="flex-1 py-1 text-center text-base font-bold text-neutral-900">
             {copy.common.updateCart}
           </div>
         </div>

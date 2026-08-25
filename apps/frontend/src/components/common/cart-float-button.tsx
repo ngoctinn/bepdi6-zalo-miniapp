@@ -58,7 +58,7 @@ export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
     <>
       <div
         onClick={() => setCartSheetVisible(true)}
-        className="absolute -top-16 left-3.5 right-3.5 z-50 flex cursor-pointer items-center justify-between rounded-2xl bg-primary px-4 py-2.5 text-white shadow-lg shadow-emerald-950/20 transition-all active:scale-[0.98]"
+        className="absolute -top-16 left-3.5 right-3.5 z-50 flex cursor-pointer items-center justify-between rounded-2xl bg-primary px-4 py-2.5 text-white shadow-lg shadow-stone-900/15 transition-all active:scale-[0.98]"
         role="button"
         tabIndex={0}
         aria-label="Xem món đang chọn"
@@ -68,7 +68,7 @@ export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
             {itemCount}
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-[11px] font-medium text-emerald-100">
+            <span className="text-[11px] font-medium text-white/90">
               {itemCount} món đang chọn
             </span>
             <span className="text-[14px] font-extrabold text-white">

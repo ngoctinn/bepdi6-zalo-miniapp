@@ -35,7 +35,7 @@ export default function NoteInput({
         onChange={(e) => onChange?.(e.target.value.slice(0, MAX))}
         maxLength={MAX}
         placeholder={placeholder ?? copy.product.notePlaceholder}
-        className="focus:border-green600 focus:ring-green600/30 w-full rounded-xl border border-black/10 bg-transparent p-3 text-xs text-neutral900 placeholder:text-neutral400 focus:outline-none focus:ring-1"
+        className="w-full rounded-xl border border-black/10 bg-transparent p-3 text-xs text-neutral900 placeholder:text-neutral400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
         rows={3}
       />
     </div>

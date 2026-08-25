@@ -109,12 +109,12 @@ export default function SelectLocationPage() {
               onClick={() => handleSelectAddress(addr)}
               className={`flex cursor-pointer items-start justify-between rounded-2xl border p-3.5 transition-all ${
                 isSelected
-                  ? "shadow-xs border-green600 bg-green50/50"
+                  ? "shadow-xs border-primary bg-primary/10"
                   : "border-black/5 bg-transparent active:bg-black/[0.02]"
               }`}
             >
               <div className="flex items-start gap-3">
-                <div className="text-green600 mt-0.5">
+                <div className="mt-0.5 text-primary">
                   <MapPinIconSolid />
                 </div>
                 <div>
@@ -163,7 +163,7 @@ export default function SelectLocationPage() {
             Thêm địa chỉ để Bếp Dì 6 tính phí giao hàng và giao tận nơi nhé!
           </p>
           <Button
-            className="hover:bg-green800 mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white"
+            className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primaryDark"
             onClick={() => setIsModalOpen(true)}
           >
             + Thêm địa chỉ mới
@@ -235,7 +235,7 @@ export default function SelectLocationPage() {
             <Button
               size="small"
               type="neutral"
-              className="hover:bg-green50 w-full rounded-lg border border-primary/40 bg-primary/5 py-2 text-xs text-primary"
+              className="w-full rounded-lg border border-primary/40 bg-primary/5 py-2 text-xs text-primary hover:bg-primary/10"
               onClick={handleGetCurrentLocation}
               loading={isGettingLocation}
             >
@@ -252,7 +252,7 @@ export default function SelectLocationPage() {
               Hủy
             </Button>
             <Button
-              className="hover:bg-green800 flex-1 bg-primary font-semibold text-white"
+              className="flex-1 bg-primary font-semibold text-white hover:bg-primaryDark"
               onClick={handleCreateAddress}
               loading={createAddressMutation.isPending}
             >
