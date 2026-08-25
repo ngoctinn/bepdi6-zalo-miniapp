@@ -153,7 +153,6 @@ LANGUAGE_CODE = "vi"
 TIME_ZONE = "Asia/Ho_Chi_Minh"
 USE_I18N = True
 USE_TZ = True
-USE_L10N = False
 
 # Date/Time format configurations for Admin UI
 DATETIME_FORMAT = "d/m/Y H:i"
@@ -252,7 +251,7 @@ VIETQR_ACCOUNT_NAME = env("VIETQR_ACCOUNT_NAME")
 UNFOLD = {
     "SITE_TITLE": "Bếp Dì 6 - Quản Trị",
     "SITE_HEADER": "Bếp Dì 6 Admin",
-    "SITE_SUBHEADER": "Hệ thống quản lý đặt món & vận hành",
+    "SITE_SUBHEADER": "Hệ thống quản lý đặt món",
     "SITE_SYMBOL": "restaurant",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": False,
@@ -293,7 +292,7 @@ UNFOLD = {
                         "link": lambda request: "/admin/payments/payment/",
                     },
                     {
-                        "title": "Nhật ký kiểm toán",
+                        "title": "Lịch sử giao dịch",
                         "icon": "history",
                         "link": lambda request: "/admin/orders/auditlog/",
                     },
@@ -352,11 +351,11 @@ UNFOLD = {
                 ],
             },
             {
-                "title": "Hệ Thống & Cài Đặt",
+                "title": "Hệ Thống và Cài Đặt",
                 "separator": True,
                 "items": [
                     {
-                        "title": "Cấu hình quán & Phí ship",
+                        "title": "Cấu hình quán",
                         "icon": "storefront",
                         "link": lambda request: "/admin/shipping/shopconfig/",
                     },

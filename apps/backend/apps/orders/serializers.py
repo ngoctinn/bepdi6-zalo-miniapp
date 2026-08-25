@@ -139,7 +139,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 
 class OrderListSerializer(serializers.ModelSerializer):
-    item_count = serializers.IntegerField(source="items.count", read_only=True)
+    item_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Order

@@ -136,8 +136,14 @@ class OrderListCreateView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
+        from django.db.models import Count
+
         customer = get_current_customer(request)
-        queryset = Order.objects.filter(customer=customer).order_by("-created_at")
+        queryset = (
+            Order.objects.filter(customer=customer)
+            .annotate(item_count=Count("items"))
+            .order_by("-created_at")
+        )
 
         status_filter = request.query_params.get("status")
         if status_filter:
