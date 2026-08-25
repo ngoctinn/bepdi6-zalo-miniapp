@@ -11,6 +11,13 @@ export default () => {
     build: {
       assetsInlineLimit: 0,
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: "modern-compiler",
+        },
+      },
+    },
     resolve: {
       alias: {
         "@": "/src",

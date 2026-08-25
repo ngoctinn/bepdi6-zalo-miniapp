@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { CartItem, CartStore } from "../types/cart.types";
+import { calculateCartTotal } from "../utils/cart";
 
 const CART_STORAGE_KEY = "bepdi6_cart_items";
 
@@ -99,14 +100,6 @@ export const useCartStore = create<CartStore>((set, get) => ({
   },
 
   get subtotal() {
-    return get().items.reduce((sum, item) => {
-      const optionsPrice = (item.options || []).reduce(
-        (optSum, opt) => optSum + Number(opt.price || 0) * (opt.quantity || 1),
-        0,
-      );
-      return (
-        sum + (Number(item.unit_price || 0) + optionsPrice) * item.quantity
-      );
-    }, 0);
+    return calculateCartTotal(get().items);
   },
 }));
