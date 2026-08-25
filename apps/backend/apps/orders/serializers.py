@@ -147,6 +147,8 @@ class OrderListSerializer(serializers.ModelSerializer):
             "id",
             "order_code",
             "status",
+            "delivery_type",
+            "scheduled_delivery_at",
             "total_amount",
             "payment_method",
             "item_count",

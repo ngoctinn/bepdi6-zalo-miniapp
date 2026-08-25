@@ -257,8 +257,9 @@ const semantic = {
       name: "Bếp Dì 6 - Mắm Chưng Miền Tây",
     },
     nav: {
-      home: "Trang chủ",
-      menu: "Menu",
+      home: "Thực đơn",
+      menu: "Thực đơn",
+      cart: "Giỏ hàng",
       order: "Đơn hàng",
       profile: "Cá nhân",
     },

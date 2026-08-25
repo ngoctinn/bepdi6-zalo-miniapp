@@ -2,9 +2,8 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, Tab } from "@/components/common/tabs";
 import { OrderItemCard } from "@/components/common/order-item-card";
-import CartImg from "@/static/cart.png";
 import { useOrders } from "@/services/order/order.queries";
-import { Button, Spinner, Text } from "zmp-ui";
+import { Spinner, Text } from "zmp-ui";
 import { Order, OrderListResponse } from "@/types/order.types";
 
 type OrderTab = "all" | "processing" | "completed" | "cancelled";
@@ -72,25 +71,48 @@ export default function OrderPage() {
             </Text>
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-4 py-16 text-center">
-            <img
-              src={CartImg}
-              draggable={false}
-              alt="Chưa có đơn hàng"
-              className="h-16 w-16 opacity-60"
-            />
-            <div className="text-sm font-semibold text-neutral700">
-              Không có đơn hàng nào
+          <div className="flex h-full flex-col items-center justify-center gap-3.5 py-16 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/[0.03] text-stone-400">
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 6.10457 9.89543 7 11 7H13C14.1046 7 15 6.10457 15 5M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5" />
+                <line x1="9" y1="12" x2="15" y2="12" />
+                <line x1="9" y1="16" x2="13" y2="16" />
+              </svg>
             </div>
-            <p className="max-w-xs text-xs text-neutral400">
-              Bạn chưa có đơn hàng nào trong mục này. Hãy đặt món ngay nhé!
+            <div className="text-sm font-bold text-neutral-800">
+              Chưa có đơn hàng nào
+            </div>
+            <p className="max-w-xs text-xs text-neutral-400">
+              Bạn chưa có đơn hàng nào trong mục này. Hãy khám phá các món ngon
+              của Bếp Dì 6 nhé!
             </p>
-            <Button
+            <button
+              type="button"
               onClick={() => navigate("/")}
-              className="rounded-xl bg-primary px-6 py-2 text-xs font-semibold text-white"
+              className="shadow-xs mt-1 flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white transition-all active:scale-95"
             >
-              Xem thực đơn
-            </Button>
+              <span>Khám phá thực đơn</span>
+              <svg
+                className="h-3.5 w-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
           </div>
         ) : (
           <div className="w-full space-y-3">

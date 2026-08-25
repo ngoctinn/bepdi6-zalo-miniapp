@@ -6,6 +6,7 @@ import {
   BackIcon,
 } from "@/components/common/vectors";
 import QuantityStepper from "@/components/common/quantity-stepper";
+import { DeliveryTimePicker } from "@/components/common/delivery-time-picker";
 import { useCartStore } from "@/stores/cart.store";
 import { useLocationStore } from "@/stores/location.store";
 import {
@@ -50,6 +51,9 @@ export default function CheckoutPage() {
   const [voucherCodeInput, setVoucherCodeInput] = useState("");
   const [appliedVoucherCode, setAppliedVoucherCode] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("COD");
+  const [scheduledDeliveryAt, setScheduledDeliveryAt] = useState<
+    string | undefined
+  >(undefined);
   const [previewData, setPreviewData] =
     useState<CheckoutPreviewResponse | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -179,6 +183,7 @@ export default function CheckoutPage() {
               phone: pickupPhone.trim(),
               payment_method: paymentMethod,
               note: note.trim() || undefined,
+              scheduled_delivery_at: scheduledDeliveryAt,
               voucher_code: appliedVoucherCode || undefined,
               items: orderItemsPayload,
             }
@@ -191,6 +196,7 @@ export default function CheckoutPage() {
               delivery_longitude: selectedAddress?.longitude || 106.660172,
               payment_method: paymentMethod,
               note: note.trim() || undefined,
+              scheduled_delivery_at: scheduledDeliveryAt,
               voucher_code: appliedVoucherCode || undefined,
               items: orderItemsPayload,
             };
@@ -322,27 +328,19 @@ export default function CheckoutPage() {
         </button>
       </div>
 
-      {/* Khung Thông Tin Nhận Hàng (Không lồng thẻ phức tạp) */}
+      {/* Khung Thông Tin Nhận Hàng */}
       {deliveryType === "DELIVERY" ? (
         <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2">
             <span className="text-xs font-bold text-neutral800">
               ĐỊA CHỈ GIAO HÀNG
             </span>
-            <Button
-              size="small"
-              type="neutral"
-              className="bg-transparent p-0 text-xs font-semibold text-primary"
-              onClick={() => navigate("/select-location")}
-            >
-              {selectedAddress ? "Thay đổi" : "Chọn địa chỉ"}
-            </Button>
           </div>
 
           {selectedAddress ? (
             <div
               onClick={() => navigate("/select-location")}
-              className="flex cursor-pointer items-start gap-2.5"
+              className="flex cursor-pointer items-start gap-2.5 rounded-xl py-1 transition-all active:opacity-70"
             >
               <div className="mt-0.5 text-primary">
                 <MapPinIcon className="h-5 w-5" />
@@ -365,9 +363,12 @@ export default function CheckoutPage() {
           ) : (
             <div
               onClick={() => navigate("/select-location")}
-              className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-neutral300 bg-transparent p-3 text-xs text-neutral600"
+              className="flex cursor-pointer items-center justify-between rounded-xl border border-black/10 bg-black/[0.02] p-3 text-xs text-neutral700 transition-all hover:bg-black/[0.04] active:scale-[0.99]"
             >
-              <span>+ Vui lòng thêm địa chỉ nhận hàng</span>
+              <div className="flex items-center gap-2 font-medium text-primary">
+                <MapPinIcon className="h-4 w-4" />
+                <span>Chọn địa chỉ nhận hàng</span>
+              </div>
               <ChevronRightIcon className="h-4 w-4 text-neutral400" />
             </div>
           )}
@@ -418,12 +419,16 @@ export default function CheckoutPage() {
               />
             </div>
           </div>
-          <div className="text-xxsmall italic text-neutral500">
-            Quán sẽ chuẩn bị món ngay và gửi thông báo khi sẵn sàng (~15-20
-            phút).
-          </div>
         </div>
       )}
+
+      {/* Chọn thời gian nhận hàng / lấy món */}
+      <DeliveryTimePicker
+        deliveryType={deliveryType}
+        shopInfo={shopInfo}
+        scheduledTime={scheduledDeliveryAt}
+        onChange={setScheduledDeliveryAt}
+      />
 
       {/* Danh sách món ăn */}
       <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
@@ -433,11 +438,10 @@ export default function CheckoutPage() {
           </span>
           <button
             type="button"
-            className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95"
+            className="flex items-center gap-1 text-xs font-semibold text-primary transition-all hover:text-primaryDark active:opacity-70"
             onClick={() => navigate("/")}
           >
-            <span className="text-sm leading-none">+</span>
-            <span>Thêm món</span>
+            <span>+ Thêm món</span>
           </button>
         </div>
 
@@ -639,6 +643,38 @@ export default function CheckoutPage() {
             {formatCurrency(displayTotal)}đ
           </span>
         </div>
+      </div>
+
+      {/* Hotline CSKH Quán */}
+      <div className="flex items-center justify-between rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs text-neutral600">
+        <div>
+          <div className="font-semibold text-neutral800">
+            Cần tư vấn đặt món?
+          </div>
+          <div className="text-xxsmall text-neutral500">
+            Hotline: {shopInfo?.hotline || "0901234567"} (Hỗ trợ 24/7)
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            window.location.href = `tel:${shopInfo?.hotline || "0901234567"}`;
+          }}
+          className="flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition-all active:scale-95"
+        >
+          <svg
+            className="h-3.5 w-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+          <span>Gọi quán ngay</span>
+        </button>
       </div>
 
       {/* Nút bấm Đặt hàng cố định đáy màn hình (Idempotency Safe & Anti-Spam) */}

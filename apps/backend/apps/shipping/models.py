@@ -76,6 +76,11 @@ class ShopConfig(models.Model):
         help_text="Giờ đóng cửa (VD: 21:30)",
         verbose_name="Giờ đóng cửa",
     )
+    prep_time_minutes = models.PositiveIntegerField(
+        default=20,
+        help_text="Thời gian chuẩn bị món ước tính mặc định của quán (phút)",
+        verbose_name="Thời gian chuẩn bị món (phút)",
+    )
 
     # Order & Shipping thresholds
     min_order_amount = models.DecimalField(

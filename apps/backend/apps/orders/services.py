@@ -332,6 +332,34 @@ class OrderService:
         )
 
         shop_config = ShopConfig.get_solo()
+
+        # Validate scheduled_delivery_at if provided
+        if scheduled_delivery_at is not None:
+            now_dt = timezone.localtime()
+            sched_local = (
+                timezone.localtime(scheduled_delivery_at)
+                if timezone.is_aware(scheduled_delivery_at)
+                else scheduled_delivery_at
+            )
+
+            # Ensure scheduled time is not in past and allows minimum prep time
+            min_prep_dt = now_dt + timezone.timedelta(
+                minutes=max(5, shop_config.prep_time_minutes // 2)
+            )
+            if sched_local < min_prep_dt:
+                raise OrderProcessingError(
+                    "INVALID_SCHEDULED_TIME",
+                    f"Thời gian hẹn nhận món phải sau ít nhất {max(5, shop_config.prep_time_minutes // 2)} phút từ thời điểm hiện tại.",
+                )
+
+            # Ensure scheduled time is within shop operating hours if set
+            if shop_config.open_time and shop_config.close_time:
+                sched_time = sched_local.time()
+                if not (shop_config.open_time <= sched_time <= shop_config.close_time):
+                    raise OrderProcessingError(
+                        "INVALID_SCHEDULED_TIME",
+                        f"Thời gian hẹn phải nằm trong khung giờ mở cửa của quán ({shop_config.open_time.strftime('%H:%M')} - {shop_config.close_time.strftime('%H:%M')}).",
+                    )
         if delivery_type == Order.DeliveryType.PICKUP:
             rec_name = (
                 recipient_name

@@ -84,6 +84,7 @@ export interface Order {
   total_amount: number;
   payment_method: PaymentMethod;
   note?: string;
+  scheduled_delivery_at?: string;
   created_at: string;
   confirmed_at?: string;
   completed_at?: string;
@@ -121,6 +122,7 @@ export interface CreateOrderRequest {
   delivery_longitude?: number;
   payment_method: PaymentMethod;
   note?: string;
+  scheduled_delivery_at?: string;
   voucher_code?: string;
   items: OrderItemPayload[];
 }

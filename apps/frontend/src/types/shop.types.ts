@@ -15,6 +15,7 @@ export interface ShopInfo {
   is_open: boolean;
   open_time?: string;
   close_time?: string;
+  prep_time_minutes?: number;
   min_order_amount: number;
   min_order_for_freeship: number;
   shipping_tiers: ShippingTier[];

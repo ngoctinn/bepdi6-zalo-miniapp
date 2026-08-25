@@ -39,6 +39,7 @@ class ShopConfigAdmin(ModelAdmin):
                     "is_open",
                     "open_time",
                     "close_time",
+                    "prep_time_minutes",
                     "min_order_amount",
                 )
             },

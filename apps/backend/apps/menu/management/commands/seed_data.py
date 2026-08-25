@@ -390,7 +390,7 @@ class Command(BaseCommand):
                 "avatar_url": "https://avatar.iran.liara.run/public/boy",
             },
         )
-        Address.objects.get_or_create(
+        addr, _ = Address.objects.get_or_create(
             customer=cust,
             label="Nhà riêng",
             defaults={
@@ -402,5 +402,144 @@ class Command(BaseCommand):
                 "is_default": True,
             },
         )
+
+        # 7. Sample Orders for Testing All Statuses and Types
+        from apps.orders.models import Order, OrderItem
+
+        prods = list(Product.objects.filter(status=Product.Status.AVAILABLE)[:3])
+        if prods:
+            # Order 1: Đang chuẩn bị (Giao tận nơi)
+            o1, created1 = Order.objects.get_or_create(
+                order_code="BD6-260825-001",
+                defaults={
+                    "idempotency_key": "seed_idem_001",
+                    "customer": cust,
+                    "status": Order.Status.PREPARING,
+                    "delivery_type": Order.DeliveryType.DELIVERY,
+                    "recipient_name": "Nguyễn Văn A",
+                    "phone": "0909123456",
+                    "delivery_address": "45 Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
+                    "delivery_latitude": Decimal("10.775000"),
+                    "delivery_longitude": Decimal("106.700000"),
+                    "distance_km": Decimal("1.2"),
+                    "subtotal": prods[0].price,
+                    "shipping_fee": Decimal("10000.00"),
+                    "discount": Decimal("0.00"),
+                    "total_amount": prods[0].price + Decimal("10000.00"),
+                    "payment_method": Order.PaymentMethod.COD,
+                    "note": "Giao giờ trưa giúp mình nhé",
+                },
+            )
+            if created1:
+                OrderItem.objects.create(
+                    order=o1,
+                    product=prods[0],
+                    product_name=prods[0].name,
+                    unit_price=prods[0].price,
+                    quantity=1,
+                    subtotal=prods[0].price,
+                )
+
+            # Order 2: Đang giao hàng (Hẹn giờ)
+            o2, created2 = Order.objects.get_or_create(
+                order_code="BD6-260825-002",
+                defaults={
+                    "idempotency_key": "seed_idem_002",
+                    "customer": cust,
+                    "status": Order.Status.DELIVERING,
+                    "delivery_type": Order.DeliveryType.DELIVERY,
+                    "recipient_name": "Trần Thị B",
+                    "phone": "0912345678",
+                    "delivery_address": "88 Hàm Nghi, Phường Bến Nghé, Quận 1, TP.HCM",
+                    "delivery_latitude": Decimal("10.771000"),
+                    "delivery_longitude": Decimal("106.703000"),
+                    "distance_km": Decimal("1.8"),
+                    "subtotal": prods[1].price * 2,
+                    "shipping_fee": Decimal("10000.00"),
+                    "discount": Decimal("20000.00"),
+                    "total_amount": (prods[1].price * 2) - Decimal("10000.00"),
+                    "payment_method": Order.PaymentMethod.BANK_TRANSFER,
+                    "note": "Ít cay, nhiều rau sống",
+                },
+            )
+            if created2:
+                OrderItem.objects.create(
+                    order=o2,
+                    product=prods[1],
+                    product_name=prods[1].name,
+                    unit_price=prods[1].price,
+                    quantity=2,
+                    subtotal=prods[1].price * 2,
+                )
+
+            # Order 3: Đã hoàn tất (Tự đến lấy)
+            o3, created3 = Order.objects.get_or_create(
+                order_code="BD6-260825-003",
+                defaults={
+                    "idempotency_key": "seed_idem_003",
+                    "customer": cust,
+                    "status": Order.Status.COMPLETED,
+                    "delivery_type": Order.DeliveryType.PICKUP,
+                    "recipient_name": "Lê Văn C",
+                    "phone": "0988776655",
+                    "delivery_address": "[Nhận tại quán] 123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+                    "delivery_latitude": Decimal("10.776900"),
+                    "delivery_longitude": Decimal("106.700900"),
+                    "subtotal": prods[0].price + prods[2].price,
+                    "shipping_fee": Decimal("0.00"),
+                    "discount": Decimal("0.00"),
+                    "total_amount": prods[0].price + prods[2].price,
+                    "payment_method": Order.PaymentMethod.COD,
+                    "note": "Ghé lấy lúc 12h",
+                },
+            )
+            if created3:
+                OrderItem.objects.create(
+                    order=o3,
+                    product=prods[0],
+                    product_name=prods[0].name,
+                    unit_price=prods[0].price,
+                    quantity=1,
+                    subtotal=prods[0].price,
+                )
+                OrderItem.objects.create(
+                    order=o3,
+                    product=prods[2],
+                    product_name=prods[2].name,
+                    unit_price=prods[2].price,
+                    quantity=1,
+                    subtotal=prods[2].price,
+                )
+
+            # Order 4: Đã hủy
+            o4, created4 = Order.objects.get_or_create(
+                order_code="BD6-260825-004",
+                defaults={
+                    "idempotency_key": "seed_idem_004",
+                    "customer": cust,
+                    "status": Order.Status.CANCELLED,
+                    "delivery_type": Order.DeliveryType.DELIVERY,
+                    "recipient_name": "Nguyễn Văn A",
+                    "phone": "0909123456",
+                    "delivery_address": "45 Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
+                    "delivery_latitude": Decimal("10.775000"),
+                    "delivery_longitude": Decimal("106.700000"),
+                    "subtotal": prods[0].price,
+                    "shipping_fee": Decimal("10000.00"),
+                    "discount": Decimal("0.00"),
+                    "total_amount": prods[0].price + Decimal("10000.00"),
+                    "payment_method": Order.PaymentMethod.COD,
+                    "cancellation_reason": "Khách hàng bận đột xuất muốn đổi thời gian",
+                },
+            )
+            if created4:
+                OrderItem.objects.create(
+                    order=o4,
+                    product=prods[0],
+                    product_name=prods[0].name,
+                    unit_price=prods[0].price,
+                    quantity=1,
+                    subtotal=prods[0].price,
+                )
 
         self.stdout.write(self.style.SUCCESS("Seeding completed successfully!"))

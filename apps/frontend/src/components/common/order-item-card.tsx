@@ -15,6 +15,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
 
   const isCancelled = order.status === "CANCELLED";
   const isCompleted = order.status === "COMPLETED";
+  const isPickup = order.delivery_type === "PICKUP";
 
   return (
     <div
@@ -22,12 +23,18 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
       className="w-full cursor-pointer rounded-2xl border border-black/5 bg-transparent p-3.5 transition-all active:scale-[0.99] active:bg-black/[0.02]"
     >
       <div className="mb-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
+              isPickup
+                ? "border border-amber-300/50 bg-amber-500/10 text-amber-800"
+                : "border border-primary/30 bg-primary/10 text-primary"
+            }`}
+          >
+            {isPickup ? "Tự lấy" : "Giao hàng"}
+          </span>
           <span className="text-xs font-bold text-neutral900">
             #{order.order_code}
-          </span>
-          <span className="text-xxsmall text-neutral400">
-            • {new Date(order.created_at).toLocaleDateString("vi-VN")}
           </span>
         </div>
         <span
@@ -43,7 +50,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
         </span>
       </div>
 
-      <div className="mb-2.5 space-y-1 rounded-xl border border-black/5 bg-black/[0.02] p-2.5 text-xs">
+      <div className="mb-2.5 space-y-1.5 rounded-xl border border-black/5 bg-black/[0.02] p-2.5 text-xs">
         {order.items?.map((item) => (
           <div
             key={item.id}
@@ -62,13 +69,23 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
         ))}
       </div>
 
-      <div className="flex items-center justify-between border-t border-black/5 pt-1.5 text-xs">
-        <span className="text-neutral500">
-          Tổng cộng ({totalQuantity} món):
+      <div className="flex items-center justify-between border-t border-black/5 pt-2 text-xs">
+        <span className="text-xxsmall text-neutral400">
+          {new Date(order.created_at).toLocaleString("vi-VN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            day: "2-digit",
+            month: "2-digit",
+          })}
         </span>
-        <span className="text-sm font-normal text-black">
-          {formatCurrency(order.total_amount)}đ
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xxsmall text-neutral500">
+            Tổng ({totalQuantity} món):
+          </span>
+          <span className="text-sm font-bold text-neutral-900">
+            {formatCurrency(order.total_amount)}đ
+          </span>
+        </div>
       </div>
     </div>
   );

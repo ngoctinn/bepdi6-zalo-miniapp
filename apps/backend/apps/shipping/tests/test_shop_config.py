@@ -76,6 +76,7 @@ class TestShopConfig:
         assert data["success"] is True
         assert data["data"]["shop_name"] == "Bếp Dì 6"
         assert data["data"]["is_open"] is True
+        assert data["data"]["prep_time_minutes"] == 20
         assert float(data["data"]["min_order_amount"]) == 30000.0
         assert float(data["data"]["min_order_for_freeship"]) == 150000.0
 

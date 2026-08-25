@@ -329,6 +329,20 @@ export default function OrderDetailPage() {
               </span>
             )}
           </div>
+          {order.scheduled_delivery_at && (
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <span className="rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
+                ⏰ {isPickup ? "Giờ hẹn lấy:" : "Giờ hẹn giao:"}{" "}
+                {new Date(order.scheduled_delivery_at).toLocaleTimeString(
+                  "vi-VN",
+                  {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  },
+                )}
+              </span>
+            </div>
+          )}
           {order.note && (
             <div className="mt-1 text-xxsmall italic text-neutral500">
               Ghi chú: "{order.note}"

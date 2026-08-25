@@ -1,35 +1,37 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  HomeIcon,
-  MenuIcon,
-  OrderIcon,
-  SelfIcon,
-} from "@/components/common/vectors";
+import { HomeIcon, CartNavIcon, OrderIcon } from "@/components/common/vectors";
 import { copy } from "@/constants/copy";
 import { cn } from "@/utils/cn";
-
-const NAV_ITEMS = [
-  {
-    name: copy.nav.home,
-    path: "/",
-    icon: HomeIcon,
-  },
-  {
-    name: copy.nav.order,
-    path: "/order",
-    icon: OrderIcon,
-  },
-  {
-    name: copy.nav.profile,
-    path: "/profile",
-    icon: SelfIcon,
-  },
-];
+import { useCartStore } from "@/stores/cart.store";
 
 export default function Footer() {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
+  const { items } = useCartStore();
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const NAV_ITEMS = [
+    {
+      name: copy.nav.home || "Thực đơn",
+      path: "/",
+      icon: HomeIcon,
+      badge: 0,
+    },
+    {
+      name: copy.nav.cart || "Giỏ hàng",
+      path: "/checkout",
+      icon: CartNavIcon,
+      badge: totalItems,
+    },
+    {
+      name: copy.nav.order || "Đơn hàng",
+      path: "/order",
+      icon: OrderIcon,
+      badge: 0,
+    },
+  ];
+
   const activeKey =
     NAV_ITEMS.find((item) =>
       item.path === "/" ? pathname === "/" : pathname.startsWith(item.path),
@@ -39,11 +41,18 @@ export default function Footer() {
     <div className="flex justify-between border-divider01 border-t bg-white px-8 pb-5 pt-4">
       {NAV_ITEMS.map((item) => (
         <div
-          className="flex flex-col items-center gap-1"
+          className="relative flex cursor-pointer flex-col items-center gap-1"
           key={item.path}
           onClick={() => navigate(item.path)}
         >
-          <item.icon active={activeKey === item.path} />
+          <div className="relative">
+            <item.icon active={activeKey === item.path} />
+            {item.badge > 0 && (
+              <span className="shadow-xs absolute -right-2.5 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-extrabold text-white">
+                {item.badge > 99 ? "99+" : item.badge}
+              </span>
+            )}
+          </div>
           <div
             className={cn(
               "text-xxxxsmall font-medium",

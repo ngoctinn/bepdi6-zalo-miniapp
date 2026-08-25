@@ -255,3 +255,47 @@ def test_create_pickup_order_success(test_setup):
     OrderService.update_order_status(order, Order.Status.READY)
     completed_order = OrderService.update_order_status(order, Order.Status.COMPLETED)
     assert completed_order.status == Order.Status.COMPLETED
+
+
+@pytest.mark.django_db
+def test_create_order_scheduled_delivery(test_setup):
+    from django.utils import timezone
+
+    from apps.shipping.models import ShopConfig
+
+    customer = test_setup["customer"]
+    product = test_setup["product"]
+    address = test_setup["address"]
+
+    shop_config = ShopConfig.get_solo()
+    shop_config.is_open = True
+    shop_config.prep_time_minutes = 20
+    shop_config.open_time = None
+    shop_config.close_time = None
+    shop_config.save()
+
+    now_dt = timezone.localtime()
+
+    # 1. Hẹn giờ quá gấp (< 10 phút) -> Lỗi
+    too_early = now_dt + timezone.timedelta(minutes=2)
+    with pytest.raises(OrderProcessingError) as exc:
+        OrderService.create_order(
+            customer=customer,
+            idempotency_key="idemp_sched_too_early",
+            items_data=[{"product_id": product.id, "quantity": 1}],
+            address=address,
+            scheduled_delivery_at=too_early,
+        )
+    assert exc.value.code == "INVALID_SCHEDULED_TIME"
+
+    # 2. Hẹn giờ hợp lệ (+45 phút) -> Thành công
+    valid_time = now_dt + timezone.timedelta(minutes=45)
+    order = OrderService.create_order(
+        customer=customer,
+        idempotency_key="idemp_sched_valid",
+        items_data=[{"product_id": product.id, "quantity": 1}],
+        address=address,
+        scheduled_delivery_at=valid_time,
+    )
+    assert order.id is not None
+    assert order.scheduled_delivery_at is not None
