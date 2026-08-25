@@ -57,22 +57,26 @@ export default function QuantityStepper({
       className={`flex items-center ${variantClasses[variant]} ${className}`}
     >
       <button
+        type="button"
         onClick={onDecrease}
         disabled={isDecreaseDisabled}
         className={`${buttonBaseClasses} ${sizeClasses[size].button} font-bold`}
+        aria-label="Giảm"
       >
         <span>−</span>
       </button>
       <span
-        className={`${sizeClasses[size].display} text-normal font-semibold text-stone-800`}
+        className={`${sizeClasses[size].display} text-xs font-semibold text-neutral900`}
       >
         {value}
         {displaySuffix}
       </span>
       <button
+        type="button"
         onClick={onIncrease}
         disabled={isIncreaseDisabled}
         className={`${buttonBaseClasses} ${sizeClasses[size].button} font-bold`}
+        aria-label="Tăng"
       >
         <span>+</span>
       </button>

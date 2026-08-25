@@ -86,14 +86,14 @@ export default function ProductCard({
 
   return (
     <div
-      className="group flex w-full cursor-pointer flex-col transition-all active:opacity-85"
+      className="group flex w-full cursor-pointer flex-col transition-all active:opacity-90"
       onClick={handleCardClick}
     >
       {/* Large Product Image with Quantity Badge */}
-      <div className="shadow-xs relative aspect-square w-full overflow-hidden rounded-2xl bg-amber-100/40 ring-1 ring-black/5">
+      <div className="shadow-xs relative aspect-square w-full overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-black/5">
         {isOutOfStock && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/45 backdrop-blur-[2px]">
-            <span className="rounded-md bg-black/75 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white">
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+            <span className="rounded-md bg-black/80 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white">
               TẠM HẾT
             </span>
           </div>
@@ -116,20 +116,20 @@ export default function ProductCard({
 
       {/* Product Info & Price Below */}
       <div className="mt-2 flex flex-col">
-        <div className="line-clamp-2 min-h-[36px] text-[13.5px] font-normal leading-snug text-black">
+        <div className="line-clamp-2 min-h-[38px] text-sm font-semibold leading-snug text-neutral900">
           {product.name}
         </div>
         {product.description && (
-          <div className="mt-0.5 line-clamp-1 text-[11.5px] leading-snug text-neutral-500">
+          <div className="mt-0.5 line-clamp-1 text-xs leading-normal text-neutral500">
             {product.description}
           </div>
         )}
       </div>
 
-      <div className="mt-1 flex items-center justify-between pt-1">
-        <div className="text-[14px] font-normal text-black">
+      <div className="mt-1.5 flex items-center justify-between pt-0.5">
+        <div className="text-sm font-bold text-neutral900">
           {formatCurrency(product.price)}
-          <span className="ml-0.5 text-xs text-neutral-500">đ</span>
+          <span className="ml-0.5 text-xs font-medium text-neutral500">đ</span>
         </div>
 
         {!isOutOfStock && (
@@ -159,7 +159,7 @@ export default function ProductCard({
                   </svg>
                 </button>
 
-                <span className="min-w-[16px] text-center text-xs font-extrabold text-[#1E293B]">
+                <span className="min-w-[16px] text-center text-xs font-bold text-neutral900">
                   {totalQuantityInCart}
                 </span>
 

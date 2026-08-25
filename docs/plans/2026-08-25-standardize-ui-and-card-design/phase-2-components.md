@@ -42,9 +42,9 @@ This plan was created with `--auto`. When resuming or continuing this plan, foll
 
 | Status  | Task                                                                 |
 | ------- | -------------------------------------------------------------------- |
-| ⬜ TODO | Task 2.1: Tái cấu trúc ProductCard theo chuẩn UX/UI Typography & Stepper |
-| ⬜ TODO | Task 2.2: Tối ưu và đồng bộ QuantityStepper (touch target & font weight) |
-| ⬜ TODO | Task 2.3: Chuẩn hóa CartItemCard, CategoryList & ProductFeatureList |
+| ✅ DONE | Task 2.1: Tái cấu trúc ProductCard theo chuẩn UX/UI Typography & Stepper |
+| ✅ DONE | Task 2.2: Tối ưu và đồng bộ QuantityStepper (touch target & font weight) |
+| ✅ DONE | Task 2.3: Chuẩn hóa CartItemCard, CategoryList & ProductFeatureList |
 
 ## Tasks
 

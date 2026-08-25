@@ -58,7 +58,7 @@ This plan was created with `--auto`. When resuming or continuing this plan, foll
 
 | Status  | Phase                                     | File                                     | Tasks   |
 | ------- | ----------------------------------------- | ---------------------------------------- | ------- |
-| ⬜ TODO | Phase 1: Foundation (Font & Design Tokens) | [phase-1-foundation.md](./phase-1-foundation.md) | 2 tasks |
+| ✅ DONE | Phase 1: Foundation (Font & Design Tokens) | [phase-1-foundation.md](./phase-1-foundation.md) | 2 tasks |
 | ⬜ TODO | Phase 2: Card & Component Standardization | [phase-2-components.md](./phase-2-components.md) | 3 tasks |
 
 ## Assumptions

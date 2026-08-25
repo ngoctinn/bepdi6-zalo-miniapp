@@ -22,8 +22,8 @@ export default function ProductFeatureList({
             className={cn(
               "cursor-pointer whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium",
               feature.id === selectedId
-                ? "bg-yellow100 text-orange600"
-                : "text-gray500 bg-neutral100",
+                ? "border border-primary bg-primary/15 font-semibold text-primaryDark"
+                : "border border-black/5 bg-neutral100 font-medium text-neutral600",
             )}
           >
             {feature.name}
