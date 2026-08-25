@@ -89,19 +89,13 @@ export default function ProductCard({
       className="group flex w-full cursor-pointer flex-col transition-all active:opacity-90"
       onClick={handleCardClick}
     >
-      {/* Large Product Image with Quantity Badge */}
+      {/* Large Product Image */}
       <div className="shadow-xs relative aspect-square w-full overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-black/5">
         {isOutOfStock && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
             <span className="rounded-md bg-black/80 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white">
               TẠM HẾT
             </span>
-          </div>
-        )}
-
-        {totalQuantityInCart > 0 && (
-          <div className="absolute right-2 top-2 z-20 flex h-6 min-w-[24px] items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-white shadow-md">
-            {totalQuantityInCart}
           </div>
         )}
 
