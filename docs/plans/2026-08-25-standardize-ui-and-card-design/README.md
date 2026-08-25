@@ -1,14 +1,14 @@
 ---
 slug: 2026-08-25-standardize-ui-and-card-design
 auto: true
-status: in-progress
+status: done
 ---
 
 # Plan: Chuẩn hóa Giao diện, Typography và Card Gọi Món (Bếp Dì 6)
 
 **Mode:** normal
 **Created:** 2026-08-25
-**Status:** IN PROGRESS
+**Status:** ✅ DONE
 
 ## Overview
 
@@ -59,7 +59,7 @@ This plan was created with `--auto`. When resuming or continuing this plan, foll
 | Status  | Phase                                     | File                                     | Tasks   |
 | ------- | ----------------------------------------- | ---------------------------------------- | ------- |
 | ✅ DONE | Phase 1: Foundation (Font & Design Tokens) | [phase-1-foundation.md](./phase-1-foundation.md) | 2 tasks |
-| ⬜ TODO | Phase 2: Card & Component Standardization | [phase-2-components.md](./phase-2-components.md) | 3 tasks |
+| ✅ DONE | Phase 2: Card & Component Standardization | [phase-2-components.md](./phase-2-components.md) | 3 tasks |
 
 ## Assumptions
 
