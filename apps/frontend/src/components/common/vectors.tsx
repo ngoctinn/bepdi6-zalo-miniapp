@@ -378,16 +378,18 @@ export function CartIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-type CloseIconProps = {
+type CloseIconProps = HTMLProps<SVGSVGElement> & {
   color?: string;
   size?: number | string;
   strokeWidth?: number;
 };
 
 export function CloseIcon({
-  color = "black",
+  color = "currentColor",
   size = 24,
   strokeWidth = 2,
+  className,
+  ...props
 }: CloseIconProps) {
   return (
     <svg
@@ -398,6 +400,8 @@ export function CloseIcon({
       height={size}
       strokeWidth={strokeWidth}
       stroke={color}
+      className={className}
+      {...props}
     >
       <path
         strokeLinecap="round"
