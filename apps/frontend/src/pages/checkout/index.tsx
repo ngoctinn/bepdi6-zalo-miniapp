@@ -261,8 +261,8 @@ export default function CheckoutPage() {
           onClick={() => setDeliveryType("DELIVERY")}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
             deliveryType === "DELIVERY"
-              ? "shadow-xs border border-green600 bg-emerald-500/15 text-green800"
-              : "text-stone-600 hover:text-green800"
+              ? "shadow-xs border-green600 text-green800 border bg-emerald-500/15"
+              : "hover:text-green800 text-stone-600"
           }`}
         >
           <svg
@@ -284,8 +284,8 @@ export default function CheckoutPage() {
           onClick={() => setDeliveryType("PICKUP")}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
             deliveryType === "PICKUP"
-              ? "shadow-xs border border-green600 bg-emerald-500/15 text-green800"
-              : "text-stone-600 hover:text-green800"
+              ? "shadow-xs border-green600 text-green800 border bg-emerald-500/15"
+              : "hover:text-green800 text-stone-600"
           }`}
         >
           <svg
@@ -383,7 +383,7 @@ export default function CheckoutPage() {
                 value={pickupName}
                 onChange={(e) => setPickupName(e.target.value)}
                 placeholder="Tên của bạn"
-                className="w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900 focus:border-green600"
+                className="focus:border-green600 w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900"
               />
             </div>
             <div>
@@ -395,7 +395,7 @@ export default function CheckoutPage() {
                 value={pickupPhone}
                 onChange={(e) => setPickupPhone(e.target.value)}
                 placeholder="0901234567"
-                className="w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900 focus:border-green600"
+                className="focus:border-green600 w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900"
               />
             </div>
           </div>
@@ -475,7 +475,7 @@ export default function CheckoutPage() {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Ghi chú thêm cho shipper hoặc quán..."
-            className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-xs text-neutral900 placeholder:text-neutral400 focus:border-green600 focus:outline-none focus:ring-1 focus:ring-green600/30"
+            className="focus:border-green600 focus:ring-green600/30 w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-xs text-neutral900 placeholder:text-neutral400 focus:outline-none focus:ring-1"
           />
         </div>
       </div>
@@ -491,7 +491,7 @@ export default function CheckoutPage() {
             value={voucherCodeInput}
             onChange={(e) => setVoucherCodeInput(e.target.value.toUpperCase())}
             placeholder="Nhập mã voucher..."
-            className="flex-1 rounded-xl border border-black/10 bg-transparent px-3 py-2 text-xs uppercase text-neutral900 placeholder:text-neutral400 focus:border-green600 focus:outline-none focus:ring-1 focus:ring-green600/30"
+            className="focus:border-green600 focus:ring-green600/30 flex-1 rounded-xl border border-black/10 bg-transparent px-3 py-2 text-xs uppercase text-neutral900 placeholder:text-neutral400 focus:outline-none focus:ring-1"
             disabled={Boolean(appliedVoucherCode)}
           />
           {appliedVoucherCode ? (
@@ -612,7 +612,7 @@ export default function CheckoutPage() {
 
         <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-normal text-black">
           <span>Tổng thanh toán</span>
-          <span className="text-base font-bold text-green800">
+          <span className="text-green800 text-base font-bold">
             {formatCurrency(displayTotal)}đ
           </span>
         </div>

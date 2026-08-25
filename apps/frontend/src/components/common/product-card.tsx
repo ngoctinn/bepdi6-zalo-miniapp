@@ -142,7 +142,7 @@ export default function ProductCard({
                 <button
                   type="button"
                   onClick={handleQuickDecrease}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-emerald-50 text-primary transition-transform active:scale-90"
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary transition-transform active:scale-90"
                   aria-label="Giảm số lượng"
                 >
                   <svg

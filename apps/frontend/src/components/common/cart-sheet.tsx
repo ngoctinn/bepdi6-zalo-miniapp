@@ -44,7 +44,7 @@ export default function CartSheet({
           >
             <CloseIcon />
           </Button>
-          <div className="flex-1 py-1 text-center text-base font-bold text-green800">
+          <div className="text-green800 flex-1 py-1 text-center text-base font-bold">
             {copy.common.updateCart}
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function CartSheet({
               <button
                 type="button"
                 onClick={onConfirm}
-                className="flex flex-1 items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:bg-green800 active:scale-[0.98]"
+                className="flex flex-1 items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:bg-primaryDark active:scale-[0.98]"
               >
                 <span>Thanh toán</span>
                 <span>{formatCurrency(totalAmount)}đ</span>

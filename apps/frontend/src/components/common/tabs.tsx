@@ -42,8 +42,8 @@ export function Tabs<T extends string>({
               "select-none whitespace-nowrap",
               fullWidth ? "flex-1" : "w-auto",
               isActive
-                ? "shadow-xs border border-green-600 bg-emerald-500/15 font-bold text-green-800"
-                : "border border-black/5 bg-black/[0.03] font-medium text-stone-600 hover:bg-emerald-500/10 hover:text-green-800",
+                ? "shadow-xs border border-primary bg-primary/15 font-bold text-primaryDark"
+                : "border border-black/5 bg-black/[0.03] font-medium text-stone-600 hover:bg-primary/10 hover:text-primaryDark",
             )}
             type="button"
           >

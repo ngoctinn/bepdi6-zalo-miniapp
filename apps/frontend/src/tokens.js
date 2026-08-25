@@ -84,13 +84,16 @@ const base = {
     stone800: "#292524",
     stone900: "#1C1917",
 
-    green50: "#F0FDF4",
-    green100: "#DCFCE7",
-    green500: "#22C55E",
-    green600: "#16A34A", // Emerald 600 - Brand Primary
-    green700: "#15803D",
-    green800: "#166534",
+    // Rustic Olive Palette (Xanh rêu mộc mạc - lá chuối hấp miền Tây)
+    olive50: "#F7FEE7",
+    olive100: "#ECFCCB",
+    olive200: "#D9F99D",
+    olive600: "#65A30D",
+    olive700: "#4D7C0F", // Rustic Olive Brand Primary
+    olive800: "#3F6212", // Rustic Olive Brand Pressed
+    olive900: "#365314",
 
+    // Warm Ginger & Amber (Vàng mật ong / gừng)
     amber50: "#FFFBEB",
     amber100: "#FEF3C7",
     amber500: "#F59E0B",
@@ -122,10 +125,10 @@ const base = {
 
 const semantic = {
   colors: {
-    primary: base.colors.green600, // #16A34A — Xanh lá tươi sạch
-    primaryDark: base.colors.green800, // #166534
-    primaryLight: base.colors.green100, // #DCFCE7
-    brandAccent: base.colors.amber600, // #D97706
+    primary: base.colors.olive700, // #4D7C0F — Xanh rêu mộc mạc (Rustic Olive)
+    primaryDark: base.colors.olive800, // #3F6212
+    primaryLight: base.colors.olive100, // #ECFCCB
+    brandAccent: base.colors.amber600, // #D97706 — Vàng gừng mật ong
     background: base.colors.stone50, // #FAFAF9 — Nền sạch ấm cúng
     surface: "#FFFFFF",
     surfaceSubtle: "rgba(0,0,0,0.02)",
@@ -144,8 +147,8 @@ const semantic = {
     icon: {
       tertiary: base.colors.neutral500,
     },
-    accent: base.colors.green600,
-    info: base.colors.green600,
+    accent: base.colors.olive700,
+    info: base.colors.olive700,
     warning: base.colors.amber600,
     danger: base.colors.red600,
     components: {
@@ -169,7 +172,7 @@ const semantic = {
           textOnBackground: base.colors.white,
         },
         new: {
-          backgroundColor: base.colors.green600,
+          backgroundColor: base.colors.olive700,
           textOnBackground: base.colors.white,
         },
         discount: {
@@ -178,23 +181,23 @@ const semantic = {
         },
       },
       sub_cate: {
-        border: base.colors.green100,
+        border: base.colors.olive100,
       },
       chip: {
         backgroundColor: base.colors.white,
         textOnBackground: base.colors.neutral600,
         border: base.colors.neutral200,
         selected: {
-          backgroundColor: base.colors.green600,
+          backgroundColor: base.colors.olive700,
           textOnBackground: base.colors.white,
         },
         feature: {
           unselected: {
-            backgroundColor: base.colors.green50,
+            backgroundColor: base.colors.olive50,
             textOnBackground: base.colors.neutral600,
           },
           selected: {
-            backgroundColor: base.colors.green600,
+            backgroundColor: base.colors.olive700,
             textOnBackground: base.colors.white,
           },
         },

@@ -388,7 +388,7 @@ export default function ProductDetailSheet({
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className="flex flex-1 items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:bg-green800 active:scale-[0.98]"
+                className="hover:bg-green800 flex flex-1 items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all active:scale-[0.98]"
               >
                 <span>
                   {isEditMode ? copy.common.updateCart : copy.common.addToCart}

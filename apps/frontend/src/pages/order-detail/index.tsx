@@ -273,7 +273,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-neutral500">Số tiền:</span>
-                  <span className="text-sm font-bold text-green800">
+                  <span className="text-green800 text-sm font-bold">
                     {formatCurrency(order.total_amount)}đ
                   </span>
                 </div>
@@ -397,7 +397,7 @@ export default function OrderDetailPage() {
         )}
         <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-normal text-black">
           <span>Tổng thanh toán</span>
-          <span className="text-base font-bold text-green800">
+          <span className="text-green800 text-base font-bold">
             {formatCurrency(order.total_amount)}đ
           </span>
         </div>

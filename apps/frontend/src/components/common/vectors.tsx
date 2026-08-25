@@ -1,8 +1,8 @@
 import { HTMLProps } from "react";
 import { theme } from "@/constants/copy";
 
-const iconColors = {
-  active: theme.colors.primary, // #15803D — xanh lá brand primary khi active
+export const navIconColors = {
+  active: theme.colors.primary, // #4D7C0F — xanh rêu rustic olive khi active
   inactive: "#A8A29E", // stone-400 — trung tính khi inactive
   accent: theme.colors.primary,
   white: theme.colors.white,
