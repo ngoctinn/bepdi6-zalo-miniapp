@@ -321,7 +321,7 @@ export default function ProductDetailSheet({
                                     className={cn(
                                       "flex h-5 w-5 items-center justify-center rounded-full border transition-all",
                                       isSelected
-                                        ? "border-green600 bg-green600 text-white"
+                                        ? "border-primary bg-primary text-white"
                                         : "border-stone-300 bg-transparent",
                                     )}
                                   >

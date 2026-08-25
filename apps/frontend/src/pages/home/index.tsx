@@ -26,7 +26,9 @@ export default function HomePage() {
 
     return categories
       .map((cat) => {
-        const prods = allProducts.filter((p) => p.category === cat.id);
+        const prods = allProducts.filter(
+          (p) => (p.category_id ?? p.category) === cat.id,
+        );
         return {
           category: cat,
           products: prods,

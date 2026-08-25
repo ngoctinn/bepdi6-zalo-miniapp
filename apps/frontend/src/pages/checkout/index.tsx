@@ -261,8 +261,8 @@ export default function CheckoutPage() {
           onClick={() => setDeliveryType("DELIVERY")}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
             deliveryType === "DELIVERY"
-              ? "shadow-xs border-green600 text-green800 border bg-emerald-500/15"
-              : "hover:text-green800 text-stone-600"
+              ? "shadow-xs border border-primary bg-primary/15 text-primaryDark"
+              : "text-stone-600 hover:text-primaryDark"
           }`}
         >
           <svg
@@ -284,8 +284,8 @@ export default function CheckoutPage() {
           onClick={() => setDeliveryType("PICKUP")}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
             deliveryType === "PICKUP"
-              ? "shadow-xs border-green600 text-green800 border bg-emerald-500/15"
-              : "hover:text-green800 text-stone-600"
+              ? "shadow-xs border border-primary bg-primary/15 text-primaryDark"
+              : "text-stone-600 hover:text-primaryDark"
           }`}
         >
           <svg
@@ -475,7 +475,7 @@ export default function CheckoutPage() {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Ghi chú thêm cho shipper hoặc quán..."
-            className="focus:border-green600 focus:ring-green600/30 w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-xs text-neutral900 placeholder:text-neutral400 focus:outline-none focus:ring-1"
+            className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-xs text-neutral900 placeholder:text-neutral400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
           />
         </div>
       </div>
@@ -491,7 +491,7 @@ export default function CheckoutPage() {
             value={voucherCodeInput}
             onChange={(e) => setVoucherCodeInput(e.target.value.toUpperCase())}
             placeholder="Nhập mã voucher..."
-            className="focus:border-green600 focus:ring-green600/30 flex-1 rounded-xl border border-black/10 bg-transparent px-3 py-2 text-xs uppercase text-neutral900 placeholder:text-neutral400 focus:outline-none focus:ring-1"
+            className="flex-1 rounded-xl border border-black/10 bg-transparent px-3 py-2 text-xs uppercase text-neutral900 placeholder:text-neutral400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
             disabled={Boolean(appliedVoucherCode)}
           />
           {appliedVoucherCode ? (
@@ -532,38 +532,42 @@ export default function CheckoutPage() {
         <div className="space-y-2">
           <label
             onClick={() => setPaymentMethod("COD")}
-            className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
+            className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all ${
               paymentMethod === "COD"
-                ? "border-green600 bg-emerald-500/10 font-semibold text-neutral900"
+                ? "border-primary bg-primary/10 font-semibold text-neutral900"
                 : "border-black/5 bg-transparent text-neutral600"
             }`}
           >
-            <span className="text-xs">Tiền mặt khi nhận hàng (COD)</span>
-            <input
-              type="radio"
-              name="payment_method"
-              checked={paymentMethod === "COD"}
-              onChange={() => setPaymentMethod("COD")}
-              className="accent-primary"
-            />
+            <div className="flex items-center gap-2.5">
+              <input
+                type="radio"
+                name="payment_method"
+                checked={paymentMethod === "COD"}
+                onChange={() => setPaymentMethod("COD")}
+                className="h-4 w-4 cursor-pointer accent-primary"
+              />
+              <span className="text-xs">Tiền mặt khi nhận hàng (COD)</span>
+            </div>
           </label>
 
           <label
             onClick={() => setPaymentMethod("BANK_TRANSFER")}
-            className={`flex cursor-pointer items-center justify-between rounded-xl border p-2.5 transition-all ${
+            className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all ${
               paymentMethod === "BANK_TRANSFER"
-                ? "border-green600 bg-emerald-500/10 font-semibold text-neutral900"
+                ? "border-primary bg-primary/10 font-semibold text-neutral900"
                 : "border-black/5 bg-transparent text-neutral600"
             }`}
           >
-            <span className="text-xs">Chuyển khoản VietQR tự động</span>
-            <input
-              type="radio"
-              name="payment_method"
-              checked={paymentMethod === "BANK_TRANSFER"}
-              onChange={() => setPaymentMethod("BANK_TRANSFER")}
-              className="accent-primary"
-            />
+            <div className="flex items-center gap-2.5">
+              <input
+                type="radio"
+                name="payment_method"
+                checked={paymentMethod === "BANK_TRANSFER"}
+                onChange={() => setPaymentMethod("BANK_TRANSFER")}
+                className="h-4 w-4 cursor-pointer accent-primary"
+              />
+              <span className="text-xs">Chuyển khoản VietQR tự động</span>
+            </div>
           </label>
         </div>
       </div>

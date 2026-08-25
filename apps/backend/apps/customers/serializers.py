@@ -37,7 +37,17 @@ class AddressSerializer(serializers.ModelSerializer):
 
 
 class ZaloAuthRequestSerializer(serializers.Serializer):
-    zalo_token = serializers.CharField(required=True)
+    zalo_token = serializers.CharField(required=False, allow_blank=True, default="")
+    access_token = serializers.CharField(required=False, allow_blank=True, default="")
     phone_token = serializers.CharField(required=False, allow_blank=True, default="")
     name = serializers.CharField(required=False, allow_blank=True, default="")
     avatar_url = serializers.CharField(required=False, allow_blank=True, default="")
+
+    def validate(self, attrs):
+        token = attrs.get("zalo_token") or attrs.get("access_token")
+        if not token:
+            raise serializers.ValidationError(
+                {"zalo_token": "Trường zalo_token hoặc access_token là bắt buộc."}
+            )
+        attrs["zalo_token"] = token
+        return attrs

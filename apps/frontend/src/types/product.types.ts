@@ -20,7 +20,8 @@ export interface OptionGroup {
 
 export interface Product {
   id: number;
-  category: number;
+  category?: number;
+  category_id?: number;
   category_name?: string;
   name: string;
   description?: string;
