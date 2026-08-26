@@ -1,4 +1,4 @@
-import { Avatar, Text, useSnackbar } from "zmp-ui";
+import { Avatar } from "zmp-ui";
 import { copy } from "@/constants/copy";
 import {
   ChevronRightIcon,
@@ -8,17 +8,15 @@ import {
 } from "@/components/common/vectors";
 import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "react-router-dom";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 export default function ProfilePage() {
-  const { openSnackbar } = useSnackbar();
+  const { showWarning } = useAppToast();
   const navigate = useNavigate();
   const { customer, login, logout, isAuthenticated } = useAuth();
 
   const handleDevelopingClick = () => {
-    openSnackbar({
-      text: copy.profile.featureDeveloping,
-      type: "warning",
-    });
+    showWarning(copy.profile.featureDeveloping);
   };
 
   return (

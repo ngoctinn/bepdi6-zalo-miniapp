@@ -15,7 +15,7 @@ import {
 } from "@/services/order/order.mutations";
 import { useShopInfo } from "@/services/shop/shop.queries";
 import { useAuth } from "@/hooks/use-auth";
-import { Button, Input, Text, useSnackbar } from "zmp-ui";
+import { Button, Input, Text } from "zmp-ui";
 import { formatCurrency } from "@/utils/format";
 import {
   CheckoutPreviewResponse,
@@ -23,6 +23,8 @@ import {
   PaymentMethod,
 } from "@/types/order.types";
 import { formatVariantWithPercentage } from "@/utils/cart";
+import { useAppToast } from "@/hooks/use-app-toast";
+import { ErrorModal } from "@/components/common/error-modal";
 
 // Hàm sinh UUID v4 cho Idempotency-Key
 function generateUUID() {
@@ -35,7 +37,7 @@ function generateUUID() {
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { openSnackbar } = useSnackbar();
+  const { showSuccess, showError, showWarning } = useAppToast();
   const { customer } = useAuth();
 
   // Stores
@@ -57,6 +59,13 @@ export default function CheckoutPage() {
   const [previewData, setPreviewData] =
     useState<CheckoutPreviewResponse | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [orderErrorModal, setOrderErrorModal] = useState<{
+    visible: boolean;
+    title?: string;
+    message?: string;
+  }>({
+    visible: false,
+  });
 
   // Prefill customer info for Pickup
   useEffect(() => {
@@ -131,46 +140,43 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (cartItems.length === 0) {
-      openSnackbar({ text: "Giỏ hàng của bạn đang trống", type: "warning" });
+      showWarning("Giỏ hàng của bạn đang trống");
       return;
     }
 
     if (deliveryType === "DELIVERY" && !selectedAddress) {
-      openSnackbar({
-        text: "Vui lòng chọn địa chỉ nhận hàng",
-        type: "warning",
-      });
+      showWarning("Vui lòng chọn địa chỉ nhận hàng");
       navigate("/select-location");
       return;
     }
 
     if (deliveryType === "PICKUP") {
       if (!pickupName.trim()) {
-        openSnackbar({
-          text: "Vui lòng nhập tên người nhận món tại quán",
-          type: "warning",
-        });
+        showWarning("Vui lòng nhập tên người nhận món tại quán");
         return;
       }
       if (!pickupPhone.trim()) {
-        openSnackbar({
-          text: "Vui lòng nhập số điện thoại người nhận",
-          type: "warning",
-        });
+        showWarning("Vui lòng nhập số điện thoại người nhận");
         return;
       }
     }
 
     if (shopInfo && !shopInfo.is_open) {
-      openSnackbar({
-        text: "Quán đang tạm ngưng nhận đơn hàng",
-        type: "warning",
+      setOrderErrorModal({
+        visible: true,
+        title: "Quán tạm ngưng nhận đơn",
+        message:
+          "Hiện tại quán đang tạm thời đóng cửa hoặc ngưng nhận đơn hàng mới. Vui lòng quay lại sau.",
       });
       return;
     }
 
     if (previewData && !previewData.is_valid && previewData.message) {
-      openSnackbar({ text: previewData.message, type: "error" });
+      setOrderErrorModal({
+        visible: true,
+        title: "Đơn hàng không hợp lệ",
+        message: previewData.message,
+      });
       return;
     }
 
@@ -207,12 +213,16 @@ export default function CheckoutPage() {
       });
 
       clearCart();
-      openSnackbar({ text: "Đặt hàng thành công!", type: "success" });
+      showSuccess("Đặt hàng thành công!");
       navigate(`/order/${order.id}`);
     } catch (err) {
-      openSnackbar({
-        text: err instanceof Error ? err.message : "Đặt hàng thất bại",
-        type: "error",
+      setOrderErrorModal({
+        visible: true,
+        title: "Đặt hàng không thành công",
+        message:
+          err instanceof Error
+            ? err.message
+            : "Đã có sự cố khi tạo đơn hàng. Vui lòng thử lại.",
       });
       idempotencyKeyRef.current = generateUUID();
     }
@@ -521,7 +531,7 @@ export default function CheckoutPage() {
             <Button
               size="small"
               type="neutral"
-              className="bg-red-50 px-3 text-xs font-semibold text-red-600"
+              className="!rounded-xl bg-red-50 px-3 text-xs font-semibold text-red-600"
               onClick={handleRemoveVoucher}
             >
               Gỡ
@@ -529,7 +539,7 @@ export default function CheckoutPage() {
           ) : (
             <Button
               size="small"
-              className="bg-primary px-4 text-xs font-semibold text-white"
+              className="!rounded-xl bg-primary px-4 text-xs font-semibold text-white hover:bg-primaryDark"
               onClick={handleApplyVoucher}
               disabled={!voucherCodeInput.trim()}
             >
@@ -694,6 +704,16 @@ export default function CheckoutPage() {
             : `ĐẶT HÀNG • ${formatCurrency(displayTotal)}đ`}
         </Button>
       </div>
+
+      {/* Error Modal theo chuẩn Zalo Guidelines (Lớp trên cùng z-index: 9999) */}
+      <ErrorModal
+        visible={orderErrorModal.visible}
+        title={orderErrorModal.title}
+        message={orderErrorModal.message}
+        onClose={() =>
+          setOrderErrorModal((prev) => ({ ...prev, visible: false }))
+        }
+      />
     </div>
   );
 }

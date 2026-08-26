@@ -106,3 +106,114 @@ select:focus {
 .zaui-bottom-navigation-item-active .zaui-bottom-navigation-item-label {
   color: #4d7c0f;
 }
+
+/* ==========================================================================
+   ZaUI Snackbar & Alert System (Modern Soft Color & Borderless Pill Design)
+   - Font: Be Vietnam Pro
+   - Nền Soft Color (Pastel Tonal): Dịu mắt, tinh tế, sang trọng
+   - Không viền (border: none), bo tròn Pill mềm mại
+   - Icon tối giản cùng tone màu semantic:
+     + Thành công: Nền Olive Soft (#F7FEE7), icon #4D7C0F, chữ #365314
+     + Cảnh báo: Nền Amber Soft (#FFFBEB), icon #D97706, chữ #78350F
+     + Lỗi: Nền Red Soft (#FEF2F2), icon #DC2626, chữ #991B1B
+     + Thông tin: Nền Stone Soft (#F5F5F4), icon #44403C, chữ #1C1917
+   - Hiệu ứng đổ bóng mềm mại, không gây gián đoạn thị giác
+   ========================================================================== */
+.zaui-snackbar {
+  border: none !important;
+  border-radius: 9999px !important; /* Floating Pill mượt mà */
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  padding: 10px 20px !important;
+  box-shadow:
+    0 10px 25px -4px rgba(0, 0, 0, 0.08),
+    0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
+  bottom: calc(var(--zaui-safe-area-inset-bottom, 16px) + 24px) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  max-width: 90% !important;
+  margin: 0 auto !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.zaui-snackbar-prefix-icon {
+  background: transparent !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin-right: 8px !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.zaui-snackbar-prefix-icon * {
+  background: transparent !important;
+}
+
+/* Success: Rustic Olive Soft */
+.zaui-snackbar-success {
+  background-color: #f7fee7 !important; /* olive50 */
+  color: #365314 !important; /* olive900 */
+}
+
+.zaui-snackbar-success .zaui-snackbar-text,
+.zaui-snackbar-success .zaui-snackbar-desc {
+  color: #365314 !important;
+  font-weight: 600 !important;
+}
+
+/* Warning: Warm Ginger & Amber Soft */
+.zaui-snackbar-warning {
+  background-color: #fffbeb !important; /* amber50 */
+  color: #78350f !important;
+}
+
+.zaui-snackbar-warning .zaui-snackbar-text,
+.zaui-snackbar-warning .zaui-snackbar-desc {
+  color: #78350f !important;
+  font-weight: 600 !important;
+}
+
+/* Error: Semantic Red Soft */
+.zaui-snackbar-error {
+  background-color: #fef2f2 !important; /* red50 */
+  color: #991b1b !important;
+}
+
+.zaui-snackbar-error .zaui-snackbar-text,
+.zaui-snackbar-error .zaui-snackbar-desc {
+  color: #991b1b !important;
+  font-weight: 600 !important;
+}
+
+/* Info / Default: Stone Neutral Soft */
+.zaui-snackbar-info,
+.zaui-snackbar-default {
+  background-color: #f5f5f4 !important; /* stone100 */
+  color: #1c1917 !important;
+}
+
+.zaui-snackbar-info .zaui-snackbar-text,
+.zaui-snackbar-default .zaui-snackbar-text,
+.zaui-snackbar-info .zaui-snackbar-desc,
+.zaui-snackbar-default .zaui-snackbar-desc {
+  color: #1c1917 !important;
+  font-weight: 600 !important;
+}
+
+/* ZaUI Modal Backdrop & Container Overrides */
+.zaui-modal-wrapper {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.45) !important;
+}
+
+.zaui-modal-content {
+  border-radius: 20px !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25) !important;
+}

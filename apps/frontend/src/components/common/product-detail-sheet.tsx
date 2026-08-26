@@ -9,6 +9,7 @@ import { copy } from "@/constants/copy";
 import { formatCurrency } from "@/utils/format";
 import { Option, OptionGroup } from "@/types/product.types";
 import { cn } from "@/utils/cn";
+import { Badge } from "@/components/common/badge";
 
 type SelectedOptionsState = {
   [groupId: number]: number[];
@@ -283,9 +284,9 @@ export default function ProductDetailSheet({
                               {group.name}
                             </span>
                             {group.is_required && (
-                              <span className="py-0.2 rounded-full border border-red-200/50 bg-red-500/10 px-2 text-xxxsmall font-bold text-red-600">
+                              <Badge variant="error" size="small">
                                 Bắt buộc
-                              </span>
+                              </Badge>
                             )}
                           </div>
                           <span className="text-xxsmall text-neutral500">
@@ -388,7 +389,7 @@ export default function ProductDetailSheet({
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className="hover:bg-green800 flex flex-1 items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all active:scale-[0.98]"
+                className="flex flex-1 items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:bg-primaryDark active:scale-[0.98]"
               >
                 <span>
                   {isEditMode ? copy.common.updateCart : copy.common.addToCart}

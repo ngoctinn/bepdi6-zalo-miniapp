@@ -11,7 +11,7 @@ export default function SubCategoryGrid({
   onSubCategoryClick,
 }: SubCategoryGridProps) {
   return (
-    <div className="grid grid-cols-4 gap-2 rounded-lg border-2 border-components-sub_cate-border/20 bg-white px-3 py-4">
+    <div className="grid grid-cols-4 gap-2 rounded-2xl border border-black/5 bg-transparent px-3 py-4">
       {subcategories.map((subcategory) => (
         <div
           key={subcategory.id}

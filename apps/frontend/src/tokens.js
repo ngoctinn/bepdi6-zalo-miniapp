@@ -151,6 +151,28 @@ const semantic = {
     info: base.colors.olive700,
     warning: base.colors.amber600,
     danger: base.colors.red600,
+    feedback: {
+      success: {
+        background: base.colors.olive50, // #F7FEE7
+        text: base.colors.olive900, // #365314
+        icon: base.colors.olive700, // #4D7C0F
+      },
+      warning: {
+        background: base.colors.amber50, // #FFFBEB
+        text: "#78350F", // Amber 900
+        icon: base.colors.amber600, // #D97706
+      },
+      error: {
+        background: "#FEF2F2", // Red 50 Soft
+        text: "#991B1B", // Red 900
+        icon: base.colors.red600, // #DC2626
+      },
+      info: {
+        background: base.colors.stone100, // #F5F5F4
+        text: base.colors.stone900, // #1C1917
+        icon: base.colors.neutral700, // #44403C
+      },
+    },
     components: {
       list: {
         title: base.colors.neutral900,
@@ -632,6 +654,10 @@ const semantic = {
   },
   rounded: {
     corner08: "8px",
+    card: "16px",
+    button: "12px",
+    modal: "20px",
+    badge: "9999px",
   },
 };
 

@@ -24,8 +24,8 @@ export default function SubcategorySidebar({
           className={cn(
             "relative flex w-full items-center justify-between gap-1 bg-clip-padding p-2 text-left",
             selectedId === subcategory.id
-              ? "bg-orange500/10 border-l-4 border-l-primary"
-              : "bg-white",
+              ? "border-l-4 border-l-primary bg-primary/10 font-semibold text-primaryDark"
+              : "bg-white text-neutral700",
           )}
           onClick={() => onSubCategoryClick?.(subcategory)}
         >

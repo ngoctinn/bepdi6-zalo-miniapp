@@ -32,7 +32,7 @@ export default function CartItemCard({
         draggable={false}
         src={imageUrl}
         alt={item.product_name}
-        className="h-14 w-14 shrink-0 rounded-lg bg-neutral100 object-cover"
+        className="h-14 w-14 shrink-0 rounded-xl bg-neutral100 object-cover ring-1 ring-black/5"
       />
       <div className="min-w-0 flex-1">
         <Text className="truncate text-sm font-semibold text-neutral900">

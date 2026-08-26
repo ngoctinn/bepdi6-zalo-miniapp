@@ -29,7 +29,7 @@ export default function AdjustmentOption({
 
   return (
     <div className="flex items-center justify-between py-3">
-      <div className="text-large text-text-primary">{option.name}</div>
+      <div className="text-sm font-normal text-neutral900">{option.name}</div>
 
       <QuantityStepper
         value={value}

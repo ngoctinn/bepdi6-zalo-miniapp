@@ -19,7 +19,7 @@ export default function RadioOption({
   return (
     <label
       htmlFor={id}
-      className={`flex cursor-pointer items-center justify-between rounded-lg py-2 transition`}
+      className="flex cursor-pointer items-center justify-between py-2.5 transition active:bg-black/[0.02]"
     >
       <input
         id={id}
@@ -33,22 +33,26 @@ export default function RadioOption({
 
       <div className="flex items-center gap-2">
         <div
-          className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
-            isSelected ? "bg-primary" : "bg-white"
+          className={`flex h-5 w-5 items-center justify-center rounded-full border transition-all ${
+            isSelected
+              ? "border-primary bg-primary text-white"
+              : "border-stone-300 bg-white"
           } `}
         >
-          <div className="h-2 w-2 rounded-full bg-white" />
+          {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
         </div>
-        <span className="ml-2 text-large text-text-primary">{option.name}</span>
+        <span className="ml-1 text-sm font-normal text-neutral900">
+          {option.name}
+        </span>
 
         {option.extraPrice > 0 && (
-          <span className="text-base text-primary">
-            (+{formatCurrency(option.extraPrice)})
+          <span className="text-xs font-normal text-black">
+            (+{formatCurrency(option.extraPrice)}đ)
           </span>
         )}
         {option.extraPrice === 0 && (
-          <span className="text-base text-text-primary">
-            (+{formatCurrency(option.extraPrice)})
+          <span className="text-xs font-normal text-neutral400">
+            (+{formatCurrency(option.extraPrice)}đ)
           </span>
         )}
       </div>

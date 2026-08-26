@@ -33,11 +33,15 @@ export default function VariantSelect({
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="text-variant-title">{variantGroup.title}</div>
-      <div className="text-small text-text-secondary">
-        {variantGroup.description}
+      <div className="text-sm font-bold text-neutral900">
+        {variantGroup.title}
       </div>
-      <hr className="mt-2 border-border-primary" />
+      {variantGroup.description && (
+        <div className="text-xs text-neutral500">
+          {variantGroup.description}
+        </div>
+      )}
+      <hr className="mt-2 border-black/5" />
 
       <div className="flex flex-col gap-1">
         {variantGroup.options.map((option, index) => (
@@ -83,7 +87,7 @@ export default function VariantSelect({
             )}
 
             {index < variantGroup.options.length - 1 && (
-              <hr className="border-border-primary" />
+              <hr className="border-black/5" />
             )}
           </div>
         ))}

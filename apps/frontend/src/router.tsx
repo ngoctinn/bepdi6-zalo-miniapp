@@ -1,21 +1,22 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "./components/layout";
 import { getBasePath } from "./utils/zma";
 import HomePage from "./pages/home";
-
-// Code-splitting / Lazy loading non-initial routes per Zalo Mini App Best Practices
-const OrderPage = lazy(() => import("./pages/order"));
-const CheckoutPage = lazy(() => import("./pages/checkout"));
-const SelectLocationPage = lazy(() => import("./pages/select-location"));
-const OrderSuccessPage = lazy(() => import("./pages/order-success"));
-const OrderDetailPage = lazy(() => import("./pages/order-detail"));
+import OrderPage from "./pages/order";
+import CheckoutPage from "./pages/checkout";
+import SelectLocationPage from "./pages/select-location";
+import OrderSuccessPage from "./pages/order-success";
+import OrderDetailPage from "./pages/order-detail";
+import ProfilePage from "./pages/profile";
+import RouteErrorBoundary from "./components/common/route-error-boundary";
 
 const router = createBrowserRouter(
   [
     {
       path: "/",
       element: <Layout />,
+      errorElement: <RouteErrorBoundary />,
       children: [
         {
           path: "/",
@@ -29,11 +30,7 @@ const router = createBrowserRouter(
         },
         {
           path: "/order",
-          element: (
-            <Suspense fallback={null}>
-              <OrderPage />
-            </Suspense>
-          ),
+          element: <OrderPage />,
           handle: {
             hideCart: true,
             hideHeader: true,
@@ -41,11 +38,7 @@ const router = createBrowserRouter(
         },
         {
           path: "/checkout",
-          element: (
-            <Suspense fallback={null}>
-              <CheckoutPage />
-            </Suspense>
-          ),
+          element: <CheckoutPage />,
           handle: {
             title: "Xác nhận đơn hàng",
             back: true,
@@ -55,11 +48,7 @@ const router = createBrowserRouter(
         },
         {
           path: "/select-location",
-          element: (
-            <Suspense fallback={null}>
-              <SelectLocationPage />
-            </Suspense>
-          ),
+          element: <SelectLocationPage />,
           handle: {
             title: "Địa chỉ nhận hàng",
             back: true,
@@ -68,12 +57,15 @@ const router = createBrowserRouter(
           },
         },
         {
+          path: "/profile",
+          element: <ProfilePage />,
+          handle: {
+            hideHeader: true,
+          },
+        },
+        {
           path: "/order-success",
-          element: (
-            <Suspense fallback={null}>
-              <OrderSuccessPage />
-            </Suspense>
-          ),
+          element: <OrderSuccessPage />,
           handle: {
             title: "Đặt hàng thành công",
             back: false,
@@ -82,11 +74,7 @@ const router = createBrowserRouter(
         },
         {
           path: "/order/:orderId",
-          element: (
-            <Suspense fallback={null}>
-              <OrderDetailPage />
-            </Suspense>
-          ),
+          element: <OrderDetailPage />,
           handle: {
             title: "Chi tiết đơn hàng",
             back: true,

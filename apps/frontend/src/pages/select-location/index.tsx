@@ -15,6 +15,8 @@ import {
 import { Address, CreateAddressRequest } from "@/types/customer.types";
 import { useLocationStore } from "@/stores/location.store";
 import { getLocation } from "zmp-sdk/apis";
+import { Badge } from "@/components/common/badge";
+import { ConfirmModal } from "@/components/common/confirm-modal";
 
 // Tọa độ mặc định gần quán Bếp Dì 6 (TP.HCM)
 const DEFAULT_LATITUDE = 10.762622;
@@ -28,6 +30,7 @@ export default function SelectLocationPage() {
   const { selectedAddress, setSelectedAddress } = useLocationStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteAddressId, setDeleteAddressId] = useState<number | null>(null);
   const [formData, setFormData] = useState<CreateAddressRequest>({
     recipient_name: "",
     phone: "",
@@ -42,6 +45,16 @@ export default function SelectLocationPage() {
   const handleSelectAddress = (addr: Address) => {
     setSelectedAddress(addr);
     navigate(-1);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteAddressId) return;
+    try {
+      await deleteAddressMutation.mutateAsync(deleteAddressId);
+      setDeleteAddressId(null);
+    } catch {
+      // Error handled by mutation
+    }
   };
 
   const handleGetCurrentLocation = async () => {
@@ -126,9 +139,9 @@ export default function SelectLocationPage() {
                       {addr.phone}
                     </span>
                     {addr.is_default && (
-                      <span className="py-0.2 rounded-full border border-primary/30 bg-primary/10 px-2 text-xxxsmall font-bold text-primary">
+                      <Badge variant="primary" size="small">
                         Mặc định
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <div className="mt-1 text-xs leading-relaxed text-neutral600">
@@ -142,9 +155,7 @@ export default function SelectLocationPage() {
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-xs font-semibold text-red-600 transition-all hover:bg-red-500/20 active:scale-90"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
-                    deleteAddressMutation.mutate(addr.id);
-                  }
+                  setDeleteAddressId(addr.id);
                 }}
                 aria-label="Xóa địa chỉ"
               >
@@ -289,6 +300,19 @@ export default function SelectLocationPage() {
           <span className="leading-none">Thêm địa chỉ mới</span>
         </button>
       </div>
+
+      {/* Modal Xác nhận xóa địa chỉ */}
+      <ConfirmModal
+        visible={Boolean(deleteAddressId)}
+        title="Xóa địa chỉ này?"
+        description="Bạn có chắc chắn muốn xóa địa chỉ giao hàng này không?"
+        type="danger"
+        confirmText="Xóa địa chỉ"
+        cancelText="Giữ lại"
+        loading={deleteAddressMutation.isPending}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteAddressId(null)}
+      />
     </div>
   );
 }

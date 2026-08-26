@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Order } from "@/types/order.types";
 import { formatCurrency } from "@/utils/format";
+import { Badge } from "@/components/common/badge";
 
 interface OrderItemCardProps {
   order: Order;
@@ -24,30 +25,19 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
     >
       <div className="mb-2.5 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <span
-            className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
-              isPickup
-                ? "border border-amber-300/50 bg-amber-500/10 text-amber-800"
-                : "border border-primary/30 bg-primary/10 text-primary"
-            }`}
-          >
+          <Badge variant={isPickup ? "warning" : "primary"} size="small">
             {isPickup ? "Tự lấy" : "Giao hàng"}
-          </span>
+          </Badge>
           <span className="text-xs font-bold text-neutral900">
             #{order.order_code}
           </span>
         </div>
-        <span
-          className={`rounded-full px-2.5 py-0.5 text-xxsmall font-bold ${
-            isCancelled
-              ? "border border-red-200/50 bg-red-500/10 text-red-600"
-              : isCompleted
-                ? "border border-primary/30 bg-primary/15 text-primary"
-                : "border border-amber-300/50 bg-amber-500/15 text-amber-800"
-          }`}
+        <Badge
+          variant={isCancelled ? "error" : isCompleted ? "success" : "warning"}
+          size="small"
         >
           {order.status_display || order.status}
-        </span>
+        </Badge>
       </div>
 
       <div className="mb-2.5 space-y-1.5 rounded-xl border border-black/5 bg-black/[0.02] p-2.5 text-xs">

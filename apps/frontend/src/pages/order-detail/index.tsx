@@ -2,10 +2,13 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useOrder } from "@/services/order/order.queries";
 import { useCancelOrder } from "@/services/order/order.mutations";
-import { Button, Spinner, Text, useSnackbar } from "zmp-ui";
+import { Button, Spinner, Text } from "zmp-ui";
 import { formatCurrency } from "@/utils/format";
 import { BackIcon, CheckIcon } from "@/components/common/vectors";
 import { OrderStatus } from "@/types/order.types";
+import { useAppToast } from "@/hooks/use-app-toast";
+import { ConfirmModal } from "@/components/common/confirm-modal";
+import { Badge } from "@/components/common/badge";
 
 const DELIVERY_STATUS_STEPS: Array<{
   key: OrderStatus;
@@ -39,20 +42,20 @@ const getStepIndex = (status: OrderStatus, isPickup: boolean): number => {
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-  const { openSnackbar } = useSnackbar();
+  const { showSuccess, showError } = useAppToast();
 
   const { data: order, isLoading, error } = useOrder(orderId);
   const cancelOrderMutation = useCancelOrder();
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    openSnackbar({ text: `Đã sao chép ${label}`, type: "success" });
+    showSuccess(`Đã sao chép ${label}`);
   };
 
-  const handleCancelOrder = async () => {
+  const handleConfirmCancel = async () => {
     if (!orderId) return;
-    if (!confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) return;
 
     setIsCancelling(true);
     try {
@@ -60,12 +63,10 @@ export default function OrderDetailPage() {
         id: orderId,
         reason: "Khách hàng tự hủy trên ứng dụng",
       });
-      openSnackbar({ text: "Đã hủy đơn hàng thành công", type: "success" });
+      showSuccess("Đã hủy đơn hàng thành công");
+      setShowCancelModal(false);
     } catch (err) {
-      openSnackbar({
-        text: err instanceof Error ? err.message : "Không thể hủy đơn hàng",
-        type: "error",
-      });
+      showError(err instanceof Error ? err.message : "Không thể hủy đơn hàng");
     } finally {
       setIsCancelling(false);
     }
@@ -123,31 +124,26 @@ export default function OrderDetailPage() {
             <h1 className="text-sm font-bold text-neutral900">
               Đơn hàng #{order.order_code}
             </h1>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                isPickup
-                  ? "border border-amber-300/50 bg-amber-500/10 text-amber-800"
-                  : "border border-primary/30 bg-primary/10 text-primary"
-              }`}
-            >
+            <Badge variant={isPickup ? "warning" : "primary"} size="small">
               {isPickup ? "Tự đến lấy" : "Giao tận nơi"}
-            </span>
+            </Badge>
           </div>
           <span className="text-xxsmall text-neutral500">
             {new Date(order.created_at).toLocaleString("vi-VN")}
           </span>
         </div>
-        <span
-          className={`rounded-full px-2.5 py-1 text-xxsmall font-bold ${
+        <Badge
+          variant={
             isCancelled
-              ? "border border-red-200/50 bg-red-500/10 text-red-600"
+              ? "error"
               : order.status === "COMPLETED"
-                ? "border border-primary/30 bg-primary/15 text-primary"
-                : "border border-amber-300/50 bg-amber-500/15 text-amber-800"
-          }`}
+                ? "success"
+                : "warning"
+          }
+          size="medium"
         >
           {order.status_display || order.status}
-        </span>
+        </Badge>
       </div>
 
       {/* Timeline Trạng Thái Đơn Hàng */}
@@ -431,14 +427,27 @@ export default function OrderDetailPage() {
           <Button
             size="small"
             type="neutral"
-            onClick={handleCancelOrder}
+            onClick={() => setShowCancelModal(true)}
             loading={isCancelling}
-            className="w-full rounded-xl border border-red-300/50 bg-red-50 py-2.5 text-xs font-semibold text-red-600"
+            className="w-full rounded-xl border border-red-300/50 bg-red-50 py-2.5 text-xs font-semibold text-red-600 transition-all active:scale-[0.99]"
           >
             Hủy đơn hàng này
           </Button>
         </div>
       )}
+
+      {/* Confirm Modal Hủy đơn theo chuẩn Zalo Guidelines */}
+      <ConfirmModal
+        visible={showCancelModal}
+        title="Hủy đơn hàng này?"
+        description="Bạn có chắc chắn muốn hủy đơn hàng không? Thao tác này không thể hoàn tác."
+        type="danger"
+        confirmText="Xác nhận hủy"
+        cancelText="Giữ lại đơn"
+        loading={isCancelling}
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setShowCancelModal(false)}
+      />
     </div>
   );
 }

@@ -19,7 +19,7 @@ export default function CheckboxOption({
   return (
     <label
       htmlFor={id}
-      className="flex cursor-pointer items-center justify-between rounded-lg py-2 transition"
+      className="flex cursor-pointer items-center justify-between py-2.5 transition active:bg-black/[0.02]"
     >
       <input
         id={id}
@@ -32,29 +32,31 @@ export default function CheckboxOption({
       />
 
       <div className="flex items-center gap-2">
-        <span className="text-large text-text-primary">{option.name}</span>
+        <span className="text-sm font-normal text-neutral900">
+          {option.name}
+        </span>
 
         {option.extraPrice > 0 && (
-          <span className="text-base text-primary">
-            (+{formatCurrency(option.extraPrice)})
+          <span className="text-xs font-normal text-black">
+            (+{formatCurrency(option.extraPrice)}đ)
           </span>
         )}
         {option.extraPrice === 0 && (
-          <span className="text-base text-text-primary">
-            (+{formatCurrency(option.extraPrice)})
+          <span className="text-xs font-normal text-neutral400">
+            (+{formatCurrency(option.extraPrice)}đ)
           </span>
         )}
       </div>
       <div
-        className={`flex h-6 w-6 items-center justify-center rounded-lg border-2 transition ${isSelected ? "border-primary bg-primary" : "border-neutral-300 bg-white"} `}
+        className={`flex h-5 w-5 items-center justify-center rounded-md border transition-all ${isSelected ? "border-primary bg-primary text-white" : "border-stone-300 bg-white"}`}
       >
         {isSelected && (
           <svg
             viewBox="0 0 20 20"
-            className="h-4 w-4 text-white"
+            className="h-3.5 w-3.5"
             fill="none"
             stroke="currentColor"
-            strokeWidth={4}
+            strokeWidth={3}
           >
             <path d="M4 10l5 5 8-8" />
           </svg>

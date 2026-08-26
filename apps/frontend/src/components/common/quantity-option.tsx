@@ -32,14 +32,16 @@ export default function QuantityOption({
             draggable={false}
             src={option.image}
             alt={option.name}
-            className="h-10 w-10 rounded-lg object-cover"
+            className="h-10 w-10 rounded-xl bg-neutral100 object-cover ring-1 ring-black/5"
           />
         )}
 
-        <div className="flex flex-col gap-2">
-          <div className="text-small-m text-text-primary">{option.name}</div>
-          <div className="text-small-m font-medium text-primary">
-            {formatCurrency(option.extraPrice)}
+        <div className="flex flex-col gap-1">
+          <div className="text-sm font-normal text-neutral900">
+            {option.name}
+          </div>
+          <div className="text-xs font-normal text-black">
+            +{formatCurrency(option.extraPrice)}đ
           </div>
         </div>
       </div>
