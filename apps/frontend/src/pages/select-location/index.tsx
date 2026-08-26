@@ -17,6 +17,7 @@ import { useLocationStore } from "@/stores/location.store";
 import { getLocation } from "zmp-sdk/apis";
 import { Badge } from "@/components/common/badge";
 import { ConfirmModal } from "@/components/common/confirm-modal";
+import { copy } from "@/constants/copy";
 
 // Tọa độ mặc định gần quán Bếp Dì 6 (TP.HCM)
 const DEFAULT_LATITUDE = 10.762622;
@@ -77,15 +78,15 @@ export default function SelectLocationPage() {
 
   const handleCreateAddress = async () => {
     if (!formData.recipient_name.trim()) {
-      setFormError("Vui lòng nhập tên người nhận");
+      setFormError(copy.selectLocation.errMissingName);
       return;
     }
     if (!formData.phone.trim()) {
-      setFormError("Vui lòng nhập số điện thoại");
+      setFormError(copy.selectLocation.errMissingPhone);
       return;
     }
     if (!formData.address_text.trim()) {
-      setFormError("Vui lòng nhập địa chỉ chi tiết");
+      setFormError(copy.selectLocation.errMissingAddress);
       return;
     }
 
@@ -97,7 +98,7 @@ export default function SelectLocationPage() {
       navigate(-1);
     } catch (err) {
       setFormError(
-        err instanceof Error ? err.message : "Không thể thêm địa chỉ",
+        err instanceof Error ? err.message : copy.selectLocation.errGeneric,
       );
     }
   };
@@ -109,7 +110,7 @@ export default function SelectLocationPage() {
         <div className="flex flex-col items-center justify-center py-16">
           <Spinner />
           <Text size="xSmall" className="mt-2 text-neutral400">
-            Đang tải danh sách địa chỉ...
+            {copy.common.loading}
           </Text>
         </div>
       ) : addresses && addresses.length > 0 ? (
@@ -140,7 +141,7 @@ export default function SelectLocationPage() {
                     </span>
                     {addr.is_default && (
                       <Badge variant="primary" size="small">
-                        Mặc định
+                        {copy.selectLocation.defaultBadge}
                       </Badge>
                     )}
                   </div>
@@ -157,7 +158,7 @@ export default function SelectLocationPage() {
                   e.stopPropagation();
                   setDeleteAddressId(addr.id);
                 }}
-                aria-label="Xóa địa chỉ"
+                aria-label={copy.common.delete}
               >
                 <svg
                   className="h-4 w-4"
@@ -180,135 +181,152 @@ export default function SelectLocationPage() {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <MapPinIcon className="mb-2 h-12 w-12 text-neutral300" />
           <p className="text-sm font-medium text-neutral700">
-            Chưa có địa chỉ giao hàng nào
+            {copy.selectLocation.emptyTitle}
           </p>
           <p className="mt-1 text-xs text-neutral400">
-            Thêm địa chỉ để Bếp Dì 6 tính phí giao hàng và giao tận nơi nhé!
+            {copy.selectLocation.emptyHint}
           </p>
           <Button
             className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primaryDark"
             onClick={() => setIsModalOpen(true)}
           >
-            + Thêm địa chỉ mới
+            {copy.selectLocation.addNew}
           </Button>
         </div>
       )}
 
-      {/* Modal Thêm Địa Chỉ Mới */}
+      {/* Modal Thêm Địa Chỉ Mới (Chuẩn Design System & Tokens) */}
       <Modal
         visible={isModalOpen}
-        title="Thêm địa chỉ giao hàng"
+        title={copy.selectLocation.modalTitle}
         onClose={() => setIsModalOpen(false)}
         mask
+        zIndex={1400}
+        modalClassName="rounded-2xl overflow-hidden p-0 max-w-[340px] shadow-2xl border-0"
       >
-        <div className="space-y-3 py-2">
-          {formError && (
-            <div className="rounded-md bg-red-50 p-2 text-xs font-medium text-red-600">
-              ⚠️ {formError}
+        <div className="bg-white p-5">
+          <div className="mb-4 text-center">
+            <h3 className="text-base font-bold text-neutral900">
+              {copy.selectLocation.modalTitle}
+            </h3>
+          </div>
+
+          <div className="space-y-3.5">
+            {formError && (
+              <div className="rounded-xl border border-red-200/60 bg-red-50 p-2.5 text-xs font-medium text-red-600">
+                ⚠️ {formError}
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-neutral800">
+                {copy.selectLocation.nameLabel}
+              </label>
+              <input
+                type="text"
+                value={formData.recipient_name}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    recipient_name: e.target.value,
+                  }))
+                }
+                placeholder={copy.selectLocation.namePlaceholder}
+                className="w-full rounded-xl border border-black/10 bg-black/[0.02] p-2.5 text-xs text-neutral900 placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+              />
             </div>
-          )}
 
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-neutral700">
-              Tên người nhận *
-            </label>
-            <Input
-              value={formData.recipient_name}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  recipient_name: e.target.value,
-                }))
-              }
-              placeholder="VD: Nguyễn Văn A"
-            />
-          </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-neutral800">
+                {copy.selectLocation.phoneLabel}
+              </label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                }
+                placeholder={copy.selectLocation.phonePlaceholder}
+                className="w-full rounded-xl border border-black/10 bg-black/[0.02] p-2.5 text-xs text-neutral900 placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+              />
+            </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-neutral700">
-              Số điện thoại nhận hàng *
-            </label>
-            <Input
-              type="text"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, phone: e.target.value }))
-              }
-              placeholder="VD: 0901234567"
-            />
-          </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-neutral800">
+                {copy.selectLocation.addressLabel}
+              </label>
+              <textarea
+                rows={2}
+                value={formData.address_text}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    address_text: e.target.value,
+                  }))
+                }
+                placeholder={copy.selectLocation.addressPlaceholder}
+                className="w-full rounded-xl border border-black/10 bg-black/[0.02] p-2.5 text-xs text-neutral900 placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+              />
+            </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-neutral700">
-              Địa chỉ chi tiết (Số nhà, tên đường, phường, quận) *
-            </label>
-            <Input
-              value={formData.address_text}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  address_text: e.target.value,
-                }))
-              }
-              placeholder="VD: 123 Lê Lợi, P. Bến Nghé, Quận 1, TP.HCM"
-            />
-          </div>
+            <div className="pt-1">
+              <button
+                type="button"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 py-2.5 text-xs font-bold text-primary transition-all hover:bg-primary/15 active:scale-[0.98]"
+                onClick={handleGetCurrentLocation}
+                disabled={isGettingLocation}
+              >
+                <MapPinIcon className="h-4 w-4 shrink-0 text-primary" />
+                <span>
+                  {isGettingLocation
+                    ? copy.selectLocation.gettingGpsButton
+                    : copy.selectLocation.getGpsButton}
+                </span>
+              </button>
+            </div>
 
-          <div className="pt-2">
-            <button
-              type="button"
-              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary/40 bg-primary/5 py-2.5 text-xs font-semibold text-primary transition-all hover:bg-primary/10 active:scale-[0.99]"
-              onClick={handleGetCurrentLocation}
-              disabled={isGettingLocation}
-            >
-              <MapPinIcon className="h-4 w-4 shrink-0 text-primary" />
-              <span>
-                {isGettingLocation
-                  ? "Đang lấy vị trí..."
-                  : "Lấy vị trí GPS hiện tại từ Zalo"}
-              </span>
-            </button>
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button
-              className="flex-1 bg-neutral100 text-neutral700"
-              type="neutral"
-              onClick={() => setIsModalOpen(false)}
-            >
-              Hủy
-            </Button>
-            <Button
-              className="flex-1 bg-primary font-semibold text-white hover:bg-primaryDark"
-              onClick={handleCreateAddress}
-              loading={createAddressMutation.isPending}
-            >
-              Lưu địa chỉ
-            </Button>
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                className="h-11 flex-1 rounded-xl bg-stone100 text-xs font-semibold text-neutral700 transition-all hover:bg-stone200 active:scale-[0.98]"
+                onClick={() => setIsModalOpen(false)}
+              >
+                {copy.selectLocation.cancel}
+              </button>
+              <Button
+                className="!h-11 flex-1 !rounded-xl !border-0 !bg-primary !text-xs !font-bold !text-white shadow-md transition-all hover:!bg-primaryDark active:scale-[0.98]"
+                onClick={handleCreateAddress}
+                loading={createAddressMutation.isPending}
+              >
+                {copy.selectLocation.save}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>
 
       {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 p-4 shadow-lg backdrop-blur-md">
+      <div className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-4 pt-4 shadow-lg backdrop-blur-md">
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-white shadow-sm transition-all active:scale-[0.99] active:opacity-90"
         >
           <PlusIcon className="h-4 w-4 shrink-0" />
-          <span className="leading-none">Thêm địa chỉ mới</span>
+          <span className="leading-none">
+            {copy.selectLocation.addNewButton}
+          </span>
         </button>
       </div>
 
       {/* Modal Xác nhận xóa địa chỉ */}
       <ConfirmModal
         visible={Boolean(deleteAddressId)}
-        title="Xóa địa chỉ này?"
-        description="Bạn có chắc chắn muốn xóa địa chỉ giao hàng này không?"
+        title={copy.selectLocation.deleteConfirmTitle}
+        description={copy.selectLocation.deleteConfirmDesc}
         type="danger"
-        confirmText="Xóa địa chỉ"
-        cancelText="Giữ lại"
+        confirmText={copy.selectLocation.deleteConfirmButton}
+        cancelText={copy.selectLocation.keepButton}
         loading={deleteAddressMutation.isPending}
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteAddressId(null)}

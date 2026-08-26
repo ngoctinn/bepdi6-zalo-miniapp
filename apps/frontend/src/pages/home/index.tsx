@@ -6,6 +6,8 @@ import { useCategories } from "@/services/category/category.queries";
 import { useProducts } from "@/services/product/product.queries";
 import { Category } from "@/types/category.types";
 
+import { copy } from "@/constants/copy";
+
 export default function HomePage() {
   const { data: categories, isLoading: isLoadingCategories } = useCategories();
   const { data: allProducts, isLoading: isLoadingProducts } = useProducts();
@@ -127,9 +129,9 @@ export default function HomePage() {
         className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md"
       >
         {/* Tên quán */}
-        <div className="header-margin px-3.5 pb-1 pt-3">
-          <h1 className="text-[17px] font-extrabold tracking-tight text-neutral-900">
-            Bếp Dì 6 - Mắm Chưng Miền Tây
+        <div className="header-margin px-3.5 pb-1 pr-20 pt-3">
+          <h1 className="text-base font-extrabold tracking-tight text-neutral-900">
+            {copy.brand.name}
           </h1>
         </div>
 
@@ -180,7 +182,7 @@ export default function HomePage() {
                 <h2 className="text-sm font-bold text-neutral900">
                   {group.category.name}
                 </h2>
-                <span className="text-[11px] text-neutral400">
+                <span className="text-xxxsmall text-neutral400">
                   {group.products.length} món
                 </span>
               </div>

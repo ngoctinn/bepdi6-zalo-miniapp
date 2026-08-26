@@ -7,7 +7,7 @@ export default function Logo() {
       src={logo}
       alt={copy.brand.name}
       draggable={false}
-      className="size-[22px] rounded-full"
+      className="size-6 rounded-full"
     />
   );
 }

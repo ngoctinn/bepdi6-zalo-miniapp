@@ -26,7 +26,7 @@ export default function SubCategoryGrid({
             src={subcategory.image}
             alt={subcategory.name}
           />
-          <div className="w-full truncate text-center text-[12px]">
+          <div className="w-full truncate text-center text-xxsmall">
             {subcategory.name}
           </div>
         </div>
@@ -46,7 +46,7 @@ function Skeleton() {
           )}
         >
           <div className="size-10 animate-pulse bg-background"></div>
-          <div className="invisible w-full truncate text-center text-[12px]">
+          <div className="invisible w-full truncate text-center text-xxsmall">
             loading
           </div>
         </div>

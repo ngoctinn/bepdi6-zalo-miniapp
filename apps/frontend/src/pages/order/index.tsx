@@ -5,6 +5,7 @@ import { OrderItemCard } from "@/components/common/order-item-card";
 import { useOrders } from "@/services/order/order.queries";
 import { Spinner, Text } from "zmp-ui";
 import { Order, OrderListResponse } from "@/types/order.types";
+import { copy } from "@/constants/copy";
 
 type OrderTab = "all" | "processing" | "completed" | "cancelled";
 
@@ -13,10 +14,10 @@ export default function OrderPage() {
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
 
   const tabs: Tab<OrderTab>[] = [
-    { value: "all", label: "Tất cả" },
-    { value: "processing", label: "Đang xử lý" },
-    { value: "completed", label: "Hoàn tất" },
-    { value: "cancelled", label: "Đã hủy" },
+    { value: "all", label: copy.common.all },
+    { value: "processing", label: copy.order.status.preparing },
+    { value: "completed", label: copy.order.status.completed },
+    { value: "cancelled", label: copy.order.status.cancelled },
   ];
 
   const { data: orderData, isLoading } = useOrders();
@@ -47,9 +48,9 @@ export default function OrderPage() {
     <div className="relative flex h-full flex-col bg-transparent">
       {/* Sticky Header: Tên trang + Tabs dùng nền sạch sẽ đồng bộ */}
       <div className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md">
-        <div className="header-margin px-3.5 pb-1 pt-3">
-          <h1 className="text-[17px] font-extrabold tracking-tight text-neutral-900">
-            Đơn Hàng Của Tôi
+        <div className="header-margin px-3.5 pb-1 pr-20 pt-3">
+          <h1 className="text-base font-extrabold tracking-tight text-neutral-900">
+            {copy.order.title}
           </h1>
         </div>
         <div className="w-full bg-transparent px-3.5 py-1">
@@ -67,7 +68,7 @@ export default function OrderPage() {
           <div className="flex flex-col items-center justify-center py-20">
             <Spinner />
             <Text size="xSmall" className="mt-2 text-neutral400">
-              Đang tải danh sách đơn hàng...
+              {copy.order.loading}
             </Text>
           </div>
         ) : filteredOrders.length === 0 ? (
@@ -89,18 +90,17 @@ export default function OrderPage() {
               </svg>
             </div>
             <div className="text-sm font-bold text-neutral-800">
-              Chưa có đơn hàng nào
+              {copy.order.empty}
             </div>
             <p className="max-w-xs text-xs text-neutral-400">
-              Bạn chưa có đơn hàng nào trong mục này. Hãy khám phá các món ngon
-              của Bếp Dì 6 nhé!
+              {copy.order.emptyHint}
             </p>
             <button
               type="button"
               onClick={() => navigate("/")}
               className="shadow-xs mt-1 flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white transition-all active:scale-95"
             >
-              <span>Khám phá thực đơn</span>
+              <span>{copy.order.exploreMenu}</span>
               <svg
                 className="h-3.5 w-3.5"
                 viewBox="0 0 24 24"

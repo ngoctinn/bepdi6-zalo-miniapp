@@ -4,6 +4,7 @@ import ProductDetailSheet from "./product-detail-sheet";
 import { useCartStore } from "@/stores/cart.store";
 import { formatCurrency } from "@/utils/format";
 import { useNavigate } from "react-router-dom";
+import { copy } from "@/constants/copy";
 
 interface CartFloatButtonProps {
   itemCount: number;
@@ -68,17 +69,17 @@ export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
             {itemCount}
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-[11px] font-medium text-white/90">
-              {itemCount} món đang chọn
+            <span className="text-xxxsmall font-medium text-white/90">
+              {itemCount} {copy.common.items}
             </span>
-            <span className="text-[14px] font-extrabold text-white">
+            <span className="text-sm font-extrabold text-white">
               {formatCurrency(subtotal)}đ
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-1 rounded-xl bg-white/15 px-3 py-1.5 text-xs font-bold text-white transition-all">
-          <span>Xem đơn</span>
+          <span>{copy.common.viewDetails}</span>
           <svg
             width="14"
             height="14"

@@ -9,28 +9,29 @@ import { OrderStatus } from "@/types/order.types";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ConfirmModal } from "@/components/common/confirm-modal";
 import { Badge } from "@/components/common/badge";
+import { copy } from "@/constants/copy";
 
 const DELIVERY_STATUS_STEPS: Array<{
   key: OrderStatus;
   label: string;
 }> = [
-  { key: "PENDING_CONFIRMATION", label: "Chờ xác nhận" },
-  { key: "CONFIRMED", label: "Đã xác nhận" },
-  { key: "PREPARING", label: "Đang làm" },
-  { key: "READY", label: "Sẵn sàng" },
-  { key: "DELIVERING", label: "Đang giao" },
-  { key: "COMPLETED", label: "Hoàn tất" },
+  { key: "PENDING_CONFIRMATION", label: copy.order.status.pending },
+  { key: "CONFIRMED", label: copy.order.status.confirmed },
+  { key: "PREPARING", label: copy.order.status.preparing },
+  { key: "READY", label: copy.order.status.ready },
+  { key: "DELIVERING", label: copy.order.status.delivering || "Đang giao" },
+  { key: "COMPLETED", label: copy.order.status.completed },
 ];
 
 const PICKUP_STATUS_STEPS: Array<{
   key: OrderStatus;
   label: string;
 }> = [
-  { key: "PENDING_CONFIRMATION", label: "Chờ xác nhận" },
-  { key: "CONFIRMED", label: "Đã xác nhận" },
-  { key: "PREPARING", label: "Đang làm" },
-  { key: "READY", label: "Mời đến lấy" },
-  { key: "COMPLETED", label: "Đã nhận món" },
+  { key: "PENDING_CONFIRMATION", label: copy.order.status.pending },
+  { key: "CONFIRMED", label: copy.order.status.confirmed },
+  { key: "PREPARING", label: copy.order.status.preparing },
+  { key: "READY", label: copy.order.status.readyForPickup || "Mời đến lấy" },
+  { key: "COMPLETED", label: copy.order.status.pickedUp || "Đã nhận món" },
 ];
 
 const getStepIndex = (status: OrderStatus, isPickup: boolean): number => {
@@ -61,12 +62,14 @@ export default function OrderDetailPage() {
     try {
       await cancelOrderMutation.mutateAsync({
         id: orderId,
-        reason: "Khách hàng tự hủy trên ứng dụng",
+        reason: copy.orderDetail.cancelReasonUser,
       });
-      showSuccess("Đã hủy đơn hàng thành công");
+      showSuccess(copy.orderDetail.cancelSuccess);
       setShowCancelModal(false);
     } catch (err) {
-      showError(err instanceof Error ? err.message : "Không thể hủy đơn hàng");
+      showError(
+        err instanceof Error ? err.message : copy.orderDetail.cancelFailed,
+      );
     } finally {
       setIsCancelling(false);
     }
@@ -77,7 +80,7 @@ export default function OrderDetailPage() {
       <div className="flex h-full flex-col items-center justify-center bg-background">
         <Spinner />
         <Text size="xSmall" className="mt-2 text-neutral500">
-          Đang tải thông tin đơn hàng...
+          {copy.orderDetail.loading}
         </Text>
       </div>
     );
@@ -88,14 +91,14 @@ export default function OrderDetailPage() {
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-center">
         <div className="text-4xl">❌</div>
         <Text size="small" className="font-medium text-neutral700">
-          Không tìm thấy thông tin đơn hàng
+          {copy.orderDetail.notFound}
         </Text>
         <Button
           size="small"
           onClick={() => navigate("/order")}
           className="bg-primary text-white"
         >
-          Xem danh sách đơn
+          {copy.orderDetail.viewOrdersList}
         </Button>
       </div>
     );
@@ -112,7 +115,7 @@ export default function OrderDetailPage() {
     `https://img.vietqr.io/image/TCB-2907200329-compact2.png?amount=${Math.round(
       order.total_amount,
     )}&addInfo=${encodeURIComponent(order.order_code)}&accountName=${encodeURIComponent(
-      "NGUYEN THI TUYET THU",
+      copy.orderDetail.accountHolderName,
     )}`;
 
   return (
@@ -122,10 +125,11 @@ export default function OrderDetailPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-bold text-neutral900">
-              Đơn hàng #{order.order_code}
+              {copy.order.orderCodePrefix || "Đơn hàng #"}
+              {order.order_code}
             </h1>
             <Badge variant={isPickup ? "warning" : "primary"} size="small">
-              {isPickup ? "Tự đến lấy" : "Giao tận nơi"}
+              {isPickup ? copy.checkout.pickup : copy.checkout.delivery}
             </Badge>
           </div>
           <span className="text-xxsmall text-neutral500">
@@ -149,15 +153,16 @@ export default function OrderDetailPage() {
       {/* Timeline Trạng Thái Đơn Hàng */}
       <div className="rounded-2xl border border-black/5 bg-transparent p-4">
         <span className="mb-3 block text-xs font-bold text-neutral800">
-          TIẾN TRÌNH ĐƠN HÀNG
+          {copy.orderDetail.timelineSection}
         </span>
 
         {isCancelled ? (
           <div className="rounded-xl border border-red-200/50 bg-red-50 p-3 text-xs text-red-700">
-            Đơn hàng đã bị hủy.
+            {copy.orderDetail.cancelledNotice}
             {order.cancellation_reason && (
               <span className="mt-0.5 block text-neutral600">
-                Lý do: {order.cancellation_reason}
+                {copy.orderDetail.cancelReasonPrefix}{" "}
+                {order.cancellation_reason}
               </span>
             )}
           </div>
@@ -191,11 +196,11 @@ export default function OrderDetailPage() {
                     {isPassed && idx < currentStep ? (
                       <CheckIcon className="h-3 w-3" />
                     ) : (
-                      <span className="text-[10px]">{idx + 1}</span>
+                      <span className="text-xxxxsmall">{idx + 1}</span>
                     )}
                   </div>
                   <span
-                    className={`mt-1.5 text-[10px] leading-tight ${
+                    className={`mt-1.5 text-xxxxsmall leading-tight ${
                       isCurrent
                         ? "font-bold text-primary"
                         : isPassed
@@ -217,7 +222,7 @@ export default function OrderDetailPage() {
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-bold text-neutral900">
-              QUÉT MÃ VIETQR ĐỂ THANH TOÁN
+              {copy.orderDetail.vietqrTitle}
             </span>
             <span
               className={`rounded px-2 py-0.5 text-xxsmall font-bold ${
@@ -226,7 +231,9 @@ export default function OrderDetailPage() {
                   : "animate-pulse bg-amber-100 text-amber-800"
               }`}
             >
-              {isPaid ? "Đã thanh toán" : "Chờ thanh toán"}
+              {isPaid
+                ? copy.orderDetail.paidStatus
+                : copy.orderDetail.pendingPayStatus}
             </span>
           </div>
 
@@ -242,64 +249,80 @@ export default function OrderDetailPage() {
 
               <div className="w-full space-y-2 rounded-xl border border-black/5 bg-black/[0.02] p-3 text-left text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-neutral500">Ngân hàng:</span>
+                  <span className="text-neutral500">
+                    {copy.orderDetail.bankLabel}
+                  </span>
                   <span className="font-bold text-neutral900">
-                    Techcombank (TCB)
+                    {copy.orderDetail.bankName}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-neutral500">Số tài khoản:</span>
+                  <span className="text-neutral500">
+                    {copy.orderDetail.accountNumberLabel}
+                  </span>
                   <div className="flex items-center gap-1.5">
                     <span className="font-mono font-bold text-primary">
                       2907200329
                     </span>
                     <button
-                      onClick={() => handleCopy("2907200329", "Số tài khoản")}
+                      onClick={() =>
+                        handleCopy(
+                          "2907200329",
+                          copy.orderDetail.accountNumberLabel,
+                        )
+                      }
                       className="rounded border border-primary/30 px-1.5 py-0.5 text-xxsmall text-primary active:bg-primary/10"
                     >
-                      Sao chép
+                      {copy.orderDetail.copy}
                     </button>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-neutral500">Chủ tài khoản:</span>
+                  <span className="text-neutral500">
+                    {copy.orderDetail.accountHolderLabel}
+                  </span>
                   <span className="font-bold text-neutral900">
-                    NGUYEN THI TUYET THU
+                    {copy.orderDetail.accountHolderName}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-neutral500">Số tiền:</span>
-                  <span className="text-sm font-bold text-neutral-900">
+                  <span className="text-neutral500">
+                    {copy.orderDetail.amountLabel}
+                  </span>
+                  <span className="text-sm font-bold text-neutral900">
                     {formatCurrency(order.total_amount)}đ
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-neutral500">Nội dung CK:</span>
+                  <span className="text-neutral500">
+                    {copy.orderDetail.transferContentLabel}
+                  </span>
                   <div className="flex items-center gap-1.5">
                     <span className="font-mono font-bold text-neutral900">
                       {order.order_code}
                     </span>
                     <button
                       onClick={() =>
-                        handleCopy(order.order_code, "Nội dung chuyển khoản")
+                        handleCopy(
+                          order.order_code,
+                          copy.orderDetail.transferContentLabel,
+                        )
                       }
                       className="rounded border border-primary/30 px-1.5 py-0.5 text-xxsmall text-primary active:bg-primary/10"
                     >
-                      Sao chép
+                      {copy.orderDetail.copy}
                     </button>
                   </div>
                 </div>
               </div>
 
               <p className="text-xxsmall italic text-neutral500">
-                * Hệ thống sẽ tự động cập nhật trạng thái ngay sau khi nhận được
-                tiền.
+                {copy.orderDetail.autoUpdateNote}
               </p>
             </div>
           ) : (
             <div className="mt-2 rounded-lg border border-primary/30 bg-primary/10 p-2.5 text-xs text-primaryDark">
-              Đơn hàng đã được xác nhận thanh toán thành công. Bếp Dì 6 đang
-              chuẩn bị món cho bạn!
+              {copy.orderDetail.paidSuccessMessage}
             </div>
           )}
         </div>
@@ -308,16 +331,18 @@ export default function OrderDetailPage() {
       {/* Thông tin nhận hàng (Giao tận nơi vs Tự đến lấy) */}
       <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
         <span className="mb-2 block text-xs font-bold text-neutral800">
-          {isPickup ? "ĐỊA ĐIỂM ĐẾN LẤY MÓN" : "ĐỊA CHỈ GIAO HÀNG"}
+          {isPickup
+            ? copy.checkout.pickupStoreSection
+            : copy.checkout.deliveryAddressSection}
         </span>
         <div className="space-y-1 text-xs text-neutral800">
           <div className="font-semibold">
-            Người nhận: {order.recipient_name} • {order.phone}
+            {copy.orderDetail.recipient}: {order.recipient_name} • {order.phone}
           </div>
           <div>
             {isPickup ? (
               <span className="text-neutral600">
-                Nhận trực tiếp tại Bếp Dì 6 (TP. Hồ Chí Minh)
+                {copy.orderDetail.directPickupHint}
               </span>
             ) : (
               <span className="leading-relaxed text-neutral600">
@@ -328,7 +353,10 @@ export default function OrderDetailPage() {
           {order.scheduled_delivery_at && (
             <div className="mt-1.5 flex items-center gap-1.5">
               <span className="rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
-                ⏰ {isPickup ? "Giờ hẹn lấy:" : "Giờ hẹn giao:"}{" "}
+                ⏰{" "}
+                {isPickup
+                  ? copy.orderDetail.scheduledPickupTime
+                  : copy.orderDetail.scheduledDeliveryTime}{" "}
                 {new Date(order.scheduled_delivery_at).toLocaleTimeString(
                   "vi-VN",
                   {
@@ -341,7 +369,7 @@ export default function OrderDetailPage() {
           )}
           {order.note && (
             <div className="mt-1 text-xxsmall italic text-neutral500">
-              Ghi chú: "{order.note}"
+              {copy.checkout.note}: "{order.note}"
             </div>
           )}
         </div>
@@ -350,7 +378,7 @@ export default function OrderDetailPage() {
       {/* Danh sách món ăn */}
       <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
         <span className="mb-2.5 block text-xs font-bold text-neutral800">
-          CHI TIẾT MÓN ĂN ({order.items.length})
+          {copy.orderDetail.itemsSection} ({order.items.length})
         </span>
         <div className="space-y-3 divide-y divide-black/5">
           {order.items.map((item) => (
@@ -387,10 +415,10 @@ export default function OrderDetailPage() {
       {/* Chi tiết thanh toán */}
       <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
         <span className="mb-1 block text-xs font-bold text-neutral800">
-          TỔNG CỘNG HÓA ĐƠN
+          {copy.orderDetail.totalSection}
         </span>
         <div className="flex justify-between text-neutral600">
-          <span>Tạm tính</span>
+          <span>{copy.checkout.subtotal}</span>
           <span className="font-normal text-black">
             {formatCurrency(order.subtotal)}đ
           </span>
@@ -399,7 +427,7 @@ export default function OrderDetailPage() {
           <span>
             {isPickup
               ? "Hình thức"
-              : `Phí giao hàng (${order.distance_km?.toFixed(1)} km)`}
+              : `${copy.checkout.shippingFee} (${order.distance_km?.toFixed(1)} km)`}
           </span>
           <span className="font-normal text-black">
             {isPickup
@@ -409,12 +437,12 @@ export default function OrderDetailPage() {
         </div>
         {order.discount > 0 && (
           <div className="flex justify-between font-normal text-primary">
-            <span>Giảm giá</span>
+            <span>{copy.checkout.discount}</span>
             <span>-{formatCurrency(order.discount)}đ</span>
           </div>
         )}
         <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-normal text-black">
-          <span>Tổng thanh toán</span>
+          <span>{copy.checkout.total}</span>
           <span className="text-base font-bold text-neutral-900">
             {formatCurrency(order.total_amount)}đ
           </span>
@@ -423,7 +451,7 @@ export default function OrderDetailPage() {
 
       {/* Footer Action: Hủy đơn nếu còn Chờ xác nhận */}
       {order.status === "PENDING_CONFIRMATION" && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 p-3 shadow-lg backdrop-blur-md">
+        <div className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-3 pt-3 shadow-lg backdrop-blur-md">
           <Button
             size="small"
             type="neutral"
@@ -431,7 +459,7 @@ export default function OrderDetailPage() {
             loading={isCancelling}
             className="w-full rounded-xl border border-red-300/50 bg-red-50 py-2.5 text-xs font-semibold text-red-600 transition-all active:scale-[0.99]"
           >
-            Hủy đơn hàng này
+            {copy.orderDetail.cancelButton}
           </Button>
         </div>
       )}
@@ -439,11 +467,11 @@ export default function OrderDetailPage() {
       {/* Confirm Modal Hủy đơn theo chuẩn Zalo Guidelines */}
       <ConfirmModal
         visible={showCancelModal}
-        title="Hủy đơn hàng này?"
-        description="Bạn có chắc chắn muốn hủy đơn hàng không? Thao tác này không thể hoàn tác."
+        title={copy.orderDetail.cancelModalTitle}
+        description={copy.orderDetail.cancelModalDesc}
         type="danger"
-        confirmText="Xác nhận hủy"
-        cancelText="Giữ lại đơn"
+        confirmText={copy.orderDetail.cancelConfirmText}
+        cancelText={copy.orderDetail.cancelKeepText}
         loading={isCancelling}
         onConfirm={handleConfirmCancel}
         onCancel={() => setShowCancelModal(false)}

@@ -2,6 +2,8 @@ import { Product } from "@/types/product.types";
 import { formatCurrency } from "@/utils/format";
 import { useNavigate } from "react-router-dom";
 import { useCartStore } from "@/stores/cart.store";
+import { copy } from "@/constants/copy";
+import defaultProductImg from "@/static/logo.png";
 
 interface ProductCardProps {
   product: Product;
@@ -29,7 +31,7 @@ export default function ProductCard({
     product.effective_image_url ||
     product.image_url ||
     product.image ||
-    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&auto=format&fit=crop&q=60";
+    defaultProductImg;
 
   const isOutOfStock = product.status === "OUT_OF_STOCK";
 
@@ -93,8 +95,8 @@ export default function ProductCard({
       <div className="shadow-xs relative aspect-square w-full overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-black/5">
         {isOutOfStock && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-            <span className="rounded-md bg-black/80 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-white">
-              TẠM HẾT
+            <span className="rounded-md bg-black/80 px-2 py-0.5 text-xxxsmall font-semibold tracking-wide text-white">
+              {copy.product.outOfStock}
             </span>
           </div>
         )}

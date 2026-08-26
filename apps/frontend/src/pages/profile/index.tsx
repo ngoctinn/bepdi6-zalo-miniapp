@@ -23,9 +23,9 @@ export default function ProfilePage() {
     <div className="relative flex h-full flex-col bg-transparent">
       {/* Sticky Header: Nền sạch sẽ đồng bộ toàn hệ thống */}
       <div className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-4 backdrop-blur-md">
-        <div className="header-margin px-3.5 pb-1 pt-3">
-          <h1 className="text-[17px] font-extrabold tracking-tight text-neutral-900">
-            Tài Khoản Của Tôi
+        <div className="header-margin px-3.5 pb-1 pr-20 pt-3">
+          <h1 className="text-base font-extrabold tracking-tight text-neutral-900">
+            {copy.profile.title}
           </h1>
         </div>
 
@@ -39,7 +39,7 @@ export default function ProfilePage() {
             className="mb-2.5 border-2 border-primary/30 ring-2 ring-white/50"
           />
           <div className="text-base font-bold text-neutral900">
-            {customer?.name || "Khách hàng Zalo"}
+            {customer?.name || copy.profile.sampleName}
           </div>
           {customer?.phone && (
             <div className="mt-0.5 text-xs text-neutral600">
@@ -59,7 +59,7 @@ export default function ProfilePage() {
               <div className="text-primary">
                 <MapPinIconSolid />
               </div>
-              <div>Sổ địa chỉ giao hàng</div>
+              <div>{copy.profile.addresses}</div>
             </div>
             <ChevronRightIcon className="h-4 w-4 text-neutral400" />
           </div>
@@ -72,7 +72,7 @@ export default function ProfilePage() {
               <div className="text-amber-600">
                 <VoucherIcon className="h-5 w-5" />
               </div>
-              <div>Kho Voucher của tôi</div>
+              <div>{copy.profile.vouchers}</div>
             </div>
             <ChevronRightIcon className="h-4 w-4 text-neutral400" />
           </div>
@@ -85,7 +85,7 @@ export default function ProfilePage() {
               <div className="text-primary">
                 <ProfileUserIcon className="h-5 w-5" />
               </div>
-              <div>Trung tâm hỗ trợ & CSKH</div>
+              <div>{copy.profile.supportCenter}</div>
             </div>
             <ChevronRightIcon className="h-4 w-4 text-neutral400" />
           </div>

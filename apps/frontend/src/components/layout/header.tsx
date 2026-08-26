@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "zmp-ui";
 import { BackIcon } from "../common/vectors";
-import { theme } from "@/constants/copy";
+import { copy } from "@/constants/copy";
 
 interface HeaderProps {
   title?: string;
@@ -18,7 +18,7 @@ export default function Header({ title, back, position }: HeaderProps) {
     <div
       className={`${positionClass} top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md`}
     >
-      <div className="header-margin flex h-10 items-center gap-2 px-3.5 pr-24 pt-2">
+      <div className="header-margin flex h-10 items-center gap-2 px-3.5 pr-20 pt-2">
         {back && (
           <button
             type="button"
@@ -28,8 +28,8 @@ export default function Header({ title, back, position }: HeaderProps) {
             <BackIcon className="h-5 w-5" />
           </button>
         )}
-        <h1 className="truncate text-[17px] font-extrabold tracking-tight text-neutral-900">
-          {title || "Bếp Dì 6 - Mắm Chưng Miền Tây"}
+        <h1 className="truncate text-base font-extrabold tracking-tight text-neutral-900">
+          {title || copy.brand.name}
         </h1>
       </div>
     </div>

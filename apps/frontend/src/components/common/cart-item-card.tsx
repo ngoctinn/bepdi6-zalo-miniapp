@@ -7,6 +7,7 @@ import {
   calculateCartItemPrice,
   formatVariantWithPercentage,
 } from "@/utils/cart";
+import defaultProductImg from "@/static/logo.png";
 
 interface CartItemCardProps {
   item: CartItem;
@@ -22,9 +23,7 @@ export default function CartItemCard({
   onEdit,
 }: CartItemCardProps) {
   const itemUnitPrice = calculateCartItemPrice(item);
-  const imageUrl =
-    item.product_image ||
-    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&auto=format&fit=crop&q=60";
+  const imageUrl = item.product_image || defaultProductImg;
 
   return (
     <div className="shadow-xs flex gap-3 rounded-2xl border border-black/5 bg-transparent p-3">
@@ -53,7 +52,7 @@ export default function CartItemCard({
 
         <div className="mt-1 text-xs font-bold text-neutral900">
           {formatCurrency(itemUnitPrice)}
-          <span className="ml-0.5 text-[11px] font-medium text-neutral500">
+          <span className="ml-0.5 text-xxxsmall font-medium text-neutral500">
             đ
           </span>
         </div>

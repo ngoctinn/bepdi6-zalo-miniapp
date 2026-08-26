@@ -54,7 +54,7 @@ export function Tabs<T extends string>({
             {tab.badge !== undefined && (
               <span
                 className={cn(
-                  "ml-1.5 rounded-full px-1.5 text-[10px] font-bold",
+                  "ml-1.5 rounded-full px-1.5 text-xxxxsmall font-bold",
                   isActive
                     ? "bg-primary text-white"
                     : "bg-black/10 text-stone-600",

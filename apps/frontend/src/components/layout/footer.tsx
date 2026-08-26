@@ -38,31 +38,41 @@ export default function Footer() {
     )?.path ?? "/";
 
   return (
-    <div className="flex justify-between border-divider01 border-t bg-white px-8 pb-5 pt-4">
-      {NAV_ITEMS.map((item) => (
-        <div
-          className="relative flex cursor-pointer flex-col items-center gap-1"
-          key={item.path}
-          onClick={() => navigate(item.path)}
-        >
-          <div className="relative">
-            <item.icon active={activeKey === item.path} />
-            {item.badge > 0 && (
-              <span className="shadow-xs absolute -right-2.5 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-extrabold text-white">
-                {item.badge > 99 ? "99+" : item.badge}
-              </span>
-            )}
-          </div>
-          <div
-            className={cn(
-              "text-xxxxsmall font-medium",
-              activeKey === item.path ? "!text-primary" : "!text-stone-400",
-            )}
+    <nav
+      role="navigation"
+      aria-label="Thanh điều hướng chính"
+      className="safe-bottom bg-white/98 grid grid-cols-3 items-center border-t border-black/5 pt-2.5 backdrop-blur-md"
+    >
+      {NAV_ITEMS.map((item) => {
+        const isActive = activeKey === item.path;
+        return (
+          <button
+            type="button"
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            className="flex flex-col items-center justify-center py-1 transition-all focus:outline-none active:scale-95"
+            aria-label={item.name}
+            aria-current={isActive ? "page" : undefined}
           >
-            {item.name}
-          </div>
-        </div>
-      ))}
-    </div>
+            <div className="relative flex h-6 w-6 items-center justify-center">
+              <item.icon active={isActive} />
+              {item.badge > 0 && (
+                <span className="shadow-xs absolute -right-2.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-xxxxsmall font-extrabold leading-none text-white ring-2 ring-white">
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
+              )}
+            </div>
+            <span
+              className={cn(
+                "mt-1 text-xxxxsmall font-bold tracking-tight transition-colors",
+                isActive ? "text-primary" : "text-stone-400",
+              )}
+            >
+              {item.name}
+            </span>
+          </button>
+        );
+      })}
+    </nav>
   );
 }

@@ -10,6 +10,7 @@ import { formatCurrency } from "@/utils/format";
 import { Option, OptionGroup } from "@/types/product.types";
 import { cn } from "@/utils/cn";
 import { Badge } from "@/components/common/badge";
+import defaultProductImg from "@/static/logo.png";
 
 type SelectedOptionsState = {
   [groupId: number]: number[];
@@ -203,7 +204,7 @@ export default function ProductDetailSheet({
     product?.effective_image_url ||
     product?.image_url ||
     product?.image ||
-    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80";
+    defaultProductImg;
 
   return (
     <Sheet
@@ -254,7 +255,7 @@ export default function ProductDetailSheet({
               {/* Product Info (Direct text, no card) */}
               <div className="flex flex-col">
                 <div className="flex items-start justify-between gap-3">
-                  <h2 className="text-[17px] font-bold leading-snug text-neutral900">
+                  <h2 className="text-base font-bold leading-snug text-neutral900">
                     {product.name}
                   </h2>
                   <div className="whitespace-nowrap text-base font-normal text-black">

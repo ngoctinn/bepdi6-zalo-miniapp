@@ -25,7 +25,7 @@ export default function NoteInput({
   return (
     <div className={cn("w-full space-y-1", className)}>
       {!hideLabel && label && (
-        <Text size="xSmall" className="text-text-primary">
+        <Text size="xSmall" className="text-neutral900">
           {label}
         </Text>
       )}
