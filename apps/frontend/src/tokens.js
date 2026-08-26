@@ -294,6 +294,7 @@ const semantic = {
     },
     home: {
       suggestions: "Gợi ý cho bạn",
+      empty: "Chưa có món ăn nào trong thực đơn",
     },
     cart: {
       title: "Giỏ hàng",

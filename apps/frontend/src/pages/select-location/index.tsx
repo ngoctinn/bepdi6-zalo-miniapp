@@ -178,33 +178,28 @@ export default function SelectLocationPage() {
           );
         })
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <MapPinIcon className="mb-2 h-12 w-12 text-neutral300" />
-          <p className="text-sm font-medium text-neutral700">
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-black/[0.03] text-neutral400">
+            <MapPinIcon className="h-8 w-8" />
+          </div>
+          <p className="text-sm font-bold text-neutral800">
             {copy.selectLocation.emptyTitle}
           </p>
-          <p className="mt-1 text-xs text-neutral400">
+          <p className="mt-1 max-w-xs text-xs leading-relaxed text-neutral400">
             {copy.selectLocation.emptyHint}
           </p>
-          <Button
-            className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primaryDark"
-            onClick={() => setIsModalOpen(true)}
-          >
-            {copy.selectLocation.addNew}
-          </Button>
         </div>
       )}
 
       {/* Modal Thêm Địa Chỉ Mới (Chuẩn Design System & Tokens) */}
       <Modal
         visible={isModalOpen}
-        title={copy.selectLocation.modalTitle}
         onClose={() => setIsModalOpen(false)}
         mask
         zIndex={1400}
-        modalClassName="rounded-2xl overflow-hidden p-0 max-w-[340px] shadow-2xl border-0"
+        modalClassName="rounded-2xl max-w-[360px] p-5 border-0 shadow-2xl bg-white"
       >
-        <div className="bg-white p-5">
+        <div className="flex flex-col">
           <div className="mb-4 text-center">
             <h3 className="text-base font-bold text-neutral900">
               {copy.selectLocation.modalTitle}

@@ -488,7 +488,7 @@ export default function CheckoutPage() {
 
                     {item.note && (
                       <div className="mt-0.5 text-xxsmall italic text-amber-700">
-                        "{item.note}"
+                        &ldquo;{item.note}&rdquo;
                       </div>
                     )}
 
@@ -696,18 +696,18 @@ export default function CheckoutPage() {
       </div>
 
       {/* Tư vấn đặt món & Hotline quán */}
-      {shopInfo?.hotline && (
+      {Boolean(shopInfo?.hotline) && (
         <div className="flex items-center justify-between rounded-2xl border border-primary/20 bg-primary/5 p-3 text-xs">
           <div>
             <div className="font-bold text-primaryDark">
               {copy.checkout.consultTitle}
             </div>
             <div className="text-xxsmall text-neutral500">
-              Hotline {shopInfo.hotline} ({copy.checkout.consultSub})
+              Hotline {shopInfo?.hotline} ({copy.checkout.consultSub})
             </div>
           </div>
           <a
-            href={`tel:${shopInfo.hotline}`}
+            href={`tel:${shopInfo?.hotline || ""}`}
             className="flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xxsmall font-bold text-white transition-all active:scale-95"
           >
             <span>{copy.checkout.callShop}</span>

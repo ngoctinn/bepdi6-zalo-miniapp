@@ -201,7 +201,7 @@ export default function HomePage() {
           ))
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center text-sm text-stone-400">
-            <p>Chưa có món ăn nào trong thực đơn</p>
+            <p>{copy.home.empty || "Chưa có món ăn nào trong thực đơn"}</p>
           </div>
         )}
       </div>

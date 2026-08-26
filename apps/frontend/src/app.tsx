@@ -1,17 +1,16 @@
 import { RouterProvider } from "react-router-dom";
 import router from "./router";
 import { ReactQueryProvider } from "./lib/react-query-provider";
-import React, { useEffect } from "react";
-import { SnackbarProvider } from "zmp-ui";
+import React from "react";
+import { AppToastContainer } from "@/hooks/use-app-toast";
 
 export default function MiniApp() {
   return (
     <React.StrictMode>
-      <SnackbarProvider>
-        <ReactQueryProvider>
-          <RouterProvider router={router} />
-        </ReactQueryProvider>
-      </SnackbarProvider>
+      <ReactQueryProvider>
+        <RouterProvider router={router} />
+        <AppToastContainer />
+      </ReactQueryProvider>
     </React.StrictMode>
   );
 }

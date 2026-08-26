@@ -32,12 +32,24 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({
       mask
       maskClosable={false}
       zIndex={9999}
-      modalClassName="rounded-[20px] overflow-hidden p-0 max-w-[340px] shadow-2xl border-0"
+      modalClassName="rounded-2xl max-w-[340px] p-6 text-center shadow-2xl border-0 bg-white"
     >
-      <div className="bg-white p-6 text-center">
-        {/* Soft Error Icon badge sử dụng Zalo UI Icon chuẩn */}
+      <div className="flex flex-col">
+        {/* Soft Error Icon badge sử dụng SVG Vector độc lập */}
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-danger">
-          <Icon icon="zi-close-circle" className="text-3xl text-danger" />
+          <svg
+            className="h-8 w-8 text-danger"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
         </div>
 
         <Text.Title size="small" className="mb-2 font-bold text-neutral900">

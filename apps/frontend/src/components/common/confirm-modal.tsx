@@ -51,9 +51,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       mask
       maskClosable={!loading}
       zIndex={1500}
-      modalClassName="rounded-2xl overflow-hidden p-0 max-w-[340px] shadow-2xl border-0"
+      modalClassName="rounded-2xl max-w-[340px] p-6 text-center shadow-2xl border-0 bg-white"
     >
-      <div className="bg-white p-6 text-center">
+      <div className="flex flex-col">
         <Text.Title size="small" className="mb-2 font-bold text-neutral900">
           {title}
         </Text.Title>

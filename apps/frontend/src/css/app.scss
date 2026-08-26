@@ -28,7 +28,6 @@
 
   /* Tabbar Overrides */
   --zaui-light-tabbar-active-line: #4d7c0f;
-  --zaui-light-bottom-navigation-active-color: #4d7c0f;
   --zaui-light-bottom-navigation-divider-color: rgba(0, 0, 0, 0.05);
 
   /* Spinner & Misc Overrides */
@@ -37,12 +36,6 @@
   --zaui-light-switch-bg-color: #4d7c0f;
   --zaui-light-picker-option-selected-color: #4d7c0f;
   --zaui-light-option-selected-color: #4d7c0f;
-
-  /* Snackbar / Toast Overrides */
-  --zaui-light-snackbar-background: #ffffff;
-  --zaui-light-snackbar-text-color: #1c1917;
-  --zaui-dark-snackbar-background: #ffffff;
-  --zaui-dark-snackbar-text-color: #1c1917;
 }
 
 /* Eliminate native focus blue rings globally */
@@ -113,15 +106,10 @@ select:focus {
 }
 
 /* ==========================================================================
-   ZaUI Snackbar & Toast Alert System (Clean Standardized 16px Card System)
-   - Chiều rộng Full-Width với lề an toàn: calc(100vw - 32px), max-width 480px, căn giữa
-   - Bo góc 16px chuẩn tokens.rounded.card
-   - Màu nền Soft Pastel & màu chữ đồng bộ 100% tokens.feedback:
-     + Success: #F7FEE7 (olive50) / #365314 (olive900) / icon: #4D7C0F
-     + Warning: #FFFBEB (amber50) / #78350F (amber900) / icon: #D97706
-     + Error: #FEF2F2 (red50) / #991B1B (red900) / icon: #DC2626
-     + Info/Default: #F5F5F4 (stone100) / #1C1917 (stone900) / icon: #44403C
-   - Icon 24x24 căn giữa chuẩn Flexbox
+   ZaUI Snackbar & Toast Alert System (Soft Pastel System)
+   - Bo góc 14px mềm mại
+   - Màu nền Soft Pastel & màu chữ đồng bộ 100% tokens.feedback
+   - Khắc phục triệt để lỗi đè nền trắng hoặc đen mặc định của SDK
    ========================================================================== */
 
 /* 1. Global Container */
@@ -129,29 +117,27 @@ select:focus {
   z-index: 99999 !important;
 }
 
-/* 2. Base Snackbar Box */
+/* 2. Base Snackbar Box (Soft Design System) */
 .zaui-snackbar {
   box-sizing: border-box !important;
-  border-radius: 16px !important;
-  font-size: 13.5px !important;
+  border-radius: 14px !important;
+  font-size: 13px !important;
   line-height: 1.4 !important;
   font-weight: 500 !important;
-  padding: 12px 16px !important;
-  background-color: #ffffff !important;
-  color: #1c1917 !important;
+  padding: 10px 14px !important;
   box-shadow:
-    0 16px 32px -4px rgba(0, 0, 0, 0.14),
-    0 4px 12px -2px rgba(0, 0, 0, 0.06) !important;
+    0 8px 24px -4px rgba(0, 0, 0, 0.08),
+    0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  bottom: calc(var(--zaui-safe-area-inset-bottom, 16px) + 24px) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
+  bottom: calc(var(--zaui-safe-area-inset-bottom, 16px) + 20px) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
-  gap: 12px !important;
+  gap: 10px !important;
   width: calc(100vw - 32px) !important;
-  max-width: 480px !important;
+  max-width: 460px !important;
   left: 50% !important;
   margin: 0 !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -179,7 +165,7 @@ select:focus {
 .zaui-snackbar-desc-wrapper {
   display: flex !important;
   align-items: center !important;
-  gap: 12px !important;
+  gap: 10px !important;
   width: 100% !important;
 }
 
@@ -207,7 +193,7 @@ select:focus {
 }
 
 .zaui-snackbar-text {
-  font-size: 13.5px !important;
+  font-size: 13px !important;
   font-weight: 600 !important;
   line-height: 1.35 !important;
   letter-spacing: -0.01em !important;
@@ -217,15 +203,15 @@ select:focus {
 .zaui-snackbar-action {
   margin-left: auto !important;
   padding-left: 8px !important;
-  font-size: 13px !important;
+  font-size: 12.5px !important;
   font-weight: 700 !important;
   height: auto !important;
   cursor: pointer !important;
 }
 
-/* 5. Semantic Color Variants (Tokens Feedback) */
+/* 5. Semantic Color Variants (Soft Style) */
 
-/* Success Variant */
+/* Soft Success Variant (Olive) */
 .zaui-snackbar.zaui-snackbar-success,
 .zaui-snackbar.zaui-toast-success,
 .zaui-snackbar[class*="success"],
@@ -233,7 +219,7 @@ select:focus {
 .zaui-toast-success,
 .zaui-snackbar-success {
   background-color: #f7fee7 !important;
-  border-color: rgba(77, 124, 15, 0.3) !important;
+  border-color: rgba(77, 124, 15, 0.25) !important;
   color: #365314 !important;
 }
 .zaui-snackbar.zaui-snackbar-success .zaui-snackbar-text,
@@ -253,7 +239,7 @@ select:focus {
   color: #4d7c0f !important;
 }
 
-/* Warning Variant */
+/* Soft Warning Variant (Amber / Honey) */
 .zaui-snackbar.zaui-snackbar-warning,
 .zaui-snackbar.zaui-toast-warning,
 .zaui-snackbar[class*="warning"],
@@ -261,7 +247,7 @@ select:focus {
 .zaui-toast-warning,
 .zaui-snackbar-warning {
   background-color: #fffbeb !important;
-  border-color: rgba(217, 119, 6, 0.3) !important;
+  border-color: rgba(217, 119, 6, 0.25) !important;
   color: #78350f !important;
 }
 .zaui-snackbar.zaui-snackbar-warning .zaui-snackbar-text,
@@ -281,7 +267,7 @@ select:focus {
   color: #d97706 !important;
 }
 
-/* Error Variant */
+/* Soft Error Variant (Red) */
 .zaui-snackbar.zaui-snackbar-error,
 .zaui-snackbar.zaui-toast-error,
 .zaui-snackbar[class*="error"],
@@ -289,7 +275,7 @@ select:focus {
 .zaui-toast-error,
 .zaui-snackbar-error {
   background-color: #fef2f2 !important;
-  border-color: rgba(220, 38, 38, 0.3) !important;
+  border-color: rgba(220, 38, 38, 0.25) !important;
   color: #991b1b !important;
 }
 .zaui-snackbar.zaui-snackbar-error .zaui-snackbar-text,
@@ -309,7 +295,7 @@ select:focus {
   color: #dc2626 !important;
 }
 
-/* Info & Default Variant */
+/* Soft Info & Default Variant (Stone) */
 .zaui-snackbar.zaui-snackbar-info,
 .zaui-snackbar.zaui-snackbar-default,
 .zaui-snackbar.zaui-toast-info,
@@ -319,8 +305,8 @@ select:focus {
 .zaui-custom-toast.zaui-toast-default,
 .zaui-toast-info,
 .zaui-toast-default {
-  background-color: #f5f5f4 !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
+  background-color: #fafaf9 !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
   color: #1c1917 !important;
 }
 .zaui-snackbar.zaui-snackbar-info .zaui-snackbar-text,
@@ -346,13 +332,13 @@ select:focus {
   color: #4d7c0f !important;
 }
 
-/* Loading Variant */
+/* Soft Loading Variant */
 .zaui-snackbar.zaui-snackbar-loading,
 .zaui-snackbar.zaui-toast-loading,
 .zaui-custom-toast.zaui-toast-loading,
 .zaui-toast-loading {
-  background-color: #ffffff !important;
-  border-color: rgba(77, 124, 15, 0.3) !important;
+  background-color: #fafaf9 !important;
+  border-color: rgba(77, 124, 15, 0.25) !important;
   color: #0f172a !important;
 }
 .zaui-snackbar.zaui-snackbar-loading .zaui-snackbar-text,

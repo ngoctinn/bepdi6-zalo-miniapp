@@ -286,7 +286,7 @@ export default function ProductDetailSheet({
                             </span>
                             {group.is_required && (
                               <Badge variant="error" size="small">
-                                Bắt buộc
+                                {copy.product.required || "Bắt buộc"}
                               </Badge>
                             )}
                           </div>
