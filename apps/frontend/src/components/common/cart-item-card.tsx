@@ -59,14 +59,13 @@ export default function CartItemCard({
         </div>
 
         {onEdit && (
-          <Button
+          <button
+            type="button"
             onClick={() => onEdit(item.id)}
-            className="mt-1.5 rounded-full bg-neutral100 px-2.5 py-0.5 text-xxsmall font-medium text-neutral700 active:bg-neutral200"
-            size="small"
-            type="neutral"
+            className="mt-1.5 inline-flex items-center rounded-full border border-black/5 bg-black/[0.04] px-3 py-1 text-xxsmall font-medium text-neutral700 transition-all hover:bg-black/10 active:scale-95"
           >
             {copy.common.edit}
-          </Button>
+          </button>
         )}
       </div>
 

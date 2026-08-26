@@ -6,7 +6,6 @@ import HomePage from "./pages/home";
 
 // Code-splitting / Lazy loading non-initial routes per Zalo Mini App Best Practices
 const OrderPage = lazy(() => import("./pages/order"));
-const SearchPage = lazy(() => import("./pages/search"));
 const CheckoutPage = lazy(() => import("./pages/checkout"));
 const SelectLocationPage = lazy(() => import("./pages/select-location"));
 const OrderSuccessPage = lazy(() => import("./pages/order-success"));
@@ -39,14 +38,6 @@ const router = createBrowserRouter(
             hideCart: true,
             hideHeader: true,
           },
-        },
-        {
-          path: "/menu/search",
-          element: (
-            <Suspense fallback={null}>
-              <SearchPage />
-            </Suspense>
-          ),
         },
         {
           path: "/checkout",

@@ -29,16 +29,16 @@ export default function QuantityStepper({
 
   const sizeClasses = {
     small: {
-      button: "w-6 h-6 text-lg",
-      display: "w-8 text-center text-sm",
+      button: "w-7 h-7 text-base min-w-[28px] min-h-[28px]",
+      display: "w-7 text-center text-xs font-bold",
     },
     medium: {
-      button: "w-7 h-7 text-base",
-      display: "text-center text-base font-normal",
+      button: "w-8 h-8 text-lg min-w-[32px] min-h-[32px]",
+      display: "min-w-[28px] text-center text-sm font-semibold",
     },
     large: {
-      button: "w-8 h-8 text-lg",
-      display: "w-8 text-center text-base",
+      button: "w-9 h-9 text-xl min-w-[36px] min-h-[36px]",
+      display: "w-9 text-center text-base font-semibold",
     },
   };
 
