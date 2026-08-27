@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import logging
 
 import requests
@@ -11,6 +13,15 @@ logger = logging.getLogger(__name__)
 
 class AuthService:
     """Authentication service handling Zalo Token Exchange and JWT generation."""
+
+    @staticmethod
+    def _generate_appsecret_proof(access_token: str, app_secret: str) -> str:
+        """Generates HMAC-SHA256 hash required by Zalo OpenAPI since 2024."""
+        return hmac.new(
+            app_secret.encode("utf-8"),
+            access_token.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
 
     @classmethod
     def exchange_zalo_tokens(
@@ -48,11 +59,15 @@ class AuthService:
 
         # Real Zalo OpenAPI Token Exchange
         try:
+            appsecret_proof = cls._generate_appsecret_proof(zalo_token, zalo_app_secret)
             # 1. Get user profile
             profile_res = requests.get(
                 "https://graph.zalo.me/v2.0/me",
                 headers={"access_token": zalo_token},
-                params={"fields": "id,name,picture"},
+                params={
+                    "fields": "id,name,picture",
+                    "appsecret_proof": appsecret_proof,
+                },
                 timeout=5,
             )
             profile_data = profile_res.json()

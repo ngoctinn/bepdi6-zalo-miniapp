@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAccessToken } from "zmp-sdk/apis";
 import { authService } from "../services/auth/auth.api";
@@ -10,6 +10,7 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const isLoggingInRef = useRef(false);
 
   const {
     data: customer,
@@ -36,10 +37,13 @@ export function useAuth() {
     },
   });
 
+  const { mutateAsync: mutateLoginAsync } = loginMutation;
+
   const loginWithZaloSDK = useCallback(async () => {
-    if (authService.isAuthenticated() && customer) {
+    if (authService.isAuthenticated() || isLoggingInRef.current) {
       return;
     }
+    isLoggingInRef.current = true;
     setIsLoggingIn(true);
     try {
       let accessToken = "";
@@ -51,19 +55,20 @@ export function useAuth() {
       }
 
       if (accessToken) {
-        await loginMutation.mutateAsync({ access_token: accessToken });
+        await mutateLoginAsync({ access_token: accessToken });
       }
     } catch (err) {
       setAuthError(
         err instanceof Error ? err.message : "Không thể lấy Zalo Token",
       );
     } finally {
+      isLoggingInRef.current = false;
       setIsLoggingIn(false);
     }
-  }, [customer, loginMutation]);
+  }, [mutateLoginAsync]);
 
   useEffect(() => {
-    if (!authService.isAuthenticated()) {
+    if (!authService.isAuthenticated() && !isLoggingInRef.current) {
       loginWithZaloSDK();
     }
   }, [loginWithZaloSDK]);

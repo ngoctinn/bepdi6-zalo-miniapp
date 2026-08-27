@@ -38,7 +38,9 @@ export interface ZaloAuthRequest {
 }
 
 export interface AuthTokens {
-  access: string;
-  refresh: string;
+  access_token: string;
+  refresh_token: string;
+  access?: string;
+  refresh?: string;
   customer: Customer;
 }

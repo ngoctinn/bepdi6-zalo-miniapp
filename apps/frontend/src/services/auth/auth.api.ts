@@ -17,8 +17,10 @@ export const authService = {
    */
   loginWithZalo: async (payload: ZaloAuthRequest): Promise<AuthTokens> => {
     const tokens = await api.post<AuthTokens>("auth/zalo", payload);
-    if (tokens.access) {
-      setStoredTokens(tokens.access, tokens.refresh);
+    const accessToken = tokens.access_token || tokens.access;
+    const refreshToken = tokens.refresh_token || tokens.refresh;
+    if (accessToken) {
+      setStoredTokens(accessToken, refreshToken);
     }
     return tokens;
   },
