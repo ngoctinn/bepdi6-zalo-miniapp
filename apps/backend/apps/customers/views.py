@@ -9,6 +9,7 @@ from apps.customers.serializers import (
     AddressSerializer,
     CustomerSerializer,
     ZaloAuthRequestSerializer,
+    ZaloLocationDecodeRequestSerializer,
 )
 from apps.customers.services import AuthService
 
@@ -72,6 +73,30 @@ class ZaloAuthView(APIView):
                     "refresh_token": refresh_token,
                     "customer": CustomerSerializer(customer).data,
                 },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ZaloLocationDecodeView(APIView):
+    """
+    POST /api/v1/customers/location/decode
+    Decodes single-use location token from Zalo Mini App SDK into latitude, longitude, and address text.
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = ZaloLocationDecodeRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = serializer.validated_data["token"]
+
+        result = AuthService.decode_zalo_location_token(token)
+
+        return Response(
+            {
+                "success": True,
+                "data": result,
             },
             status=status.HTTP_200_OK,
         )

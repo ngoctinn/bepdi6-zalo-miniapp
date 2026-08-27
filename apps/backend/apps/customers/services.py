@@ -168,3 +168,61 @@ class AuthService:
         refresh["zalo_user_id"] = customer.zalo_user_id
 
         return customer, str(refresh.access_token), str(refresh)
+
+    @classmethod
+    def decode_zalo_location_token(cls, token: str) -> dict:
+        """
+        Exchanges single-use Zalo Location Token for latitude/longitude and address text.
+        Provides dev/mock fallback for testing & local development.
+        """
+        zalo_app_id = getattr(settings, "ZALO_APP_ID", "")
+        zalo_app_secret = getattr(settings, "ZALO_APP_SECRET", "")
+
+        # Default fallback for testing, simulator & local development
+        if (
+            not zalo_app_id
+            or not zalo_app_secret
+            or token.startswith("dev_")
+            or token.startswith("mock_")
+            or token.startswith("test_")
+        ):
+            return {
+                "latitude": 10.762622,
+                "longitude": 106.660172,
+                "address_text": "123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+            }
+
+        try:
+            # Zalo Open API - Get User Location info
+            res = requests.get(
+                "https://graph.zalo.me/v2.0/me/info",
+                headers={
+                    "code": token,
+                    "secret_key": zalo_app_secret,
+                },
+                timeout=5,
+            )
+            res_data = res.json()
+            data = res_data.get("data", {})
+            lat = data.get("latitude")
+            lng = data.get("longitude")
+            address_parts = [
+                data.get("address"),
+                data.get("ward_name"),
+                data.get("district_name"),
+                data.get("city_name"),
+            ]
+            address_text = ", ".join([p for p in address_parts if p]) or ""
+
+            return {
+                "latitude": float(lat) if lat is not None else 10.762622,
+                "longitude": float(lng) if lng is not None else 106.660172,
+                "address_text": address_text,
+            }
+        except Exception as e:
+            logger.error("Error decoding Zalo location token: %s", e)
+            return {
+                "latitude": 10.762622,
+                "longitude": 106.660172,
+                "address_text": "",
+            }

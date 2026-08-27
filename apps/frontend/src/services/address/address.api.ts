@@ -2,6 +2,7 @@ import { api } from "../../lib/api-client";
 import {
   Address,
   CreateAddressRequest,
+  DecodeLocationResponse,
   UpdateAddressRequest,
 } from "../../types/customer.types";
 
@@ -12,6 +13,18 @@ export const addressService = {
    */
   getAddresses: async (): Promise<Address[]> => {
     return api.get<Address[]>("customers/me/addresses");
+  },
+
+  /**
+   * Giải mã Zalo Location Token sang tọa độ và địa chỉ
+   * POST /api/v1/customers/location/decode
+   */
+  decodeLocationToken: async (
+    token: string,
+  ): Promise<DecodeLocationResponse> => {
+    return api.post<DecodeLocationResponse>("customers/location/decode", {
+      token,
+    });
   },
 
   /**

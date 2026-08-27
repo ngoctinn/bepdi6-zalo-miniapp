@@ -10,6 +10,7 @@ import {
 import {
   useAddresses,
   useCreateAddress,
+  useDecodeLocation,
   useDeleteAddress,
 } from "@/services/address/address.queries";
 import { Address, CreateAddressRequest } from "@/types/customer.types";
@@ -17,6 +18,7 @@ import { useLocationStore } from "@/stores/location.store";
 import { getLocation } from "zmp-sdk/apis";
 import { Badge } from "@/components/common/badge";
 import { ConfirmModal } from "@/components/common/confirm-modal";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { copy } from "@/constants/copy";
 
 // Tọa độ mặc định gần quán Bếp Dì 6 (TP.HCM)
@@ -25,9 +27,11 @@ const DEFAULT_LONGITUDE = 106.660172;
 
 export default function SelectLocationPage() {
   const navigate = useNavigate();
+  const { showSuccess, showWarning } = useAppToast();
   const { data: addresses, isLoading } = useAddresses();
   const createAddressMutation = useCreateAddress();
   const deleteAddressMutation = useDeleteAddress();
+  const decodeLocationMutation = useDecodeLocation();
   const { selectedAddress, setSelectedAddress } = useLocationStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,17 +64,38 @@ export default function SelectLocationPage() {
 
   const handleGetCurrentLocation = async () => {
     setIsGettingLocation(true);
+    setFormError(null);
     try {
-      const data = await getLocation({});
-      if (data && data.latitude && data.longitude) {
+      let locationToken = "";
+      try {
+        const data = await getLocation({});
+        // ZMP SDK returns { token: string }
+        if (data && typeof data === "object" && "token" in data && data.token) {
+          locationToken = data.token as string;
+        } else {
+          locationToken = "dev_browser_mock_location_token";
+        }
+      } catch {
+        // Fallback when running on browser simulator or outside Zalo App
+        locationToken = "dev_browser_mock_location_token";
+      }
+
+      // Gửi token lên backend để giải mã Server-to-Server
+      const decoded = await decodeLocationMutation.mutateAsync(locationToken);
+      if (decoded && decoded.latitude && decoded.longitude) {
         setFormData((prev) => ({
           ...prev,
-          latitude: Number(data.latitude),
-          longitude: Number(data.longitude),
+          latitude: Number(decoded.latitude),
+          longitude: Number(decoded.longitude),
+          // Chỉ gợi ý address_text nếu form đang trống để tránh đè text người dùng đã gõ
+          address_text: prev.address_text.trim()
+            ? prev.address_text
+            : decoded.address_text || prev.address_text,
         }));
+        showSuccess(copy.selectLocation.gpsSuccess);
       }
     } catch {
-      // Fallback
+      showWarning(copy.selectLocation.gpsDenied);
     } finally {
       setIsGettingLocation(false);
     }

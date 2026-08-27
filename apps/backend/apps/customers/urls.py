@@ -5,10 +5,16 @@ from apps.customers.views import (
     AddressListCreateView,
     CustomerMeView,
     ZaloAuthView,
+    ZaloLocationDecodeView,
 )
 
 urlpatterns = [
     path("auth/zalo", ZaloAuthView.as_view(), name="auth-zalo"),
+    path(
+        "customers/location/decode",
+        ZaloLocationDecodeView.as_view(),
+        name="customer-location-decode",
+    ),
     path("customers/me", CustomerMeView.as_view(), name="customer-me"),
     path(
         "customers/me/addresses",

@@ -51,3 +51,10 @@ class ZaloAuthRequestSerializer(serializers.Serializer):
             )
         attrs["zalo_token"] = token
         return attrs
+
+
+class ZaloLocationDecodeRequestSerializer(serializers.Serializer):
+    token = serializers.CharField(
+        required=True,
+        help_text="Token vị trí 1 lần nhận từ SDK ZMP getLocation()",
+    )

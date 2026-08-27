@@ -44,3 +44,9 @@ export interface AuthTokens {
   refresh?: string;
   customer: Customer;
 }
+
+export interface DecodeLocationResponse {
+  latitude: number;
+  longitude: number;
+  address_text: string;
+}

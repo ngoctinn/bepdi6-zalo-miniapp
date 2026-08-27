@@ -44,3 +44,21 @@ def test_zalo_auth_api(api_client):
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {result['access_token']}")
     admin_res = api_client.get("/api/v1/admin/orders")
     assert admin_res.status_code == 403
+
+
+@pytest.mark.django_db
+def test_zalo_location_decode_api(api_client):
+    payload = {
+        "token": "dev_mock_location_token",
+    }
+    response = api_client.post(
+        "/api/v1/customers/location/decode", payload, format="json"
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert "latitude" in data["data"]
+    assert "longitude" in data["data"]
+    assert "address_text" in data["data"]
+    assert data["data"]["latitude"] == 10.762622
+    assert data["data"]["longitude"] == 106.660172

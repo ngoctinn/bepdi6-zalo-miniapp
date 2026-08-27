@@ -461,6 +461,9 @@ const semantic = {
       addressPlaceholder: "VD: 123 Lê Lợi, P. Bến Nghé, Quận 1, TP.HCM",
       getGpsButton: "Lấy vị trí GPS hiện tại từ Zalo",
       gettingGpsButton: "Đang lấy vị trí...",
+      gpsSuccess: "Đã lấy tọa độ và gợi ý địa chỉ thành công!",
+      gpsDenied:
+        "Không thể lấy vị trí từ Zalo. Vui lòng tự nhập địa chỉ nhận hàng.",
       cancel: "Hủy",
       save: "Lưu địa chỉ",
       defaultBadge: "Mặc định",

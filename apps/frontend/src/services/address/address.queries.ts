@@ -18,6 +18,12 @@ export function useAddresses() {
   });
 }
 
+export function useDecodeLocation() {
+  return useMutation({
+    mutationFn: (token: string) => addressService.decodeLocationToken(token),
+  });
+}
+
 export function useCreateAddress() {
   const queryClient = useQueryClient();
 
