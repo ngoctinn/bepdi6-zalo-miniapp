@@ -23,11 +23,14 @@ class Category(models.Model):
         help_text="URL ảnh danh mục (tự động lấy từ file tải lên hoặc dán link ngoài)",
         verbose_name="Đường dẫn ảnh",
     )
-    sort_order = models.IntegerField(default=0, verbose_name="Thứ tự hiển thị")
+    sort_order = models.IntegerField(
+        default=0, db_index=True, verbose_name="Thứ tự hiển thị"
+    )
     status = models.CharField(
         max_length=50,
         choices=Status.choices,
         default=Status.ACTIVE,
+        db_index=True,
         verbose_name="Trạng thái",
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
@@ -38,6 +41,9 @@ class Category(models.Model):
         verbose_name = "Danh mục món"
         verbose_name_plural = "Danh mục món"
         ordering = ["sort_order", "id"]
+        indexes = [
+            models.Index(fields=["status", "sort_order"], name="idx_cat_status_sort"),
+        ]
 
     def __str__(self) -> str:
         return self.name
@@ -83,6 +89,7 @@ class Product(models.Model):
         max_length=50,
         choices=Status.choices,
         default=Status.AVAILABLE,
+        db_index=True,
         verbose_name="Trạng thái",
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
@@ -93,6 +100,10 @@ class Product(models.Model):
         verbose_name = "Món ăn"
         verbose_name_plural = "Món ăn"
         ordering = ["id"]
+        indexes = [
+            models.Index(fields=["status", "category"], name="idx_prod_status_cat"),
+            models.Index(fields=["category", "status"], name="idx_prod_cat_status"),
+        ]
 
     def __str__(self) -> str:
         return self.name
@@ -121,7 +132,9 @@ class OptionGroup(models.Model):
     is_required = models.BooleanField(default=False, verbose_name="Bắt buộc chọn")
     min_select = models.IntegerField(default=0, verbose_name="Số lượng chọn tối thiểu")
     max_select = models.IntegerField(default=1, verbose_name="Số lượng chọn tối đa")
-    sort_order = models.IntegerField(default=0, verbose_name="Thứ tự hiển thị")
+    sort_order = models.IntegerField(
+        default=0, db_index=True, verbose_name="Thứ tự hiển thị"
+    )
 
     class Meta:
         db_table = "option_groups"
@@ -158,15 +171,23 @@ class Option(models.Model):
         max_length=50,
         choices=Status.choices,
         default=Status.AVAILABLE,
+        db_index=True,
         verbose_name="Trạng thái",
     )
-    sort_order = models.IntegerField(default=0, verbose_name="Thứ tự hiển thị")
+    sort_order = models.IntegerField(
+        default=0, db_index=True, verbose_name="Thứ tự hiển thị"
+    )
 
     class Meta:
         db_table = "options"
         verbose_name = "Tùy chọn món"
         verbose_name_plural = "Tùy chọn món"
         ordering = ["sort_order", "id"]
+        indexes = [
+            models.Index(
+                fields=["option_group", "status"], name="idx_opt_group_status"
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.name} (+{self.price:,.0f}đ)"

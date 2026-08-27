@@ -26,7 +26,9 @@ def invalidate_menu_cache(product_id: int | None = None) -> None:
     """
     keys_to_delete = [
         CACHE_KEY_CATEGORIES,
-        f"{CACHE_KEY_PRODUCTS_PREFIX}:all",
+        f"{CACHE_KEY_PRODUCTS_PREFIX}:all:available",
+        f"{CACHE_KEY_PRODUCTS_PREFIX}:all:OUT_OF_STOCK",
+        f"{CACHE_KEY_PRODUCTS_PREFIX}:all:INACTIVE",
     ]
     if product_id is not None:
         keys_to_delete.append(f"{CACHE_KEY_PRODUCT_DETAIL_PREFIX}:{product_id}")
@@ -247,7 +249,21 @@ class AdminProductDetailView(APIView):
 
     def get_object(self, pk: int) -> Product:
         try:
-            return Product.objects.get(pk=pk)
+            return (
+                Product.objects.prefetch_related(
+                    Prefetch(
+                        "option_groups",
+                        queryset=OptionGroup.objects.prefetch_related(
+                            Prefetch(
+                                "options",
+                                queryset=Option.objects.order_by("sort_order", "id"),
+                            )
+                        ).order_by("sort_order", "id"),
+                    )
+                )
+                .select_related("category")
+                .get(pk=pk)
+            )
         except Product.DoesNotExist:
             raise NotFound("Món ăn không tồn tại.") from None
 
@@ -256,7 +272,11 @@ class AdminProductDetailView(APIView):
         return Response(ProductDetailSerializer(product).data)
 
     def patch(self, request, pk: int):
-        product = self.get_object(pk)
+        try:
+            product = Product.objects.get(pk=pk)
+        except Product.DoesNotExist:
+            raise NotFound("Món ăn không tồn tại.") from None
+
         serializer = ProductListSerializer(product, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         product = serializer.save()

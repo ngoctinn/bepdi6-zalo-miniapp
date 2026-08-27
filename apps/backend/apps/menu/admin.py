@@ -57,6 +57,7 @@ class OptionGroupAdmin(ModelAdmin):
         "sort_order",
     ]
     list_display_links = ["id", "name"]
+    list_select_related = ["product"]
     list_filter = ["is_required", "product"]
     search_fields = ["name"]
     inlines = [OptionInline]
@@ -85,6 +86,7 @@ class ProductAdmin(ModelAdmin):
         "created_at_formatted",
     ]
     list_display_links = ["id", "name"]
+    list_select_related = ["category"]
     list_editable = ["status"]
     list_filter = ["category", "status"]
     search_fields = ["name", "description"]
@@ -122,6 +124,7 @@ class OptionAdmin(ModelAdmin):
         "sort_order",
     ]
     list_display_links = ["id", "name"]
+    list_select_related = ["option_group"]
     list_editable = ["status"]
     list_filter = ["status", "option_group"]
     search_fields = ["name"]

@@ -72,3 +72,45 @@ def test_admin_category_crud_and_product_toggle(admin_client):
     prod2 = Product.objects.get(pk=res_cdn_prod.json()["data"]["id"])
     assert prod2.image_url == cdn_url
     assert prod2.effective_image_url == cdn_url
+
+
+@pytest.mark.django_db
+def test_admin_product_detail_prefetch_and_queries(
+    admin_client, django_assert_num_queries
+):
+    from decimal import Decimal
+
+    from apps.menu.models import Category, Option, OptionGroup, Product
+
+    cat = Category.objects.create(name="Đồ uống", sort_order=1)
+    prod = Product.objects.create(
+        category=cat,
+        name="Trà sữa trân châu",
+        price=Decimal("30000.00"),
+    )
+    group1 = OptionGroup.objects.create(product=prod, name="Size", sort_order=1)
+    Option.objects.create(
+        option_group=group1, name="Size M", price=Decimal("0.00"), sort_order=1
+    )
+    Option.objects.create(
+        option_group=group1, name="Size L", price=Decimal("5000.00"), sort_order=2
+    )
+
+    group2 = OptionGroup.objects.create(product=prod, name="Topping", sort_order=2)
+    Option.objects.create(
+        option_group=group2,
+        name="Trân châu đen",
+        price=Decimal("5000.00"),
+        sort_order=1,
+    )
+
+    # 3 queries max: Product + Category (select_related), OptionGroup (prefetch), Option (prefetch)
+    with django_assert_num_queries(3):
+        res = admin_client.get(f"/api/v1/admin/products/{prod.id}")
+
+    assert res.status_code == 200
+    data = res.json()["data"]
+    assert data["name"] == "Trà sữa trân châu"
+    assert len(data["option_groups"]) == 2
+    assert len(data["option_groups"][0]["options"]) == 2
+    assert len(data["option_groups"][1]["options"]) == 1
