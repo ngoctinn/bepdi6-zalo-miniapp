@@ -170,7 +170,7 @@ class AuthService:
         return customer, str(refresh.access_token), str(refresh)
 
     @classmethod
-    def decode_zalo_location_token(cls, token: str) -> dict:
+    def decode_zalo_location_token(cls, token: str, access_token: str = "") -> dict:
         """
         Exchanges single-use Zalo Location Token for latitude/longitude and address text.
         Provides dev/mock fallback for testing & local development.
@@ -194,15 +194,26 @@ class AuthService:
 
         try:
             # Zalo Open API - Get User Location info
+            headers = {
+                "code": token,
+                "secret_key": zalo_app_secret,
+            }
+            if access_token:
+                headers["access_token"] = access_token
+
             res = requests.get(
                 "https://graph.zalo.me/v2.0/me/info",
-                headers={
-                    "code": token,
-                    "secret_key": zalo_app_secret,
-                },
+                headers=headers,
                 timeout=5,
             )
             res_data = res.json()
+            if "error" in res_data and res_data["error"] != 0:
+                logger.warning(
+                    "Zalo location decode returned error: %s (msg: %s)",
+                    res_data.get("error"),
+                    res_data.get("message"),
+                )
+
             data = res_data.get("data", {})
             lat = data.get("latitude")
             lng = data.get("longitude")

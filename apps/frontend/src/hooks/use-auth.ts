@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAccessToken } from "zmp-sdk/apis";
+import { getAccessToken, getPhoneNumber, getUserInfo } from "zmp-sdk/apis";
 import { authService } from "../services/auth/auth.api";
-import { Customer } from "../types/customer.types";
+import { Customer, ZaloAuthRequest } from "../types/customer.types";
 
 const DEV_MOCK_ZALO_TOKEN = "dev_browser_mock_access_token";
 
@@ -55,7 +55,39 @@ export function useAuth() {
       }
 
       if (accessToken) {
-        await mutateLoginAsync({ access_token: accessToken });
+        const payload: ZaloAuthRequest = { access_token: accessToken };
+
+        // 1. Cố gắng lấy thông tin User (Tên, Avatar) qua Zalo SDK
+        if (accessToken !== DEV_MOCK_ZALO_TOKEN) {
+          try {
+            const userInfoRes = await getUserInfo({
+              autoRequestPermission: true,
+            });
+            if (userInfoRes && userInfoRes.userInfo) {
+              payload.name = userInfoRes.userInfo.name;
+              payload.avatar_url = userInfoRes.userInfo.avatar;
+            }
+          } catch {
+            // Người dùng từ chối hoặc đang ở môi trường giả lập
+          }
+
+          // 2. Cố gắng lấy token số điện thoại qua Zalo SDK
+          try {
+            const phoneData = await getPhoneNumber({});
+            if (
+              phoneData &&
+              typeof phoneData === "object" &&
+              "token" in phoneData &&
+              phoneData.token
+            ) {
+              payload.phone_token = phoneData.token as string;
+            }
+          } catch {
+            // Người dùng từ chối hoặc đang ở môi trường giả lập
+          }
+        }
+
+        await mutateLoginAsync(payload);
       }
     } catch (err) {
       setAuthError(

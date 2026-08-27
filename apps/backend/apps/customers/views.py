@@ -90,8 +90,11 @@ class ZaloLocationDecodeView(APIView):
         serializer = ZaloLocationDecodeRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         token = serializer.validated_data["token"]
+        access_token = serializer.validated_data.get("access_token", "")
 
-        result = AuthService.decode_zalo_location_token(token)
+        result = AuthService.decode_zalo_location_token(
+            token=token, access_token=access_token
+        )
 
         return Response(
             {

@@ -45,6 +45,11 @@ export interface AuthTokens {
   customer: Customer;
 }
 
+export interface DecodeLocationRequest {
+  token: string;
+  access_token?: string;
+}
+
 export interface DecodeLocationResponse {
   latitude: number;
   longitude: number;

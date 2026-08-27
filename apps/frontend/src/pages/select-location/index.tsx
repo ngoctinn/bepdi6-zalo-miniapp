@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Input, Modal, Spinner, Text } from "zmp-ui";
+import { Button, Modal, Spinner, Text } from "zmp-ui";
 import {
-  BackIcon,
   MapPinIcon,
   MapPinIconSolid,
   PlusIcon,
@@ -15,10 +14,11 @@ import {
 } from "@/services/address/address.queries";
 import { Address, CreateAddressRequest } from "@/types/customer.types";
 import { useLocationStore } from "@/stores/location.store";
-import { getLocation } from "zmp-sdk/apis";
+import { getLocation, getAccessToken } from "zmp-sdk/apis";
 import { Badge } from "@/components/common/badge";
 import { ConfirmModal } from "@/components/common/confirm-modal";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { copy } from "@/constants/copy";
 
 // Tọa độ mặc định gần quán Bếp Dì 6 (TP.HCM)
@@ -28,6 +28,7 @@ const DEFAULT_LONGITUDE = 106.660172;
 export default function SelectLocationPage() {
   const navigate = useNavigate();
   const { showSuccess, showWarning } = useAppToast();
+  const { customer } = useAuth();
   const { data: addresses, isLoading } = useAddresses();
   const createAddressMutation = useCreateAddress();
   const deleteAddressMutation = useDeleteAddress();
@@ -46,6 +47,17 @@ export default function SelectLocationPage() {
   });
   const [formError, setFormError] = useState<string | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  // Tự động điền thông tin người nhận khi mở modal thêm địa chỉ
+  useEffect(() => {
+    if (isModalOpen && customer) {
+      setFormData((prev) => ({
+        ...prev,
+        recipient_name: prev.recipient_name || customer.name || "",
+        phone: prev.phone || customer.phone || "",
+      }));
+    }
+  }, [isModalOpen, customer]);
 
   const handleSelectAddress = (addr: Address) => {
     setSelectedAddress(addr);
@@ -67,6 +79,14 @@ export default function SelectLocationPage() {
     setFormError(null);
     try {
       let locationToken = "";
+      let userAccessToken = "";
+
+      try {
+        userAccessToken = await getAccessToken({});
+      } catch {
+        // ignore in dev browser
+      }
+
       try {
         const data = await getLocation({});
         // ZMP SDK returns { token: string }
@@ -80,8 +100,12 @@ export default function SelectLocationPage() {
         locationToken = "dev_browser_mock_location_token";
       }
 
-      // Gửi token lên backend để giải mã Server-to-Server
-      const decoded = await decodeLocationMutation.mutateAsync(locationToken);
+      // Gửi token kèm access_token lên backend để giải mã Server-to-Server
+      const decoded = await decodeLocationMutation.mutateAsync({
+        token: locationToken,
+        access_token: userAccessToken || undefined,
+      });
+
       if (decoded && decoded.latitude && decoded.longitude) {
         setFormData((prev) => ({
           ...prev,

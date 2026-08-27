@@ -3,6 +3,7 @@ import { addressService } from "./address.api";
 import {
   Address,
   CreateAddressRequest,
+  DecodeLocationRequest,
   UpdateAddressRequest,
 } from "../../types/customer.types";
 import { authService } from "../auth/auth.api";
@@ -20,7 +21,8 @@ export function useAddresses() {
 
 export function useDecodeLocation() {
   return useMutation({
-    mutationFn: (token: string) => addressService.decodeLocationToken(token),
+    mutationFn: (params: DecodeLocationRequest | string) =>
+      addressService.decodeLocationToken(params),
   });
 }
 

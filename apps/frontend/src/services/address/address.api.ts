@@ -2,6 +2,7 @@ import { api } from "../../lib/api-client";
 import {
   Address,
   CreateAddressRequest,
+  DecodeLocationRequest,
   DecodeLocationResponse,
   UpdateAddressRequest,
 } from "../../types/customer.types";
@@ -20,11 +21,13 @@ export const addressService = {
    * POST /api/v1/customers/location/decode
    */
   decodeLocationToken: async (
-    token: string,
+    params: DecodeLocationRequest | string,
   ): Promise<DecodeLocationResponse> => {
-    return api.post<DecodeLocationResponse>("customers/location/decode", {
-      token,
-    });
+    const payload = typeof params === "string" ? { token: params } : params;
+    return api.post<DecodeLocationResponse>(
+      "customers/location/decode",
+      payload,
+    );
   },
 
   /**

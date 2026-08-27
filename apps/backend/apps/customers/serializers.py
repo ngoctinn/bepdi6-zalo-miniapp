@@ -58,3 +58,9 @@ class ZaloLocationDecodeRequestSerializer(serializers.Serializer):
         required=True,
         help_text="Token vị trí 1 lần nhận từ SDK ZMP getLocation()",
     )
+    access_token = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default="",
+        help_text="Zalo User Access Token để xác thực với Zalo Open API",
+    )
