@@ -8,6 +8,9 @@ from apps.payments.models import Payment
 
 @admin.register(Payment)
 class PaymentAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
+    list_select_related = ["order", "verified_by"]
     list_display = [
         "id",
         "order",

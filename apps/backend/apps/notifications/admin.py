@@ -7,6 +7,8 @@ from apps.notifications.models import Notification
 
 @admin.register(Notification)
 class NotificationAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
     list_display = [
         "id",
         "customer",

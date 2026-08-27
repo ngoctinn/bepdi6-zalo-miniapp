@@ -15,6 +15,8 @@ class VoucherUsageInline(TabularInline):
 
 @admin.register(Voucher)
 class VoucherAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
     list_display = [
         "code",
         "name",
@@ -78,6 +80,9 @@ class VoucherAdmin(ModelAdmin):
 
 @admin.register(VoucherUsage)
 class VoucherUsageAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
+    list_select_related = ["voucher", "customer", "order"]
     list_display = [
         "id",
         "voucher",

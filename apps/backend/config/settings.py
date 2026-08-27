@@ -115,6 +115,8 @@ DATABASES = {
         ),
     )
 }
+# Keep database connections open for 60 seconds to reduce TCP/SSL handshake latency
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
 
 if "pytest" in sys.modules or os.environ.get("USE_SQLITE_TEST", "").lower() in (
     "true",

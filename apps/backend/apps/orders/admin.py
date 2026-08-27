@@ -94,6 +94,8 @@ class PaymentInline(StackedInline):
 
 @admin.register(Order)
 class OrderAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 20
     list_display = [
         "order_code",
         "items_summary_display",
@@ -333,6 +335,9 @@ class OrderAdmin(ModelAdmin):
 
 @admin.register(OrderItem)
 class OrderItemAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
+    list_select_related = ["order"]
     list_display = [
         "id",
         "order",
@@ -355,6 +360,9 @@ class OrderItemAdmin(ModelAdmin):
 
 @admin.register(OrderItemOption)
 class OrderItemOptionAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
+    list_select_related = ["order_item__order"]
     list_display = ["id", "order_item", "option_name", "price_display", "quantity"]
     list_display_links = ["id", "option_name"]
     search_fields = ["option_name", "order_item__order__order_code"]
@@ -367,6 +375,9 @@ class OrderItemOptionAdmin(ModelAdmin):
 
 @admin.register(AuditLog)
 class AuditLogAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
+    list_select_related = ["user"]
     list_display = [
         "id",
         "action",

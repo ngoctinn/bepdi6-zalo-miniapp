@@ -97,6 +97,8 @@ class AddressInline(TabularInline):
 class CustomerAdmin(ModelAdmin):
     """Zalo Mini App Customer management."""
 
+    show_full_result_count = False
+    list_per_page = 25
     list_display = [
         "id",
         "name",
@@ -134,6 +136,8 @@ class CustomerAdmin(ModelAdmin):
 class AddressAdmin(ModelAdmin):
     """Customer shipping address management."""
 
+    show_full_result_count = False
+    list_per_page = 25
     list_display = [
         "id",
         "customer",
