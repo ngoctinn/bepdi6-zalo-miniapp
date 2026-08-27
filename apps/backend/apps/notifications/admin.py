@@ -18,6 +18,7 @@ class NotificationAdmin(ModelAdmin):
     ]
     list_display_links = ["id", "title"]
     list_filter = ["is_read", "type", "created_at"]
+    list_select_related = ["customer", "order"]
     search_fields = [
         "title",
         "message",

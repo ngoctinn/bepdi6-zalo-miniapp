@@ -30,6 +30,118 @@ def send_in_app_notification(
     return notif.id
 
 
+@shared_task(name="notifications.send_telegram_staff_order_alert")
+def send_telegram_staff_order_alert(order_id: int) -> bool:
+    """
+    Sends detailed new order alert to staff/kitchen Telegram group.
+    (Hybrid Notification Strategy: 0 VNĐ, Realtime <1s).
+    """
+    enable_tele = getattr(settings, "ENABLE_TELEGRAM_NOTIFICATION", True)
+    if not enable_tele:
+        logger.info(
+            "ENABLE_TELEGRAM_NOTIFICATION is False. Skipping Telegram alert for Order #%s.",
+            order_id,
+        )
+        return False
+
+    try:
+        order = (
+            Order.objects.select_related("customer", "voucher")
+            .prefetch_related("items__options")
+            .get(pk=order_id)
+        )
+    except Order.DoesNotExist:
+        logger.error("Order #%s not found for Telegram staff alert.", order_id)
+        return False
+
+    bot_token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
+    chat_id = getattr(settings, "TELEGRAM_CHAT_ID", "")
+
+    if not bot_token or not chat_id:
+        logger.info(
+            "TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not configured. Mocking staff alert for Order #%s.",
+            order.order_code,
+        )
+        return True
+
+    # Build detailed order item lines
+    item_lines = []
+    for idx, item in enumerate(order.items.all(), 1):
+        options = item.options.all()
+        opt_str = (
+            f" (+{', '.join(opt.option_name for opt in options)})" if options else ""
+        )
+        item_note = f"\n   ↳ *Ghi chú:* _{item.note}_" if item.note else ""
+        item_lines.append(
+            f"*{idx}. {item.product_name}* x{item.quantity} - {item.subtotal:,.0f}đ{opt_str}{item_note}"
+        )
+
+    items_text = "\n".join(item_lines) if item_lines else "_Không có thông tin món_"
+
+    # Delivery & Maps information
+    delivery_type_display = (
+        "🛵 *Giao tận nơi*"
+        if order.delivery_type == Order.DeliveryType.DELIVERY
+        else "🏪 *Nhận tại quán*"
+    )
+    maps_link = ""
+    if order.delivery_latitude and order.delivery_longitude:
+        maps_link = f"\n📍 [Xem vị trí trên Google Maps](https://www.google.com/maps?q={order.delivery_latitude},{order.delivery_longitude})"
+
+    order_note = f"\n📝 *Lưu ý của khách:* _{order.note}_" if order.note else ""
+    discount_line = (
+        f"\n🎟️ *Giảm giá:* -{order.discount:,.0f}đ ({order.voucher.code if order.voucher else ''})"
+        if order.discount > 0
+        else ""
+    )
+    shipping_line = (
+        f"\n🚚 *Phí ship:* {order.shipping_fee:,.0f}đ" if order.shipping_fee > 0 else ""
+    )
+
+    telegram_text = (
+        f"🔔 *[BẾP DÌ 6] ĐƠN HÀNG MỚI!*\n"
+        f"━━━━━━━━━━━━━━━━━━\n"
+        f"🧾 *Mã đơn:* `#{order.order_code}`\n"
+        f"👤 *Khách hàng:* {order.recipient_name} (`{order.phone}`)\n"
+        f"🏷️ *Hình thức:* {delivery_type_display}\n"
+        f"🏠 *Địa chỉ:* {order.delivery_address}{maps_link}{order_note}\n\n"
+        f"🍱 *Chi tiết món ăn:*\n{items_text}\n"
+        f"━━━━━━━━━━━━━━━━━━\n"
+        f"💰 *Tạm tính:* {order.subtotal:,.0f}đ"
+        f"{shipping_line}{discount_line}\n"
+        f"💵 *Tổng thanh toán:* *{order.total_amount:,.0f}đ*\n"
+        f"💳 *Phương thức:* {order.get_payment_method_display()}"
+    )
+
+    try:
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": telegram_text,
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True,
+        }
+        res = requests.post(url, json=payload, timeout=5)
+        if res.status_code == 200:
+            logger.info(
+                "Sent Telegram staff alert for Order #%s successfully.",
+                order.order_code,
+            )
+            return True
+        else:
+            logger.warning(
+                "Failed to send Telegram alert for Order #%s: %s",
+                order.order_code,
+                res.text,
+            )
+            return False
+    except Exception as e:
+        logger.error(
+            "Error calling Telegram API for Order #%s: %s", order.order_code, e
+        )
+        return False
+
+
 @shared_task(name="notifications.send_zalo_oa_staff_alert")
 def send_zalo_oa_staff_alert(order_id: int) -> bool:
     """

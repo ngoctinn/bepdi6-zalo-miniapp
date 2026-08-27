@@ -4,9 +4,9 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.customers.views import get_current_customer
 from apps.notifications.models import Notification
 from apps.notifications.serializers import NotificationSerializer
-from apps.orders.views import get_current_customer
 
 
 class NotificationListView(APIView):

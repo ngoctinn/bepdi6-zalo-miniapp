@@ -9,6 +9,7 @@ from apps.customers.models import Address, Customer, User
 from apps.menu.models import Option, Product
 from apps.notifications.tasks import (
     send_in_app_notification,
+    send_telegram_staff_order_alert,
     send_zalo_oa_staff_alert,
     send_zns_order_delivering,
 )
@@ -495,6 +496,7 @@ class OrderService:
             )
 
         # Trigger async notifications after database transaction commits (BR-NOTI-001)
+        transaction.on_commit(lambda: send_telegram_staff_order_alert.delay(order.id))
         transaction.on_commit(lambda: send_zalo_oa_staff_alert.delay(order.id))
         transaction.on_commit(
             lambda: send_in_app_notification.delay(
