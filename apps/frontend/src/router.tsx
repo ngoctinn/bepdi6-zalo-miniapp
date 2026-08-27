@@ -8,6 +8,7 @@ import CheckoutPage from "./pages/checkout";
 import SelectLocationPage from "./pages/select-location";
 import OrderSuccessPage from "./pages/order-success";
 import OrderDetailPage from "./pages/order-detail";
+import StaffOrdersPage from "./pages/staff-orders";
 import RouteErrorBoundary from "./components/common/route-error-boundary";
 
 const router = createBrowserRouter(
@@ -73,6 +74,18 @@ const router = createBrowserRouter(
             hideFooter: true,
             headerPosition: "sticky",
             hideCart: true,
+          },
+        },
+        {
+          path: "/staff/orders",
+          element: <StaffOrdersPage />,
+          handle: {
+            title: "Bếp & Quản lý đơn",
+            back: true,
+            hideFooter: true,
+            headerPosition: "sticky",
+            hideCart: true,
+            hideHeader: true,
           },
         },
       ],

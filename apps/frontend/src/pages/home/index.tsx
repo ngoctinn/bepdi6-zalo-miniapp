@@ -1,16 +1,24 @@
 import { useEffect, useState, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import CategoryList from "@/components/common/category-list";
 import ProductCard from "@/components/common/product-card";
 import ProductDetailSheet from "@/components/common/product-detail-sheet";
 import { useCategories } from "@/services/category/category.queries";
 import { useProducts } from "@/services/product/product.queries";
+import { useUserMe } from "@/services/auth/auth.queries";
 import { Category } from "@/types/category.types";
+import { Icon } from "zmp-ui";
 
 import { copy } from "@/constants/copy";
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const { data: categories, isLoading: isLoadingCategories } = useCategories();
   const { data: allProducts, isLoading: isLoadingProducts } = useProducts();
+  const { data: userProfile } = useUserMe();
+
+  const isStaffOrAdmin =
+    userProfile?.role === "ADMIN" || userProfile?.role === "STAFF";
 
   const [activeCategoryId, setActiveCategoryId] = useState<
     number | string | null
@@ -128,11 +136,21 @@ export default function HomePage() {
         id="home-sticky-header"
         className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md"
       >
-        {/* Tên quán */}
-        <div className="header-margin px-3.5 pb-1 pr-20 pt-3">
+        {/* Tên quán & Shortcut Quản lý Bếp */}
+        <div className="header-margin flex items-center justify-between px-3.5 pb-1 pr-20 pt-3">
           <h1 className="text-base font-extrabold tracking-tight text-neutral-900">
             {copy.brand.name}
           </h1>
+
+          {isStaffOrAdmin && (
+            <button
+              onClick={() => navigate("/staff/orders")}
+              className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-black text-amber-900 ring-1 ring-amber-300 active:bg-amber-200"
+            >
+              <Icon icon="zi-list-1" className="text-sm" />
+              <span>Quản lý Bếp</span>
+            </button>
+          )}
         </div>
 
         {/* Thanh tab danh mục món (nền trong suốt, dùng chung mẫu Tabs) */}

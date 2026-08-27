@@ -4,6 +4,7 @@ export interface Customer {
   name: string;
   phone: string;
   avatar_url?: string;
+  role?: "ADMIN" | "STAFF" | "CUSTOMER";
   created_at: string;
 }
 

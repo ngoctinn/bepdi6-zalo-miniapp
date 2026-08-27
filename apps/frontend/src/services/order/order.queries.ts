@@ -51,3 +51,24 @@ export function useOrderPayment(id: number | string | undefined) {
     refetchInterval: 4000,
   });
 }
+
+/**
+ * ==========================================
+ * STAFF / BẾP KDS QUERY HOOKS
+ * ==========================================
+ */
+
+export const ADMIN_ORDERS_QUERY_KEY = ["admin", "orders"] as const;
+
+export function useAdminOrders(params?: {
+  status?: string;
+  date?: string;
+  search?: string;
+}) {
+  return useQuery<Order[]>({
+    queryKey: [ADMIN_ORDERS_QUERY_KEY, params],
+    queryFn: () => orderService.getAdminOrders(params),
+    enabled: authService.isAuthenticated(),
+    refetchInterval: 5000, // Polling realtime 5 giây cho Màn hình Bếp
+  });
+}

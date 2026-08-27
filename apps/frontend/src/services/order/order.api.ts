@@ -69,4 +69,50 @@ export const orderService = {
       reason: reason || "Khách hàng yêu cầu hủy",
     });
   },
+
+  /**
+   * ==========================================
+   * STAFF / BẾP KDS APIS (BR-SEC-002, BR-ORD-004)
+   * ==========================================
+   */
+
+  /**
+   * Lấy danh sách đơn hàng cho Staff / Bếp
+   * GET /api/v1/admin/orders
+   */
+  getAdminOrders: async (params?: {
+    status?: string;
+    date?: string;
+    search?: string;
+  }): Promise<Order[]> => {
+    return api.get<Order[]>("admin/orders", { params });
+  },
+
+  /**
+   * Cập nhật trạng thái đơn hàng (Xác nhận, Chuyển bếp, Xong món, Giao shipper, Hoàn tất)
+   * POST /api/v1/admin/orders/:id/status
+   */
+  updateAdminOrderStatus: async (
+    id: number | string,
+    status: string,
+    reason?: string,
+  ): Promise<Order> => {
+    return api.post<Order>(`admin/orders/${id}/status`, {
+      status,
+      reason,
+    });
+  },
+
+  /**
+   * Nhân viên hủy đơn hàng kèm lý do
+   * POST /api/v1/admin/orders/:id/cancel
+   */
+  cancelAdminOrder: async (
+    id: number | string,
+    reason: string,
+  ): Promise<Order> => {
+    return api.post<Order>(`admin/orders/${id}/cancel`, {
+      reason: reason || "Nhân viên hủy đơn",
+    });
+  },
 };

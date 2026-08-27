@@ -4,6 +4,8 @@ from apps.customers.models import Address, Customer
 
 
 class CustomerSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
+
     class Meta:
         model = Customer
         fields = [
@@ -12,10 +14,17 @@ class CustomerSerializer(serializers.ModelSerializer):
             "name",
             "phone",
             "avatar_url",
+            "role",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "zalo_user_id", "created_at", "updated_at"]
+        read_only_fields = ["id", "zalo_user_id", "role", "created_at", "updated_at"]
+
+    def get_role(self, obj) -> str:
+        from apps.customers.models import User
+
+        user = User.objects.filter(zalo_user_id=obj.zalo_user_id).first()
+        return user.role if user else User.Role.CUSTOMER
 
 
 class AddressSerializer(serializers.ModelSerializer):
