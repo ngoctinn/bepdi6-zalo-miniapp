@@ -64,3 +64,16 @@ class ZaloLocationDecodeRequestSerializer(serializers.Serializer):
         default="",
         help_text="Zalo User Access Token để xác thực với Zalo Open API",
     )
+
+
+class ZaloPhoneUpdateRequestSerializer(serializers.Serializer):
+    phone_token = serializers.CharField(
+        required=True,
+        help_text="Token số điện thoại 1 lần nhận từ SDK ZMP getPhoneNumber()",
+    )
+    access_token = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default="",
+        help_text="Zalo User Access Token để xác thực với Zalo Open API",
+    )

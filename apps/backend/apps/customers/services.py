@@ -170,10 +170,75 @@ class AuthService:
         return customer, str(refresh.access_token), str(refresh)
 
     @classmethod
-    def decode_zalo_location_token(cls, token: str, access_token: str = "") -> dict:
+    def decode_zalo_phone_token(cls, phone_token: str, access_token: str = "") -> str:
+        """
+        Exchanges single-use Zalo Phone Token for raw phone number via Zalo OpenAPI.
+        """
+        zalo_app_id = getattr(settings, "ZALO_APP_ID", "")
+        zalo_app_secret = getattr(settings, "ZALO_APP_SECRET", "")
+
+        # Default fallback for testing & local development
+        if (
+            not zalo_app_id
+            or not zalo_app_secret
+            or phone_token.startswith("dev_")
+            or phone_token.startswith("mock_")
+            or phone_token.startswith("test_")
+        ):
+            return "0987654321"
+
+        try:
+            headers = {
+                "secret_key": zalo_app_secret,
+                "code": phone_token,
+            }
+            if access_token:
+                headers["access_token"] = access_token
+
+            res = requests.get(
+                "https://graph.zalo.me/v2.0/me/info",
+                headers=headers,
+                timeout=5,
+            )
+            res_data = res.json()
+            if res_data.get("error", 0) != 0:
+                logger.warning(
+                    "Zalo phone decode error: %s (msg: %s)",
+                    res_data.get("error"),
+                    res_data.get("message"),
+                )
+                return ""
+
+            phone_number = str(res_data.get("data", {}).get("number", ""))
+            if phone_number.startswith("84"):
+                phone_number = "0" + phone_number[2:]
+            return phone_number
+        except Exception as e:
+            logger.error("Error decoding Zalo phone token: %s", e)
+            return ""
+
+    @classmethod
+    def update_customer_phone(
+        cls, customer: Customer, phone_token: str, access_token: str = ""
+    ) -> str:
+        """
+        Decodes phone token and updates customer record.
+        """
+        phone_number = cls.decode_zalo_phone_token(
+            phone_token=phone_token, access_token=access_token
+        )
+        if phone_number:
+            customer.phone = phone_number
+            customer.save(update_fields=["phone", "updated_at"])
+        return phone_number
+
+    @classmethod
+    def decode_zalo_location_token(
+        cls, token: str, access_token: str = ""
+    ) -> dict | None:
         """
         Exchanges single-use Zalo Location Token for latitude/longitude and address text.
-        Provides dev/mock fallback for testing & local development.
+        Returns dict with coordinates or None if invalid/failed.
         """
         zalo_app_id = getattr(settings, "ZALO_APP_ID", "")
         zalo_app_secret = getattr(settings, "ZALO_APP_SECRET", "")
@@ -190,10 +255,12 @@ class AuthService:
                 "latitude": 10.762622,
                 "longitude": 106.660172,
                 "address_text": "123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+                "ward": "Phường Bến Nghé",
+                "district": "Quận 1",
+                "city": "Thành phố Hồ Chí Minh",
             }
 
         try:
-            # Zalo Open API - Get User Location info
             headers = {
                 "code": token,
                 "secret_key": zalo_app_secret,
@@ -207,16 +274,21 @@ class AuthService:
                 timeout=5,
             )
             res_data = res.json()
-            if "error" in res_data and res_data["error"] != 0:
+            if res_data.get("error", 0) != 0:
                 logger.warning(
-                    "Zalo location decode returned error: %s (msg: %s)",
+                    "Zalo location decode error: %s (msg: %s)",
                     res_data.get("error"),
                     res_data.get("message"),
                 )
+                return None
 
             data = res_data.get("data", {})
             lat = data.get("latitude")
             lng = data.get("longitude")
+
+            if lat is None or lng is None:
+                return None
+
             address_parts = [
                 data.get("address"),
                 data.get("ward_name"),
@@ -226,14 +298,13 @@ class AuthService:
             address_text = ", ".join([p for p in address_parts if p]) or ""
 
             return {
-                "latitude": float(lat) if lat is not None else 10.762622,
-                "longitude": float(lng) if lng is not None else 106.660172,
+                "latitude": float(lat),
+                "longitude": float(lng),
                 "address_text": address_text,
+                "ward": data.get("ward_name", ""),
+                "district": data.get("district_name", ""),
+                "city": data.get("city_name", ""),
             }
         except Exception as e:
             logger.error("Error decoding Zalo location token: %s", e)
-            return {
-                "latitude": 10.762622,
-                "longitude": 106.660172,
-                "address_text": "",
-            }
+            return None

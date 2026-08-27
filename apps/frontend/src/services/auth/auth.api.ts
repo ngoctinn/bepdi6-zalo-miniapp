@@ -42,6 +42,20 @@ export const authService = {
   },
 
   /**
+   * Giải mã và cập nhật số điện thoại từ Zalo phone token
+   * POST /api/v1/customers/me/phone
+   */
+  updatePhoneNumber: async (
+    phoneToken: string,
+    accessToken?: string,
+  ): Promise<Customer> => {
+    return api.post<Customer>("customers/me/phone", {
+      phone_token: phoneToken,
+      access_token: accessToken || undefined,
+    });
+  },
+
+  /**
    * Đăng xuất & xóa token
    */
   logout: (): void => {

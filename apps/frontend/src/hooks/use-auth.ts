@@ -9,6 +9,7 @@ const DEV_MOCK_ZALO_TOKEN = "dev_browser_mock_access_token";
 export function useAuth() {
   const queryClient = useQueryClient();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isRequestingPhone, setIsRequestingPhone] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const isLoggingInRef = useRef(false);
 
@@ -39,6 +40,10 @@ export function useAuth() {
 
   const { mutateAsync: mutateLoginAsync } = loginMutation;
 
+  /**
+   * 1. Silent Login Flow:
+   * Chỉ lấy access token và thông tin cơ bản không làm phiền người dùng lúc mở app
+   */
   const loginWithZaloSDK = useCallback(async () => {
     if (authService.isAuthenticated() || isLoggingInRef.current) {
       return;
@@ -57,33 +62,16 @@ export function useAuth() {
       if (accessToken) {
         const payload: ZaloAuthRequest = { access_token: accessToken };
 
-        // 1. Cố gắng lấy thông tin User (Tên, Avatar) qua Zalo SDK
+        // Lấy thông tin user cơ bản nếu có quyền
         if (accessToken !== DEV_MOCK_ZALO_TOKEN) {
           try {
-            const userInfoRes = await getUserInfo({
-              autoRequestPermission: true,
-            });
+            const userInfoRes = await getUserInfo({});
             if (userInfoRes && userInfoRes.userInfo) {
               payload.name = userInfoRes.userInfo.name;
               payload.avatar_url = userInfoRes.userInfo.avatar;
             }
           } catch {
-            // Người dùng từ chối hoặc đang ở môi trường giả lập
-          }
-
-          // 2. Cố gắng lấy token số điện thoại qua Zalo SDK
-          try {
-            const phoneData = await getPhoneNumber({});
-            if (
-              phoneData &&
-              typeof phoneData === "object" &&
-              "token" in phoneData &&
-              phoneData.token
-            ) {
-              payload.phone_token = phoneData.token as string;
-            }
-          } catch {
-            // Người dùng từ chối hoặc đang ở môi trường giả lập
+            // Không chặn login nếu chưa có quyền xem tên/avatar
           }
         }
 
@@ -98,6 +86,57 @@ export function useAuth() {
       setIsLoggingIn(false);
     }
   }, [mutateLoginAsync]);
+
+  /**
+   * 2. On-Demand Request Phone Flow:
+   * Chỉ gọi khi người dùng thực hiện hành động cần SĐT (Checkout, Profile, Đặt hàng)
+   */
+  const requestPhoneNumber = useCallback(async (): Promise<string | null> => {
+    setIsRequestingPhone(true);
+    try {
+      let phoneToken = "";
+      let userAccessToken = "";
+
+      try {
+        userAccessToken = await getAccessToken({});
+      } catch {
+        // ignore in dev browser
+      }
+
+      try {
+        const phoneData = await getPhoneNumber({});
+        if (
+          phoneData &&
+          typeof phoneData === "object" &&
+          "token" in phoneData &&
+          phoneData.token
+        ) {
+          phoneToken = phoneData.token as string;
+        } else {
+          phoneToken = "dev_mock_phone_token";
+        }
+      } catch {
+        phoneToken = "dev_mock_phone_token";
+      }
+
+      if (phoneToken) {
+        const updatedCustomer = await authService.updatePhoneNumber(
+          phoneToken,
+          userAccessToken || undefined,
+        );
+        queryClient.setQueryData(["customer", "me"], updatedCustomer);
+        return updatedCustomer.phone || null;
+      }
+      return null;
+    } catch (err) {
+      setAuthError(
+        err instanceof Error ? err.message : "Không thể lấy số điện thoại",
+      );
+      return null;
+    } finally {
+      setIsRequestingPhone(false);
+    }
+  }, [queryClient]);
 
   useEffect(() => {
     if (!authService.isAuthenticated() && !isLoggingInRef.current) {
@@ -114,8 +153,10 @@ export function useAuth() {
     customer,
     isAuthenticated: authService.isAuthenticated(),
     isLoading: isLoggingIn || isFetchingCustomer,
+    isRequestingPhone,
     authError,
     login: loginWithZaloSDK,
+    requestPhoneNumber,
     logout,
     refetchCustomer,
   };

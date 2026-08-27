@@ -10,6 +10,7 @@ from apps.customers.serializers import (
     CustomerSerializer,
     ZaloAuthRequestSerializer,
     ZaloLocationDecodeRequestSerializer,
+    ZaloPhoneUpdateRequestSerializer,
 )
 from apps.customers.services import AuthService
 
@@ -96,10 +97,64 @@ class ZaloLocationDecodeView(APIView):
             token=token, access_token=access_token
         )
 
+        if not result:
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "LOCATION_DECODE_FAILED",
+                        "message": "Không thể giải mã vị trí từ Zalo. Vui lòng thử lại hoặc chọn địa chỉ thủ công.",
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         return Response(
             {
                 "success": True,
                 "data": result,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class CustomerPhoneUpdateView(APIView):
+    """
+    POST /api/v1/customers/me/phone
+    Decodes single-use phone token from Zalo Mini App SDK and updates customer profile.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = ZaloPhoneUpdateRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        phone_token = serializer.validated_data["phone_token"]
+        access_token = serializer.validated_data.get("access_token", "")
+
+        customer = get_current_customer(request)
+        phone_number = AuthService.update_customer_phone(
+            customer=customer,
+            phone_token=phone_token,
+            access_token=access_token,
+        )
+
+        if not phone_number:
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "PHONE_DECODE_FAILED",
+                        "message": "Không thể lấy số điện thoại từ Zalo. Vui lòng thử lại.",
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                "success": True,
+                "data": CustomerSerializer(customer).data,
             },
             status=status.HTTP_200_OK,
         )
