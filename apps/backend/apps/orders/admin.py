@@ -135,10 +135,18 @@ class OrderAdmin(ModelAdmin):
         "action_cancel_orders",
     ]
 
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("customer", "payment", "voucher")
+            .prefetch_related("items__options")
+        )
+
     @display(description="Món đặt")
     def items_summary_display(self, obj):
-        items = obj.items.prefetch_related("options").all()
-        if not items.exists():
+        items = obj.items.all()
+        if not items:
             return "-"
         parts = []
         for item in items:

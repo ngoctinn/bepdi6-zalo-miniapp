@@ -137,6 +137,17 @@ class OrderService:
         subtotal = Decimal("0.00")
         validated_items = []
 
+        # Batch fetch all products with preloaded option groups & options to eliminate N+1 queries
+        product_ids = [
+            item.get("product_id") for item in items_data if item.get("product_id")
+        ]
+        products_map = {
+            p.id: p
+            for p in Product.objects.filter(id__in=product_ids)
+            .select_related("category")
+            .prefetch_related("option_groups__options")
+        }
+
         for item in items_data:
             product_id = item.get("product_id")
             quantity = int(item.get("quantity", 1))
@@ -148,12 +159,11 @@ class OrderService:
                     "INVALID_QUANTITY", "Số lượng món phải lớn hơn 0."
                 )
 
-            try:
-                product = Product.objects.select_related("category").get(pk=product_id)
-            except Product.DoesNotExist:
+            product = products_map.get(product_id)
+            if not product:
                 raise OrderProcessingError(
                     "PRODUCT_NOT_FOUND", f"Món #{product_id} không tồn tại."
-                ) from None
+                )
 
             if product.status == Product.Status.OUT_OF_STOCK:
                 raise OrderProcessingError(
@@ -163,6 +173,13 @@ class OrderService:
                 raise OrderProcessingError(
                     "PRODUCT_NOT_FOUND", f"Món '{product.name}' hiện ngưng phục vụ."
                 )
+
+            # Map options in-memory from preloaded option groups
+            available_options_map = {}
+            option_group_list = list(product.option_groups.all())
+            for group in option_group_list:
+                for opt in group.options.all():
+                    available_options_map[opt.id] = (opt, group.id)
 
             # Validate options and option group rules (BR-PROD-004)
             item_price = product.price
@@ -175,16 +192,14 @@ class OrderService:
                         f"Không được chọn trùng lặp tùy chọn trong món '{product.name}'.",
                     )
 
-                options = Option.objects.filter(
-                    pk__in=option_ids, option_group__product=product
-                )
-                if len(options) != len(option_ids):
-                    raise OrderProcessingError(
-                        "INVALID_OPTION",
-                        f"Một số tùy chọn của món '{product.name}' không hợp lệ.",
-                    )
-
-                for opt in options:
+                for opt_id in option_ids:
+                    opt_entry = available_options_map.get(opt_id)
+                    if not opt_entry:
+                        raise OrderProcessingError(
+                            "INVALID_OPTION",
+                            f"Một số tùy chọn của món '{product.name}' không hợp lệ.",
+                        )
+                    opt, _ = opt_entry
                     if opt.status == Option.Status.INACTIVE:
                         raise OrderProcessingError(
                             "INVALID_OPTION",
@@ -194,10 +209,11 @@ class OrderService:
                     validated_options.append(opt)
 
             # Enforce OptionGroup min_select / max_select / is_required rules (BR-PROD-004)
-            option_groups = product.option_groups.all()
-            for group in option_groups:
+            for group in option_group_list:
                 selected_in_group = [
-                    opt for opt in validated_options if opt.option_group_id == group.id
+                    opt
+                    for opt in validated_options
+                    if available_options_map.get(opt.id, (None, None))[1] == group.id
                 ]
                 count = len(selected_in_group)
                 if group.is_required and count < group.min_select:
@@ -421,9 +437,9 @@ class OrderService:
                 return existing
             raise DuplicateOrderError() from None
 
-        # Create snapshot order items & options
-        for item in calculation["validated_items"]:
-            order_item = OrderItem.objects.create(
+        # Bulk create snapshot order items & options
+        order_items_to_create = [
+            OrderItem(
                 order=order,
                 product=item["product"],
                 product_name=item["product_name"],
@@ -432,14 +448,27 @@ class OrderService:
                 note=item["note"],
                 subtotal=item["subtotal"],
             )
+            for item in calculation["validated_items"]
+        ]
+        created_order_items = OrderItem.objects.bulk_create(order_items_to_create)
+
+        order_item_options_to_create = []
+        for order_item, item in zip(
+            created_order_items, calculation["validated_items"], strict=False
+        ):
             for opt in item["options"]:
-                OrderItemOption.objects.create(
-                    order_item=order_item,
-                    option=opt,
-                    option_name=opt.name,
-                    price=opt.price,
-                    quantity=1,
+                order_item_options_to_create.append(
+                    OrderItemOption(
+                        order_item=order_item,
+                        option=opt,
+                        option_name=opt.name,
+                        price=opt.price,
+                        quantity=1,
+                    )
                 )
+
+        if order_item_options_to_create:
+            OrderItemOption.objects.bulk_create(order_item_options_to_create)
 
         # Create Payment record (1-1)
         qr_url = ""
@@ -612,6 +641,19 @@ class OrderService:
             subtotal = Decimal("0.00")
             validated_items = []
 
+            # Batch fetch all products with preloaded option groups & options to eliminate N+1 queries
+            product_ids = [
+                item.get("product_id")
+                for item in edited_items
+                if item.get("product_id")
+            ]
+            products_map = {
+                p.id: p
+                for p in Product.objects.filter(id__in=product_ids)
+                .select_related("category")
+                .prefetch_related("option_groups__options")
+            }
+
             for item in edited_items:
                 product_id = item.get("product_id")
                 quantity = int(item.get("quantity", 1))
@@ -623,12 +665,11 @@ class OrderService:
                         "INVALID_QUANTITY", "Số lượng món phải lớn hơn 0."
                     )
 
-                try:
-                    product = Product.objects.get(pk=product_id)
-                except Product.DoesNotExist:
+                product = products_map.get(product_id)
+                if not product:
                     raise OrderProcessingError(
                         "PRODUCT_NOT_FOUND", f"Món #{product_id} không tồn tại."
-                    ) from None
+                    )
 
                 if product.status == Product.Status.OUT_OF_STOCK:
                     raise OrderProcessingError(
@@ -639,6 +680,13 @@ class OrderService:
                         "PRODUCT_NOT_FOUND", f"Món '{product.name}' hiện ngưng phục vụ."
                     )
 
+                # Map options in-memory from preloaded option groups
+                available_options_map = {}
+                option_group_list = list(product.option_groups.all())
+                for group in option_group_list:
+                    for opt in group.options.all():
+                        available_options_map[opt.id] = (opt, group.id)
+
                 item_price = product.price
                 validated_options = []
                 if option_ids:
@@ -647,15 +695,15 @@ class OrderService:
                             "INVALID_OPTION",
                             f"Không được chọn trùng lặp tùy chọn trong món '{product.name}'.",
                         )
-                    options = Option.objects.filter(
-                        pk__in=option_ids, option_group__product=product
-                    )
-                    if len(options) != len(option_ids):
-                        raise OrderProcessingError(
-                            "INVALID_OPTION",
-                            f"Một số tùy chọn của món '{product.name}' không hợp lệ.",
-                        )
-                    for opt in options:
+
+                    for opt_id in option_ids:
+                        opt_entry = available_options_map.get(opt_id)
+                        if not opt_entry:
+                            raise OrderProcessingError(
+                                "INVALID_OPTION",
+                                f"Một số tùy chọn của món '{product.name}' không hợp lệ.",
+                            )
+                        opt, _ = opt_entry
                         if opt.status == Option.Status.INACTIVE:
                             raise OrderProcessingError(
                                 "INVALID_OPTION",
@@ -665,11 +713,12 @@ class OrderService:
                         validated_options.append(opt)
 
                 # Validate option groups min/max
-                for group in product.option_groups.all():
+                for group in option_group_list:
                     selected_in_group = [
                         opt
                         for opt in validated_options
-                        if opt.option_group_id == group.id
+                        if available_options_map.get(opt.id, (None, None))[1]
+                        == group.id
                     ]
                     count = len(selected_in_group)
                     if group.is_required and count < group.min_select:
@@ -732,10 +781,10 @@ class OrderService:
                 for it in order.items.all()
             ]
 
-            # Replace items in database
+            # Replace items in database using bulk_create
             order.items.all().delete()
-            for v_item in validated_items:
-                order_item = OrderItem.objects.create(
+            order_items_to_create = [
+                OrderItem(
                     order=order,
                     product=v_item["product"],
                     product_name=v_item["product_name"],
@@ -744,14 +793,27 @@ class OrderService:
                     note=v_item["note"],
                     subtotal=v_item["subtotal"],
                 )
+                for v_item in validated_items
+            ]
+            created_order_items = OrderItem.objects.bulk_create(order_items_to_create)
+
+            order_item_options_to_create = []
+            for order_item, v_item in zip(
+                created_order_items, validated_items, strict=False
+            ):
                 for opt in v_item["options"]:
-                    OrderItemOption.objects.create(
-                        order_item=order_item,
-                        option=opt,
-                        option_name=opt.name,
-                        price=opt.price,
-                        quantity=1,
+                    order_item_options_to_create.append(
+                        OrderItemOption(
+                            order_item=order_item,
+                            option=opt,
+                            option_name=opt.name,
+                            price=opt.price,
+                            quantity=1,
+                        )
                     )
+
+            if order_item_options_to_create:
+                OrderItemOption.objects.bulk_create(order_item_options_to_create)
 
             order.subtotal = subtotal
             order.discount = discount
