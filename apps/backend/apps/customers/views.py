@@ -16,31 +16,41 @@ from apps.customers.services import AuthService
 
 
 def get_current_customer(request) -> Customer:
-    """Helper to resolve customer from authenticated user or fallback header for dev/testing."""
+    """
+    Helper to resolve customer from authenticated user or fallback header for dev/testing.
+    Caches the resolved Customer instance on request._cached_customer to prevent duplicate DB hits.
+    """
+    if hasattr(request, "_cached_customer"):
+        return request._cached_customer
+
+    customer: Customer | None = None
+
     if hasattr(request.user, "customer_profile"):
-        return request.user.customer_profile
+        customer = request.user.customer_profile
+    else:
+        zalo_user_id = getattr(request.user, "zalo_user_id", None)
+        if zalo_user_id:
+            customer, _ = Customer.objects.get_or_create(
+                zalo_user_id=zalo_user_id,
+                defaults={"name": request.user.username or "Khách Zalo"},
+            )
+        else:
+            cust_id = request.headers.get("X-Customer-ID") or request.query_params.get(
+                "customer_id"
+            )
+            if cust_id:
+                try:
+                    customer = Customer.objects.get(pk=cust_id)
+                except Customer.DoesNotExist:
+                    pass
 
-    zalo_user_id = getattr(request.user, "zalo_user_id", None)
-    if zalo_user_id:
+    if customer is None:
         customer, _ = Customer.objects.get_or_create(
-            zalo_user_id=zalo_user_id,
-            defaults={"name": request.user.username or "Khách Zalo"},
+            zalo_user_id="zalo_default_guest",
+            defaults={"name": "Khách mặc định", "phone": "0900000000"},
         )
-        return customer
 
-    cust_id = request.headers.get("X-Customer-ID") or request.query_params.get(
-        "customer_id"
-    )
-    if cust_id:
-        try:
-            return Customer.objects.get(pk=cust_id)
-        except Customer.DoesNotExist:
-            pass
-
-    customer, _ = Customer.objects.get_or_create(
-        zalo_user_id="zalo_default_guest",
-        defaults={"name": "Khách mặc định", "phone": "0900000000"},
-    )
+    request._cached_customer = customer
     return customer
 
 
@@ -171,14 +181,14 @@ class CustomerMeView(APIView):
     def get(self, request):
         customer = get_current_customer(request)
         serializer = CustomerSerializer(customer)
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
 
     def patch(self, request):
         customer = get_current_customer(request)
         serializer = CustomerSerializer(customer, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
 
 
 class AddressListCreateView(APIView):
@@ -195,7 +205,7 @@ class AddressListCreateView(APIView):
             "-is_default", "-created_at"
         )
         serializer = AddressSerializer(addresses, many=True)
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
 
     def post(self, request):
         customer = get_current_customer(request)
@@ -214,7 +224,10 @@ class AddressListCreateView(APIView):
 
             address = serializer.save(customer=customer, is_default=is_default)
 
-        return Response(AddressSerializer(address).data, status=status.HTTP_201_CREATED)
+        return Response(
+            {"success": True, "data": AddressSerializer(address).data},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class AddressDetailView(APIView):
@@ -245,7 +258,7 @@ class AddressDetailView(APIView):
                 ).exclude(pk=address.pk).update(is_default=False)
             serializer.save()
 
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
 
     def delete(self, request, pk: int):
         address = self.get_object(request, pk)

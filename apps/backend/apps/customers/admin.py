@@ -110,8 +110,16 @@ class CustomerAdmin(ModelAdmin):
     ordering = ["-created_at"]
     inlines = [AddressInline]
 
-    @display(description="Số địa chỉ lưu")
+    def get_queryset(self, request):
+        from django.db.models import Count
+
+        qs = super().get_queryset(request)
+        return qs.annotate(_address_count=Count("addresses"))
+
+    @display(description="Số địa chỉ lưu", ordering="_address_count")
     def address_count(self, obj):
+        if hasattr(obj, "_address_count"):
+            return obj._address_count
         return obj.addresses.count()
 
     @display(description="Ngày đăng ký", ordering="created_at")
@@ -140,6 +148,9 @@ class AddressAdmin(ModelAdmin):
     list_filter = ["is_default", "created_at"]
     search_fields = ["recipient_name", "phone", "address_text", "customer__name"]
     raw_id_fields = ["customer"]
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("customer")
 
     @display(
         description="Mặc định",

@@ -53,7 +53,7 @@ class TestCustomerAuthAndLocation:
         assert "longitude" in data["data"]
         assert data["data"]["latitude"] == 10.762622
 
-    @patch("apps.customers.services.requests.get")
+    @patch("apps.customers.services.requests.Session.get")
     def test_zalo_location_decode_failure_returns_400(
         self, mock_get, api_client, settings
     ):
@@ -89,7 +89,7 @@ class TestCustomerAuthAndLocation:
         customer.refresh_from_db()
         assert customer.phone == "0987654321"
 
-    @patch("apps.customers.services.requests.get")
+    @patch("apps.customers.services.requests.Session.get")
     def test_zalo_auth_login_real_openapi_mocked(self, mock_get, api_client, settings):
         settings.ZALO_APP_ID = "real_app_id_123"
         settings.ZALO_APP_SECRET = "real_app_secret_456"
@@ -115,7 +115,7 @@ class TestCustomerAuthAndLocation:
         assert "access_token" in data["data"]
         assert data["data"]["customer"]["zalo_user_id"] == "123456789012345"
 
-    @patch("apps.customers.services.requests.get")
+    @patch("apps.customers.services.requests.Session.get")
     def test_zalo_phone_decode_with_84_prefix_conversion(
         self, mock_get, api_client, auth_customer, settings
     ):

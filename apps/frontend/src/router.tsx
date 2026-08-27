@@ -8,7 +8,6 @@ import CheckoutPage from "./pages/checkout";
 import SelectLocationPage from "./pages/select-location";
 import OrderSuccessPage from "./pages/order-success";
 import OrderDetailPage from "./pages/order-detail";
-import ProfilePage from "./pages/profile";
 import RouteErrorBoundary from "./components/common/route-error-boundary";
 
 const router = createBrowserRouter(
@@ -54,13 +53,6 @@ const router = createBrowserRouter(
             back: true,
             hideFooter: true,
             headerPosition: "sticky",
-          },
-        },
-        {
-          path: "/profile",
-          element: <ProfilePage />,
-          handle: {
-            hideHeader: true,
           },
         },
         {

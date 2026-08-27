@@ -4,11 +4,30 @@ import logging
 
 import requests
 from django.conf import settings
+from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.customers.models import Customer, User
 
 logger = logging.getLogger(__name__)
+
+# Reusable HTTP session with connection pooling for outgoing Zalo OpenAPI calls
+_http_session: requests.Session | None = None
+
+
+def get_zalo_http_session() -> requests.Session:
+    """Returns a singleton requests.Session instance to reuse TCP/TLS connections."""
+    global _http_session
+    if _http_session is None:
+        _http_session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=10,
+            pool_maxsize=20,
+            max_retries=1,
+        )
+        _http_session.mount("https://", adapter)
+        _http_session.mount("http://", adapter)
+    return _http_session
 
 
 class AuthService:
@@ -59,9 +78,10 @@ class AuthService:
 
         # Real Zalo OpenAPI Token Exchange
         try:
+            session = get_zalo_http_session()
             appsecret_proof = cls._generate_appsecret_proof(zalo_token, zalo_app_secret)
             # 1. Get user profile
-            profile_res = requests.get(
+            profile_res = session.get(
                 "https://graph.zalo.me/v2.0/me",
                 headers={"access_token": zalo_token},
                 params={
@@ -80,7 +100,7 @@ class AuthService:
             # 2. Get phone number if phone_token provided
             phone_number = ""
             if phone_token:
-                phone_res = requests.get(
+                phone_res = session.get(
                     "https://graph.zalo.me/v2.0/me/info",
                     headers={
                         "access_token": zalo_token,
@@ -122,6 +142,7 @@ class AuthService:
     ) -> tuple[Customer, str, str]:
         """
         Creates or updates customer from Zalo exchange and returns (Customer, access_token, refresh_token).
+        Wrapped in transaction.atomic to guarantee atomic user creation and token issuance.
         """
         info = cls.exchange_zalo_tokens(
             zalo_token=zalo_token,
@@ -130,38 +151,39 @@ class AuthService:
             avatar_url=avatar_url,
         )
 
-        customer, created = Customer.objects.get_or_create(
-            zalo_user_id=info["zalo_user_id"],
-            defaults={
-                "name": info["name"],
-                "phone": info["phone"],
-                "avatar_url": info["avatar_url"],
-            },
-        )
+        with transaction.atomic():
+            customer, created = Customer.objects.get_or_create(
+                zalo_user_id=info["zalo_user_id"],
+                defaults={
+                    "name": info["name"],
+                    "phone": info["phone"],
+                    "avatar_url": info["avatar_url"],
+                },
+            )
 
-        if not created:
-            # Update latest profile info if changed
-            updated_fields = []
-            if info["name"] and customer.name != info["name"]:
-                customer.name = info["name"]
-                updated_fields.append("name")
-            if info["phone"] and customer.phone != info["phone"]:
-                customer.phone = info["phone"]
-                updated_fields.append("phone")
-            if info["avatar_url"] and customer.avatar_url != info["avatar_url"]:
-                customer.avatar_url = info["avatar_url"]
-                updated_fields.append("avatar_url")
-            if updated_fields:
-                customer.save(update_fields=updated_fields)
+            if not created:
+                # Update latest profile info if changed
+                updated_fields = []
+                if info["name"] and customer.name != info["name"]:
+                    customer.name = info["name"]
+                    updated_fields.append("name")
+                if info["phone"] and customer.phone != info["phone"]:
+                    customer.phone = info["phone"]
+                    updated_fields.append("phone")
+                if info["avatar_url"] and customer.avatar_url != info["avatar_url"]:
+                    customer.avatar_url = info["avatar_url"]
+                    updated_fields.append("avatar_url")
+                if updated_fields:
+                    customer.save(update_fields=updated_fields)
 
-        # Create or link internal Django User for JWT token issuance
-        user, _ = User.objects.get_or_create(
-            username=f"zalo_{customer.zalo_user_id}",
-            defaults={
-                "zalo_user_id": customer.zalo_user_id,
-                "role": User.Role.CUSTOMER,
-            },
-        )
+            # Create or link internal Django User for JWT token issuance
+            user, _ = User.objects.get_or_create(
+                username=f"zalo_{customer.zalo_user_id}",
+                defaults={
+                    "zalo_user_id": customer.zalo_user_id,
+                    "role": User.Role.CUSTOMER,
+                },
+            )
 
         refresh = RefreshToken.for_user(user)
         refresh["customer_id"] = customer.id
@@ -188,6 +210,7 @@ class AuthService:
             return "0987654321"
 
         try:
+            session = get_zalo_http_session()
             headers = {
                 "secret_key": zalo_app_secret,
                 "code": phone_token,
@@ -195,7 +218,7 @@ class AuthService:
             if access_token:
                 headers["access_token"] = access_token
 
-            res = requests.get(
+            res = session.get(
                 "https://graph.zalo.me/v2.0/me/info",
                 headers=headers,
                 timeout=5,
@@ -261,6 +284,7 @@ class AuthService:
             }
 
         try:
+            session = get_zalo_http_session()
             headers = {
                 "code": token,
                 "secret_key": zalo_app_secret,
@@ -268,7 +292,7 @@ class AuthService:
             if access_token:
                 headers["access_token"] = access_token
 
-            res = requests.get(
+            res = session.get(
                 "https://graph.zalo.me/v2.0/me/info",
                 headers=headers,
                 timeout=5,

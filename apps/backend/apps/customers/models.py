@@ -71,9 +71,6 @@ class Customer(models.Model):
         db_table = "customers"
         verbose_name = "Khách hàng"
         verbose_name_plural = "Khách hàng"
-        indexes = [
-            models.Index(fields=["zalo_user_id"]),
-        ]
 
     def __str__(self) -> str:
         return f"{self.name} ({self.phone or self.zalo_user_id})"

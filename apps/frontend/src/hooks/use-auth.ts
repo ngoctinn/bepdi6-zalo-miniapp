@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAccessToken, getPhoneNumber, getUserInfo } from "zmp-sdk/apis";
+import { getAccessToken, getPhoneNumber } from "zmp-sdk/apis";
 import { authService } from "../services/auth/auth.api";
 import { Customer, ZaloAuthRequest } from "../types/customer.types";
 
@@ -42,7 +42,7 @@ export function useAuth() {
 
   /**
    * 1. Silent Login Flow:
-   * Chỉ lấy access token và thông tin cơ bản không làm phiền người dùng lúc mở app
+   * Chỉ lấy access token để xác thực, không làm phiền người dùng lúc mở app
    */
   const loginWithZaloSDK = useCallback(async () => {
     if (authService.isAuthenticated() || isLoggingInRef.current) {
@@ -61,20 +61,6 @@ export function useAuth() {
 
       if (accessToken) {
         const payload: ZaloAuthRequest = { access_token: accessToken };
-
-        // Lấy thông tin user cơ bản nếu có quyền
-        if (accessToken !== DEV_MOCK_ZALO_TOKEN) {
-          try {
-            const userInfoRes = await getUserInfo({});
-            if (userInfoRes && userInfoRes.userInfo) {
-              payload.name = userInfoRes.userInfo.name;
-              payload.avatar_url = userInfoRes.userInfo.avatar;
-            }
-          } catch {
-            // Không chặn login nếu chưa có quyền xem tên/avatar
-          }
-        }
-
         await mutateLoginAsync(payload);
       }
     } catch (err) {
