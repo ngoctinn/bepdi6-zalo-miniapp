@@ -246,9 +246,9 @@ export default function SelectLocationPage() {
         onClose={() => setIsModalOpen(false)}
         mask
         zIndex={1400}
-        modalClassName="rounded-2xl max-w-[360px] p-5 border-0 shadow-2xl bg-white"
+        modalClassName="rounded-2xl w-[calc(100vw-32px)] max-w-[360px] p-5 border-0 shadow-2xl bg-white overflow-hidden box-border"
       >
-        <div className="flex flex-col">
+        <div className="flex w-full flex-col overflow-hidden">
           <div className="mb-4 text-center">
             <h3 className="text-base font-bold text-neutral900">
               {copy.selectLocation.modalTitle}

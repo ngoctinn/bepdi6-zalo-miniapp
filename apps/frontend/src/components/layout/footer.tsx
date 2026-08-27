@@ -41,7 +41,7 @@ export default function Footer() {
     <nav
       role="navigation"
       aria-label="Thanh điều hướng chính"
-      className="safe-bottom bg-white/98 grid grid-cols-3 items-center border-t border-black/5 pt-2.5 backdrop-blur-md"
+      className="safe-bottom bg-white/98 relative z-40 grid w-full grid-cols-3 items-center border-t border-black/5 backdrop-blur-md"
     >
       {NAV_ITEMS.map((item) => {
         const isActive = activeKey === item.path;
@@ -50,7 +50,7 @@ export default function Footer() {
             type="button"
             key={item.path}
             onClick={() => navigate(item.path)}
-            className="flex flex-col items-center justify-center py-1 transition-all focus:outline-none active:scale-95"
+            className="flex min-h-[52px] w-full flex-1 touch-manipulation select-none flex-col items-center justify-center py-1.5 transition-all focus:outline-none active:scale-95"
             aria-label={item.name}
             aria-current={isActive ? "page" : undefined}
           >

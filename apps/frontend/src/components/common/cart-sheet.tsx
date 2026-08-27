@@ -139,7 +139,7 @@ export default function CartSheet({
 
           {/* Fixed bottom action bar */}
           {items.length > 0 && (
-            <div className="shrink-0 border-t border-black/5 bg-background/95 px-4 py-3 pb-[max(12px,calc(var(--zaui-safe-area-inset-bottom,0px)+12px))] shadow-lg backdrop-blur-md">
+            <div className="shrink-0 border-t border-black/5 bg-background/95 px-4 py-3 pb-[max(16px,calc(var(--app-safe-area-bottom,0px)+12px))] shadow-lg backdrop-blur-md">
               <div className="flex items-center gap-3">
                 <button
                   type="button"

@@ -32,9 +32,9 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({
       mask
       maskClosable={false}
       zIndex={9999}
-      modalClassName="rounded-2xl max-w-[340px] p-6 text-center shadow-2xl border-0 bg-white"
+      modalClassName="rounded-2xl w-[calc(100vw-32px)] max-w-[340px] p-5 sm:p-6 text-center shadow-2xl border-0 bg-white overflow-hidden box-border"
     >
-      <div className="flex flex-col">
+      <div className="flex w-full flex-col overflow-hidden">
         {/* Soft Error Icon badge sử dụng SVG Vector độc lập */}
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-danger">
           <svg
@@ -52,11 +52,14 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({
           </svg>
         </div>
 
-        <Text.Title size="small" className="mb-2 font-bold text-neutral900">
+        <Text.Title
+          size="small"
+          className="mb-2 break-words font-bold text-neutral900"
+        >
           {title}
         </Text.Title>
 
-        <div className="mb-6 text-sm leading-relaxed text-neutral600">
+        <div className="mb-6 break-words text-sm leading-relaxed text-neutral600">
           {message}
         </div>
 
