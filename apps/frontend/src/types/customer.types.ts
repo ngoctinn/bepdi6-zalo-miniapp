@@ -35,6 +35,8 @@ export interface UpdateAddressRequest extends Partial<CreateAddressRequest> {}
 export interface ZaloAuthRequest {
   access_token: string;
   phone_token?: string;
+  name?: string;
+  avatar_url?: string;
 }
 
 export interface AuthTokens {

@@ -62,3 +62,14 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 .pyright_cache/
+
+# >>> coding-friend managed
+docs/plans/
+docs/memory/
+docs/research/
+docs/sessions/
+docs/reviews/
+docs/context/
+docs/warm/
+.coding-friend/
+# <<< coding-friend managed
