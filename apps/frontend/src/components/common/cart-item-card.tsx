@@ -14,6 +14,7 @@ interface CartItemCardProps {
   variant?: "editable" | "readonly";
   onUpdateQuantity?: (id: string, quantity: number) => void;
   onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export default function CartItemCard({
@@ -21,9 +22,22 @@ export default function CartItemCard({
   variant = "readonly",
   onUpdateQuantity,
   onEdit,
+  onDelete,
 }: CartItemCardProps) {
   const itemUnitPrice = calculateCartItemPrice(item);
   const imageUrl = item.product_image || defaultProductImg;
+
+  const handleDecrease = () => {
+    if (item.quantity <= 1) {
+      if (onDelete) {
+        onDelete(item.id);
+      } else {
+        onUpdateQuantity?.(item.id, 0);
+      }
+    } else {
+      onUpdateQuantity?.(item.id, item.quantity - 1);
+    }
+  };
 
   return (
     <div className="shadow-xs flex gap-3 rounded-2xl border border-black/5 bg-transparent p-3">
@@ -71,9 +85,7 @@ export default function CartItemCard({
       <div className="self-center">
         <QuantityStepper
           value={item.quantity}
-          onDecrease={() =>
-            onUpdateQuantity?.(item.id, Math.max(0, item.quantity - 1))
-          }
+          onDecrease={handleDecrease}
           onIncrease={() => onUpdateQuantity?.(item.id, item.quantity + 1)}
           minValue={0}
           size="medium"
