@@ -1,4 +1,4 @@
-# Hướng Dẫn Triển Khai Backend Thực Tế (Free Tier Stack: Render + Neon + Cloudflare R2)
+# Hướng Dẫn Triển Khai Backend Thực Tế (Free Tier Stack: Render + Neon + Cloudflare R2 + Upstash)
 
 Tài liệu này hướng dẫn chi tiết quy trình triển khai toàn bộ hệ thống Backend Django lên môi trường Production với chi phí **0 VNĐ**, đảm bảo tính ổn định, bảo mật và tương thích hoàn toàn với các quy chuẩn kỹ thuật.
 
@@ -10,24 +10,25 @@ Tài liệu này hướng dẫn chi tiết quy trình triển khai toàn bộ h�
 | :--- | :--- | :--- | :--- |
 | **Database** | [Neon.tech](https://neon.tech) | 0.5 GB Storage, Serverless Postgres | Lưu trữ dữ liệu quan hệ, tự động backup, không bị xóa định kỳ. |
 | **Object Storage** | [Cloudflare R2](https://dash.cloudflare.com) | 10 GB Storage, **0đ phí Egress (băng thông tải về miễn phí)** | Lưu trữ hình ảnh món ăn, menu, avatar người dùng. |
+| **Redis & Celery Broker** | [Upstash.com](https://upstash.com) | 500.000 requests/ngày, 256 MB RAM | Hàng đợi Celery tác vụ ngầm (Zalo OA alert, ZNS) & Bộ nhớ đệm (Cache). |
 | **Backend Service** | [Render.com](https://render.com) | 512 MB RAM, 0.1 CPU, Free SSL | Chạy Django App (WSGI/Gunicorn), tự động build từ Git repo. |
 | **Keep-Alive Monitor** | [UptimeRobot](https://uptimerobot.com) | 50 monitors, chu kỳ 5 phút | Ping định kỳ giữ server không bị "ngủ" (chống cold start). |
 
 ---
 
-## 2. Quy Trình Triển Khai Chi Tiết (5 Bước)
+## 2. Quy Trình Triển Khai Chi Tiết (6 Bước)
 
 ### Bước 1: Khởi Tạo Managed PostgreSQL Trên Neon.tech
 
 1. Truy cập [Neon.tech](https://neon.tech) và đăng nhập bằng GitHub.
 2. Tạo Project mới:
    - **Name**: `bepdi6-db`
-   - **Region**: `ap-southeast-1` (Singapore) để tối ưu độ trễ với người dùng Việt Nam.
+   - **Region**: `ap-southeast-1` (Singapore) hoặc `us-east-1`
 3. Lấy chuỗi kết nối:
    - Tại màn hình Dashboard, bật checkbox **Connection Pooling**.
    - Copy chuỗi kết nối `DATABASE_URL` có dạng:
      ```text
-     postgresql://<user>:<password>@<endpoint>-pooler.ap-southeast-1.aws.neon.tech/<dbname>?sslmode=require
+     postgresql://<user>:<password>@<endpoint>-pooler.<region>.aws.neon.tech/<dbname>?sslmode=require
      ```
 
 ---
@@ -45,113 +46,43 @@ Tài liệu này hướng dẫn chi tiết quy trình triển khai toàn bộ h�
      - `Account ID`
      - `Access Key ID`
      - `Secret Access Key`
+     - `Endpoint URL`: `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`
 4. **Bật Public URL** (để frontend hiển thị ảnh):
    - Vào bucket `bepdi6-media` → **Settings** → **Public Access**.
    - Bật subdomain `R2.dev` hoặc gắn Custom Domain riêng (ví dụ: `media.yourdomain.com`).
 
 ---
 
-### Bước 3: Cấu Hình Dự Án Django
+### Bước 3: Khởi Tạo Redis Miễn Phí Trên Upstash (Phục vụ Cache & Celery)
 
-#### 1. Cài đặt các thư viện cần thiết (Sử dụng `uv`)
-```bash
-uv add dj-database-url psycopg2-binary whitenoise django-storages boto3 gunicorn
-```
-
-#### 2. Cấu hình `settings.py`
-
-```python
-import os
-from pathlib import Path
-import dj_database_url
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# 1. Bảo mật & Hosts
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-development-key")
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,.onrender.com").split(
-    ","
-)
-CSRF_TRUSTED_ORIGINS = [
-    f"https://{host.strip()}"
-    for host in ALLOWED_HOSTS
-    if host.strip() and not host.startswith("localhost")
-]
-
-# 2. Database (Neon Postgres Pooling)
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL", "sqlite:///db.sqlite3"),
-        conn_max_age=600,
-        ssl_require=bool(os.getenv("DATABASE_URL")),
-    )
-}
-
-# 3. Static Files (WhiteNoise)
-MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # Đặt ngay sau SecurityMiddleware
-    # ... các middleware khác
-]
-
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# 4. Storage (Cloudflare R2 & WhiteNoise)
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
-
-if os.getenv("USE_R2", "False").lower() == "true":
-    AWS_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.getenv("R2_BUCKET_NAME")
-    AWS_S3_ENDPOINT_URL = (
-        f"https://{os.getenv('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com"
-    )
-    AWS_S3_REGION_NAME = "auto"
-    AWS_S3_SIGNATURE_VERSION = "s3v4"
-    AWS_S3_CUSTOM_DOMAIN = os.getenv("R2_CUSTOM_DOMAIN")
-
-    STORAGES["default"] = {
-        "BACKEND": "storages.backends.s3.S3Storage",
-        "OPTIONS": {
-            "bucket_name": AWS_STORAGE_BUCKET_NAME,
-            "access_key": AWS_ACCESS_KEY_ID,
-            "secret_key": AWS_SECRET_ACCESS_KEY,
-            "endpoint_url": AWS_S3_ENDPOINT_URL,
-            "region_name": AWS_S3_REGION_NAME,
-            "custom_domain": AWS_S3_CUSTOM_DOMAIN,
-        },
-    }
-else:
-    MEDIA_URL = "/media/"
-    MEDIA_ROOT = BASE_DIR / "media"
-    STORAGES["default"] = {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    }
-```
-
-#### 3. Tạo Script `build.sh` tại thư mục ứng dụng backend
-```bash
-#!/usr/bin/env bash
-# Dừng script nếu có lỗi xảy ra
-set -o errexit
-
-pip install uv
-uv pip install --system -r pyproject.toml
-
-python manage.py collectstatic --no-input
-python manage.py migrate
-```
-*(Ghi nhớ cấp quyền thực thi cho file: `chmod +x build.sh`)*
+1. Truy cập [Upstash.com](https://upstash.com) và đăng nhập bằng GitHub.
+2. Tạo Database mới:
+   - **Name**: `bepdi6-redis`
+   - **Type**: `Regional`
+   - **Region**: `ap-southeast-1` (Singapore)
+   - **TLS (SSL)**: Enabled
+3. Lấy chuỗi kết nối:
+   - Trong tab **Details** → Copy chuỗi kết nối Redis URL dạng:
+     ```text
+     rediss://default:<password>@<endpoint>.upstash.io:6379
+     ```
+   - Cấu hình tách biệt database `0` cho Cache và `1` cho Celery:
+     - `REDIS_URL=rediss://default:<password>@<endpoint>.upstash.io:6379/0`
+     - `CELERY_BROKER_URL=rediss://default:<password>@<endpoint>.upstash.io:6379/1`
 
 ---
 
-### Bước 4: Khởi Tạo Web Service Trên Render.com
+### Bước 4: Cấu Hình Dự Án Django
+
+Dự án đã được tích hợp đầy đủ cấu hình trong `apps/backend/config/settings.py` và `apps/backend/build.sh`:
+- **Static Files**: Quản lý bằng `WhiteNoise`.
+- **Media Files**: Tích hợp `Cloudflare R2` qua `django-storages` & `boto3`.
+- **Database**: Tự động nhận diện `DATABASE_URL` từ Neon.
+- **Cache & Celery**: Kết nối bảo mật qua `rediss://` tới Upstash.
+
+---
+
+### Bước 5: Khởi Tạo Web Service Trên Render.com
 
 1. Đăng nhập [Render.com](https://dashboard.render.com/) → **New +** → **Web Service**.
 2. Chọn Repository Git của dự án.
@@ -171,31 +102,26 @@ python manage.py migrate
 | `PYTHON_VERSION` | `3.11` | Phiên bản Python |
 | `DEBUG` | `False` | Tắt chế độ debug trên production |
 | `SECRET_KEY` | *(Chuỗi ngẫu nhiên dài 50 ký tự)* | Khóa bí mật của Django |
-| `DATABASE_URL` | `postgresql://...@...neon.tech/bepdi6?sslmode=require` | Connection String từ Neon |
-| `USE_R2` | `True` | Kích hoạt lưu file lên Cloudflare R2 |
-| `R2_ACCOUNT_ID` | `c123456789abcdef...` | Account ID Cloudflare |
-| `R2_ACCESS_KEY_ID` | `a1b2c3...` | Access Key ID của R2 Token |
-| `R2_SECRET_ACCESS_KEY`| `x9y8z7...` | Secret Access Key của R2 Token |
-| `R2_BUCKET_NAME` | `bepdi6-media` | Tên Bucket R2 |
-| `R2_CUSTOM_DOMAIN` | `pub-xxxx.r2.dev` hoặc domain riêng | Domain xem ảnh công khai |
-| `ALLOWED_HOSTS` | `.onrender.com` | Tên miền chấp nhận request |
+| `DATABASE_URL` | `postgresql://neondb_owner:...@...neon.tech/neondb?sslmode=require` | Connection String từ Neon |
+| `REDIS_URL` | `rediss://default:...@...upstash.io:6379/0` | Cache Redis từ Upstash |
+| `CELERY_BROKER_URL` | `rediss://default:...@...upstash.io:6379/1` | Celery Broker từ Upstash |
+| `USE_S3_STORAGE` | `True` | Kích hoạt lưu file lên Cloudflare R2 |
+| `AWS_ACCESS_KEY_ID` | `bea18cc9d74cc995a2b76e98a417afc4` | Access Key ID của R2 Token |
+| `AWS_SECRET_ACCESS_KEY`| `3fa580a708436516cceb27aed7f68025fae861559ec70599d376154d4103b5e0` | Secret Access Key của R2 Token |
+| `AWS_STORAGE_BUCKET_NAME`| `bepdi6-media` | Tên Bucket R2 |
+| `AWS_S3_ENDPOINT_URL` | `https://008f945c24908989db53b1934f2072d8.r2.cloudflarestorage.com` | Endpoint Cloudflare R2 |
+| `AWS_S3_CUSTOM_DOMAIN`| `pub-xxxx.r2.dev` hoặc domain riêng | Domain xem ảnh công khai (tùy chọn) |
+| `ALLOWED_HOSTS` | `.onrender.com,localhost,127.0.0.1` | Tên miền chấp nhận request |
 
 5. Nhấn **Create Web Service** để bắt đầu quá trình deploy.
 
 ---
 
-### Bước 5: Thiết Lập Keep-Alive (Chống Cold Start)
+### Bước 6: Thiết Lập Keep-Alive (Chống Cold Start)
 
 Gói miễn phí của Render sẽ tạm dừng (spin-down) sau 15 phút không nhận được truy cập. Để khắc phục:
 
-1. Tạo một endpoint `health-check` trong Django (`/api/health/`):
-   ```python
-   from django.http import JsonResponse
-
-
-   def health_check(request):
-       return JsonResponse({"status": "ok"})
-```
+1. Django đã có sẵn endpoint `/api/health/` và `/health/`.
 2. Đăng ký tài khoản miễn phí tại [UptimeRobot](https://uptimerobot.com).
 3. Tạo Monitor mới:
    - **Monitor Type**: `HTTP(s)`
