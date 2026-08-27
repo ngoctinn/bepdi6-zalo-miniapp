@@ -35,6 +35,7 @@ dev = [
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+exclude = ["scratch", ".venv"]
 
 [tool.ruff.lint]
 select = [
