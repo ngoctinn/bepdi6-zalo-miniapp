@@ -56,4 +56,7 @@ export interface DecodeLocationResponse {
   latitude: number;
   longitude: number;
   address_text: string;
+  ward?: string;
+  district?: string;
+  city?: string;
 }

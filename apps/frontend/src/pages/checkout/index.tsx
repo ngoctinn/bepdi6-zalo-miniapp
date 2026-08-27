@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPinIcon, ChevronRightIcon } from "@/components/common/vectors";
 import QuantityStepper from "@/components/common/quantity-stepper";
@@ -9,6 +9,11 @@ import {
   useCreateOrder,
   usePreviewCheckout,
 } from "@/services/order/order.mutations";
+import {
+  useAddresses,
+  useDecodeLocation,
+  useCreateAddress,
+} from "@/services/address/address.queries";
 import { useShopInfo } from "@/services/shop/shop.queries";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency } from "@/utils/format";
@@ -21,6 +26,7 @@ import { formatVariantWithPercentage } from "@/utils/cart";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
+import { getLocation, getAccessToken } from "zmp-sdk/apis";
 
 // Hàm sinh UUID v4 cho Idempotency-Key
 function generateUUID() {
@@ -38,8 +44,9 @@ export default function CheckoutPage() {
 
   // Stores
   const { items: cartItems, updateQuantity, clearCart } = useCartStore();
-  const { selectedAddress } = useLocationStore();
+  const { selectedAddress, setSelectedAddress } = useLocationStore();
   const { data: shopInfo } = useShopInfo();
+  const { data: userAddresses, isLoading: isLoadingAddresses } = useAddresses();
 
   // State
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("DELIVERY");
@@ -55,6 +62,8 @@ export default function CheckoutPage() {
   const [previewData, setPreviewData] =
     useState<CheckoutPreviewResponse | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [hasAttemptedAutoLocate, setHasAttemptedAutoLocate] = useState(false);
   const [orderErrorModal, setOrderErrorModal] = useState<{
     visible: boolean;
     title?: string;
@@ -77,6 +86,101 @@ export default function CheckoutPage() {
   // Mutations
   const previewMutation = usePreviewCheckout();
   const createOrderMutation = useCreateOrder();
+  const decodeLocationMutation = useDecodeLocation();
+  const createAddressMutation = useCreateAddress();
+
+  /**
+   * Tự động dò và ghim toạ độ GPS khi khách chưa có địa chỉ nào
+   */
+  const autoDetectLocation = useCallback(async () => {
+    if (isLocating || selectedAddress) return;
+    setIsLocating(true);
+    try {
+      let locationToken = "";
+      let userAccessToken = "";
+
+      try {
+        userAccessToken = await getAccessToken({});
+      } catch {
+        // Mock fallback outside Zalo
+      }
+
+      try {
+        const data = await getLocation({});
+        if (data && typeof data === "object" && "token" in data && data.token) {
+          locationToken = data.token as string;
+        } else {
+          locationToken = "dev_browser_mock_location_token";
+        }
+      } catch {
+        locationToken = "dev_browser_mock_location_token";
+      }
+
+      const decoded = await decodeLocationMutation.mutateAsync({
+        token: locationToken,
+        access_token: userAccessToken || undefined,
+      });
+
+      if (decoded && decoded.latitude && decoded.longitude) {
+        const fallbackAddressText =
+          decoded.address_text ||
+          `${decoded.ward ? decoded.ward + ", " : ""}${decoded.district ? decoded.district + ", " : ""}${decoded.city || "TP. Hồ Chí Minh"}` ||
+          copy.checkout.currentGpsLocation;
+
+        const temporaryGpsAddress = {
+          id: 0, // Temporary ID indicating unpersisted GPS address
+          recipient_name: customer?.name || "Khách Zalo",
+          phone: customer?.phone || "0987654321",
+          address_text: fallbackAddressText,
+          latitude: Number(decoded.latitude),
+          longitude: Number(decoded.longitude),
+          is_default: false,
+        };
+
+        setSelectedAddress(temporaryGpsAddress);
+      }
+    } catch {
+      // User denied or decode failed - degrade gracefully to manual selection
+    } finally {
+      setIsLocating(false);
+      setHasAttemptedAutoLocate(true);
+    }
+  }, [
+    isLocating,
+    selectedAddress,
+    customer,
+    decodeLocationMutation,
+    setSelectedAddress,
+  ]);
+
+  /**
+   * Priority Cascade để gán địa chỉ:
+   * 1. selectedAddress đã có trong store -> giữ nguyên
+   * 2. userAddresses từ DB -> chọn default address
+   * 3. Chưa có gì -> tự động kích hoạt GPS auto-detect
+   */
+  useEffect(() => {
+    if (selectedAddress || isLoadingAddresses || hasAttemptedAutoLocate) {
+      return;
+    }
+
+    if (userAddresses && userAddresses.length > 0) {
+      const defaultAddr =
+        userAddresses.find((a) => a.is_default) || userAddresses[0];
+      setSelectedAddress(defaultAddr);
+      setHasAttemptedAutoLocate(true);
+    } else if (userAddresses && userAddresses.length === 0) {
+      // Khách chưa có sổ địa chỉ -> Tự động gọi GPS
+      autoDetectLocation();
+    }
+  }, [
+    selectedAddress,
+    userAddresses,
+    isLoadingAddresses,
+    hasAttemptedAutoLocate,
+    setSelectedAddress,
+    autoDetectLocation,
+  ]);
 
   // Chuyển đổi giỏ hàng sang payload backend
   const orderItemsPayload = useMemo(
@@ -207,6 +311,26 @@ export default function CheckoutPage() {
         idempotencyKey: idempotencyKeyRef.current,
       });
 
+      // Tự động lưu địa chỉ GPS tạm vào danh bạ sổ địa chỉ nếu chưa có ID
+      if (
+        deliveryType === "DELIVERY" &&
+        selectedAddress &&
+        (!selectedAddress.id || selectedAddress.id === 0)
+      ) {
+        try {
+          createAddressMutation.mutate({
+            recipient_name: selectedAddress.recipient_name,
+            phone: selectedAddress.phone,
+            address_text: selectedAddress.address_text,
+            latitude: selectedAddress.latitude,
+            longitude: selectedAddress.longitude,
+            is_default: true,
+          });
+        } catch {
+          // Non-blocking
+        }
+      }
+
       clearCart();
       showSuccess(copy.checkout.orderSuccess);
       navigate(`/order/${order.id}`);
@@ -302,7 +426,7 @@ export default function CheckoutPage() {
             strokeWidth="2"
           >
             <rect x="1" y="3" width="15" height="13" rx="2" />
-            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+            <polygon points="16 8 20 8 23 11 23 16 16 16 8" />
             <circle cx="5.5" cy="18.5" r="2.5" />
             <circle cx="18.5" cy="18.5" r="2.5" />
           </svg>
@@ -350,18 +474,31 @@ export default function CheckoutPage() {
             </button>
           </div>
 
-          {selectedAddress ? (
+          {isLocating ? (
+            /* Loading State khi đang tự động dò GPS */
+            <div className="flex animate-pulse items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs text-primary">
+              <div className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <span className="font-medium">{copy.checkout.locatingGps}</span>
+            </div>
+          ) : selectedAddress ? (
             <div
               onClick={() => navigate("/select-location")}
               className="flex cursor-pointer items-start justify-between rounded-xl border border-black/5 bg-black/[0.02] p-3 text-xs text-neutral700 transition-all hover:bg-black/[0.04] active:scale-[0.99]"
             >
               <div className="flex items-start gap-2.5">
-                <div className="mt-0.5 text-primary">
+                <div className="mt-0.5 shrink-0 text-primary">
                   <MapPinIcon className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="font-semibold text-neutral900">
-                    {selectedAddress.recipient_name} • {selectedAddress.phone}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-neutral900">
+                      {selectedAddress.recipient_name} • {selectedAddress.phone}
+                    </span>
+                    {(!selectedAddress.id || selectedAddress.id === 0) && (
+                      <span className="inline-flex items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                        📍 {copy.checkout.currentGpsLocation}
+                      </span>
+                    )}
                   </div>
                   <div className="mt-0.5 line-clamp-2 leading-relaxed text-neutral600">
                     {selectedAddress.address_text}
@@ -369,7 +506,8 @@ export default function CheckoutPage() {
                   {previewData?.distance_km !== undefined && (
                     <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-xxsmall font-medium text-primary">
                       <span>
-                        Cách quán ~{previewData.distance_km.toFixed(1)} km
+                        {copy.checkout.distanceEstimate} ~
+                        {previewData.distance_km.toFixed(1)} km
                       </span>
                     </div>
                   )}

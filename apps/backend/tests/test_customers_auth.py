@@ -88,3 +88,61 @@ class TestCustomerAuthAndLocation:
 
         customer.refresh_from_db()
         assert customer.phone == "0987654321"
+
+    @patch("apps.customers.services.requests.get")
+    def test_zalo_auth_login_real_openapi_mocked(self, mock_get, api_client, settings):
+        settings.ZALO_APP_ID = "real_app_id_123"
+        settings.ZALO_APP_SECRET = "real_app_secret_456"
+
+        # Mock Zalo OpenAPI /v2.0/me response
+        mock_response = type("MockResponse", (), {})()
+        mock_response.json = lambda: {
+            "id": "123456789012345",
+            "name": "Zalo Real User",
+            "picture": {"data": {"url": "https://avatar.zalo.me/test.jpg"}},
+        }
+        mock_get.return_value = mock_response
+
+        url = reverse("auth-zalo")
+        payload = {
+            "zalo_token": "real_valid_zalo_access_token",
+            "name": "Zalo Real User",
+        }
+        response = api_client.post(url, payload, format="json")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert "access_token" in data["data"]
+        assert data["data"]["customer"]["zalo_user_id"] == "123456789012345"
+
+    @patch("apps.customers.services.requests.get")
+    def test_zalo_phone_decode_with_84_prefix_conversion(
+        self, mock_get, api_client, auth_customer, settings
+    ):
+        settings.ZALO_APP_ID = "real_app_id_123"
+        settings.ZALO_APP_SECRET = "real_app_secret_456"
+
+        customer, user = auth_customer
+        api_client.force_authenticate(user=user)
+
+        # Mock Zalo /v2.0/me/info returning 84912345678
+        mock_response = type("MockResponse", (), {})()
+        mock_response.json = lambda: {
+            "error": 0,
+            "data": {"number": "84912345678"},
+        }
+        mock_get.return_value = mock_response
+
+        url = reverse("customer-phone-update")
+        payload = {
+            "phone_token": "real_single_use_phone_token",
+            "access_token": "valid_access_token",
+        }
+        response = api_client.post(url, payload, format="json")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert data["data"]["phone"] == "0912345678"
+
+        customer.refresh_from_db()
+        assert customer.phone == "0912345678"
