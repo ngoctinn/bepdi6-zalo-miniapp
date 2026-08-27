@@ -81,8 +81,8 @@ const router = createBrowserRouter(
           element: <StaffOrdersPage />,
           handle: {
             title: "Bếp & Quản lý đơn",
-            back: true,
-            hideFooter: true,
+            back: false,
+            hideFooter: false,
             headerPosition: "sticky",
             hideCart: true,
             hideHeader: true,

@@ -11,6 +11,8 @@ from apps.customers.models import Address, Customer, User
 class UserAdmin(BaseUserAdmin, ModelAdmin):
     """Staff & Admin User management conforming to Django & Unfold best practices."""
 
+    show_full_result_count = False
+    list_per_page = 25
     list_display = [
         "username",
         "email",

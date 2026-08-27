@@ -8,6 +8,8 @@ from apps.menu.models import Category, Option, OptionGroup, Product
 
 @admin.register(Category)
 class CategoryAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
     list_display = [
         "id",
         "name",
@@ -47,6 +49,8 @@ class OptionInline(StackedInline):
 
 @admin.register(OptionGroup)
 class OptionGroupAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
     list_display = [
         "id",
         "product",
@@ -60,6 +64,7 @@ class OptionGroupAdmin(ModelAdmin):
     list_select_related = ["product"]
     list_filter = ["is_required", "product"]
     search_fields = ["name"]
+    raw_id_fields = ["product"]
     inlines = [OptionInline]
 
     @display(
@@ -76,6 +81,8 @@ class OptionGroupAdmin(ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
     list_display = [
         "id",
         "name",
@@ -90,6 +97,7 @@ class ProductAdmin(ModelAdmin):
     list_editable = ["status"]
     list_filter = ["category", "status"]
     search_fields = ["name", "description"]
+    raw_id_fields = ["category"]
 
     @display(description="Ảnh món")
     def thumbnail(self, obj):
@@ -115,6 +123,8 @@ class ProductAdmin(ModelAdmin):
 
 @admin.register(Option)
 class OptionAdmin(ModelAdmin):
+    show_full_result_count = False
+    list_per_page = 25
     list_display = [
         "id",
         "name",
@@ -128,6 +138,7 @@ class OptionAdmin(ModelAdmin):
     list_editable = ["status"]
     list_filter = ["status", "option_group"]
     search_fields = ["name"]
+    raw_id_fields = ["option_group"]
 
     @display(description="Giá cộng thêm", ordering="price")
     def price_display(self, obj):

@@ -33,6 +33,16 @@ class VoucherAdmin(ModelAdmin):
     search_fields = ["code", "name"]
     inlines = [VoucherUsageInline]
 
+    def get_queryset(self, request):
+        from django.db.models import Count, Q
+
+        qs = super().get_queryset(request)
+        return qs.annotate(
+            _applied_count=Count(
+                "usages", filter=Q(usages__status=VoucherUsage.Status.APPLIED)
+            )
+        )
+
     @display(description="Mức giảm", ordering="discount_value")
     def discount_display(self, obj):
         if obj.discount_type == Voucher.DiscountType.FIXED:
@@ -46,9 +56,14 @@ class VoucherAdmin(ModelAdmin):
     def minimum_order_value_display(self, obj):
         return f"{obj.minimum_order_value:,.0f} đ"
 
-    @display(description="Lượt dùng")
+    @display(description="Lượt dùng", ordering="_applied_count")
     def usage_status(self, obj):
-        applied_count = obj.usages.filter(status=VoucherUsage.Status.APPLIED).count()
+        if hasattr(obj, "_applied_count"):
+            applied_count = obj._applied_count
+        else:
+            applied_count = obj.usages.filter(
+                status=VoucherUsage.Status.APPLIED
+            ).count()
         limit_str = str(obj.usage_limit) if obj.usage_limit > 0 else "∞"
         return f"{applied_count} / {limit_str}"
 

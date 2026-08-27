@@ -5,7 +5,9 @@ import { orderService } from "@/services/order/order.api";
 import { Order } from "@/types/order.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { ADMIN_ORDERS_QUERY_KEY } from "@/services/order/order.queries";
-import { Spinner, Text, Icon, Modal, Input, useSnackbar } from "zmp-ui";
+import { Tabs, Tab } from "@/components/common/tabs";
+import { BackIcon, StoreIcon } from "@/components/common/vectors";
+import { Spinner, Icon, Modal, Input, useSnackbar } from "zmp-ui";
 
 type StaffTab = "PENDING" | "PREPARING" | "READY" | "ALL";
 
@@ -30,7 +32,12 @@ export default function StaffOrdersPage() {
   const prevPendingCountRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  const { data: orders = [], isLoading, refetch } = useAdminOrders();
+  const {
+    data: orders = [],
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useAdminOrders();
 
   // Khởi tạo AudioContext khi bật chuông
   const toggleSound = () => {
@@ -92,6 +99,48 @@ export default function StaffOrdersPage() {
     }
   };
 
+  // Thống kê nhanh
+  const stats = useMemo(() => {
+    const pending = orders.filter(
+      (o) => o.status === "PENDING_CONFIRMATION",
+    ).length;
+    const preparing = orders.filter(
+      (o) => o.status === "CONFIRMED" || o.status === "PREPARING",
+    ).length;
+    const ready = orders.filter(
+      (o) => o.status === "READY" || o.status === "DELIVERING",
+    ).length;
+    const completed = orders.filter((o) => o.status === "COMPLETED").length;
+    return { pending, preparing, ready, completed, total: orders.length };
+  }, [orders]);
+
+  // Tabs cấu hình đồng bộ Design System chuẩn
+  const staffTabs: Tab<StaffTab>[] = useMemo(
+    () => [
+      {
+        value: "PENDING",
+        label: "Chờ nhận",
+        badge: stats.pending > 0 ? stats.pending : undefined,
+      },
+      {
+        value: "PREPARING",
+        label: "Đang nấu",
+        badge: stats.preparing > 0 ? stats.preparing : undefined,
+      },
+      {
+        value: "READY",
+        label: "Đang giao",
+        badge: stats.ready > 0 ? stats.ready : undefined,
+      },
+      {
+        value: "ALL",
+        label: "Tất cả",
+        badge: stats.total > 0 ? stats.total : undefined,
+      },
+    ],
+    [stats],
+  );
+
   // Phát hiện đơn mới vào danh sách chờ xác nhận để phát chuông
   const pendingOrders = useMemo(() => {
     return orders.filter((o) => o.status === "PENDING_CONFIRMATION");
@@ -121,21 +170,6 @@ export default function StaffOrdersPage() {
     }
     return orders;
   }, [orders, activeTab]);
-
-  // Thống kê nhanh
-  const stats = useMemo(() => {
-    const pending = orders.filter(
-      (o) => o.status === "PENDING_CONFIRMATION",
-    ).length;
-    const preparing = orders.filter(
-      (o) => o.status === "CONFIRMED" || o.status === "PREPARING",
-    ).length;
-    const ready = orders.filter(
-      (o) => o.status === "READY" || o.status === "DELIVERING",
-    ).length;
-    const completed = orders.filter((o) => o.status === "COMPLETED").length;
-    return { pending, preparing, ready, completed, total: orders.length };
-  }, [orders]);
 
   // Xử lý chuyển trạng thái đơn
   const handleUpdateStatus = async (orderId: number, nextStatus: string) => {
@@ -245,45 +279,40 @@ export default function StaffOrdersPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-stone-100 pb-12 font-sans">
-      {/* Sticky Header Topbar */}
-      <div className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 backdrop-blur-md">
-        {/* Row 1: Title & Controls */}
-        <div className="flex items-center justify-between px-3.5 py-2.5">
+    <div className="relative flex min-h-screen flex-col bg-background pb-20 font-sans">
+      {/* Sticky Header Topbar chuẩn Zalo Mini App - Gọn gàng thanh lịch */}
+      <div className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md">
+        {/* Row 1: Header Title & Controls */}
+        <div className="header-margin flex items-center justify-between px-3.5 pb-1.5 pr-20 pt-2.5">
           <div className="flex items-center gap-2">
             <button
-              onClick={() => navigate(-1)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-stone-100 active:bg-stone-200"
-              aria-label="Quay lại"
+              onClick={() => navigate("/")}
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-black/5 text-neutral-800 transition-all active:scale-95"
+              aria-label="Về thực đơn"
             >
-              <Icon
-                icon="zi-chevron-left"
-                className="text-xl text-neutral900"
-              />
+              <BackIcon className="h-4 w-4" />
             </button>
-            <div>
-              <h1 className="text-base font-extrabold text-neutral900">
-                Bếp Dì 6 - Bảng Đơn Hàng
+            <div className="flex items-center gap-1.5">
+              <StoreIcon className="h-4 w-4 text-primary" />
+              <h1 className="text-sm font-extrabold tracking-tight text-neutral-900">
+                Bếp Dì 6 • KDS
               </h1>
-              <p className="text-xs text-stone-500">
-                Tổng cộng: {stats.total} đơn hôm nay
-              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {/* Toggle Sound */}
             <button
               onClick={toggleSound}
-              className={`flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold transition-all ${
+              className={`flex h-6 items-center gap-1 rounded-full px-2 text-[10px] font-bold transition-all active:scale-95 ${
                 isSoundEnabled
-                  ? "bg-amber-100 text-amber-900 ring-1 ring-amber-400"
-                  : "bg-stone-100 text-stone-600"
+                  ? "border border-primary bg-primary/15 text-primaryDark"
+                  : "border border-black/5 bg-black/[0.03] text-stone-600"
               }`}
             >
               <Icon
                 icon={isSoundEnabled ? "zi-notif-ring" : "zi-notif"}
-                className="text-base"
+                className="text-[11px]"
               />
               <span>{isSoundEnabled ? "Chuông: Bật" : "Bật chuông"}</span>
             </button>
@@ -291,110 +320,43 @@ export default function StaffOrdersPage() {
             {/* Refresh Button */}
             <button
               onClick={() => refetch()}
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-stone-100 active:bg-stone-200"
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-black/5 bg-black/[0.03] text-stone-700 transition-all active:scale-95"
               aria-label="Làm mới"
             >
-              <Icon icon="zi-retry" className="text-lg text-stone-700" />
+              <Icon
+                icon="zi-retry"
+                className={`text-[11px] ${isRefetching ? "animate-spin" : ""}`}
+              />
             </button>
           </div>
         </div>
 
-        {/* Row 2: Status Tabs */}
-        <div className="flex w-full border-t border-black/5 bg-white px-2 py-1.5">
-          <button
-            onClick={() => setActiveTab("PENDING")}
-            className={`relative flex flex-1 items-center justify-center gap-1 rounded-lg py-2 text-xs font-bold transition-all ${
-              activeTab === "PENDING"
-                ? "bg-amber-500 text-white shadow-sm"
-                : "text-stone-600 hover:bg-stone-50"
-            }`}
-          >
-            <span>Chờ nhận</span>
-            {stats.pending > 0 && (
-              <span
-                className={`flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-black ${
-                  activeTab === "PENDING"
-                    ? "bg-white text-amber-700"
-                    : "bg-amber-500 text-white"
-                }`}
-              >
-                {stats.pending}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("PREPARING")}
-            className={`relative flex flex-1 items-center justify-center gap-1 rounded-lg py-2 text-xs font-bold transition-all ${
-              activeTab === "PREPARING"
-                ? "bg-sky-600 text-white shadow-sm"
-                : "text-stone-600 hover:bg-stone-50"
-            }`}
-          >
-            <span>Đang nấu</span>
-            {stats.preparing > 0 && (
-              <span
-                className={`flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-black ${
-                  activeTab === "PREPARING"
-                    ? "bg-white text-sky-800"
-                    : "bg-sky-600 text-white"
-                }`}
-              >
-                {stats.preparing}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("READY")}
-            className={`relative flex flex-1 items-center justify-center gap-1 rounded-lg py-2 text-xs font-bold transition-all ${
-              activeTab === "READY"
-                ? "bg-teal-600 text-white shadow-sm"
-                : "text-stone-600 hover:bg-stone-50"
-            }`}
-          >
-            <span>Đang giao</span>
-            {stats.ready > 0 && (
-              <span
-                className={`flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-black ${
-                  activeTab === "READY"
-                    ? "bg-white text-teal-800"
-                    : "bg-teal-600 text-white"
-                }`}
-              >
-                {stats.ready}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("ALL")}
-            className={`flex flex-1 items-center justify-center rounded-lg py-2 text-xs font-bold transition-all ${
-              activeTab === "ALL"
-                ? "bg-stone-800 text-white shadow-sm"
-                : "text-stone-600 hover:bg-stone-50"
-            }`}
-          >
-            <span>Tất cả ({stats.total})</span>
-          </button>
+        {/* Row 2: Standard Tabs (Dùng chung component Tabs của Design System) */}
+        <div className="w-full bg-transparent px-3.5 py-0.5">
+          <Tabs
+            tabs={staffTabs}
+            activeTab={activeTab}
+            onChange={(val) => setActiveTab(val)}
+            fullWidth={true}
+          />
         </div>
       </div>
 
       {/* Main Content: Order Cards */}
-      <div className="flex flex-col gap-3 p-3">
+      <div className="flex flex-col gap-3 px-3.5 py-3">
         {isLoading && orders.length === 0 ? (
           <div className="flex h-64 flex-col items-center justify-center gap-2">
             <Spinner visible logo={false} />
-            <Text size="xSmall" className="text-stone-500">
+            <p className="text-xs font-medium text-stone-500">
               Đang tải danh sách đơn hàng...
-            </Text>
+            </p>
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-center">
-            <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-400">
+          <div className="shadow-xs flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-center">
+            <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Icon icon="zi-list-1" className="text-2xl" />
             </div>
-            <p className="text-sm font-bold text-neutral900">
+            <p className="text-sm font-bold text-neutral-900">
               Không có đơn hàng nào
             </p>
             <p className="mt-1 text-xs text-stone-500">
@@ -405,24 +367,23 @@ export default function StaffOrdersPage() {
           filteredOrders.map((order) => {
             const badge = getStatusBadge(order.status);
             const isDelivery = order.delivery_type === "DELIVERY";
-            const isVietQRPaid =
-              order.payment?.status === "PAID" ||
-              order.payment_status === "PAID";
+            const isPaid = order.payment?.status === "PAID";
+            const isBankTransfer = order.payment_method === "BANK_TRANSFER";
             const isProcessing = processingOrderId === order.id;
 
             return (
               <div
                 key={order.id}
-                className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-sm transition-all"
+                className="shadow-xs overflow-hidden rounded-2xl border border-black/5 bg-white transition-all"
               >
                 {/* Header Card */}
-                <div className="flex items-center justify-between border-b border-stone-100 bg-stone-50/80 px-3.5 py-2.5">
+                <div className="flex items-center justify-between border-b border-black/5 bg-stone-50/80 px-3.5 py-2.5">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-extrabold text-neutral900">
+                    <span className="font-mono text-sm font-extrabold text-neutral-900">
                       #{order.order_code}
                     </span>
                     <span
-                      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-bold ${badge.className}`}
+                      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xxxxsmall font-bold ${badge.className}`}
                     >
                       {badge.label}
                     </span>
@@ -438,7 +399,7 @@ export default function StaffOrdersPage() {
                 </div>
 
                 {/* Body Card: Customer & Delivery Info */}
-                <div className="border-b border-stone-100 px-3.5 py-2.5">
+                <div className="border-b border-black/5 px-3.5 py-2.5">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-sm font-bold text-neutral900">
@@ -452,19 +413,19 @@ export default function StaffOrdersPage() {
                     {order.phone && (
                       <a
                         href={`tel:${order.phone}`}
-                        className="flex h-8 items-center gap-1 rounded-lg bg-emerald-50 px-2.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200 active:bg-emerald-100"
+                        className="flex h-7 items-center gap-1 rounded-full border border-primary bg-primary/10 px-2.5 text-xs font-bold text-primaryDark transition-all active:scale-95"
                       >
-                        <Icon icon="zi-call" className="text-sm" />
+                        <Icon icon="zi-call" className="text-xs" />
                         <span>Gọi</span>
                       </a>
                     )}
                   </div>
 
                   {isDelivery && order.delivery_address && (
-                    <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-stone-50 p-2 text-xs text-stone-700">
+                    <div className="mt-2 flex items-start gap-1.5 rounded-xl bg-stone-50 p-2.5 text-xs text-stone-700">
                       <Icon
                         icon="zi-location-solid"
-                        className="mt-0.5 shrink-0 text-sm text-stone-400"
+                        className="mt-0.5 shrink-0 text-sm text-primary"
                       />
                       <span className="leading-snug">
                         {order.delivery_address}
@@ -473,7 +434,7 @@ export default function StaffOrdersPage() {
                   )}
 
                   {order.note && (
-                    <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs font-semibold text-amber-900">
+                    <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-2 text-xs font-semibold text-amber-900">
                       <span className="font-bold">Lưu ý giao: </span>
                       {order.note}
                     </div>
@@ -482,7 +443,7 @@ export default function StaffOrdersPage() {
 
                 {/* Items List (Kitchen focus) */}
                 <div className="px-3.5 py-2.5">
-                  <p className="mb-2 text-xs font-extrabold uppercase tracking-wider text-stone-400">
+                  <p className="mb-2 text-xxxxsmall font-extrabold uppercase tracking-wider text-stone-400">
                     Chi tiết món cần nấu ({order.items?.length || 0} món)
                   </p>
 
@@ -529,11 +490,11 @@ export default function StaffOrdersPage() {
                 </div>
 
                 {/* Footer Card: Payment & Touch Actions */}
-                <div className="border-t border-stone-100 bg-stone-50/50 p-3">
+                <div className="border-t border-black/5 bg-stone-50/50 p-3">
                   <div className="mb-3 flex items-center justify-between">
                     <div>
-                      <p className="text-[11px] text-stone-500">
-                        {order.payment_method === "VIETQR"
+                      <p className="text-xxxxsmall text-stone-500">
+                        {isBankTransfer
                           ? "Chuyển khoản VietQR"
                           : "Tiền mặt khi nhận (COD)"}
                       </p>
@@ -544,7 +505,7 @@ export default function StaffOrdersPage() {
                           )}
                           đ
                         </span>
-                        {isVietQRPaid ? (
+                        {isPaid ? (
                           <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
                             ĐÃ TT
                           </span>
@@ -556,7 +517,7 @@ export default function StaffOrdersPage() {
                       </div>
                     </div>
 
-                    <span className="text-[11px] text-stone-400">
+                    <span className="text-xxxxsmall text-stone-400">
                       {order.created_at
                         ? new Date(order.created_at).toLocaleTimeString(
                             "vi-VN",
@@ -584,7 +545,7 @@ export default function StaffOrdersPage() {
                           onClick={() =>
                             handleUpdateStatus(order.id, "PREPARING")
                           }
-                          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-amber-500 text-sm font-bold text-white shadow-sm active:bg-amber-600 disabled:opacity-50"
+                          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-white shadow-sm active:opacity-90 disabled:opacity-50"
                         >
                           {isProcessing ? (
                             <Spinner visible logo={false} />
@@ -606,7 +567,7 @@ export default function StaffOrdersPage() {
                       <button
                         disabled={isProcessing}
                         onClick={() => handleUpdateStatus(order.id, "READY")}
-                        className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-sky-600 text-sm font-bold text-white shadow-sm active:bg-sky-700 disabled:opacity-50"
+                        className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-amber-600 text-sm font-bold text-white shadow-sm active:opacity-90 disabled:opacity-50"
                       >
                         {isProcessing ? (
                           <Spinner visible logo={false} />
@@ -625,7 +586,7 @@ export default function StaffOrdersPage() {
                         onClick={() =>
                           handleUpdateStatus(order.id, "DELIVERING")
                         }
-                        className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-teal-600 text-sm font-bold text-white shadow-sm active:bg-teal-700 disabled:opacity-50"
+                        className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-sky-600 text-sm font-bold text-white shadow-sm active:opacity-90 disabled:opacity-50"
                       >
                         {isProcessing ? (
                           <Spinner visible logo={false} />
@@ -644,7 +605,7 @@ export default function StaffOrdersPage() {
                         onClick={() =>
                           handleUpdateStatus(order.id, "COMPLETED")
                         }
-                        className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-bold text-white shadow-sm active:bg-emerald-700 disabled:opacity-50"
+                        className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-bold text-white shadow-sm active:opacity-90 disabled:opacity-50"
                       >
                         {isProcessing ? (
                           <Spinner visible logo={false} />
@@ -696,7 +657,7 @@ export default function StaffOrdersPage() {
                 onClick={() => setCancelReason(reason)}
                 className={`flex items-center justify-between rounded-xl border p-3 text-left text-xs font-bold transition-all ${
                   cancelReason === reason
-                    ? "border-amber-500 bg-amber-50 text-amber-900"
+                    ? "border-primary bg-primary/10 text-primaryDark"
                     : "border-stone-200 bg-white text-stone-700"
                 }`}
               >
@@ -704,7 +665,7 @@ export default function StaffOrdersPage() {
                 {cancelReason === reason && (
                   <Icon
                     icon="zi-check-circle-solid"
-                    className="text-base text-amber-500"
+                    className="text-base text-primary"
                   />
                 )}
               </button>

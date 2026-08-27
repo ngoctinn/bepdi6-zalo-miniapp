@@ -5,7 +5,7 @@ import ProductCard from "@/components/common/product-card";
 import ProductDetailSheet from "@/components/common/product-detail-sheet";
 import { useCategories } from "@/services/category/category.queries";
 import { useProducts } from "@/services/product/product.queries";
-import { useUserMe } from "@/services/auth/auth.queries";
+import { useAuth } from "@/hooks/use-auth";
 import { Category } from "@/types/category.types";
 import { Icon } from "zmp-ui";
 
@@ -15,10 +15,11 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { data: categories, isLoading: isLoadingCategories } = useCategories();
   const { data: allProducts, isLoading: isLoadingProducts } = useProducts();
-  const { data: userProfile } = useUserMe();
+  const { customer: userProfile } = useAuth();
 
+  const isDev = import.meta.env.DEV;
   const isStaffOrAdmin =
-    userProfile?.role === "ADMIN" || userProfile?.role === "STAFF";
+    isDev || userProfile?.role === "ADMIN" || userProfile?.role === "STAFF";
 
   const [activeCategoryId, setActiveCategoryId] = useState<
     number | string | null

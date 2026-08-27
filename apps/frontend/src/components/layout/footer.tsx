@@ -1,15 +1,27 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { HomeIcon, CartNavIcon, OrderIcon } from "@/components/common/vectors";
+import {
+  HomeIcon,
+  CartNavIcon,
+  OrderIcon,
+  StoreIcon,
+} from "@/components/common/vectors";
 import { copy } from "@/constants/copy";
 import { cn } from "@/utils/cn";
 import { useCartStore } from "@/stores/cart.store";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Footer() {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
   const { items } = useCartStore();
+  const { customer: userProfile } = useAuth();
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  // In local dev/mock or when user has STAFF/ADMIN role, show Staff KDS tab
+  const isDev = import.meta.env.DEV;
+  const isStaffOrAdmin =
+    isDev || userProfile?.role === "ADMIN" || userProfile?.role === "STAFF";
 
   const NAV_ITEMS = [
     {
@@ -30,6 +42,25 @@ export default function Footer() {
       icon: OrderIcon,
       badge: 0,
     },
+    ...(isStaffOrAdmin
+      ? [
+          {
+            name: "Bếp / POS",
+            path: "/staff/orders",
+            icon: ({ active }: { active: boolean }) => (
+              <StoreIcon
+                className={cn(
+                  "h-5 w-5 transition-colors",
+                  active
+                    ? "stroke-[2] text-primary"
+                    : "stroke-[1.5] text-stone-400",
+                )}
+              />
+            ),
+            badge: 0,
+          },
+        ]
+      : []),
   ];
 
   const activeKey =
@@ -41,7 +72,7 @@ export default function Footer() {
     <nav
       role="navigation"
       aria-label="Thanh điều hướng chính"
-      className="safe-bottom bg-white/98 relative z-40 grid w-full grid-cols-3 items-center border-t border-black/5 backdrop-blur-md"
+      className="safe-bottom bg-white/98 relative z-40 flex w-full items-center border-t border-black/5 backdrop-blur-md"
     >
       {NAV_ITEMS.map((item) => {
         const isActive = activeKey === item.path;
