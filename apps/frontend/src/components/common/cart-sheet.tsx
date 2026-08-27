@@ -59,8 +59,9 @@ export default function CartSheet({
   return (
     <>
       <Sheet autoHeight visible={visible} onClose={onClose}>
-        <div className="relative flex max-h-[75vh] w-full flex-col overflow-y-scroll bg-background">
-          <div className="relative flex items-center justify-between border-b border-black/5 px-4 py-3">
+        <div className="relative flex max-h-[80vh] min-h-[40vh] w-full flex-col bg-background">
+          {/* Header */}
+          <div className="relative flex shrink-0 items-center justify-between border-b border-black/5 px-4 py-3">
             <Button
               onClick={onClose}
               className="flex h-8 w-8 items-center justify-center bg-transparent active:bg-transparent"
@@ -86,7 +87,8 @@ export default function CartSheet({
             )}
           </div>
 
-          <div className="w-full overflow-y-auto bg-transparent p-3">
+          {/* Scrollable list items */}
+          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto bg-transparent p-3 pb-6">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center px-4 py-16">
                 <div className="mb-4 flex h-32 w-32 items-center justify-center rounded-full bg-neutral100">
@@ -135,8 +137,9 @@ export default function CartSheet({
             )}
           </div>
 
+          {/* Fixed bottom action bar */}
           {items.length > 0 && (
-            <div className="border-t border-black/5 bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md">
+            <div className="shrink-0 border-t border-black/5 bg-background/95 px-4 py-3 pb-[max(12px,calc(var(--zaui-safe-area-inset-bottom,0px)+12px))] shadow-lg backdrop-blur-md">
               <div className="flex items-center gap-3">
                 <button
                   type="button"

@@ -148,12 +148,12 @@ export default function ProductCard({
                 <button
                   type="button"
                   onClick={handleQuickDecrease}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary transition-transform active:scale-90"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary transition-transform active:scale-90"
                   aria-label="Giảm số lượng"
                 >
                   <svg
-                    width="11"
-                    height="11"
+                    width="12"
+                    height="12"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -165,19 +165,19 @@ export default function ProductCard({
                   </svg>
                 </button>
 
-                <span className="min-w-[16px] text-center text-xs font-bold text-neutral900">
+                <span className="min-w-[18px] text-center text-xs font-bold text-neutral900">
                   {totalQuantityInCart}
                 </span>
 
                 <button
                   type="button"
                   onClick={handleQuickAdd}
-                  className="shadow-xs flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white transition-transform active:scale-90"
+                  className="shadow-xs flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white transition-transform active:scale-90"
                   aria-label="Tăng số lượng"
                 >
                   <svg
-                    width="11"
-                    height="11"
+                    width="12"
+                    height="12"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -194,12 +194,12 @@ export default function ProductCard({
               <button
                 type="button"
                 onClick={handleQuickAdd}
-                className="shadow-xs flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white transition-transform active:scale-90"
+                className="shadow-xs flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white transition-transform active:scale-90"
                 aria-label="Thêm vào giỏ"
               >
                 <svg
-                  width="13"
-                  height="13"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

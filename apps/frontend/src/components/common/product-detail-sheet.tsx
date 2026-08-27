@@ -214,9 +214,9 @@ export default function ProductDetailSheet({
       mask
       handler={true}
     >
-      <div className="relative flex h-[80vh] w-full flex-col overflow-hidden bg-background">
+      <div className="relative flex h-[80vh] max-h-[85vh] w-full flex-col bg-background">
         {/* Close (X) button at top-left matching cart-sheet */}
-        <div className="relative flex items-center px-4 py-2.5">
+        <div className="relative flex shrink-0 items-center px-4 py-2.5">
           <Button
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-black/5 p-0 text-neutral700 transition-transform hover:bg-black/10 active:scale-90"
@@ -228,7 +228,7 @@ export default function ProductDetailSheet({
         </div>
 
         {/* Sheet Scrollable Body (Cardless seamless layout) */}
-        <div className="no-scrollbar flex-1 space-y-4 overflow-y-auto px-4 pb-32 pt-3">
+        <div className="no-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto px-4 pb-6 pt-1">
           {!product && isLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Spinner />
@@ -372,7 +372,7 @@ export default function ProductDetailSheet({
 
         {/* Bottom Action Bar: Stepper + Add to cart with price inside button (Standard Food App UX) */}
         {product && (
-          <div className="absolute bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-4 py-3 shadow-lg backdrop-blur-md">
+          <div className="shrink-0 border-t border-black/5 bg-background/95 px-4 py-3 pb-[max(12px,calc(var(--zaui-safe-area-inset-bottom,0px)+12px))] shadow-lg backdrop-blur-md">
             {validationError && (
               <div className="mb-2 rounded-xl border border-red-200 bg-red-500/10 py-1.5 text-center text-xs font-medium text-red-600">
                 ⚠️ {validationError}
