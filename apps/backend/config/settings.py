@@ -108,9 +108,14 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 DATABASES = {
     "default": env.db(
-        "DATABASE_URL", default="postgres://postgres:postgres@localhost:5432/bepdi6_db"
+        "DATABASE_URL",
+        default=os.environ.get(
+            "DATABASE_URL",
+            "postgres://postgres:postgres@localhost:5432/bepdi6_db",
+        ),
     )
 }
+
 if "pytest" in sys.modules or os.environ.get("USE_SQLITE_TEST", "").lower() in (
     "true",
     "1",
@@ -119,6 +124,7 @@ if "pytest" in sys.modules or os.environ.get("USE_SQLITE_TEST", "").lower() in (
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": ":memory:",
     }
+
 
 # Cache (Redis)
 CACHES = {
