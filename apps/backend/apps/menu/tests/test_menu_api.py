@@ -105,9 +105,13 @@ def test_get_products_api(api_client, menu_data):
 def test_get_product_detail_nested_and_queries(
     api_client, menu_data, django_assert_num_queries
 ):
+    from django.core.cache import cache
+
+    cache.clear()
+
     p1 = menu_data["p1"]
 
-    # 1 query for Product + Category (select_related), 1 for OptionGroups, 1 for Options (prefetch_related)
+    # First request: 3 queries (Product+Category, OptionGroups, Options), then saved to cache
     with django_assert_num_queries(3):
         response = api_client.get(f"/api/v1/products/{p1.id}")
 
@@ -124,6 +128,12 @@ def test_get_product_detail_nested_and_queries(
     assert "Trứng ốp la" in option_names
     assert "Chả thêm" in option_names
     assert "Topping ẩn" not in option_names
+
+    # Second request: HIT CACHE -> 0 database queries!
+    with django_assert_num_queries(0):
+        cached_response = api_client.get(f"/api/v1/products/{p1.id}")
+    assert cached_response.status_code == 200
+    assert cached_response.json()["data"]["name"] == "Cơm tấm sườn nướng"
 
 
 @pytest.mark.django_db

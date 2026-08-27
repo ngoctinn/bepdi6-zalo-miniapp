@@ -2,6 +2,7 @@ import { Product } from "@/types/product.types";
 import { formatCurrency } from "@/utils/format";
 import { useNavigate } from "react-router-dom";
 import { useCartStore } from "@/stores/cart.store";
+import { usePrefetchProduct } from "@/services/product/product.queries";
 import { copy } from "@/constants/copy";
 import defaultProductImg from "@/static/logo.png";
 
@@ -18,12 +19,19 @@ export default function ProductCard({
 }: ProductCardProps) {
   const navigate = useNavigate();
   const { items, addToCart, updateQuantity, removeFromCart } = useCartStore();
+  const prefetchProduct = usePrefetchProduct();
 
   const handleCardClick = () => {
     if (onClick) {
       onClick();
     } else {
       navigate(`/product/${product.id}`);
+    }
+  };
+
+  const handlePrefetch = () => {
+    if (product.id) {
+      prefetchProduct(product.id);
     }
   };
 
@@ -90,6 +98,8 @@ export default function ProductCard({
     <div
       className="group flex w-full cursor-pointer flex-col transition-all active:opacity-90"
       onClick={handleCardClick}
+      onMouseEnter={handlePrefetch}
+      onTouchStart={handlePrefetch}
     >
       {/* Large Product Image */}
       <div className="shadow-xs relative aspect-square w-full overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-black/5">

@@ -229,7 +229,7 @@ export default function ProductDetailSheet({
 
         {/* Sheet Scrollable Body (Cardless seamless layout) */}
         <div className="no-scrollbar flex-1 space-y-4 overflow-y-auto px-4 pb-32 pt-3">
-          {isLoading ? (
+          {!product && isLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Spinner />
               <Text size="xSmall" className="mt-2 text-neutral500">

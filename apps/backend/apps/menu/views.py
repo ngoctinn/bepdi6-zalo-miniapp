@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.db.models import Prefetch
 from rest_framework import permissions, status
 from rest_framework.exceptions import NotFound
@@ -12,21 +13,56 @@ from apps.menu.serializers import (
     ProductListSerializer,
 )
 
+MENU_CACHE_TIMEOUT = 600  # 10 minutes
+CACHE_KEY_CATEGORIES = "menu:categories:list"
+CACHE_KEY_PRODUCTS_PREFIX = "menu:products:list"
+CACHE_KEY_PRODUCT_DETAIL_PREFIX = "menu:product:detail"
+
+
+def invalidate_menu_cache(product_id: int | None = None) -> None:
+    """
+    Invalidates menu-related caches.
+    Clears category list, product list queries, and specific/all product details.
+    """
+    keys_to_delete = [
+        CACHE_KEY_CATEGORIES,
+        f"{CACHE_KEY_PRODUCTS_PREFIX}:all",
+    ]
+    if product_id is not None:
+        keys_to_delete.append(f"{CACHE_KEY_PRODUCT_DETAIL_PREFIX}:{product_id}")
+
+    # Delete known static cache keys
+    cache.delete_many(keys_to_delete)
+
+    # Invalidate pattern-based keys if supported by cache backend (e.g. redis or local fallback)
+    try:
+        if hasattr(cache, "delete_pattern"):
+            cache.delete_pattern("menu:*")
+    except Exception:
+        pass
+
 
 class CategoryListView(APIView):
     """
     GET /api/v1/categories
     Returns list of ACTIVE categories ordered by sort_order.
+    Cached for fast response.
     """
 
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
+        cached_data = cache.get(CACHE_KEY_CATEGORIES)
+        if cached_data is not None:
+            return Response(cached_data)
+
         categories = Category.objects.filter(status=Category.Status.ACTIVE).order_by(
             "sort_order", "id"
         )
         serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data)
+        data = serializer.data
+        cache.set(CACHE_KEY_CATEGORIES, data, timeout=MENU_CACHE_TIMEOUT)
+        return Response(data)
 
 
 class ProductListView(APIView):
@@ -41,37 +77,57 @@ class ProductListView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
+        category_id = request.query_params.get("category_id")
+        status_param = request.query_params.get("status")
+        search_query = request.query_params.get("search")
+
+        # Cache standard default query (no search param)
+        cache_key = None
+        if not search_query:
+            cache_key = f"{CACHE_KEY_PRODUCTS_PREFIX}:{category_id or 'all'}:{status_param or 'available'}"
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return Response(cached_data)
+
         queryset = Product.objects.select_related("category").order_by(
             "category__sort_order", "id"
         )
 
-        category_id = request.query_params.get("category_id")
         if category_id:
             queryset = queryset.filter(category_id=category_id)
 
-        status_param = request.query_params.get("status")
         if status_param:
             queryset = queryset.filter(status=status_param)
         else:
             queryset = queryset.filter(status=Product.Status.AVAILABLE)
 
-        search_query = request.query_params.get("search")
         if search_query:
             queryset = queryset.filter(name__icontains=search_query.strip())
 
         serializer = ProductListSerializer(queryset, many=True)
-        return Response(serializer.data)
+        data = serializer.data
+
+        if cache_key:
+            cache.set(cache_key, data, timeout=MENU_CACHE_TIMEOUT)
+
+        return Response(data)
 
 
 class ProductDetailView(APIView):
     """
     GET /api/v1/products/{id}
     Returns detailed product info with nested OptionGroups and AVAILABLE Options.
+    Cached for instant response.
     """
 
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk):
+        cache_key = f"{CACHE_KEY_PRODUCT_DETAIL_PREFIX}:{pk}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+
         try:
             active_options_prefetch = Prefetch(
                 "options",
@@ -95,7 +151,9 @@ class ProductDetailView(APIView):
             raise NotFound(f"Món ăn #{pk} không tồn tại.") from None
 
         serializer = ProductDetailSerializer(product)
-        return Response(serializer.data)
+        data = serializer.data
+        cache.set(cache_key, data, timeout=MENU_CACHE_TIMEOUT)
+        return Response(data)
 
 
 # ----------------------------------------------------------------------
@@ -120,6 +178,7 @@ class AdminCategoryListCreateView(APIView):
         serializer = CategorySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        invalidate_menu_cache()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -147,11 +206,13 @@ class AdminCategoryDetailView(APIView):
         serializer = CategorySerializer(category, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        invalidate_menu_cache()
         return Response(serializer.data)
 
     def delete(self, request, pk: int):
         category = self.get_object(pk)
         category.delete()
+        invalidate_menu_cache()
         return Response({"success": True}, status=status.HTTP_200_OK)
 
 
@@ -171,7 +232,8 @@ class AdminProductListCreateView(APIView):
     def post(self, request):
         serializer = ProductListSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        product = serializer.save()
+        invalidate_menu_cache(product_id=product.id)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -197,7 +259,8 @@ class AdminProductDetailView(APIView):
         product = self.get_object(pk)
         serializer = ProductListSerializer(product, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        product = serializer.save()
+        invalidate_menu_cache(product_id=product.id)
         return Response(serializer.data)
 
 
@@ -221,6 +284,7 @@ class AdminProductToggleStatusView(APIView):
             product.status = Product.Status.AVAILABLE
 
         product.save(update_fields=["status"])
+        invalidate_menu_cache(product_id=product.id)
         return Response(
             {"id": product.id, "name": product.name, "status": product.status}
         )
