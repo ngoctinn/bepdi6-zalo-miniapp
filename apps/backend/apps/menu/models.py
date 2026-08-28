@@ -120,6 +120,10 @@ class Product(models.Model):
     @property
     def active_promotion(self):
         """Return the currently active ProductPromotion, or None."""
+        prefetched_promotions = getattr(self, "active_promotions", None)
+        if prefetched_promotions is not None:
+            return prefetched_promotions[0] if prefetched_promotions else None
+
         now = timezone.now()
         try:
             return (

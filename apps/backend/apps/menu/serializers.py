@@ -72,12 +72,28 @@ class ProductListSerializer(serializers.ModelSerializer):
         ]
 
     def get_effective_price(self, obj: Product):
+        active_price = getattr(obj, "active_promotion_price", None)
+        has_active_promotion = getattr(obj, "has_active_promotion", None)
+        if active_price is not None:
+            return float(active_price)
+        if has_active_promotion is not None:
+            return float(obj.price)
         return float(obj.effective_price)
 
     def get_has_promotion(self, obj: Product) -> bool:
+        has_active_promotion = getattr(obj, "has_active_promotion", None)
+        if has_active_promotion is not None:
+            return bool(has_active_promotion)
         return obj.has_promotion
 
     def get_discount_percent(self, obj: Product):
+        active_price = getattr(obj, "active_promotion_price", None)
+        has_active_promotion = getattr(obj, "has_active_promotion", None)
+        if active_price is not None and obj.price and obj.price > 0:
+            pct = round((1 - float(active_price) / float(obj.price)) * 100)
+            return max(0, pct)
+        if has_active_promotion is not None:
+            return None
         return obj.discount_percent
 
     def to_representation(self, instance):
@@ -126,12 +142,28 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_effective_price(self, obj: Product):
+        active_price = getattr(obj, "active_promotion_price", None)
+        has_active_promotion = getattr(obj, "has_active_promotion", None)
+        if active_price is not None:
+            return float(active_price)
+        if has_active_promotion is not None:
+            return float(obj.price)
         return float(obj.effective_price)
 
     def get_has_promotion(self, obj: Product) -> bool:
+        has_active_promotion = getattr(obj, "has_active_promotion", None)
+        if has_active_promotion is not None:
+            return bool(has_active_promotion)
         return obj.has_promotion
 
     def get_discount_percent(self, obj: Product):
+        active_price = getattr(obj, "active_promotion_price", None)
+        has_active_promotion = getattr(obj, "has_active_promotion", None)
+        if active_price is not None and obj.price and obj.price > 0:
+            pct = round((1 - float(active_price) / float(obj.price)) * 100)
+            return max(0, pct)
+        if has_active_promotion is not None:
+            return None
         return obj.discount_percent
 
     def to_representation(self, instance):

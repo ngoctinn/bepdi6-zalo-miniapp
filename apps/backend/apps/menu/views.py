@@ -1,12 +1,13 @@
 from django.core.cache import cache
-from django.db.models import Prefetch
+from django.db.models import Exists, OuterRef, Prefetch, Q, Subquery
+from django.utils import timezone
 from rest_framework import permissions, status
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.customers.permissions import IsStaffOrAdminUser
-from apps.menu.models import Category, Option, OptionGroup, Product
+from apps.menu.models import Category, Option, OptionGroup, Product, ProductPromotion
 from apps.menu.serializers import (
     CategorySerializer,
     ProductDetailSerializer,
@@ -17,6 +18,29 @@ MENU_CACHE_TIMEOUT = 600  # 10 minutes
 CACHE_KEY_CATEGORIES = "menu:categories:list"
 CACHE_KEY_PRODUCTS_PREFIX = "menu:products:list"
 CACHE_KEY_PRODUCT_DETAIL_PREFIX = "menu:product:detail"
+
+
+def active_promotion_queryset():
+    now = timezone.now()
+    return (
+        ProductPromotion.objects.filter(
+            product=OuterRef("pk"),
+            is_active=True,
+        )
+        .filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now))
+        .filter(Q(valid_to__isnull=True) | Q(valid_to__gte=now))
+        .order_by("-created_at")
+    )
+
+
+def with_active_promotion(queryset):
+    active_promotions = active_promotion_queryset()
+    return queryset.annotate(
+        active_promotion_price=Subquery(
+            active_promotions.values("promotional_price")[:1]
+        ),
+        has_active_promotion=Exists(active_promotions),
+    )
 
 
 def invalidate_menu_cache(product_id: int | None = None) -> None:
@@ -91,9 +115,9 @@ class ProductListView(APIView):
             if cached_data is not None:
                 return Response(cached_data)
 
-        queryset = Product.objects.select_related("category").order_by(
-            "category__sort_order", "id"
-        )
+        queryset = with_active_promotion(
+            Product.objects.select_related("category")
+        ).order_by("category__sort_order", "id")
 
         if category_id:
             queryset = queryset.filter(category_id=category_id)
@@ -145,8 +169,8 @@ class ProductDetailView(APIView):
             )
 
             product = (
-                Product.objects.prefetch_related(active_groups_prefetch)
-                .select_related("category")
+                with_active_promotion(Product.objects.select_related("category"))
+                .prefetch_related(active_groups_prefetch)
                 .get(pk=pk)
             )
         except Product.DoesNotExist:
@@ -227,7 +251,9 @@ class AdminProductListCreateView(APIView):
     permission_classes = [IsStaffOrAdminUser]
 
     def get(self, request):
-        products = Product.objects.select_related("category").all().order_by("id")
+        products = with_active_promotion(
+            Product.objects.select_related("category")
+        ).order_by("id")
         serializer = ProductListSerializer(products, many=True)
         return Response(serializer.data)
 
@@ -250,7 +276,8 @@ class AdminProductDetailView(APIView):
     def get_object(self, pk: int) -> Product:
         try:
             return (
-                Product.objects.prefetch_related(
+                with_active_promotion(Product.objects.select_related("category"))
+                .prefetch_related(
                     Prefetch(
                         "option_groups",
                         queryset=OptionGroup.objects.prefetch_related(
@@ -261,7 +288,6 @@ class AdminProductDetailView(APIView):
                         ).order_by("sort_order", "id"),
                     )
                 )
-                .select_related("category")
                 .get(pk=pk)
             )
         except Product.DoesNotExist:
@@ -281,7 +307,10 @@ class AdminProductDetailView(APIView):
         serializer.is_valid(raise_exception=True)
         product = serializer.save()
         invalidate_menu_cache(product_id=product.id)
-        return Response(serializer.data)
+        product = with_active_promotion(Product.objects.select_related("category")).get(
+            pk=product.id
+        )
+        return Response(ProductListSerializer(product).data)
 
 
 class AdminProductToggleStatusView(APIView):
