@@ -114,12 +114,11 @@ export default function ProductCard({
           </div>
         )}
 
-        {/* Sale badge — Refined Warm Terracotta/Amber Pill with subtle styling */}
+        {/* Sale badge — Soft Amber Discount Tag */}
         {hasPromo && discountPct != null && discountPct > 0 && (
-          <div className="absolute left-2 top-2 z-10 flex items-center gap-0.5 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 px-2 py-0.5 shadow-sm ring-1 ring-white/20">
-            <span className="text-[9px] font-bold text-amber-100">GIẢM</span>
-            <span className="text-[10px] font-extrabold leading-tight tracking-tight text-white">
-              {discountPct}%
+          <div className="shadow-xs backdrop-blur-xs absolute left-2 top-2 z-10 flex items-center rounded-md border border-amber-300/60 bg-amber-100/95 px-1.5 py-0.5">
+            <span className="text-[10px] font-bold leading-none tracking-tight text-amber-900">
+              -{discountPct}%
             </span>
           </div>
         )}
@@ -152,14 +151,14 @@ export default function ProductCard({
           <div
             className={cn(
               "text-sm font-extrabold leading-tight tracking-tight",
-              hasPromo ? "text-amber-700" : "text-neutral900",
+              hasPromo ? "text-amber-800" : "text-neutral900",
             )}
           >
             {formatCurrency(displayPrice)}
             <span
               className={cn(
                 "ml-0.5 text-xs font-semibold",
-                hasPromo ? "text-amber-700/80" : "text-neutral500",
+                hasPromo ? "text-amber-800/80" : "text-neutral500",
               )}
             >
               đ

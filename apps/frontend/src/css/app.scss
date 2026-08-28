@@ -59,14 +59,19 @@ body,
   box-sizing: border-box;
 }
 
-/* Eliminate native focus blue rings globally */
+/* Eliminate native focus blue rings globally on inputs */
 input:focus,
 textarea:focus,
-button:focus,
 select:focus {
   outline: none !important;
   border-color: var(--zaui-primary-color, #4d7c0f) !important;
   box-shadow: 0 0 0 1px rgba(77, 124, 15, 0.25) !important;
+}
+
+button:focus,
+button:focus-visible,
+button:active {
+  outline: none !important;
 }
 
 * {

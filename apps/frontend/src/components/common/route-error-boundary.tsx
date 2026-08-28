@@ -30,14 +30,14 @@ export default function RouteErrorBoundary() {
         <Button
           variant="secondary"
           onClick={() => navigate("/")}
-          className="!h-11 flex-1 !rounded-2xl !border-0 !bg-stone100 !text-sm !font-semibold !text-neutral700 transition-all hover:!bg-stone200 active:scale-[0.98]"
+          className="!h-11 flex-1 !rounded-xl !border-0 !bg-stone100 !text-sm !font-semibold !text-neutral700 transition-all hover:!bg-stone200 active:scale-[0.98]"
         >
           Về trang chủ
         </Button>
 
         <Button
           onClick={() => window.location.reload()}
-          className="!h-11 flex-1 !rounded-2xl !border-0 !bg-primary !text-sm !font-bold !text-white shadow-md transition-all hover:!bg-primaryDark active:scale-[0.98]"
+          className="!h-11 flex-1 !rounded-xl !border-0 !bg-primary !text-sm !font-bold !text-white shadow-md transition-all hover:!bg-primaryDark active:scale-[0.98]"
         >
           Tải lại trang
         </Button>

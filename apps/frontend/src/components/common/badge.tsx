@@ -18,12 +18,12 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  primary: "bg-olive100 text-olive900 border border-olive600/30",
-  success: "bg-olive50 text-olive900 border border-olive600/30",
-  warning: "bg-amber100 text-amber700 border border-amber500/30",
-  error: "bg-[#FEF2F2] text-[#DC2626] border border-[#FCA5A5]/60",
-  neutral: "bg-neutral100 text-neutral600 border border-neutral200",
-  accent: "bg-amber100 text-amber700 border border-amber500/30",
+  primary: "bg-olive100 text-olive900 border border-olive600/20",
+  success: "bg-emerald-50 text-emerald-800 border border-emerald-300/40",
+  warning: "bg-amber-100 text-amber-800 border border-amber-300/50",
+  error: "bg-red-50 text-red-700 border border-red-200/60",
+  neutral: "bg-neutral100 text-neutral700 border border-neutral200/60",
+  accent: "bg-amber-100 text-amber-800 border border-amber-300/50",
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
@@ -41,7 +41,7 @@ export const Badge: React.FC<BadgeProps> = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-[4px] tracking-tight",
+        "inline-flex items-center justify-center rounded-md tracking-tight",
         variantStyles[variant],
         sizeStyles[size],
         className,

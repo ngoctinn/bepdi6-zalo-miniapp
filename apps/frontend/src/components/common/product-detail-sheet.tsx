@@ -266,16 +266,13 @@ export default function ProductDetailSheet({
                 {/* Bottom gradient for text readability */}
                 <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/20 to-transparent" />
 
-                {/* Sale badge — Refined Warm Amber Pill */}
+                {/* Sale badge — Soft Amber Discount Tag */}
                 {product.has_promotion &&
                   product.discount_percent != null &&
                   product.discount_percent > 0 && (
-                    <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 px-2.5 py-1 shadow-md ring-1 ring-white/20">
-                      <span className="text-[10px] font-bold text-amber-100">
-                        GIẢM
-                      </span>
-                      <span className="text-xs font-extrabold tracking-tight text-white">
-                        {product.discount_percent}%
+                    <div className="shadow-xs backdrop-blur-xs absolute left-3 top-3 z-10 flex items-center rounded-md border border-amber-300/60 bg-amber-100/95 px-2 py-0.5">
+                      <span className="text-xs font-bold leading-none tracking-tight text-amber-900">
+                        -{product.discount_percent}%
                       </span>
                     </div>
                   )}
@@ -293,9 +290,9 @@ export default function ProductDetailSheet({
                     {product.has_promotion &&
                     product.effective_price != null ? (
                       <>
-                        <div className="text-lg font-extrabold leading-tight text-[#B45309]">
+                        <div className="text-lg font-extrabold leading-tight text-amber-800">
                           {formatCurrency(product.effective_price)}
-                          <span className="ml-0.5 text-sm font-semibold text-amber-700/80">
+                          <span className="ml-0.5 text-sm font-semibold text-amber-800/80">
                             đ
                           </span>
                         </div>
@@ -303,7 +300,7 @@ export default function ProductDetailSheet({
                           <span className="text-xs font-normal text-neutral400 line-through">
                             {formatCurrency(product.price)}đ
                           </span>
-                          <span className="border-amber300/60 rounded-full border bg-amber-100 px-1.5 py-0.5 text-[10px] font-extrabold text-amber-800">
+                          <span className="rounded-md border border-amber-300/60 bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
                             -{product.discount_percent}%
                           </span>
                         </div>
@@ -326,7 +323,7 @@ export default function ProductDetailSheet({
                 )}
               </div>
 
-              {/* Option Groups — Chip Grid Style */}
+              {/* Option Groups — Full-width list rows */}
               {product.option_groups && product.option_groups.length > 0 && (
                 <div className="space-y-4 border-t border-black/5 pt-2">
                   {product.option_groups.map((group) => {
@@ -334,7 +331,7 @@ export default function ProductDetailSheet({
                       selectedOptions[group.id] || [];
 
                     return (
-                      <div key={group.id} className="space-y-2.5">
+                      <div key={group.id} className="space-y-2">
                         {/* Group header */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
@@ -358,14 +355,15 @@ export default function ProductDetailSheet({
                           </span>
                         </div>
 
-                        {/* Chip grid */}
-                        <div className="flex flex-wrap gap-2">
-                          {group.options?.map((option) => {
+                        {/* Option rows */}
+                        <div className="overflow-hidden rounded-xl border border-black/[0.06]">
+                          {group.options?.map((option, idx) => {
                             const isSelected = currentGroupSelections.includes(
                               option.id,
                             );
                             const isUnavailable = option.status === "INACTIVE";
                             const hasExtraPrice = Number(option.price) > 0;
+                            const isLast = idx === (group.options?.length ?? 0) - 1;
 
                             return (
                               <button
@@ -377,48 +375,57 @@ export default function ProductDetailSheet({
                                   handleOptionToggle(group, option)
                                 }
                                 className={cn(
-                                  "flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-all",
+                                  "flex w-full items-center justify-between px-3 py-2.5 text-xs transition-colors duration-150",
+                                  !isLast && "border-b border-black/[0.05]",
                                   isSelected
-                                    ? "bg-olive-50 border-primary text-primary shadow-sm ring-1 ring-primary/20"
-                                    : "border-stone-200 bg-white text-neutral700 active:scale-[0.97]",
-                                  isUnavailable &&
-                                    "cursor-not-allowed opacity-40",
+                                    ? "bg-primary/[0.07]"
+                                    : "bg-white active:bg-black/[0.03]",
+                                  isUnavailable && "cursor-not-allowed opacity-40",
                                 )}
                               >
-                                {/* Checkmark indicator */}
+                                {/* Left: name + price */}
+                                <div className="flex flex-col items-start gap-0.5">
+                                  <span
+                                    className={cn(
+                                      "font-medium leading-snug",
+                                      isSelected
+                                        ? "text-primaryDark"
+                                        : "text-neutral800",
+                                    )}
+                                  >
+                                    {option.name}
+                                  </span>
+                                  {hasExtraPrice ? (
+                                    <span
+                                      className={cn(
+                                        "text-[10px] font-normal",
+                                        isSelected
+                                          ? "text-primary/80"
+                                          : "text-neutral500",
+                                      )}
+                                    >
+                                      +{formatCurrency(option.price)}đ
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] font-normal text-neutral400">
+                                      Miễn phí
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Right: indicator */}
                                 <span
                                   className={cn(
-                                    "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-all",
+                                    "ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-150",
                                     isSelected
-                                      ? "border-primary bg-primary text-white"
+                                      ? "border-primary bg-primary"
                                       : "border-stone-300 bg-transparent",
                                   )}
                                 >
                                   {isSelected && (
-                                    <CheckIcon className="h-2.5 w-2.5" />
+                                    <CheckIcon className="h-2.5 w-2.5 text-white" />
                                   )}
                                 </span>
-
-                                <span>{option.name}</span>
-
-                                {hasExtraPrice && (
-                                  <span
-                                    className={cn(
-                                      "font-normal",
-                                      isSelected
-                                        ? "text-primary/70"
-                                        : "text-neutral500",
-                                    )}
-                                  >
-                                    +{formatCurrency(option.price)}đ
-                                  </span>
-                                )}
-
-                                {!hasExtraPrice && !isSelected && (
-                                  <span className="font-normal text-neutral400">
-                                    Miễn phí
-                                  </span>
-                                )}
                               </button>
                             );
                           })}
@@ -455,7 +462,7 @@ export default function ProductDetailSheet({
 
             {/* Savings indicator */}
             {totalSavings > 0 && (
-              <div className="mb-2 rounded-xl bg-green-50 px-3 py-1.5 text-center text-xs font-semibold text-green-700">
+              <div className="mb-2 rounded-xl border border-green-200/80 bg-green-50 px-3 py-1.5 text-center text-xs font-semibold text-green-700">
                 🎉 Bạn tiết kiệm được {formatCurrency(totalSavings)}đ
               </div>
             )}

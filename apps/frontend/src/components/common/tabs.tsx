@@ -26,8 +26,10 @@ export function Tabs<T extends string>({
   return (
     <div
       className={cn(
-        "horizontal-scroll w-full min-w-0 select-none items-center gap-2 scroll-smooth bg-transparent py-1",
-        fullWidth ? "flex justify-between" : "flex",
+        "w-full min-w-0 select-none items-center gap-2 scroll-smooth py-1",
+        fullWidth
+          ? "flex justify-between rounded-xl border border-black/[0.06] bg-black/[0.03] p-1"
+          : "horizontal-scroll flex bg-transparent",
         className,
       )}
     >
@@ -38,12 +40,20 @@ export function Tabs<T extends string>({
             key={tab.value}
             onClick={() => onChange(tab.value)}
             className={cn(
-              "flex shrink-0 items-center justify-center rounded-full px-4 py-1.5 text-xs transition-all active:scale-95",
+              "flex shrink-0 items-center justify-center px-4 py-1.5 text-xs outline-none transition-colors duration-150 focus:outline-none active:scale-95",
               "select-none whitespace-nowrap",
-              fullWidth ? "flex-1" : "w-auto",
+              fullWidth ? "flex-1 rounded-lg" : "w-auto rounded-full",
               isActive
-                ? "shadow-xs border border-primary bg-primary/15 font-bold text-primaryDark"
-                : "border border-black/5 bg-black/[0.03] font-medium text-stone-600 hover:bg-primary/10 hover:text-primaryDark",
+                ? fullWidth
+                  ? // Segment active: lifted white card — no hover needed (already selected)
+                    "border border-black/[0.06] bg-white font-semibold text-primaryDark shadow-sm"
+                  : // Chip active: solid primary tint — matches category-list.tsx token
+                    "border border-primary/20 bg-primary/10 font-semibold text-primaryDark"
+                : fullWidth
+                  ? // Segment inactive: subtle hover bg để có touch feedback nhất quán với chip
+                    "border border-transparent font-medium text-stone-500 hover:bg-black/[0.04] hover:text-primaryDark"
+                  : // Chip inactive: subtle bg + hover tint (unchanged)
+                    "border border-transparent bg-black/[0.04] font-medium text-stone-500 hover:bg-primary/5 hover:text-primaryDark",
             )}
             type="button"
           >
@@ -56,7 +66,11 @@ export function Tabs<T extends string>({
                 className={cn(
                   "ml-1.5 rounded-full px-1.5 text-xxxxsmall font-bold",
                   isActive
-                    ? "bg-primary text-white"
+                    ? fullWidth
+                      ? // Segment active badge: tint trên nền trắng — đủ tương phản
+                        "bg-primary/20 text-primaryDark"
+                      : // Chip active badge: đậm hơn để nổi trên nền bg-primary/10
+                        "bg-primaryDark/20 text-primaryDark"
                     : "bg-black/10 text-stone-600",
                 )}
               >

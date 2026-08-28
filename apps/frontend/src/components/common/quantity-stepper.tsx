@@ -43,7 +43,7 @@ export default function QuantityStepper({
   };
 
   const variantClasses = {
-    default: "border border-divider01 rounded-lg px-3 py-2",
+    default: "border border-divider01 rounded-xl px-3 py-2",
     rounded: "gap-2",
   };
 

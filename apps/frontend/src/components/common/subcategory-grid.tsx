@@ -37,7 +37,7 @@ export default function SubCategoryGrid({
 
 function Skeleton() {
   return (
-    <div className="grid grid-cols-4 gap-2 rounded-lg border-2 border-components-sub_cate-border/20 bg-white px-3 py-4">
+    <div className="grid grid-cols-4 gap-2 rounded-2xl border border-black/5 bg-transparent px-3 py-4">
       {Array.from({ length: 8 }).map((subcategory, index) => (
         <div
           key={index}
