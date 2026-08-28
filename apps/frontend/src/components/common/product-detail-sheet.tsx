@@ -284,13 +284,17 @@ export default function ProductDetailSheet({
                             <span className="text-xs font-bold text-neutral900">
                               {group.name}
                             </span>
-                            {group.is_required && (
-                              <Badge variant="error" size="small">
+                            {group.is_required ? (
+                              <Badge variant="accent" size="small">
                                 {copy.product.required || "Bắt buộc"}
+                              </Badge>
+                            ) : (
+                              <Badge variant="neutral" size="small">
+                                Tùy chọn
                               </Badge>
                             )}
                           </div>
-                          <span className="text-xxsmall text-neutral500">
+                          <span className="text-xxsmall font-medium text-neutral500">
                             {group.max_select === 1
                               ? "Chọn 1"
                               : `Tối đa ${group.max_select}`}

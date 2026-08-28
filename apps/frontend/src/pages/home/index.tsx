@@ -68,23 +68,26 @@ export default function HomePage() {
       const containerRect = scrollContainer.getBoundingClientRect();
       const stickyHeaderEl = document.getElementById("home-sticky-header");
       const stickyHeight = stickyHeaderEl?.getBoundingClientRect().height || 85;
+      const threshold = stickyHeight + 40;
 
+      // Tìm section đang nằm gần đỉnh sticky header nhất
       let currentActiveId = categorizedProducts[0]?.category.id;
 
-      for (const group of categorizedProducts) {
+      for (let i = 0; i < categorizedProducts.length; i++) {
+        const group = categorizedProducts[i];
         const el = document.getElementById(
           `category-section-${group.category.id}`,
         );
         if (el) {
           const elRect = el.getBoundingClientRect();
           const topRelativeToContainer = elRect.top - containerRect.top;
-          if (topRelativeToContainer <= stickyHeight + 20) {
+          if (topRelativeToContainer <= threshold) {
             currentActiveId = group.category.id;
           }
         }
       }
 
-      if (currentActiveId) {
+      if (currentActiveId && currentActiveId !== activeCategoryId) {
         setActiveCategoryId(currentActiveId);
       }
     };
@@ -137,21 +140,11 @@ export default function HomePage() {
         id="home-sticky-header"
         className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md"
       >
-        {/* Tên quán & Shortcut Quản lý Bếp */}
+        {/* Tên quán */}
         <div className="header-margin flex items-center justify-between px-3.5 pb-1 pr-20 pt-3">
           <h1 className="text-base font-extrabold tracking-tight text-neutral-900">
             {copy.brand.name}
           </h1>
-
-          {isStaffOrAdmin && (
-            <button
-              onClick={() => navigate("/staff/orders")}
-              className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-black text-amber-900 ring-1 ring-amber-300 active:bg-amber-200"
-            >
-              <Icon icon="zi-list-1" className="text-sm" />
-              <span>Quản lý Bếp</span>
-            </button>
-          )}
         </div>
 
         {/* Thanh tab danh mục món (nền trong suốt, dùng chung mẫu Tabs) */}

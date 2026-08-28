@@ -1,7 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPinIcon, ChevronRightIcon } from "@/components/common/vectors";
-import QuantityStepper from "@/components/common/quantity-stepper";
 import { DeliveryTimePicker } from "@/components/common/delivery-time-picker";
 import { useCartStore } from "@/stores/cart.store";
 import { useLocationStore } from "@/stores/location.store";
@@ -16,17 +14,23 @@ import {
 } from "@/services/address/address.queries";
 import { useShopInfo } from "@/services/shop/shop.queries";
 import { useAuth } from "@/hooks/use-auth";
-import { formatCurrency } from "@/utils/format";
 import {
   CheckoutPreviewResponse,
   DeliveryType,
   PaymentMethod,
 } from "@/types/order.types";
-import { formatVariantWithPercentage } from "@/utils/cart";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
 import { getLocation, getAccessToken } from "zmp-sdk/apis";
+
+// Modularized Checkout Sub-components
+import { DeliveryTypeSelector } from "@/components/checkout/delivery-type-selector";
+import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
+import { CheckoutItemList } from "@/components/checkout/checkout-item-list";
+import { VoucherInputSection } from "@/components/checkout/voucher-input-section";
+import { PaymentMethodSelector } from "@/components/checkout/payment-method-selector";
+import { CheckoutOrderSummary } from "@/components/checkout/checkout-order-summary";
 
 // Hàm sinh UUID v4 cho Idempotency-Key
 function generateUUID() {
@@ -61,7 +65,6 @@ export default function CheckoutPage() {
   >(undefined);
   const [previewData, setPreviewData] =
     useState<CheckoutPreviewResponse | null>(null);
-  const [previewError, setPreviewError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [hasAttemptedAutoLocate, setHasAttemptedAutoLocate] = useState(false);
   const [orderErrorModal, setOrderErrorModal] = useState<{
@@ -217,12 +220,9 @@ export default function CheckoutPage() {
       {
         onSuccess: (data) => {
           setPreviewData(data);
-          setPreviewError(null);
         },
-        onError: (err) => {
-          setPreviewError(
-            err instanceof Error ? err.message : copy.checkout.createOrderError,
-          );
+        onError: () => {
+          // Preview error handled gracefully
         },
       },
     );
@@ -408,174 +408,23 @@ export default function CheckoutPage() {
       )}
 
       {/* Tab chuyển đổi: Giao tận nơi vs Tự đến lấy */}
-      <div className="flex rounded-xl border border-black/5 bg-black/[0.03] p-1">
-        <button
-          type="button"
-          onClick={() => setDeliveryType("DELIVERY")}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
-            deliveryType === "DELIVERY"
-              ? "shadow-xs border border-primary bg-primary/15 text-primaryDark"
-              : "text-stone-600 hover:text-primaryDark"
-          }`}
-        >
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <rect x="1" y="3" width="15" height="13" rx="2" />
-            <polygon points="16 8 20 8 23 11 23 16 16 16 8" />
-            <circle cx="5.5" cy="18.5" r="2.5" />
-            <circle cx="18.5" cy="18.5" r="2.5" />
-          </svg>
-          <span>{copy.checkout.delivery}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setDeliveryType("PICKUP")}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all ${
-            deliveryType === "PICKUP"
-              ? "shadow-xs border border-primary bg-primary/15 text-primaryDark"
-              : "text-stone-600 hover:text-primaryDark"
-          }`}
-        >
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <path d="M16 10a4 4 0 0 1-8 0" />
-          </svg>
-          <span>{copy.checkout.pickup}</span>
-        </button>
-      </div>
+      <DeliveryTypeSelector
+        deliveryType={deliveryType}
+        onChange={setDeliveryType}
+      />
 
       {/* Khung Thông Tin Nhận Hàng */}
-      {deliveryType === "DELIVERY" ? (
-        <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-neutral900">
-              {copy.checkout.deliveryAddressSection}
-            </span>
-            <button
-              type="button"
-              onClick={() => navigate("/select-location")}
-              className="text-xxsmall font-semibold text-primary transition-opacity hover:opacity-80"
-            >
-              {selectedAddress
-                ? copy.common.edit
-                : copy.checkout.selectAddressHint}
-            </button>
-          </div>
-
-          {isLocating ? (
-            /* Loading State khi đang tự động dò GPS */
-            <div className="flex animate-pulse items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs text-primary">
-              <div className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              <span className="font-medium">{copy.checkout.locatingGps}</span>
-            </div>
-          ) : selectedAddress ? (
-            <div
-              onClick={() => navigate("/select-location")}
-              className="flex cursor-pointer items-start justify-between rounded-xl border border-black/5 bg-black/[0.02] p-3 text-xs text-neutral700 transition-all hover:bg-black/[0.04] active:scale-[0.99]"
-            >
-              <div className="flex items-start gap-2.5">
-                <div className="mt-0.5 shrink-0 text-primary">
-                  <MapPinIcon className="h-4 w-4" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-neutral900">
-                      {selectedAddress.recipient_name} • {selectedAddress.phone}
-                    </span>
-                    {(!selectedAddress.id || selectedAddress.id === 0) && (
-                      <span className="inline-flex items-center rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
-                        📍 {copy.checkout.currentGpsLocation}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-0.5 line-clamp-2 leading-relaxed text-neutral600">
-                    {selectedAddress.address_text}
-                  </div>
-                  {previewData?.distance_km !== undefined && (
-                    <div className="mt-1 inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-xxsmall font-medium text-primary">
-                      <span>
-                        {copy.checkout.distanceEstimate} ~
-                        {previewData.distance_km.toFixed(1)} km
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <ChevronRightIcon className="mt-1 h-4 w-4 shrink-0 text-neutral400" />
-            </div>
-          ) : (
-            <div
-              onClick={() => navigate("/select-location")}
-              className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3.5 text-xs text-primary transition-all hover:bg-primary/10 active:scale-[0.99]"
-            >
-              <div className="flex items-center gap-2 font-medium">
-                <MapPinIcon className="h-4 w-4" />
-                <span>{copy.checkout.selectAddressHint}</span>
-              </div>
-              <ChevronRightIcon className="h-4 w-4 text-neutral400" />
-            </div>
-          )}
-        </div>
-      ) : (
-        /* Thông tin Lấy tại quán (Pickup) */
-        <div className="space-y-3 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
-          <div>
-            <div className="text-xs leading-relaxed text-neutral700">
-              <div className="font-semibold text-neutral900">
-                {shopInfo?.shop_name || copy.brand.name}
-              </div>
-              <div className="text-neutral600">
-                {shopInfo?.address_text ||
-                  "123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh"}
-              </div>
-              {shopInfo?.hotline && (
-                <div className="mt-0.5 text-xxsmall font-medium text-primary">
-                  Hotline: {shopInfo.hotline}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 border-t border-black/5 pt-1">
-            <div>
-              <label className="mb-1 block font-semibold text-neutral700">
-                {copy.checkout.pickupName}
-              </label>
-              <input
-                type="text"
-                value={pickupName}
-                onChange={(e) => setPickupName(e.target.value)}
-                placeholder={copy.checkout.pickupNamePlaceholder}
-                className="w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block font-semibold text-neutral700">
-                {copy.checkout.pickupPhone}
-              </label>
-              <input
-                type="tel"
-                value={pickupPhone}
-                onChange={(e) => setPickupPhone(e.target.value)}
-                placeholder={copy.checkout.pickupPhonePlaceholder}
-                className="w-full rounded-xl border border-black/10 bg-transparent p-2 text-xs text-neutral900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      <DeliveryAddressCard
+        deliveryType={deliveryType}
+        selectedAddress={selectedAddress}
+        shopInfo={shopInfo}
+        isLocating={isLocating}
+        distanceKm={previewData?.distance_km}
+        pickupName={pickupName}
+        pickupPhone={pickupPhone}
+        onPickupNameChange={setPickupName}
+        onPickupPhoneChange={setPickupPhone}
+      />
 
       {/* Chọn thời gian nhận hàng / lấy món */}
       <DeliveryTimePicker
@@ -586,184 +435,26 @@ export default function CheckoutPage() {
       />
 
       {/* Danh sách món ăn */}
-      <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-xs font-bold text-neutral900">
-            {copy.checkout.orderSummarySection} ({cartItems.length})
-          </span>
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="text-xxsmall font-semibold text-primary transition-opacity hover:opacity-80"
-          >
-            {copy.checkout.addItems}
-          </button>
-        </div>
-
-        <div className="divide-y divide-black/5">
-          {cartItems.map((item) => {
-            const optionsTotal = (item.options || []).reduce(
-              (s, opt) => s + Number(opt.price || 0) * (opt.quantity || 1),
-              0,
-            );
-            const itemTotal = (item.unit_price + optionsTotal) * item.quantity;
-
-            return (
-              <div key={item.id} className="py-2.5 first:pt-0 last:pb-0">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 pr-2">
-                    <div className="text-xs font-medium text-neutral900">
-                      {item.product_name}
-                    </div>
-
-                    {item.options && item.options.length > 0 && (
-                      <div className="mt-0.5 space-y-0.5">
-                        <div className="text-xxsmall text-neutral500">
-                          + {formatVariantWithPercentage(item.options)}
-                        </div>
-                      </div>
-                    )}
-
-                    {item.note && (
-                      <div className="mt-0.5 text-xxsmall italic text-amber-700">
-                        &ldquo;{item.note}&rdquo;
-                      </div>
-                    )}
-
-                    <div className="mt-1 text-xs font-bold text-neutral900">
-                      {formatCurrency(itemTotal)}đ
-                    </div>
-                  </div>
-
-                  {/* Quantity Stepper */}
-                  <div className="shrink-0">
-                    <QuantityStepper
-                      value={item.quantity}
-                      minValue={0}
-                      size="small"
-                      variant="rounded"
-                      onDecrease={() =>
-                        updateQuantity(item.id, Math.max(0, item.quantity - 1))
-                      }
-                      onIncrease={() =>
-                        updateQuantity(item.id, item.quantity + 1)
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <CheckoutItemList
+        cartItems={cartItems}
+        onUpdateQuantity={updateQuantity}
+      />
 
       {/* Mã giảm giá (Voucher) */}
-      <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5">
-        <span className="block text-xs font-bold text-neutral900">
-          {copy.checkout.voucherSection}
-        </span>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={voucherCodeInput}
-            onChange={(e) => setVoucherCodeInput(e.target.value)}
-            placeholder={copy.checkout.voucherPlaceholder}
-            className="flex-1 rounded-xl border border-black/10 bg-transparent px-3 py-2 text-xs uppercase text-neutral900 placeholder:normal-case placeholder:text-neutral400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
-          />
-          {appliedVoucherCode ? (
-            <button
-              type="button"
-              onClick={handleRemoveVoucher}
-              className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 transition-all active:scale-95"
-            >
-              {copy.checkout.removeVoucher}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleApplyVoucher}
-              disabled={!voucherCodeInput.trim()}
-              className="rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-primaryDark active:scale-95 disabled:opacity-50"
-            >
-              {copy.checkout.applyVoucher}
-            </button>
-          )}
-        </div>
-        {appliedVoucherCode && (
-          <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1.5 text-xxsmall text-primaryDark">
-            <span>
-              ✓ {copy.checkout.appliedVoucherPrefix} <b>{appliedVoucherCode}</b>
-            </span>
-            {previewData?.discount ? (
-              <span className="font-bold">
-                -{formatCurrency(previewData.discount)}đ
-              </span>
-            ) : null}
-          </div>
-        )}
-      </div>
+      <VoucherInputSection
+        voucherCodeInput={voucherCodeInput}
+        appliedVoucherCode={appliedVoucherCode}
+        discount={previewData?.discount}
+        onInputChange={setVoucherCodeInput}
+        onApply={handleApplyVoucher}
+        onRemove={handleRemoveVoucher}
+      />
 
       {/* Phương thức thanh toán */}
-      <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5">
-        <span className="block text-xs font-bold text-neutral900">
-          {copy.checkout.paymentMethodSection}
-        </span>
-        <div className="space-y-2">
-          {/* COD */}
-          <label
-            className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all ${
-              paymentMethod === "COD"
-                ? "border-primary bg-primary/5"
-                : "border-black/5 bg-transparent hover:bg-black/[0.02]"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <input
-                type="radio"
-                name="payment_method"
-                value="COD"
-                checked={paymentMethod === "COD"}
-                onChange={() => setPaymentMethod("COD")}
-                className="h-4 w-4 accent-primary"
-              />
-              <span className="text-xs font-medium text-neutral900">
-                {copy.checkout.cash}
-              </span>
-            </div>
-          </label>
-
-          {/* VietQR Chuyển Khoản Tức Thì */}
-          <label
-            className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all ${
-              paymentMethod === "BANK_TRANSFER"
-                ? "border-primary bg-primary/5"
-                : "border-black/5 bg-transparent hover:bg-black/[0.02]"
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <input
-                type="radio"
-                name="payment_method"
-                value="BANK_TRANSFER"
-                checked={paymentMethod === "BANK_TRANSFER"}
-                onChange={() => setPaymentMethod("BANK_TRANSFER")}
-                className="h-4 w-4 accent-primary"
-              />
-              <div className="flex flex-col">
-                <span className="text-xs font-medium text-neutral900">
-                  {copy.checkout.vietqr}
-                </span>
-                <span className="text-xxsmall text-primary">
-                  {copy.orderDetail.bankName}
-                </span>
-              </div>
-            </div>
-            <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xxxxsmall font-bold text-primary">
-              {copy.checkout.recommended || "Khuyên dùng"}
-            </span>
-          </label>
-        </div>
-      </div>
+      <PaymentMethodSelector
+        paymentMethod={paymentMethod}
+        onChange={setPaymentMethod}
+      />
 
       {/* Ghi chú đơn hàng */}
       <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5">
@@ -779,59 +470,18 @@ export default function CheckoutPage() {
         />
       </div>
 
-      {/* Chi tiết thanh toán */}
-      <div className="space-y-2.5 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
-        <span className="block text-xs font-bold text-neutral900">
-          {copy.checkout.paymentDetailSection}
-        </span>
-
-        <div className="flex justify-between text-neutral600">
-          <span>{copy.checkout.subtotal}</span>
-          <span className="font-normal text-black">
-            {formatCurrency(displaySubtotal)}đ
-          </span>
-        </div>
-
-        <div className="flex justify-between text-neutral600">
-          <span>
-            {deliveryType === "PICKUP"
-              ? copy.checkout.deliveryMethod || "Hình thức"
-              : `${copy.checkout.shippingFee}${
-                  previewData?.distance_km !== undefined
-                    ? ` (~${previewData.distance_km.toFixed(1)} km)`
-                    : ""
-                }`}
-          </span>
-          <span className="font-normal text-black">
-            {deliveryType === "PICKUP"
-              ? copy.checkout.selfPickupFree || "Tự đến lấy (0đ)"
-              : displayShippingFee > 0
-                ? `${formatCurrency(displayShippingFee)}đ`
-                : copy.checkout.freeShipping}
-          </span>
-        </div>
-
-        {displayDiscount > 0 && (
-          <div className="flex justify-between font-medium text-primary">
-            <span>{copy.checkout.discount}</span>
-            <span>-{formatCurrency(displayDiscount)}đ</span>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between border-t border-black/5 pt-2.5 text-sm font-normal text-black">
-          <span>{copy.checkout.total}</span>
-          <div className="text-right">
-            <div className="text-base font-extrabold text-neutral-900">
-              {formatCurrency(displayTotal)}đ
-            </div>
-            {previewMutation.isPending && (
-              <div className="text-xxsmall text-neutral400">
-                Đang cập nhật phí...
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Chi tiết thanh toán & Nút Đặt hàng */}
+      <CheckoutOrderSummary
+        displaySubtotal={displaySubtotal}
+        displayShippingFee={displayShippingFee}
+        displayDiscount={displayDiscount}
+        displayTotal={displayTotal}
+        deliveryType={deliveryType}
+        distanceKm={previewData?.distance_km}
+        isUpdatingFee={previewMutation.isPending}
+        isSubmitting={createOrderMutation.isPending}
+        onPlaceOrder={handlePlaceOrder}
+      />
 
       {/* Tư vấn đặt món & Hotline quán */}
       {Boolean(shopInfo?.hotline) && (
@@ -852,38 +502,6 @@ export default function CheckoutPage() {
           </a>
         </div>
       )}
-
-      {/* Nút Đặt Hàng cố định ở đáy màn hình (Anti-Spam Idempotency Safe) */}
-      <div className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-3.5 pt-3.5 shadow-lg backdrop-blur-md">
-        <button
-          type="button"
-          disabled={createOrderMutation.isPending || previewMutation.isPending}
-          onClick={handlePlaceOrder}
-          className="flex w-full items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-sm transition-all hover:bg-primaryDark active:scale-[0.99] disabled:opacity-60"
-        >
-          <span>
-            {createOrderMutation.isPending
-              ? copy.checkout.processing
-              : copy.checkout.placeOrder}
-          </span>
-          <div className="flex items-center gap-1 font-extrabold">
-            <span>{formatCurrency(displayTotal)}đ</span>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </div>
-        </button>
-      </div>
 
       {/* Error Modal theo chuẩn Zalo Guidelines */}
       <ErrorModal

@@ -45,7 +45,7 @@ export default function Footer() {
     ...(isStaffOrAdmin
       ? [
           {
-            name: "Bếp / POS",
+            name: "Bếp",
             path: "/staff/orders",
             icon: ({ active }: { active: boolean }) => (
               <StoreIcon
@@ -53,7 +53,7 @@ export default function Footer() {
                   "h-5 w-5 transition-colors",
                   active
                     ? "stroke-[2] text-primary"
-                    : "stroke-[1.5] text-stone-400",
+                    : "stroke-[1.5] text-stone-500",
                 )}
               />
             ),
@@ -96,7 +96,7 @@ export default function Footer() {
             <span
               className={cn(
                 "mt-1 text-xxxxsmall font-bold tracking-tight transition-colors",
-                isActive ? "text-primary" : "text-stone-400",
+                isActive ? "text-primary" : "text-stone-500",
               )}
             >
               {item.name}

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useCartStore } from "@/stores/cart.store";
 import { usePrefetchProduct } from "@/services/product/product.queries";
 import { copy } from "@/constants/copy";
+import { cn } from "@/utils/cn";
 import defaultProductImg from "@/static/logo.png";
 
 interface ProductCardProps {
@@ -96,7 +97,10 @@ export default function ProductCard({
 
   return (
     <div
-      className="group flex w-full cursor-pointer flex-col transition-all active:opacity-90"
+      className={cn(
+        "group flex w-full cursor-pointer flex-col transition-all active:opacity-90",
+        isOutOfStock && "opacity-60",
+      )}
       onClick={handleCardClick}
       onMouseEnter={handlePrefetch}
       onTouchStart={handlePrefetch}

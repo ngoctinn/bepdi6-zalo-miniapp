@@ -18,16 +18,16 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  primary: "bg-primary/10 text-primary border border-primary/20",
+  primary: "bg-primary/10 text-primaryDark border border-primary/20",
   success: "bg-olive50 text-olive900 border border-olive600/30",
-  warning: "bg-amber-50 text-amber-800 border border-amber-500/30",
-  error: "bg-red-50 text-red-600 border border-red-200/80",
-  neutral: "bg-stone-100 text-stone-700 border border-black/5",
-  accent: "bg-amber-500/10 text-amber-700 border border-amber-500/20",
+  warning: "bg-amber-50 text-amber-900 border border-amber-500/30",
+  error: "bg-rose-50 text-rose-700 border border-rose-200/60",
+  neutral: "bg-black/[0.04] text-stone-600 border border-black/5",
+  accent: "bg-amber-500/15 text-amber-800 border border-amber-500/25",
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
-  small: "px-1.5 py-0.5 text-[10px] leading-tight",
+  small: "px-1.5 py-0.5 text-xxxxsmall leading-tight",
   medium: "px-2 py-0.5 text-xs leading-normal",
 };
 
