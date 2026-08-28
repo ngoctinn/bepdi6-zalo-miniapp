@@ -1,0 +1,27 @@
+services:
+  # -------------------------------------------------------------
+  # Backend Web Service (Django + uv + gunicorn)
+  # -------------------------------------------------------------
+  - type: web
+    name: bepdi6-backend
+    runtime: python
+    plan: free
+    region: singapore # or oregon / frankfurt
+    buildCommand: "curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=\"$HOME/.local/bin:$PATH\" && uv sync --frozen && uv run python manage.py migrate"
+    startCommand: "export PATH=\"$HOME/.local/bin:$PATH\" && uv run gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2"
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
+      - key: DATABASE_URL
+        sync: false # Connect external Postgres like Supabase / Neon
+      - key: REDIS_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://h5.zdn.vn,zbrowser://h5.zdn.vn"
