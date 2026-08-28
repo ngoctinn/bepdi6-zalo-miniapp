@@ -1,17 +1,21 @@
 from decimal import Decimal
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from apps.customers.models import Address, Customer, User
 from apps.menu.models import Category, Option, OptionGroup, Product
+from apps.menu.views import invalidate_menu_cache
+from apps.orders.models import Order, OrderItem
 from apps.vouchers.models import Voucher
 
 
 class Command(BaseCommand):
-    help = "Seed initial database according to official Bep Di 6 menu"
+    help = "Seed initial database according to official Bep Di 6 menu from ShopeeFood"
 
+    @transaction.atomic
     def handle(self, *args, **options):
-        self.stdout.write("Resetting & Seeding full Bep Di 6 menu...")
+        self.stdout.write("Resetting & Seeding full Bep Di 6 menu from ShopeeFood...")
 
         # 1. Admin User
         admin_user, created = User.objects.get_or_create(
@@ -30,10 +34,15 @@ class Command(BaseCommand):
                 self.style.SUCCESS("Created admin user (admin / admin123)")
             )
 
-        # 2. Ẩn các sản phẩm mẫu cũ thay vì xóa để tránh vi phạm ProtectedError với OrderItem
-        Product.objects.all().update(status=Product.Status.INACTIVE)
+        # 2. Xóa sạch dữ liệu menu & order test cũ để tái tạo dữ liệu hoàn hảo, không bị đè FK
+        OrderItem.objects.all().delete()
+        Order.objects.all().delete()
+        Option.objects.all().delete()
+        OptionGroup.objects.all().delete()
+        Product.objects.all().delete()
+        Category.objects.all().delete()
 
-        # 3. Định nghĩa danh mục & món ăn theo đúng yêu cầu
+        # 3. Định nghĩa danh mục & món ăn chuẩn xác từ ShopeeFood
         menu_structure = [
             {
                 "category": "Mắm chưng",
@@ -44,19 +53,157 @@ class Command(BaseCommand):
                         "name": "Cơm mắm chưng thịt trứng phần 1 người ăn ( đã kèm rau và cơm)",
                         "description": "1 phần mắm + 1 chén cơm + 1 phần rau",
                         "price": Decimal("62000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7ra0g-m9zehzrmoi26e4@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Thêm",
+                                "is_required": False,
+                                "min_select": 0,
+                                "max_select": 5,
+                                "options": [
+                                    {
+                                        "name": "Cơm thêm",
+                                        "price": Decimal("9000.00"),
+                                    },
+                                    {
+                                        "name": "Rau thêm",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm chưng thịt thêm 1 phần",
+                                        "price": Decimal("49000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm cá lóc phile thêm 1 phần",
+                                        "price": Decimal("68000.00"),
+                                    },
+                                    {
+                                        "name": "Thịt xào mắm ruốc thêm 1 phần",
+                                        "price": Decimal("48000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm tép thêm",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Ba khía trộn thêm",
+                                        "price": Decimal("62000.00"),
+                                    },
+                                    {
+                                        "name": "Tai heo ngâm chua 200g",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Canh thêm (theo ngày)",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                ],
+                            },
+                        ],
                     },
                     {
                         "name": "Cơm thịt xào mắm ruốc phần 1 người ăn ( đã kèm rau và cơm)",
                         "description": "1 phần mắm + 1 chén cơm + 1 phần rau",
                         "price": Decimal("62000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7ra0g-m9zetfj641lme1@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Thêm",
+                                "is_required": False,
+                                "min_select": 0,
+                                "max_select": 5,
+                                "options": [
+                                    {
+                                        "name": "Cơm thêm",
+                                        "price": Decimal("9000.00"),
+                                    },
+                                    {
+                                        "name": "Rau thêm",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm chưng thịt thêm 1 phần",
+                                        "price": Decimal("49000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm cá lóc phile thêm 1 phần",
+                                        "price": Decimal("68000.00"),
+                                    },
+                                    {
+                                        "name": "Thịt xào mắm ruốc thêm 1 phần",
+                                        "price": Decimal("48000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm tép thêm",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Ba khía trộn thêm",
+                                        "price": Decimal("62000.00"),
+                                    },
+                                    {
+                                        "name": "Tai heo ngâm chua 200g",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Canh thêm (theo ngày)",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                ],
+                            },
+                        ],
                     },
                     {
                         "name": "Cơm mắm cá lóc phile chưng tóp mỡ phần 1 người ăn đã kèm rau cơm",
                         "description": "1 phần mắm + 1 chén cơm + 1 phần rau",
                         "price": Decimal("79000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7ra0g-m9zeq6h1ewwqab@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Thêm",
+                                "is_required": False,
+                                "min_select": 0,
+                                "max_select": 5,
+                                "options": [
+                                    {
+                                        "name": "Cơm thêm",
+                                        "price": Decimal("9000.00"),
+                                    },
+                                    {
+                                        "name": "Rau thêm",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm chưng thịt thêm 1 phần",
+                                        "price": Decimal("49000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm cá lóc phile thêm 1 phần",
+                                        "price": Decimal("68000.00"),
+                                    },
+                                    {
+                                        "name": "Thịt xào mắm ruốc thêm 1 phần",
+                                        "price": Decimal("48000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm tép thêm",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Ba khía trộn thêm",
+                                        "price": Decimal("62000.00"),
+                                    },
+                                    {
+                                        "name": "Tai heo ngâm chua 200g",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Canh thêm (theo ngày)",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                ],
+                            },
+                        ],
                     },
                 ],
             },
@@ -67,21 +214,24 @@ class Command(BaseCommand):
                 "products": [
                     {
                         "name": "Bún thịt nướng đậm vị Dì 6",
-                        "description": "Thịt nướng than hoa thơm lừng ướp đậm vị công thức độc quyền Dì 6",
+                        "description": "",
                         "price": Decimal("47000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mekx4lmuyqdd4e@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Bún trộn mắm tép thịt luộc rau sống miền Tây",
-                        "description": "Mắm tép đỏ au đậm đà, thịt ba chỉ luộc mềm ngọt cùng đĩa rau sống xanh tươi chuẩn vị Tây Nam Bộ",
+                        "description": "",
                         "price": Decimal("82000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7ras8-md5hvhj5w57gda@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Bún trộn mắm tép rau sống miền Tây",
-                        "description": "Bún tươi trộn mắm tép đồng thơm ngon hòa quyện rau sống dân dã thanh mát",
+                        "description": "",
                         "price": Decimal("62000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7ras8-md5htjg6g7n1ff@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                 ],
             },
@@ -92,21 +242,75 @@ class Command(BaseCommand):
                 "products": [
                     {
                         "name": "Bánh canh vịt nước cốt dừa miền Tây Dì 6",
-                        "description": "Thịt vịt mềm ngọt, nước dùng cốt dừa béo ngậy thơm lừng",
-                        "price": Decimal("66950.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
-                    },
-                    {
-                        "name": "Bánh canh vịt bột gạo Miền Tây Dì 6",
-                        "description": "Sợi bánh canh bột gạo dai mềm nấu thịt vịt đậm đà",
-                        "price": Decimal("66950.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "description": "",
+                        "price": Decimal("72000.00"),
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrerf5i4qj9i98@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Dụng cụ",
+                                "is_required": True,
+                                "min_select": 1,
+                                "max_select": 1,
+                                "options": [
+                                    {
+                                        "name": "Không lấy dụng cụ ăn uống",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Lấy dụng cụ ăn uống",
+                                        "price": Decimal("3000.00"),
+                                    },
+                                ],
+                            },
+                        ],
                     },
                     {
                         "name": "Bánh canh tôm nước cốt dừa miền Tây Dì 6",
-                        "description": "Tôm tươi ngọt thịt nấu nước cốt dừa béo thơm hấp dẫn",
-                        "price": Decimal("66950.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "description": "",
+                        "price": Decimal("72000.00"),
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrerlj74q2o2ab@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Dụng cụ",
+                                "is_required": True,
+                                "min_select": 1,
+                                "max_select": 1,
+                                "options": [
+                                    {
+                                        "name": "Không lấy dụng cụ ăn uống",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Lấy dụng cụ ăn uống",
+                                        "price": Decimal("3000.00"),
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Bánh canh vịt bột gạo Miền Tây Dì 6",
+                        "description": "",
+                        "price": Decimal("72000.00"),
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrergyh939j8e8@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Dụng cụ",
+                                "is_required": True,
+                                "min_select": 1,
+                                "max_select": 1,
+                                "options": [
+                                    {
+                                        "name": "Không lấy dụng cụ ăn uống",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Lấy dụng cụ ăn uống",
+                                        "price": Decimal("3000.00"),
+                                    },
+                                ],
+                            },
+                        ],
                     },
                 ],
             },
@@ -117,83 +321,442 @@ class Command(BaseCommand):
                 "products": [
                     {
                         "name": "Bún nước tương đậu hủ + chả giò + thịt luộc",
-                        "description": "Đầy đủ topping đậu hủ chiên, chả giò giòn rụm và thịt luộc tươi ngon",
+                        "description": "",
                         "price": Decimal("68000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrerck6j1cee9c@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Bún nước tương đậu hủ + chả giò",
-                        "description": "Bún tươi ăn kèm đậu hủ giòn và chả giò thơm lừng",
+                        "description": "",
                         "price": Decimal("59000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrerawbpc9hd13@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                 ],
             },
             {
                 "category": "Đặc sản",
-                "description": "Bánh mì thịt nướng, cơm sườn, mắm tép đu đủ, tai heo ngâm chua, cơm tép rang",
+                "description": "Bánh mì thịt nướng, cơm sườn, mắm ba khía, tai heo chua ngọt đặc sản miền Tây",
                 "sort_order": 5,
                 "products": [
                     {
                         "name": "Bánh mì thịt nướng Dì 6",
-                        "description": "Bánh mì giòn rụm kẹp thịt nướng than hoa đậm đà",
+                        "description": "",
                         "price": Decimal("29000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mekx5lzkka2q75@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
+                    },
+                    {
+                        "name": "Mắm ba khía trộn sẵn ăn liền",
+                        "description": "",
+                        "price": Decimal("62000.00"),
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-me2d31xl6sqp1e@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Cơm sườn nướng đậm vị",
-                        "description": "Sườn cốt lết dày dặn nướng sốt đậm đà kèm mỡ hành",
+                        "description": "",
                         "price": Decimal("72000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mj847zpdnqpz58@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Mắm tép đu đủ",
-                        "description": "Mắm tép trộn đu đủ giòn sần sật chua ngọt cay nhẹ",
+                        "description": "",
                         "price": Decimal("59000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-me2d49xl04jo97@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Tai heo ngâm chua 200g",
-                        "description": "Tai heo giòn sần sật ngâm chua ngọt chuẩn vị nhà làm",
+                        "description": "",
                         "price": Decimal("65000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mj849bw0svsxc9@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Cơm tép rang nước cốt dừa Dì 6 - phần 1 người ăn",
-                        "description": "Tép đồng tươi rang nước cốt dừa béo mặn ngọt đậm đà ăn kèm cơm nóng",
+                        "description": "",
                         "price": Decimal("65000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrs8xtvzpf5ye8@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Thêm",
+                                "is_required": False,
+                                "min_select": 0,
+                                "max_select": 5,
+                                "options": [
+                                    {
+                                        "name": "Cơm thêm",
+                                        "price": Decimal("9000.00"),
+                                    },
+                                    {
+                                        "name": "Rau thêm",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm chưng thịt thêm 1 phần",
+                                        "price": Decimal("49000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm cá lóc phile thêm 1 phần",
+                                        "price": Decimal("68000.00"),
+                                    },
+                                    {
+                                        "name": "Thịt xào mắm ruốc thêm 1 phần",
+                                        "price": Decimal("48000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm tép thêm",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Ba khía trộn thêm",
+                                        "price": Decimal("62000.00"),
+                                    },
+                                    {
+                                        "name": "Tai heo ngâm chua 200g",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Canh thêm (theo ngày)",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                ],
+                            },
+                        ],
                     },
                 ],
             },
             {
                 "category": "Combo",
-                "description": "Combo ưu đãi tiết kiệm cơm, bún, bánh mì kèm nước",
+                "description": "Combo ưu đãi tiết kiệm cơm, bún, bánh mì kèm nước và combo mắm tiện lợi",
                 "sort_order": 6,
                 "products": [
+                    {
+                        "name": "Combo ưu đãi 1 cơm + 1 nước",
+                        "description": "",
+                        "price": Decimal("75000.00"),
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mfcgwe4tvehb6d@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Thêm",
+                                "is_required": False,
+                                "min_select": 0,
+                                "max_select": 5,
+                                "options": [
+                                    {
+                                        "name": "Cơm thêm",
+                                        "price": Decimal("9000.00"),
+                                    },
+                                    {
+                                        "name": "Rau thêm",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm chưng thịt thêm 1 phần",
+                                        "price": Decimal("49000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm cá lóc phile thêm 1 phần",
+                                        "price": Decimal("68000.00"),
+                                    },
+                                    {
+                                        "name": "Thịt xào mắm ruốc thêm 1 phần",
+                                        "price": Decimal("48000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm tép thêm",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Ba khía trộn thêm",
+                                        "price": Decimal("62000.00"),
+                                    },
+                                    {
+                                        "name": "Tai heo ngâm chua 200g",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Canh thêm (theo ngày)",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Nước",
+                                "is_required": True,
+                                "min_select": 1,
+                                "max_select": 1,
+                                "options": [
+                                    {
+                                        "name": "Trà chanh thái xanh",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Trà tắc",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Matcha latte sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                    {
+                                        "name": "Cacao latte sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                    {
+                                        "name": "Khoai môn latte sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                    {
+                                        "name": "Sâm dứa sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Cơm",
+                                "is_required": True,
+                                "min_select": 1,
+                                "max_select": 1,
+                                "options": [
+                                    {
+                                        "name": "Cơm mắm chưng thịt trứng",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Cơm ba rọi xào mắm ruốc",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Cơm  mắm cá lóc fillet tóp mỡ",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Combo ưu đãi 1 bánh mì + 1 nước",
+                        "description": "",
+                        "price": Decimal("44000.00"),
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mfch3xr0w74a61@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Bánh mì",
+                                "is_required": True,
+                                "min_select": 1,
+                                "max_select": 1,
+                                "options": [
+                                    {
+                                        "name": "Bánh mì thịt nướng đậm vị",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Bánh mì thịt viên nướng đậm vị",
+                                        "price": Decimal("0.00"),
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Nước",
+                                "is_required": True,
+                                "min_select": 1,
+                                "max_select": 1,
+                                "options": [
+                                    {
+                                        "name": "Trà chanh thái xanh",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Trà tắc",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Matcha latte sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                    {
+                                        "name": "Cacao latte sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                    {
+                                        "name": "Khoai môn latte sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                    {
+                                        "name": "Sâm dứa sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Combo ưu đãi 1 bún + 1 nước",
+                        "description": "",
+                        "price": Decimal("59000.00"),
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mfch2ro4jllb19@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Bún",
+                                "is_required": True,
+                                "min_select": 1,
+                                "max_select": 1,
+                                "options": [
+                                    {
+                                        "name": "Bún thịt nướng đậm vị",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Bún trộn mắm tép",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Bún trộn mắm tép thịt luộc",
+                                        "price": Decimal("35000.00"),
+                                    },
+                                ],
+                            },
+                            {
+                                "name": "Nước",
+                                "is_required": True,
+                                "min_select": 1,
+                                "max_select": 1,
+                                "options": [
+                                    {
+                                        "name": "Trà chanh thái xanh",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Trà tắc",
+                                        "price": Decimal("0.00"),
+                                    },
+                                    {
+                                        "name": "Matcha latte sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                    {
+                                        "name": "Cacao latte sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                    {
+                                        "name": "Khoai môn latte sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                    {
+                                        "name": "Sâm dứa sữa gấu",
+                                        "price": Decimal("29000.00"),
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "name": "Combo 3 hộp mắm chưng thịt ( không kèm rau cơm)",
+                        "description": "",
+                        "price": Decimal("152000.00"),
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7ra0g-m9zewjxzm0ii79@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Thêm",
+                                "is_required": False,
+                                "min_select": 0,
+                                "max_select": 5,
+                                "options": [
+                                    {
+                                        "name": "Cơm thêm",
+                                        "price": Decimal("9000.00"),
+                                    },
+                                    {
+                                        "name": "Rau thêm",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm chưng thịt thêm 1 phần",
+                                        "price": Decimal("49000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm cá lóc phile thêm 1 phần",
+                                        "price": Decimal("68000.00"),
+                                    },
+                                    {
+                                        "name": "Thịt xào mắm ruốc thêm 1 phần",
+                                        "price": Decimal("48000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm tép thêm",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Ba khía trộn thêm",
+                                        "price": Decimal("62000.00"),
+                                    },
+                                    {
+                                        "name": "Tai heo ngâm chua 200g",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Canh thêm (theo ngày)",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                ],
+                            },
+                        ],
+                    },
                     {
                         "name": "Combo 3 hộp ba rọi xào mắm ruốc ( chưa kèm rau và cơm)",
                         "description": "Chưa kèm rau và cơm",
                         "price": Decimal("152000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
-                    },
-                    {
-                        "name": "Combo ưu đãi 1 cơm + 1 nước",
-                        "description": "1 phần cơm tự chọn + 1 ly nước giải khát thanh mát",
-                        "price": Decimal("75000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
-                    },
-                    {
-                        "name": "Combo ưu đãi 1 bánh mì + 1 nước",
-                        "description": "1 ổ bánh mì thịt nướng giòn rụm + 1 ly nước",
-                        "price": Decimal("44000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
-                    },
-                    {
-                        "name": "Combo ưu đãi 1 bún + 1 nước",
-                        "description": "1 tô bún thịt nướng + 1 ly nước mát",
-                        "price": Decimal("59000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7ra0g-m9zeyo9px1ju37@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [
+                            {
+                                "name": "Thêm",
+                                "is_required": False,
+                                "min_select": 0,
+                                "max_select": 5,
+                                "options": [
+                                    {
+                                        "name": "Cơm thêm",
+                                        "price": Decimal("9000.00"),
+                                    },
+                                    {
+                                        "name": "Rau thêm",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm chưng thịt thêm 1 phần",
+                                        "price": Decimal("49000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm cá lóc phile thêm 1 phần",
+                                        "price": Decimal("68000.00"),
+                                    },
+                                    {
+                                        "name": "Thịt xào mắm ruốc thêm 1 phần",
+                                        "price": Decimal("48000.00"),
+                                    },
+                                    {
+                                        "name": "Mắm tép thêm",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Ba khía trộn thêm",
+                                        "price": Decimal("62000.00"),
+                                    },
+                                    {
+                                        "name": "Tai heo ngâm chua 200g",
+                                        "price": Decimal("59000.00"),
+                                    },
+                                    {
+                                        "name": "Canh thêm (theo ngày)",
+                                        "price": Decimal("12000.00"),
+                                    },
+                                ],
+                            },
+                        ],
                     },
                 ],
             },
@@ -204,9 +767,10 @@ class Command(BaseCommand):
                 "products": [
                     {
                         "name": "Bún nước tương đậu hủ sườn non chay",
-                        "description": "Bún tươi, đậu hủ chiên giòn, sườn non chay giòn rụm chan nước tương tỏi ớt thanh đạm",
+                        "description": "",
                         "price": Decimal("59000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrfiq5qzrgna83@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                 ],
             },
@@ -217,64 +781,73 @@ class Command(BaseCommand):
                 "products": [
                     {
                         "name": "Sầu riêng nướng 2-3 múi",
-                        "description": "Múi sầu riêng nướng cháy cạnh thơm lừng, béo ngậy dẻo ngọt",
+                        "description": "",
                         "price": Decimal("89000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mow2tgvhjy17ad@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                 ],
             },
             {
                 "category": "Đồ uống",
-                "description": "Trà chanh, trà tắc, latte sữa gấu, đá me truyền thống",
+                "description": "Trà chanh, trà tắc, latte sữa gấu, đá me truyền thống giải nhiệt",
                 "sort_order": 9,
                 "products": [
                     {
                         "name": "Trà chanh thái xanh 700ml",
-                        "description": "Thơm trà thái xanh mát lạnh, chua ngọt sảng khoái",
+                        "description": "",
                         "price": Decimal("23000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-me2akppz3dvqe3@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Trà bí đao hạt chia",
-                        "description": "Thanh mát giải nhiệt, hạt chia bổ dưỡng",
+                        "description": "",
                         "price": Decimal("29000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7ras8-mdo8005clf73b8@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Trà tắc 700ml",
-                        "description": "Vị tắc thơm lừng, chua thanh ngọt dịu",
+                        "description": "",
                         "price": Decimal("23000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=500&q=80",
-                    },
-                    {
-                        "name": "Cacao latte sữa gấu 700ml",
-                        "description": "Cacao đậm đà hòa quyện sữa gấu béo ngậy thơm ngon",
-                        "price": Decimal("45000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-me2alneie2vb3f@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Đá me truyền thống 700ml",
-                        "description": "Me dốt ngào đường, đậu phộng rang giòn, chua ngọt bùi béo",
+                        "description": "",
                         "price": Decimal("39000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mj5ew11hc35y3a@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
+                    },
+                    {
+                        "name": "Cacao latte sữa gấu 700ml",
+                        "description": "",
+                        "price": Decimal("45000.00"),
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-me2ajb9ast1g7c@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Matcha latte sữa gấu",
-                        "description": "Matcha thơm dịu kết hợp sữa gấu béo thanh",
+                        "description": "",
                         "price": Decimal("45000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7ras8-mdtms5dbagtte9@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Sâm dứa sữa gấu 700ml",
-                        "description": "Hương sâm dứa thơm lừng ngọt ngào béo thơm",
+                        "description": "",
                         "price": Decimal("45000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mepb6ah23tvpa4@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Khoai môn latte sữa gấu 700ml",
-                        "description": "Khoai môn bùi thơm kết hợp sữa gấu đặc sánh",
+                        "description": "",
                         "price": Decimal("45000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mepb51nic4jo41@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                 ],
             },
@@ -285,21 +858,24 @@ class Command(BaseCommand):
                 "products": [
                     {
                         "name": "Cơm thêm",
-                        "description": "Chén cơm trắng dẻo thơm",
+                        "description": "",
                         "price": Decimal("9000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mmjscva8q5tt64@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Rau thêm",
-                        "description": "Dĩa rau sống tươi mát miền Tây",
+                        "description": "",
                         "price": Decimal("12000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7r98o-lqn24i7chcfw9c@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                     {
                         "name": "Canh thêm",
-                        "description": "Tô canh nóng thanh ngọt",
+                        "description": "",
                         "price": Decimal("12000.00"),
-                        "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80",
+                        "image_url": "https://mms.img.susercontent.com/vn-11134517-7r98o-lqn24i7chcfw9c@resize_ss750x750!@crop_w750_h750_cT",
+                        "option_groups": [],
                     },
                 ],
             },
@@ -308,62 +884,45 @@ class Command(BaseCommand):
         # 4. Thực hiện Insert vào Database
         total_cats = 0
         total_prods = 0
+        total_options = 0
+
         for group in menu_structure:
-            cat, _ = Category.objects.get_or_create(
+            cat = Category.objects.create(
                 name=group["category"],
-                defaults={
-                    "description": group["description"],
-                    "sort_order": group["sort_order"],
-                },
+                description=group["description"],
+                sort_order=group["sort_order"],
+                status=Category.Status.ACTIVE,
             )
             total_cats += 1
 
             for p_data in group["products"]:
-                p, _ = Product.objects.update_or_create(
+                p = Product.objects.create(
+                    category=cat,
                     name=p_data["name"],
-                    defaults={
-                        "category": cat,
-                        "description": p_data["description"],
-                        "price": p_data["price"],
-                        "status": Product.Status.AVAILABLE,
-                        "image_url": p_data["image_url"],
-                    },
+                    description=p_data["description"],
+                    price=p_data["price"],
+                    status=Product.Status.AVAILABLE,
+                    image_url=p_data["image_url"],
                 )
                 total_prods += 1
 
-                # Gắn option group cho một số món
-                if "Bún" in cat.name:
-                    og, _ = OptionGroup.objects.get_or_create(
+                # Tạo Option Groups và Options
+                for og_data in p_data.get("option_groups", []):
+                    og = OptionGroup.objects.create(
                         product=p,
-                        name="Chọn thêm topping",
-                        defaults={
-                            "is_required": False,
-                            "min_select": 0,
-                            "max_select": 3,
-                            "sort_order": 1,
-                        },
+                        name=og_data["name"],
+                        is_required=og_data["is_required"],
+                        min_select=og_data["min_select"],
+                        max_select=og_data["max_select"],
                     )
-                    Option.objects.get_or_create(
-                        option_group=og,
-                        name="Thêm Chả Giò",
-                        defaults={"price": Decimal("12000.00")},
-                    )
-                    Option.objects.get_or_create(
-                        option_group=og,
-                        name="Thêm Thịt Nướng",
-                        defaults={"price": Decimal("18000.00")},
-                    )
-                    Option.objects.get_or_create(
-                        option_group=og,
-                        name="Thêm Bún",
-                        defaults={"price": Decimal("5000.00")},
-                    )
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Successfully seeded {total_cats} Categories and {total_prods} Products!"
-            )
-        )
+                    for opt_data in og_data.get("options", []):
+                        Option.objects.create(
+                            option_group=og,
+                            name=opt_data["name"],
+                            price=opt_data["price"],
+                            status=Option.Status.AVAILABLE,
+                        )
+                        total_options += 1
 
         # 5. Vouchers
         Voucher.objects.get_or_create(
@@ -404,142 +963,135 @@ class Command(BaseCommand):
         )
 
         # 7. Sample Orders for Testing All Statuses and Types
-        from apps.orders.models import Order, OrderItem
-
         prods = list(Product.objects.filter(status=Product.Status.AVAILABLE)[:3])
-        if prods:
+        if len(prods) >= 3:
             # Order 1: Đang chuẩn bị (Giao tận nơi)
-            o1, created1 = Order.objects.get_or_create(
+            o1 = Order.objects.create(
                 order_code="BD6-260825-001",
-                defaults={
-                    "idempotency_key": "seed_idem_001",
-                    "customer": cust,
-                    "status": Order.Status.PREPARING,
-                    "delivery_type": Order.DeliveryType.DELIVERY,
-                    "recipient_name": "Nguyễn Văn A",
-                    "phone": "0909123456",
-                    "delivery_address": "45 Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
-                    "delivery_latitude": Decimal("10.775000"),
-                    "delivery_longitude": Decimal("106.700000"),
-                    "distance_km": Decimal("1.2"),
-                    "subtotal": prods[0].price,
-                    "shipping_fee": Decimal("10000.00"),
-                    "discount": Decimal("0.00"),
-                    "total_amount": prods[0].price + Decimal("10000.00"),
-                    "payment_method": Order.PaymentMethod.COD,
-                    "note": "Giao giờ trưa giúp mình nhé",
-                },
+                idempotency_key="seed_idem_001",
+                customer=cust,
+                status=Order.Status.PREPARING,
+                delivery_type=Order.DeliveryType.DELIVERY,
+                recipient_name="Nguyễn Văn A",
+                phone="0909123456",
+                delivery_address="45 Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
+                delivery_latitude=Decimal("10.775000"),
+                delivery_longitude=Decimal("106.700000"),
+                distance_km=Decimal("1.2"),
+                subtotal=prods[0].price,
+                shipping_fee=Decimal("10000.00"),
+                discount=Decimal("0.00"),
+                total_amount=prods[0].price + Decimal("10000.00"),
+                payment_method=Order.PaymentMethod.COD,
+                note="Giao giờ trưa giúp mình nhé",
             )
-            if created1:
-                OrderItem.objects.create(
-                    order=o1,
-                    product=prods[0],
-                    product_name=prods[0].name,
-                    unit_price=prods[0].price,
-                    quantity=1,
-                    subtotal=prods[0].price,
-                )
+            OrderItem.objects.create(
+                order=o1,
+                product=prods[0],
+                product_name=prods[0].name,
+                unit_price=prods[0].price,
+                quantity=1,
+                subtotal=prods[0].price,
+            )
 
             # Order 2: Đang giao hàng (Hẹn giờ)
-            o2, created2 = Order.objects.get_or_create(
+            o2 = Order.objects.create(
                 order_code="BD6-260825-002",
-                defaults={
-                    "idempotency_key": "seed_idem_002",
-                    "customer": cust,
-                    "status": Order.Status.DELIVERING,
-                    "delivery_type": Order.DeliveryType.DELIVERY,
-                    "recipient_name": "Trần Thị B",
-                    "phone": "0912345678",
-                    "delivery_address": "88 Hàm Nghi, Phường Bến Nghé, Quận 1, TP.HCM",
-                    "delivery_latitude": Decimal("10.771000"),
-                    "delivery_longitude": Decimal("106.703000"),
-                    "distance_km": Decimal("1.8"),
-                    "subtotal": prods[1].price * 2,
-                    "shipping_fee": Decimal("10000.00"),
-                    "discount": Decimal("20000.00"),
-                    "total_amount": (prods[1].price * 2) - Decimal("10000.00"),
-                    "payment_method": Order.PaymentMethod.BANK_TRANSFER,
-                    "note": "Ít cay, nhiều rau sống",
-                },
+                idempotency_key="seed_idem_002",
+                customer=cust,
+                status=Order.Status.DELIVERING,
+                delivery_type=Order.DeliveryType.DELIVERY,
+                recipient_name="Trần Thị B",
+                phone="0912345678",
+                delivery_address="88 Hàm Nghi, Phường Bến Nghé, Quận 1, TP.HCM",
+                delivery_latitude=Decimal("10.771000"),
+                delivery_longitude=Decimal("106.703000"),
+                distance_km=Decimal("1.8"),
+                subtotal=prods[1].price * 2,
+                shipping_fee=Decimal("10000.00"),
+                discount=Decimal("20000.00"),
+                total_amount=(prods[1].price * 2) - Decimal("10000.00"),
+                payment_method=Order.PaymentMethod.BANK_TRANSFER,
+                note="Ít cay, nhiều rau sống",
             )
-            if created2:
-                OrderItem.objects.create(
-                    order=o2,
-                    product=prods[1],
-                    product_name=prods[1].name,
-                    unit_price=prods[1].price,
-                    quantity=2,
-                    subtotal=prods[1].price * 2,
-                )
+            OrderItem.objects.create(
+                order=o2,
+                product=prods[1],
+                product_name=prods[1].name,
+                unit_price=prods[1].price,
+                quantity=2,
+                subtotal=prods[1].price * 2,
+            )
 
             # Order 3: Đã hoàn tất (Tự đến lấy)
-            o3, created3 = Order.objects.get_or_create(
+            o3 = Order.objects.create(
                 order_code="BD6-260825-003",
-                defaults={
-                    "idempotency_key": "seed_idem_003",
-                    "customer": cust,
-                    "status": Order.Status.COMPLETED,
-                    "delivery_type": Order.DeliveryType.PICKUP,
-                    "recipient_name": "Lê Văn C",
-                    "phone": "0988776655",
-                    "delivery_address": "[Nhận tại quán] 123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-                    "delivery_latitude": Decimal("10.776900"),
-                    "delivery_longitude": Decimal("106.700900"),
-                    "subtotal": prods[0].price + prods[2].price,
-                    "shipping_fee": Decimal("0.00"),
-                    "discount": Decimal("0.00"),
-                    "total_amount": prods[0].price + prods[2].price,
-                    "payment_method": Order.PaymentMethod.COD,
-                    "note": "Ghé lấy lúc 12h",
-                },
+                idempotency_key="seed_idem_003",
+                customer=cust,
+                status=Order.Status.COMPLETED,
+                delivery_type=Order.DeliveryType.PICKUP,
+                recipient_name="Lê Văn C",
+                phone="0988776655",
+                delivery_address="[Nhận tại quán] 123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+                delivery_latitude=Decimal("10.776900"),
+                delivery_longitude=Decimal("106.700900"),
+                subtotal=prods[0].price + prods[2].price,
+                shipping_fee=Decimal("0.00"),
+                discount=Decimal("0.00"),
+                total_amount=prods[0].price + prods[2].price,
+                payment_method=Order.PaymentMethod.COD,
+                note="Ghé lấy lúc 12h",
             )
-            if created3:
-                OrderItem.objects.create(
-                    order=o3,
-                    product=prods[0],
-                    product_name=prods[0].name,
-                    unit_price=prods[0].price,
-                    quantity=1,
-                    subtotal=prods[0].price,
-                )
-                OrderItem.objects.create(
-                    order=o3,
-                    product=prods[2],
-                    product_name=prods[2].name,
-                    unit_price=prods[2].price,
-                    quantity=1,
-                    subtotal=prods[2].price,
-                )
+            OrderItem.objects.create(
+                order=o3,
+                product=prods[0],
+                product_name=prods[0].name,
+                unit_price=prods[0].price,
+                quantity=1,
+                subtotal=prods[0].price,
+            )
+            OrderItem.objects.create(
+                order=o3,
+                product=prods[2],
+                product_name=prods[2].name,
+                unit_price=prods[2].price,
+                quantity=1,
+                subtotal=prods[2].price,
+            )
 
             # Order 4: Đã hủy
-            o4, created4 = Order.objects.get_or_create(
+            o4 = Order.objects.create(
                 order_code="BD6-260825-004",
-                defaults={
-                    "idempotency_key": "seed_idem_004",
-                    "customer": cust,
-                    "status": Order.Status.CANCELLED,
-                    "delivery_type": Order.DeliveryType.DELIVERY,
-                    "recipient_name": "Nguyễn Văn A",
-                    "phone": "0909123456",
-                    "delivery_address": "45 Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
-                    "delivery_latitude": Decimal("10.775000"),
-                    "delivery_longitude": Decimal("106.700000"),
-                    "subtotal": prods[0].price,
-                    "shipping_fee": Decimal("10000.00"),
-                    "discount": Decimal("0.00"),
-                    "total_amount": prods[0].price + Decimal("10000.00"),
-                    "payment_method": Order.PaymentMethod.COD,
-                    "cancellation_reason": "Khách hàng bận đột xuất muốn đổi thời gian",
-                },
+                idempotency_key="seed_idem_004",
+                customer=cust,
+                status=Order.Status.CANCELLED,
+                delivery_type=Order.DeliveryType.DELIVERY,
+                recipient_name="Nguyễn Văn A",
+                phone="0909123456",
+                delivery_address="45 Lê Lợi, Phường Bến Nghé, Quận 1, TP.HCM",
+                delivery_latitude=Decimal("10.775000"),
+                delivery_longitude=Decimal("106.700000"),
+                subtotal=prods[0].price,
+                shipping_fee=Decimal("10000.00"),
+                discount=Decimal("0.00"),
+                total_amount=prods[0].price + Decimal("10000.00"),
+                payment_method=Order.PaymentMethod.COD,
+                cancellation_reason="Khách hàng bận đột xuất muốn đổi thời gian",
             )
-            if created4:
-                OrderItem.objects.create(
-                    order=o4,
-                    product=prods[0],
-                    product_name=prods[0].name,
-                    unit_price=prods[0].price,
-                    quantity=1,
-                    subtotal=prods[0].price,
-                )
+            OrderItem.objects.create(
+                order=o4,
+                product=prods[0],
+                product_name=prods[0].name,
+                unit_price=prods[0].price,
+                quantity=1,
+                subtotal=prods[0].price,
+            )
 
-        self.stdout.write(self.style.SUCCESS("Seeding completed successfully!"))
+        # 8. Xóa Cache để cập nhật ngay lập tức cho API
+        invalidate_menu_cache()
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Successfully seeded {total_cats} Categories, {total_prods} Products, and {total_options} Options!"
+            )
+        )

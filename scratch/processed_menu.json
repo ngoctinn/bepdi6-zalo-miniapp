@@ -1,0 +1,788 @@
+{
+  "categories": [
+    {
+      "name": "Mắm chưng",
+      "description": "Các món mắm chưng thịt trứng, mắm ruốc, mắm cá lóc phile đậm đà chuẩn vị miền Tây",
+      "sort_order": 1,
+      "products": [
+        {
+          "name": "Cơm mắm chưng thịt trứng phần 1 người ăn ( đã kèm rau và cơm)",
+          "description": "1 phần mắm + 1 chén cơm + 1 phần rau",
+          "price": 62000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7ra0g-m9zehzrmoi26e4@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": [
+            {
+              "name": "Thêm",
+              "is_required": false,
+              "min_select": 0,
+              "max_select": 5,
+              "options": [
+                {
+                  "name": "Cơm thêm",
+                  "price": 9000.0
+                },
+                {
+                  "name": "Rau thêm",
+                  "price": 12000.0
+                },
+                {
+                  "name": "Mắm chưng thịt thêm 1 phần",
+                  "price": 49000.0
+                },
+                {
+                  "name": "Mắm cá lóc phile thêm 1 phần",
+                  "price": 68000.0
+                },
+                {
+                  "name": "Thịt xào mắm ruốc thêm 1 phần",
+                  "price": 48000.0
+                },
+                {
+                  "name": "Mắm tép thêm",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Ba khía trộn thêm",
+                  "price": 62000.0
+                },
+                {
+                  "name": "Tai heo ngâm chua 200g",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Canh thêm (theo ngày)",
+                  "price": 12000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Cơm thịt xào mắm ruốc phần 1 người ăn ( đã kèm rau và cơm)",
+          "description": "1 phần mắm + 1 chén cơm + 1 phần rau",
+          "price": 62000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7ra0g-m9zetfj641lme1@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": [
+            {
+              "name": "Thêm",
+              "is_required": false,
+              "min_select": 0,
+              "max_select": 5,
+              "options": [
+                {
+                  "name": "Cơm thêm",
+                  "price": 9000.0
+                },
+                {
+                  "name": "Rau thêm",
+                  "price": 12000.0
+                },
+                {
+                  "name": "Mắm chưng thịt thêm 1 phần",
+                  "price": 49000.0
+                },
+                {
+                  "name": "Mắm cá lóc phile thêm 1 phần",
+                  "price": 68000.0
+                },
+                {
+                  "name": "Thịt xào mắm ruốc thêm 1 phần",
+                  "price": 48000.0
+                },
+                {
+                  "name": "Mắm tép thêm",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Ba khía trộn thêm",
+                  "price": 62000.0
+                },
+                {
+                  "name": "Tai heo ngâm chua 200g",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Canh thêm (theo ngày)",
+                  "price": 12000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Cơm mắm cá lóc phile chưng tóp mỡ phần 1 người ăn đã kèm rau cơm",
+          "description": "1 phần mắm + 1 chén cơm + 1 phần rau",
+          "price": 79000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7ra0g-m9zeq6h1ewwqab@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": [
+            {
+              "name": "Thêm",
+              "is_required": false,
+              "min_select": 0,
+              "max_select": 5,
+              "options": [
+                {
+                  "name": "Cơm thêm",
+                  "price": 9000.0
+                },
+                {
+                  "name": "Rau thêm",
+                  "price": 12000.0
+                },
+                {
+                  "name": "Mắm chưng thịt thêm 1 phần",
+                  "price": 49000.0
+                },
+                {
+                  "name": "Mắm cá lóc phile thêm 1 phần",
+                  "price": 68000.0
+                },
+                {
+                  "name": "Thịt xào mắm ruốc thêm 1 phần",
+                  "price": 48000.0
+                },
+                {
+                  "name": "Mắm tép thêm",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Ba khía trộn thêm",
+                  "price": 62000.0
+                },
+                {
+                  "name": "Tai heo ngâm chua 200g",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Canh thêm (theo ngày)",
+                  "price": 12000.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bún",
+      "description": "Bún thịt nướng, bún trộn mắm tép thịt luộc rau sống miền Tây",
+      "sort_order": 2,
+      "products": [
+        {
+          "name": "Bún thịt nướng đậm vị Dì 6",
+          "description": "",
+          "price": 47000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mekx4lmuyqdd4e@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Bún trộn mắm tép thịt luộc rau sống miền Tây",
+          "description": "",
+          "price": 82000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7ras8-md5hvhj5w57gda@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Bún trộn mắm tép rau sống miền Tây",
+          "description": "",
+          "price": 62000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7ras8-md5htjg6g7n1ff@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        }
+      ]
+    },
+    {
+      "name": "Bánh canh",
+      "description": "Bánh canh vịt nước cốt dừa, bánh canh bột gạo, bánh canh tôm miền Tây Dì 6",
+      "sort_order": 3,
+      "products": [
+        {
+          "name": "Bánh canh vịt nước cốt dừa miền Tây Dì 6",
+          "description": "",
+          "price": 72000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrerf5i4qj9i98@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Bánh canh tôm nước cốt dừa miền Tây Dì 6",
+          "description": "",
+          "price": 72000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrerlj74q2o2ab@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Bánh canh vịt bột gạo Miền Tây Dì 6",
+          "description": "",
+          "price": 72000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrergyh939j8e8@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        }
+      ]
+    },
+    {
+      "name": "Bún nước tương",
+      "description": "Bún nước tương đậu hủ, chả giò, thịt luộc thanh đạm thơm ngon",
+      "sort_order": 4,
+      "products": [
+        {
+          "name": "Bún nước tương đậu hủ + chả giò + thịt luộc",
+          "description": "",
+          "price": 68000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrerck6j1cee9c@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Bún nước tương đậu hủ + chả giò",
+          "description": "",
+          "price": 59000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrerawbpc9hd13@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        }
+      ]
+    },
+    {
+      "name": "Đặc sản",
+      "description": "Bánh mì thịt nướng, cơm sườn, mắm ba khía, tai heo chua ngọt đặc sản miền Tây",
+      "sort_order": 5,
+      "products": [
+        {
+          "name": "Bánh mì thịt nướng Dì 6",
+          "description": "",
+          "price": 29000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mekx5lzkka2q75@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Mắm ba khía trộn sẵn ăn liền",
+          "description": "",
+          "price": 62000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-me2d31xl6sqp1e@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Cơm sườn nướng đậm vị",
+          "description": "",
+          "price": 72000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mj847zpdnqpz58@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Mắm tép đu đủ",
+          "description": "",
+          "price": 59000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-me2d49xl04jo97@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Tai heo ngâm chua 200g",
+          "description": "",
+          "price": 65000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mj849bw0svsxc9@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Cơm tép rang nước cốt dừa Dì 6 - phần 1 người ăn",
+          "description": "",
+          "price": 65000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrs8xtvzpf5ye8@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": [
+            {
+              "name": "Thêm",
+              "is_required": false,
+              "min_select": 0,
+              "max_select": 5,
+              "options": [
+                {
+                  "name": "Cơm thêm",
+                  "price": 9000.0
+                },
+                {
+                  "name": "Rau thêm",
+                  "price": 12000.0
+                },
+                {
+                  "name": "Mắm chưng thịt thêm 1 phần",
+                  "price": 49000.0
+                },
+                {
+                  "name": "Mắm cá lóc phile thêm 1 phần",
+                  "price": 68000.0
+                },
+                {
+                  "name": "Thịt xào mắm ruốc thêm 1 phần",
+                  "price": 48000.0
+                },
+                {
+                  "name": "Mắm tép thêm",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Ba khía trộn thêm",
+                  "price": 62000.0
+                },
+                {
+                  "name": "Tai heo ngâm chua 200g",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Canh thêm (theo ngày)",
+                  "price": 12000.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Combo",
+      "description": "Combo ưu đãi tiết kiệm cơm, bún, bánh mì kèm nước và combo mắm tiện lợi",
+      "sort_order": 6,
+      "products": [
+        {
+          "name": "Combo ưu đãi 1 cơm + 1 nước",
+          "description": "",
+          "price": 75000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mfcgwe4tvehb6d@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": [
+            {
+              "name": "Thêm",
+              "is_required": false,
+              "min_select": 0,
+              "max_select": 5,
+              "options": [
+                {
+                  "name": "Cơm thêm",
+                  "price": 9000.0
+                },
+                {
+                  "name": "Rau thêm",
+                  "price": 12000.0
+                },
+                {
+                  "name": "Mắm chưng thịt thêm 1 phần",
+                  "price": 49000.0
+                },
+                {
+                  "name": "Mắm cá lóc phile thêm 1 phần",
+                  "price": 68000.0
+                },
+                {
+                  "name": "Thịt xào mắm ruốc thêm 1 phần",
+                  "price": 48000.0
+                },
+                {
+                  "name": "Mắm tép thêm",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Ba khía trộn thêm",
+                  "price": 62000.0
+                },
+                {
+                  "name": "Tai heo ngâm chua 200g",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Canh thêm (theo ngày)",
+                  "price": 12000.0
+                }
+              ]
+            },
+            {
+              "name": "Nước",
+              "is_required": true,
+              "min_select": 1,
+              "max_select": 1,
+              "options": [
+                {
+                  "name": "Trà chanh thái xanh",
+                  "price": 0.0
+                },
+                {
+                  "name": "Trà tắc",
+                  "price": 0.0
+                },
+                {
+                  "name": "Matcha latte sữa gấu",
+                  "price": 29000.0
+                },
+                {
+                  "name": "Cacao latte sữa gấu",
+                  "price": 29000.0
+                },
+                {
+                  "name": "Khoai môn latte sữa gấu",
+                  "price": 29000.0
+                },
+                {
+                  "name": "Sâm dứa sữa gấu",
+                  "price": 29000.0
+                }
+              ]
+            },
+            {
+              "name": "Cơm",
+              "is_required": true,
+              "min_select": 1,
+              "max_select": 1,
+              "options": [
+                {
+                  "name": "Cơm mắm chưng thịt trứng",
+                  "price": 0.0
+                },
+                {
+                  "name": "Cơm ba rọi xào mắm ruốc",
+                  "price": 0.0
+                },
+                {
+                  "name": "Cơm  mắm cá lóc fillet tóp mỡ",
+                  "price": 29000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Combo ưu đãi 1 bánh mì + 1 nước",
+          "description": "",
+          "price": 44000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mfch3xr0w74a61@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": [
+            {
+              "name": "Bánh mì",
+              "is_required": true,
+              "min_select": 1,
+              "max_select": 1,
+              "options": [
+                {
+                  "name": "Bánh mì thịt nướng đậm vị",
+                  "price": 0.0
+                },
+                {
+                  "name": "Bánh mì thịt viên nướng đậm vị",
+                  "price": 0.0
+                }
+              ]
+            },
+            {
+              "name": "Nước",
+              "is_required": true,
+              "min_select": 1,
+              "max_select": 1,
+              "options": [
+                {
+                  "name": "Trà chanh thái xanh",
+                  "price": 0.0
+                },
+                {
+                  "name": "Trà tắc",
+                  "price": 0.0
+                },
+                {
+                  "name": "Matcha latte sữa gấu",
+                  "price": 29000.0
+                },
+                {
+                  "name": "Cacao latte sữa gấu",
+                  "price": 29000.0
+                },
+                {
+                  "name": "Khoai môn latte sữa gấu",
+                  "price": 29000.0
+                },
+                {
+                  "name": "Sâm dứa sữa gấu",
+                  "price": 29000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Combo ưu đãi 1 bún + 1 nước",
+          "description": "",
+          "price": 59000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mfch2ro4jllb19@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": [
+            {
+              "name": "Bún",
+              "is_required": true,
+              "min_select": 1,
+              "max_select": 1,
+              "options": [
+                {
+                  "name": "Bún thịt nướng đậm vị",
+                  "price": 0.0
+                },
+                {
+                  "name": "Bún trộn mắm tép",
+                  "price": 0.0
+                },
+                {
+                  "name": "Bún trộn mắm tép thịt luộc",
+                  "price": 35000.0
+                }
+              ]
+            },
+            {
+              "name": "Nước",
+              "is_required": true,
+              "min_select": 1,
+              "max_select": 1,
+              "options": [
+                {
+                  "name": "Trà chanh thái xanh",
+                  "price": 0.0
+                },
+                {
+                  "name": "Trà tắc",
+                  "price": 0.0
+                },
+                {
+                  "name": "Matcha latte sữa gấu",
+                  "price": 29000.0
+                },
+                {
+                  "name": "Cacao latte sữa gấu",
+                  "price": 29000.0
+                },
+                {
+                  "name": "Khoai môn latte sữa gấu",
+                  "price": 29000.0
+                },
+                {
+                  "name": "Sâm dứa sữa gấu",
+                  "price": 29000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Combo 3 hộp mắm chưng thịt ( không kèm rau cơm)",
+          "description": "",
+          "price": 152000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7ra0g-m9zewjxzm0ii79@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": [
+            {
+              "name": "Thêm",
+              "is_required": false,
+              "min_select": 0,
+              "max_select": 5,
+              "options": [
+                {
+                  "name": "Cơm thêm",
+                  "price": 9000.0
+                },
+                {
+                  "name": "Rau thêm",
+                  "price": 12000.0
+                },
+                {
+                  "name": "Mắm chưng thịt thêm 1 phần",
+                  "price": 49000.0
+                },
+                {
+                  "name": "Mắm cá lóc phile thêm 1 phần",
+                  "price": 68000.0
+                },
+                {
+                  "name": "Thịt xào mắm ruốc thêm 1 phần",
+                  "price": 48000.0
+                },
+                {
+                  "name": "Mắm tép thêm",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Ba khía trộn thêm",
+                  "price": 62000.0
+                },
+                {
+                  "name": "Tai heo ngâm chua 200g",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Canh thêm (theo ngày)",
+                  "price": 12000.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Combo 3 hộp ba rọi xào mắm ruốc ( chưa kèm rau và cơm)",
+          "description": "Chưa kèm rau và cơm",
+          "price": 152000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7ra0g-m9zeyo9px1ju37@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": [
+            {
+              "name": "Thêm",
+              "is_required": false,
+              "min_select": 0,
+              "max_select": 5,
+              "options": [
+                {
+                  "name": "Cơm thêm",
+                  "price": 9000.0
+                },
+                {
+                  "name": "Rau thêm",
+                  "price": 12000.0
+                },
+                {
+                  "name": "Mắm chưng thịt thêm 1 phần",
+                  "price": 49000.0
+                },
+                {
+                  "name": "Mắm cá lóc phile thêm 1 phần",
+                  "price": 68000.0
+                },
+                {
+                  "name": "Thịt xào mắm ruốc thêm 1 phần",
+                  "price": 48000.0
+                },
+                {
+                  "name": "Mắm tép thêm",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Ba khía trộn thêm",
+                  "price": 62000.0
+                },
+                {
+                  "name": "Tai heo ngâm chua 200g",
+                  "price": 59000.0
+                },
+                {
+                  "name": "Canh thêm (theo ngày)",
+                  "price": 12000.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Chay",
+      "description": "Món chay thanh tịnh, dinh dưỡng",
+      "sort_order": 7,
+      "products": [
+        {
+          "name": "Bún nước tương đậu hủ sườn non chay",
+          "description": "",
+          "price": 59000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mrfiq5qzrgna83@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        }
+      ]
+    },
+    {
+      "name": "Sầu riêng",
+      "description": "Sầu riêng nướng thơm lừng béo ngậy",
+      "sort_order": 8,
+      "products": [
+        {
+          "name": "Sầu riêng nướng 2-3 múi",
+          "description": "",
+          "price": 89000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mow2tgvhjy17ad@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        }
+      ]
+    },
+    {
+      "name": "Đồ uống",
+      "description": "Trà chanh, trà tắc, latte sữa gấu, đá me truyền thống giải nhiệt",
+      "sort_order": 9,
+      "products": [
+        {
+          "name": "Trà chanh thái xanh 700ml",
+          "description": "",
+          "price": 23000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-me2akppz3dvqe3@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Trà bí đao hạt chia",
+          "description": "",
+          "price": 29000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7ras8-mdo8005clf73b8@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Trà tắc 700ml",
+          "description": "",
+          "price": 23000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-me2alneie2vb3f@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Đá me truyền thống 700ml",
+          "description": "",
+          "price": 39000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mj5ew11hc35y3a@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Cacao latte sữa gấu 700ml",
+          "description": "",
+          "price": 45000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-me2ajb9ast1g7c@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Matcha latte sữa gấu",
+          "description": "",
+          "price": 45000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7ras8-mdtms5dbagtte9@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Sâm dứa sữa gấu 700ml",
+          "description": "",
+          "price": 45000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mepb6ah23tvpa4@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Khoai môn latte sữa gấu 700ml",
+          "description": "",
+          "price": 45000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-820l4-mepb51nic4jo41@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        }
+      ]
+    },
+    {
+      "name": "Thêm",
+      "description": "Cơm thêm, rau thêm, canh thêm",
+      "sort_order": 10,
+      "products": [
+        {
+          "name": "Cơm thêm",
+          "description": "",
+          "price": 9000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-81ztc-mmjscva8q5tt64@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Rau thêm",
+          "description": "",
+          "price": 12000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7r98o-lqn24i7chcfw9c@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        },
+        {
+          "name": "Canh thêm",
+          "description": "",
+          "price": 12000.0,
+          "image_url": "https://mms.img.susercontent.com/vn-11134517-7r98o-lqn24i7chcfw9c@resize_ss750x750!@crop_w750_h750_cT",
+          "option_groups": []
+        }
+      ]
+    }
+  ]
+}
