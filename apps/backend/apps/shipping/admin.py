@@ -70,8 +70,26 @@ class ShopConfigAdmin(ModelAdmin):
     )
 
     def has_add_permission(self, request):
-        # Singleton: allow add only if no instance exists
-        return not ShopConfig.objects.exists()
+        # Singleton: allow add only if no instance exists (cached to avoid redundant queries)
+        from django.core.cache import cache
+
+        exists = cache.get("shop_config_exists")
+        if exists is None:
+            exists = ShopConfig.objects.exists()
+            cache.set("shop_config_exists", exists, timeout=300)
+        return not exists
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        from django.core.cache import cache
+
+        cache.set("shop_config_exists", True, timeout=300)
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        from django.core.cache import cache
+
+        cache.delete("shop_config_exists")
 
     def has_delete_permission(self, request, obj=None):
         # Prevent accidental deletion of store configuration

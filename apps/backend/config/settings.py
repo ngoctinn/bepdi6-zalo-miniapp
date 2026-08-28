@@ -115,8 +115,9 @@ DATABASES = {
         ),
     )
 }
-# Keep database connections open for 60 seconds to reduce TCP/SSL handshake latency
-DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
+# Keep database connections open and reuse them to reduce TCP/SSL handshake latency
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=600)
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
 if "pytest" in sys.modules or os.environ.get("USE_SQLITE_TEST", "").lower() in (
     "true",
@@ -128,15 +129,16 @@ if "pytest" in sys.modules or os.environ.get("USE_SQLITE_TEST", "").lower() in (
     }
 
 
-# Cache (Redis)
+# Cache (Redis / LocMem)
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache"
-        if False
-        else "django.core.cache.backends.redis.RedisCache",
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": env("REDIS_URL"),
     }
 }
+
+# Use cached_db session backend to prevent querying Postgres database for every single HTTP request
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
 # Custom User Model
 AUTH_USER_MODEL = "customers.User"

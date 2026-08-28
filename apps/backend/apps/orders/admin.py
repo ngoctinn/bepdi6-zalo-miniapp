@@ -115,7 +115,6 @@ class OrderAdmin(ModelAdmin):
         "delivery_address",
         "items__product_name",
     ]
-    date_hierarchy = "created_at"
     readonly_fields = [
         "order_code",
         "idempotency_key",
