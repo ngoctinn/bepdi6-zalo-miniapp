@@ -90,9 +90,8 @@ export const useToastStore = create<ToastStore>((set) => ({
 }));
 
 /**
- * useAppToast: Hệ thống Toast độc lập chuẩn Soft Design Tokens
- * - Màu Soft Pastel tuyệt đối (Success xanh rêu, Warning mật ong, Error đỏ mềm)
- * - Khắc phục 100% tình trạng bị đè màu đen của SDK
+ * useAppToast: custom toast aligned with the soft design tokens.
+ * Staff screens still use ZaUI snackbar, so app.scss keeps the SDK overrides.
  */
 export function useAppToast() {
   const show = useToastStore((state) => state.show);

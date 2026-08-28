@@ -83,7 +83,7 @@ export function CancelOrderModal({
           </button>
           <button
             onClick={onConfirmCancel}
-            className="flex h-11 flex-1 items-center justify-center rounded-xl bg-rose-600 text-xs font-bold text-white shadow-sm active:bg-rose-700"
+            className="flex h-11 flex-1 items-center justify-center rounded-xl bg-red-600 text-xs font-bold text-white shadow-sm active:bg-red-700"
           >
             Xác nhận hủy
           </button>

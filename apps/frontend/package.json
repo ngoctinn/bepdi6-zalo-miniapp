@@ -1,8 +1,8 @@
 {
-  "name": "zaui-bistro",
+  "name": "bepdi6-zalo-miniapp",
   "private": true,
   "version": "1.0.0",
-  "description": "ZaUI Bistro là bộ giao diện mẫu (Template) dành cho các ứng dụng đặt món (Coffee & Food) trên nền tảng Zalo Mini App, tập trung vào trải nghiệm người dùng mượt mà và hiện đại.",
+  "description": "Bếp Dì 6 Zalo Mini App cho đặt món, checkout, theo dõi đơn hàng và màn hình bếp/nhân viên.",
   "repository": "",
   "license": "UNLICENSED",
   "browserslist": [

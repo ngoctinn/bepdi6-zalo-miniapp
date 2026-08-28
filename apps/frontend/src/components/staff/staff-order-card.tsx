@@ -24,32 +24,32 @@ export function StaffOrderCard({
       case "CONFIRMED":
         return {
           label: "Đã xác nhận",
-          className: "bg-blue-100 text-blue-900 border-blue-300",
+          className: "bg-olive-100 text-olive-900 border-olive-200",
         };
       case "PREPARING":
         return {
           label: "Bếp đang làm",
-          className: "bg-sky-100 text-sky-900 border-sky-300",
+          className: "bg-amber-100 text-amber-900 border-amber-300",
         };
       case "READY":
         return {
           label: "Sẵn sàng giao",
-          className: "bg-teal-100 text-teal-900 border-teal-300",
+          className: "bg-olive-50 text-olive-900 border-olive-200",
         };
       case "DELIVERING":
         return {
           label: "Đang giao",
-          className: "bg-indigo-100 text-indigo-900 border-indigo-300",
+          className: "bg-stone-100 text-stone-800 border-stone-300",
         };
       case "COMPLETED":
         return {
           label: "Hoàn tất",
-          className: "bg-emerald-100 text-emerald-900 border-emerald-300",
+          className: "bg-olive-100 text-olive-900 border-olive-300",
         };
       case "CANCELLED":
         return {
           label: "Đã hủy",
-          className: "bg-rose-100 text-rose-900 border-rose-300",
+          className: "bg-red-100 text-red-700 border-red-200",
         };
       default:
         return {
@@ -184,7 +184,7 @@ export function StaffOrderCard({
                 {Number(order.total_amount || 0).toLocaleString("vi-VN")}đ
               </span>
               {isPaid ? (
-                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xxxxsmall font-bold text-emerald-800">
+                <span className="rounded bg-olive-100 px-1.5 py-0.5 text-xxxxsmall font-bold text-olive-900">
                   ĐÃ TT
                 </span>
               ) : (
@@ -212,7 +212,7 @@ export function StaffOrderCard({
               <button
                 disabled={isProcessing}
                 onClick={() => onOpenCancelModal(order)}
-                className="flex h-12 w-24 items-center justify-center gap-1 rounded-xl border border-rose-200 bg-rose-50 text-xs font-bold text-rose-700 active:bg-rose-100 disabled:opacity-50"
+                className="flex h-12 w-24 items-center justify-center gap-1 rounded-xl border border-red-100 bg-red-100/60 text-xs font-bold text-red-700 active:bg-red-100 disabled:opacity-50"
               >
                 <Icon icon="zi-close-circle" className="text-base" />
                 <span>Hủy</span>
@@ -256,7 +256,7 @@ export function StaffOrderCard({
             <button
               disabled={isProcessing}
               onClick={() => onUpdateStatus(order.id, "DELIVERING")}
-              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-sky-600 text-sm font-bold text-white shadow-sm active:opacity-90 disabled:opacity-50"
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-white shadow-sm active:opacity-90 disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />
@@ -273,7 +273,7 @@ export function StaffOrderCard({
             <button
               disabled={isProcessing}
               onClick={() => onUpdateStatus(order.id, "COMPLETED")}
-              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-bold text-white shadow-sm active:opacity-90 disabled:opacity-50"
+              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-olive-700 text-sm font-bold text-white shadow-sm active:opacity-90 disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />

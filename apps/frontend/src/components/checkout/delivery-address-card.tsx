@@ -1,7 +1,7 @@
 import { MapPinIcon, ChevronRightIcon } from "@/components/common/vectors";
 import { copy } from "@/constants/copy";
 import { ShopInfo } from "@/types/shop.types";
-import { Address } from "@/types/address.types";
+import { Address } from "@/types/customer.types";
 import { DeliveryType } from "@/types/order.types";
 import { DeliveryTypeSelector } from "./delivery-type-selector";
 import { useNavigate } from "react-router-dom";
