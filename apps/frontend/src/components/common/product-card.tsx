@@ -114,11 +114,12 @@ export default function ProductCard({
           </div>
         )}
 
-        {/* Sale badge — red-amber gradient, top-left corner */}
+        {/* Sale badge — Refined Warm Terracotta/Amber Pill with subtle styling */}
         {hasPromo && discountPct != null && discountPct > 0 && (
-          <div className="absolute left-0 top-0 z-10 rounded-br-xl bg-gradient-to-r from-red-500 to-amber-500 px-2 py-0.5 shadow-sm">
-            <span className="text-[10px] font-extrabold leading-tight tracking-wide text-white drop-shadow-sm">
-              -{discountPct}%
+          <div className="absolute left-2 top-2 z-10 flex items-center gap-0.5 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 px-2 py-0.5 shadow-sm ring-1 ring-white/20">
+            <span className="text-[9px] font-bold text-amber-100">GIẢM</span>
+            <span className="text-[10px] font-extrabold leading-tight tracking-tight text-white">
+              {discountPct}%
             </span>
           </div>
         )}
@@ -147,22 +148,29 @@ export default function ProductCard({
       {/* Price row + Quick-add stepper */}
       <div className="mt-1.5 flex items-end justify-between gap-1 pt-0.5">
         {/* Price block */}
-        <div className="flex flex-col">
+        <div className="flex min-h-[34px] flex-col justify-end">
           <div
             className={cn(
-              "text-sm font-bold leading-tight",
-              hasPromo ? "text-primary" : "text-neutral900",
+              "text-sm font-extrabold leading-tight tracking-tight",
+              hasPromo ? "text-amber-700" : "text-neutral900",
             )}
           >
             {formatCurrency(displayPrice)}
-            <span className="ml-0.5 text-xs font-medium text-neutral500">
+            <span
+              className={cn(
+                "ml-0.5 text-xs font-semibold",
+                hasPromo ? "text-amber-700/80" : "text-neutral500",
+              )}
+            >
               đ
             </span>
           </div>
-          {hasPromo && (
+          {hasPromo ? (
             <div className="mt-0.5 text-[11px] font-medium leading-tight text-neutral400 line-through">
               {formatCurrency(originalPrice)}đ
             </div>
+          ) : (
+            <div className="mt-0.5 h-[14px]" aria-hidden="true" />
           )}
         </div>
 

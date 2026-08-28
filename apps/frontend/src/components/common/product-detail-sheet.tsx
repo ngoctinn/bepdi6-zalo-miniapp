@@ -266,13 +266,16 @@ export default function ProductDetailSheet({
                 {/* Bottom gradient for text readability */}
                 <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/20 to-transparent" />
 
-                {/* Sale badge — red-amber gradient */}
+                {/* Sale badge — Refined Warm Amber Pill */}
                 {product.has_promotion &&
                   product.discount_percent != null &&
                   product.discount_percent > 0 && (
-                    <div className="absolute left-3 top-3 z-10 rounded-xl bg-gradient-to-r from-red-500 to-amber-500 px-2.5 py-1 shadow-md">
-                      <span className="text-xs font-extrabold tracking-wide text-white drop-shadow-sm">
-                        -{product.discount_percent}%
+                    <div className="absolute left-3 top-3 z-10 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-600 to-amber-700 px-2.5 py-1 shadow-md ring-1 ring-white/20">
+                      <span className="text-[10px] font-bold text-amber-100">
+                        GIẢM
+                      </span>
+                      <span className="text-xs font-extrabold tracking-tight text-white">
+                        {product.discount_percent}%
                       </span>
                     </div>
                   )}
@@ -290,9 +293,9 @@ export default function ProductDetailSheet({
                     {product.has_promotion &&
                     product.effective_price != null ? (
                       <>
-                        <div className="text-lg font-extrabold leading-tight text-primary">
+                        <div className="text-lg font-extrabold leading-tight text-[#B45309]">
                           {formatCurrency(product.effective_price)}
-                          <span className="ml-0.5 text-sm font-medium text-primary/70">
+                          <span className="ml-0.5 text-sm font-semibold text-amber-700/80">
                             đ
                           </span>
                         </div>
@@ -300,7 +303,7 @@ export default function ProductDetailSheet({
                           <span className="text-xs font-normal text-neutral400 line-through">
                             {formatCurrency(product.price)}đ
                           </span>
-                          <span className="rounded-md bg-gradient-to-r from-red-500 to-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          <span className="border-amber300/60 rounded-full border bg-amber-100 px-1.5 py-0.5 text-[10px] font-extrabold text-amber-800">
                             -{product.discount_percent}%
                           </span>
                         </div>

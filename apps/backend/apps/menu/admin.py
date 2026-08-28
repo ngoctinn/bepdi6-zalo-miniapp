@@ -150,6 +150,18 @@ class ProductAdmin(ModelAdmin):
         local_time = timezone.localtime(obj.created_at)
         return local_time.strftime("%d/%m/%Y %H:%M")
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        from apps.menu.views import invalidate_menu_cache
+
+        invalidate_menu_cache(obj.id)
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        from apps.menu.views import invalidate_menu_cache
+
+        invalidate_menu_cache(obj.id)
+
 
 @admin.register(Option)
 class OptionAdmin(ModelAdmin):
@@ -213,3 +225,15 @@ class ProductPromotionAdmin(ModelAdmin):
                 pct,
             )
         return "-"
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        from apps.menu.views import invalidate_menu_cache
+
+        invalidate_menu_cache(obj.product_id)
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        from apps.menu.views import invalidate_menu_cache
+
+        invalidate_menu_cache(obj.product_id)
