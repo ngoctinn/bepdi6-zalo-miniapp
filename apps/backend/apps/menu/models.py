@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 from django.db import models
+from django.utils import timezone
 
 
 class Category(models.Model):
@@ -114,6 +117,48 @@ class Product(models.Model):
             return self.image.url
         return self.image_url
 
+    @property
+    def active_promotion(self):
+        """Return the currently active ProductPromotion, or None."""
+        now = timezone.now()
+        try:
+            return (
+                self.promotions.filter(
+                    is_active=True,
+                )
+                .filter(
+                    models.Q(valid_from__isnull=True) | models.Q(valid_from__lte=now),
+                )
+                .filter(
+                    models.Q(valid_to__isnull=True) | models.Q(valid_to__gte=now),
+                )
+                .order_by("-created_at")
+                .first()
+            )
+        except Exception:
+            return None
+
+    @property
+    def effective_price(self) -> Decimal:
+        """Return promotional price if active, else regular price."""
+        promo = self.active_promotion
+        if promo:
+            return promo.promotional_price
+        return self.price
+
+    @property
+    def has_promotion(self) -> bool:
+        return self.active_promotion is not None
+
+    @property
+    def discount_percent(self) -> int | None:
+        """Return integer discount %, or None if no active promotion."""
+        promo = self.active_promotion
+        if promo and self.price and self.price > 0:
+            pct = round((1 - float(promo.promotional_price) / float(self.price)) * 100)
+            return max(0, pct)
+        return None
+
 
 class OptionGroup(models.Model):
     """Option group for custom product modifiers (e.g. Size, Topping)."""
@@ -191,3 +236,68 @@ class Option(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} (+{self.price:,.0f}đ)"
+
+
+class ProductPromotion(models.Model):
+    """Time-bounded promotional price for a product."""
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="promotions",
+        verbose_name="Món ăn",
+    )
+    promotional_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name="Giá ưu đãi",
+        help_text="Giá bán trong thời gian khuyến mãi",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name="Đang kích hoạt",
+    )
+    valid_from = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Hiệu lực từ",
+        help_text="Để trống = áp dụng ngay",
+    )
+    valid_to = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Hết hạn lúc",
+        help_text="Để trống = không giới hạn",
+    )
+    note = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name="Ghi chú nội bộ",
+        help_text="Ví dụ: Flash sale 12h, Combo cuối tuần",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
+
+    class Meta:
+        db_table = "product_promotions"
+        verbose_name = "Giá ưu đãi"
+        verbose_name_plural = "Giá ưu đãi"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                fields=["product", "is_active"], name="idx_promo_product_active"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        price_fmt = f"{self.promotional_price:,.0f}đ"
+        if self.valid_to:
+            from django.utils import timezone as tz
+
+            local = tz.localtime(self.valid_to)
+            return (
+                f"{self.product.name} — {price_fmt} (đến {local.strftime('%d/%m/%Y')})"
+            )
+        return f"{self.product.name} — {price_fmt} (không thời hạn)"

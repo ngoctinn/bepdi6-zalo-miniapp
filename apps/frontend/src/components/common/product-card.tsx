@@ -43,6 +43,12 @@ export default function ProductCard({
     defaultProductImg;
 
   const isOutOfStock = product.status === "OUT_OF_STOCK";
+  const hasPromo = product.has_promotion && product.effective_price != null;
+  const displayPrice = hasPromo
+    ? product.effective_price!
+    : Number(product.price);
+  const originalPrice = Number(product.price);
+  const discountPct = product.discount_percent;
 
   // Số lượng của món này hiện có trong giỏ hàng
   const cartItemsForProduct = items.filter(
@@ -53,12 +59,6 @@ export default function ProductCard({
     0,
   );
 
-  const hasRequiredOptions =
-    product.option_groups &&
-    product.option_groups.some(
-      (group) => group.is_required && group.options && group.options.length > 0,
-    );
-
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onAddToCart) {
@@ -67,7 +67,6 @@ export default function ProductCard({
     }
 
     if (totalQuantityInCart === 0) {
-      // Khi chưa chọn: Bấm dấu + kích hoạt mở Sheet chi tiết món ăn
       if (onClick) {
         onClick();
       } else {
@@ -76,7 +75,6 @@ export default function ProductCard({
       return;
     }
 
-    // Khi đã có trong giỏ hàng: Tăng số lượng
     if (cartItemsForProduct.length > 0) {
       const lastItem = cartItemsForProduct[cartItemsForProduct.length - 1];
       updateQuantity(lastItem.id, lastItem.quantity + 1);
@@ -105,12 +103,22 @@ export default function ProductCard({
       onMouseEnter={handlePrefetch}
       onTouchStart={handlePrefetch}
     >
-      {/* Large Product Image */}
+      {/* Product Image with Overlays */}
       <div className="shadow-xs relative aspect-square w-full overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-black/5">
+        {/* Out of Stock overlay */}
         {isOutOfStock && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
             <span className="rounded-md bg-black/80 px-2 py-0.5 text-xxxsmall font-semibold tracking-wide text-white">
               {copy.product.outOfStock}
+            </span>
+          </div>
+        )}
+
+        {/* Sale badge — red-amber gradient, top-left corner */}
+        {hasPromo && discountPct != null && discountPct > 0 && (
+          <div className="absolute left-0 top-0 z-10 rounded-br-xl bg-gradient-to-r from-red-500 to-amber-500 px-2 py-0.5 shadow-sm">
+            <span className="text-[10px] font-extrabold leading-tight tracking-wide text-white drop-shadow-sm">
+              -{discountPct}%
             </span>
           </div>
         )}
@@ -124,7 +132,7 @@ export default function ProductCard({
         />
       </div>
 
-      {/* Product Info & Price Below */}
+      {/* Product Info */}
       <div className="mt-2 flex flex-col">
         <div className="line-clamp-2 min-h-[38px] text-sm font-semibold leading-snug text-neutral900">
           {product.name}
@@ -136,14 +144,31 @@ export default function ProductCard({
         )}
       </div>
 
-      <div className="mt-1.5 flex items-center justify-between pt-0.5">
-        <div className="text-sm font-bold text-neutral900">
-          {formatCurrency(product.price)}
-          <span className="ml-0.5 text-xs font-medium text-neutral500">đ</span>
+      {/* Price row + Quick-add stepper */}
+      <div className="mt-1.5 flex items-end justify-between gap-1 pt-0.5">
+        {/* Price block */}
+        <div className="flex flex-col">
+          <div
+            className={cn(
+              "text-sm font-bold leading-tight",
+              hasPromo ? "text-primary" : "text-neutral900",
+            )}
+          >
+            {formatCurrency(displayPrice)}
+            <span className="ml-0.5 text-xs font-medium text-neutral500">
+              đ
+            </span>
+          </div>
+          {hasPromo && (
+            <div className="mt-0.5 text-[11px] font-medium leading-tight text-neutral400 line-through">
+              {formatCurrency(originalPrice)}đ
+            </div>
+          )}
         </div>
 
+        {/* Stepper / Quick-add */}
         {!isOutOfStock && (
-          <div>
+          <div className="shrink-0">
             {totalQuantityInCart > 0 ? (
               <div
                 className="flex items-center gap-1.5"
@@ -176,7 +201,7 @@ export default function ProductCard({
                 <button
                   type="button"
                   onClick={handleQuickAdd}
-                  className="shadow-xs flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white transition-transform active:scale-90"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90"
                   aria-label="Tăng số lượng"
                 >
                   <svg
@@ -198,12 +223,12 @@ export default function ProductCard({
               <button
                 type="button"
                 onClick={handleQuickAdd}
-                className="shadow-xs flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white transition-transform active:scale-90"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-sm transition-all active:scale-90 active:shadow-none"
                 aria-label="Thêm vào giỏ"
               >
                 <svg
-                  width="14"
-                  height="14"
+                  width="15"
+                  height="15"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

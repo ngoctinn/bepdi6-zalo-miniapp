@@ -158,8 +158,21 @@ export default function ProductDetailSheet({
     return { optionsTotal: total, selectedOptionsList: selectedList };
   }, [product, selectedOptions]);
 
-  const unitPrice = Number(product?.price || 0) + optionsTotal;
+  // Dùng effective_price (giá ưu đãi nếu có) làm base
+  const baseUnitPrice =
+    product?.has_promotion && product.effective_price != null
+      ? Number(product.effective_price)
+      : Number(product?.price || 0);
+
+  const unitPrice = baseUnitPrice + optionsTotal;
   const totalPrice = unitPrice * quantity;
+
+  // Tiền tiết kiệm nếu có ưu đãi
+  const savingsPerUnit =
+    product?.has_promotion && product.effective_price != null
+      ? Number(product.price) - Number(product.effective_price)
+      : 0;
+  const totalSavings = savingsPerUnit * quantity;
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -185,7 +198,7 @@ export default function ProductDetailSheet({
       product_name: product.name,
       product_image:
         product.effective_image_url || product.image_url || product.image || "",
-      unit_price: Number(product.price || 0),
+      unit_price: baseUnitPrice, // Snapshot giá ưu đãi thực tế tại thời điểm thêm giỏ
       quantity,
       note: note.trim() || undefined,
       options: selectedOptionsList,
@@ -215,7 +228,7 @@ export default function ProductDetailSheet({
       handler={true}
     >
       <div className="relative flex h-[80vh] max-h-[85vh] w-full flex-col bg-background">
-        {/* Close (X) button at top-left matching cart-sheet */}
+        {/* Close (X) button */}
         <div className="relative flex shrink-0 items-center px-4 py-2.5">
           <Button
             onClick={onClose}
@@ -227,7 +240,7 @@ export default function ProductDetailSheet({
           </Button>
         </div>
 
-        {/* Sheet Scrollable Body (Cardless seamless layout) */}
+        {/* Sheet Scrollable Body */}
         <div className="no-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto px-4 pb-6 pt-1">
           {!product && isLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
@@ -242,35 +255,75 @@ export default function ProductDetailSheet({
             </div>
           ) : (
             <>
-              {/* Product Hero Image */}
-              <div className="shadow-xs relative aspect-video w-full overflow-hidden rounded-2xl bg-amber-100/40 ring-1 ring-black/5">
+              {/* Hero Image with gradient overlay + sale badge */}
+              <div className="shadow-xs relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-amber-100/40 ring-1 ring-black/5">
                 <img
                   draggable={false}
                   className="h-full w-full object-cover"
                   src={imageUrl}
                   alt={product.name}
                 />
+                {/* Bottom gradient for text readability */}
+                <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/20 to-transparent" />
+
+                {/* Sale badge — red-amber gradient */}
+                {product.has_promotion &&
+                  product.discount_percent != null &&
+                  product.discount_percent > 0 && (
+                    <div className="absolute left-3 top-3 z-10 rounded-xl bg-gradient-to-r from-red-500 to-amber-500 px-2.5 py-1 shadow-md">
+                      <span className="text-xs font-extrabold tracking-wide text-white drop-shadow-sm">
+                        -{product.discount_percent}%
+                      </span>
+                    </div>
+                  )}
               </div>
 
-              {/* Product Info (Direct text, no card) */}
-              <div className="flex flex-col">
+              {/* Product Info */}
+              <div className="flex flex-col gap-1">
                 <div className="flex items-start justify-between gap-3">
                   <h2 className="text-base font-bold leading-snug text-neutral900">
                     {product.name}
                   </h2>
-                  <div className="whitespace-nowrap text-base font-normal text-black">
-                    {formatCurrency(product.price)}
-                    <span className="ml-0.5 text-xs text-neutral500">đ</span>
+
+                  {/* Price block */}
+                  <div className="flex shrink-0 flex-col items-end">
+                    {product.has_promotion &&
+                    product.effective_price != null ? (
+                      <>
+                        <div className="text-lg font-extrabold leading-tight text-primary">
+                          {formatCurrency(product.effective_price)}
+                          <span className="ml-0.5 text-sm font-medium text-primary/70">
+                            đ
+                          </span>
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-1.5">
+                          <span className="text-xs font-normal text-neutral400 line-through">
+                            {formatCurrency(product.price)}đ
+                          </span>
+                          <span className="rounded-md bg-gradient-to-r from-red-500 to-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            -{product.discount_percent}%
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-lg font-extrabold leading-tight text-neutral900">
+                        {formatCurrency(product.price)}
+                        <span className="ml-0.5 text-sm font-medium text-neutral500">
+                          đ
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
+
                 {product.description && (
-                  <p className="mt-1 text-xs leading-relaxed text-neutral600">
+                  <p className="text-xs leading-relaxed text-neutral600">
                     {product.description}
                   </p>
                 )}
               </div>
 
-              {/* Option Groups (Seamless section with dividers, no cards) */}
+              {/* Option Groups — Chip Grid Style */}
               {product.option_groups && product.option_groups.length > 0 && (
                 <div className="space-y-4 border-t border-black/5 pt-2">
                   {product.option_groups.map((group) => {
@@ -278,14 +331,15 @@ export default function ProductDetailSheet({
                       selectedOptions[group.id] || [];
 
                     return (
-                      <div key={group.id} className="space-y-2">
+                      <div key={group.id} className="space-y-2.5">
+                        {/* Group header */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-bold text-neutral900">
                               {group.name}
                             </span>
                             {group.is_required ? (
-                              <Badge variant="accent" size="small">
+                              <Badge variant="error" size="small">
                                 {copy.product.required || "Bắt buộc"}
                               </Badge>
                             ) : (
@@ -301,55 +355,68 @@ export default function ProductDetailSheet({
                           </span>
                         </div>
 
-                        <div className="flex flex-col divide-y divide-black/5">
+                        {/* Chip grid */}
+                        <div className="flex flex-wrap gap-2">
                           {group.options?.map((option) => {
                             const isSelected = currentGroupSelections.includes(
                               option.id,
                             );
                             const isUnavailable = option.status === "INACTIVE";
+                            const hasExtraPrice = Number(option.price) > 0;
 
                             return (
-                              <div
+                              <button
                                 key={option.id}
+                                type="button"
+                                disabled={isUnavailable}
                                 onClick={() =>
                                   !isUnavailable &&
                                   handleOptionToggle(group, option)
                                 }
                                 className={cn(
-                                  "flex cursor-pointer items-center justify-between py-2.5 transition-colors",
-                                  isUnavailable
-                                    ? "cursor-not-allowed opacity-40"
-                                    : "active:bg-black/[0.02]",
+                                  "flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-all",
+                                  isSelected
+                                    ? "bg-olive-50 border-primary text-primary shadow-sm ring-1 ring-primary/20"
+                                    : "border-stone-200 bg-white text-neutral700 active:scale-[0.97]",
+                                  isUnavailable &&
+                                    "cursor-not-allowed opacity-40",
                                 )}
                               >
-                                <div className="flex items-center gap-2.5">
-                                  <div
+                                {/* Checkmark indicator */}
+                                <span
+                                  className={cn(
+                                    "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-all",
+                                    isSelected
+                                      ? "border-primary bg-primary text-white"
+                                      : "border-stone-300 bg-transparent",
+                                  )}
+                                >
+                                  {isSelected && (
+                                    <CheckIcon className="h-2.5 w-2.5" />
+                                  )}
+                                </span>
+
+                                <span>{option.name}</span>
+
+                                {hasExtraPrice && (
+                                  <span
                                     className={cn(
-                                      "flex h-5 w-5 items-center justify-center rounded-full border transition-all",
+                                      "font-normal",
                                       isSelected
-                                        ? "border-primary bg-primary text-white"
-                                        : "border-stone-300 bg-transparent",
+                                        ? "text-primary/70"
+                                        : "text-neutral500",
                                     )}
                                   >
-                                    {isSelected && (
-                                      <CheckIcon className="h-3 w-3" />
-                                    )}
-                                  </div>
-                                  <span className="text-sm font-normal text-neutral900">
-                                    {option.name}
+                                    +{formatCurrency(option.price)}đ
                                   </span>
-                                </div>
+                                )}
 
-                                <div className="text-xs font-normal text-black">
-                                  {Number(option.price) > 0 ? (
-                                    `+${formatCurrency(option.price)}đ`
-                                  ) : (
-                                    <span className="font-normal text-neutral400">
-                                      Miễn phí
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
+                                {!hasExtraPrice && !isSelected && (
+                                  <span className="font-normal text-neutral400">
+                                    Miễn phí
+                                  </span>
+                                )}
+                              </button>
                             );
                           })}
                         </div>
@@ -359,7 +426,7 @@ export default function ProductDetailSheet({
                 </div>
               )}
 
-              {/* Note Input (Seamless direct section) */}
+              {/* Note Input */}
               <div className="border-t border-black/5 pt-2">
                 <span className="mb-1.5 block text-xs font-bold text-neutral800">
                   Ghi chú cho quán
@@ -374,12 +441,19 @@ export default function ProductDetailSheet({
           )}
         </div>
 
-        {/* Bottom Action Bar: Stepper + Add to cart with price inside button (Standard Food App UX) */}
+        {/* Bottom Action Bar */}
         {product && (
           <div className="shrink-0 border-t border-black/5 bg-background/95 px-4 py-3 pb-[max(16px,calc(var(--app-safe-area-bottom,0px)+12px))] shadow-lg backdrop-blur-md">
             {validationError && (
               <div className="mb-2 rounded-xl border border-red-200 bg-red-500/10 py-1.5 text-center text-xs font-medium text-red-600">
                 ⚠️ {validationError}
+              </div>
+            )}
+
+            {/* Savings indicator */}
+            {totalSavings > 0 && (
+              <div className="mb-2 rounded-xl bg-green-50 px-3 py-1.5 text-center text-xs font-semibold text-green-700">
+                🎉 Bạn tiết kiệm được {formatCurrency(totalSavings)}đ
               </div>
             )}
 

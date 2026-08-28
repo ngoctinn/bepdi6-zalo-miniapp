@@ -18,17 +18,17 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles: Record<BadgeVariant, string> = {
-  primary: "bg-primary/10 text-primaryDark border border-primary/20",
+  primary: "bg-olive100 text-olive900 border border-olive600/30",
   success: "bg-olive50 text-olive900 border border-olive600/30",
-  warning: "bg-amber-50 text-amber-900 border border-amber-500/30",
-  error: "bg-rose-50 text-rose-700 border border-rose-200/60",
-  neutral: "bg-black/[0.04] text-stone-600 border border-black/5",
-  accent: "bg-amber-500/15 text-amber-800 border border-amber-500/25",
+  warning: "bg-amber100 text-amber700 border border-amber500/30",
+  error: "bg-[#FEF2F2] text-[#DC2626] border border-[#FCA5A5]/60",
+  neutral: "bg-neutral100 text-neutral600 border border-neutral200",
+  accent: "bg-amber100 text-amber700 border border-amber500/30",
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
-  small: "px-1.5 py-0.5 text-xxxxsmall leading-tight",
-  medium: "px-2 py-0.5 text-xs leading-normal",
+  small: "px-1.5 py-0.5 text-[11px] font-semibold leading-tight",
+  medium: "px-2 py-0.5 text-xs font-semibold leading-normal",
 };
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -41,7 +41,7 @@ export const Badge: React.FC<BadgeProps> = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded font-semibold tracking-tight",
+        "inline-flex items-center justify-center rounded-[4px] tracking-tight",
         variantStyles[variant],
         sizeStyles[size],
         className,

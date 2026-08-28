@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.customers.models import Address, Customer, User
-from apps.menu.models import Category, Option, OptionGroup, Product
+from apps.menu.models import Category, Option, OptionGroup, Product, ProductPromotion
 from apps.menu.views import invalidate_menu_cache
 from apps.orders.models import Order, OrderItem
 from apps.vouchers.models import Voucher
@@ -1086,12 +1086,86 @@ class Command(BaseCommand):
                 quantity=1,
                 subtotal=prods[0].price,
             )
+        # 7.5 Seed demo promotional prices (xóa cũ trước)
+        import datetime as dt
+
+        from django.utils import timezone as tz
+
+        ProductPromotion.objects.all().delete()
+        promo_products = list(
+            Product.objects.filter(status=Product.Status.AVAILABLE).order_by("id")[:8]
+        )
+        now = tz.now()
+        promo_data = [
+            # Flash sale không thời hạn
+            {
+                "idx": 0,
+                "pct": 15,
+                "note": "Flash sale thường xuyên",
+                "valid_from": None,
+                "valid_to": None,
+            },
+            {
+                "idx": 1,
+                "pct": 20,
+                "note": "Ưu đãi đặc biệt",
+                "valid_from": None,
+                "valid_to": None,
+            },
+            # Sale có thời hạn
+            {
+                "idx": 2,
+                "pct": 10,
+                "note": "Sale cuối tuần",
+                "valid_from": now,
+                "valid_to": now + dt.timedelta(days=2),
+            },
+            {
+                "idx": 3,
+                "pct": 25,
+                "note": "Happy Hour 11h-14h",
+                "valid_from": now,
+                "valid_to": now + dt.timedelta(hours=3),
+            },
+            {
+                "idx": 4,
+                "pct": 30,
+                "note": "Combo Flash Deal",
+                "valid_from": now,
+                "valid_to": now + dt.timedelta(days=7),
+            },
+            {
+                "idx": 5,
+                "pct": 12,
+                "note": "Khuyến mãi tháng 8",
+                "valid_from": None,
+                "valid_to": now + dt.timedelta(days=30),
+            },
+        ]
+        total_promos = 0
+        for entry in promo_data:
+            idx = entry["idx"]
+            if idx >= len(promo_products):
+                continue
+            prod = promo_products[idx]
+            promo_price = (
+                round(float(prod.price) * (1 - entry["pct"] / 100) / 1000) * 1000
+            )
+            ProductPromotion.objects.create(
+                product=prod,
+                promotional_price=Decimal(str(promo_price)),
+                is_active=True,
+                valid_from=entry["valid_from"],
+                valid_to=entry["valid_to"],
+                note=entry["note"],
+            )
+            total_promos += 1
 
         # 8. Xóa Cache để cập nhật ngay lập tức cho API
         invalidate_menu_cache()
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Successfully seeded {total_cats} Categories, {total_prods} Products, and {total_options} Options!"
+                f"Successfully seeded {total_cats} Categories, {total_prods} Products, {total_options} Options, and {total_promos} Promotions!"
             )
         )

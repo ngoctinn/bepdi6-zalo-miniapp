@@ -26,6 +26,9 @@ export interface Product {
   name: string;
   description?: string;
   price: number;
+  effective_price?: number; // Giá thực tế (ưu đãi nếu có, ngược lại bằng price)
+  has_promotion?: boolean; // Có đang ưu đãi không
+  discount_percent?: number; // % giảm giá (e.g. 20 = -20%)
   image?: string;
   image_url?: string;
   effective_image_url?: string;
