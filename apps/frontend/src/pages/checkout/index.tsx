@@ -25,7 +25,6 @@ import { copy } from "@/constants/copy";
 import { getLocation, getAccessToken } from "zmp-sdk/apis";
 
 // Modularized Checkout Sub-components
-import { DeliveryTypeSelector } from "@/components/checkout/delivery-type-selector";
 import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
 import { CheckoutItemList } from "@/components/checkout/checkout-item-list";
 import { VoucherInputSection } from "@/components/checkout/voucher-input-section";
@@ -407,15 +406,10 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      {/* Tab chuyển đổi: Giao tận nơi vs Tự đến lấy */}
-      <DeliveryTypeSelector
-        deliveryType={deliveryType}
-        onChange={setDeliveryType}
-      />
-
-      {/* Khung Thông Tin Nhận Hàng */}
+      {/* Khung Thông Tin Nhận Hàng (Bao gồm tab Giao tận nơi / Tự đến lấy + Địa chỉ) */}
       <DeliveryAddressCard
         deliveryType={deliveryType}
+        onDeliveryTypeChange={setDeliveryType}
         selectedAddress={selectedAddress}
         shopInfo={shopInfo}
         isLocating={isLocating}
@@ -457,16 +451,18 @@ export default function CheckoutPage() {
       />
 
       {/* Ghi chú đơn hàng */}
-      <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5">
-        <span className="block text-xs font-bold text-neutral900">
-          {copy.checkout.note}
-        </span>
+      <div className="flex flex-col gap-2">
+        <div className="px-1">
+          <span className="text-xs font-bold text-neutral900">
+            {copy.checkout.note}
+          </span>
+        </div>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder={copy.checkout.notePlaceholder}
           rows={2}
-          className="w-full rounded-xl border border-black/10 bg-transparent p-2.5 text-xs text-neutral900 placeholder:text-neutral400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
+          className="shadow-xs w-full rounded-2xl border border-black/[0.08] bg-white p-3 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
         />
       </div>
 
@@ -485,18 +481,18 @@ export default function CheckoutPage() {
 
       {/* Tư vấn đặt món & Hotline quán */}
       {Boolean(shopInfo?.hotline) && (
-        <div className="flex items-center justify-between rounded-2xl border border-primary/20 bg-primary/5 p-3 text-xs">
+        <div className="shadow-xs flex items-center justify-between rounded-2xl border border-black/[0.06] bg-white p-4">
           <div>
-            <div className="font-bold text-primaryDark">
+            <div className="text-xs font-bold text-neutral900">
               {copy.checkout.consultTitle}
             </div>
-            <div className="text-xxsmall text-neutral500">
+            <div className="mt-0.5 text-xxsmall text-neutral500">
               Hotline {shopInfo?.hotline} ({copy.checkout.consultSub})
             </div>
           </div>
           <a
             href={`tel:${shopInfo?.hotline || ""}`}
-            className="flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xxsmall font-bold text-white transition-all active:scale-95"
+            className="shadow-xs flex shrink-0 items-center gap-1 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:bg-primaryDark active:scale-95"
           >
             <span>{copy.checkout.callShop}</span>
           </a>

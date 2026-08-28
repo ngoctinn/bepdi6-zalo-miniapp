@@ -121,7 +121,7 @@ export default function OrderDetailPage() {
   return (
     <div className="flex flex-col gap-3 p-3.5 pb-24">
       {/* Order Info */}
-      <div className="flex items-center justify-between rounded-2xl border border-black/5 bg-transparent p-3.5">
+      <div className="shadow-xs flex items-center justify-between rounded-2xl border border-black/[0.06] bg-white p-4">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-bold text-neutral900">
@@ -132,7 +132,7 @@ export default function OrderDetailPage() {
               {isPickup ? copy.checkout.pickup : copy.checkout.delivery}
             </Badge>
           </div>
-          <span className="text-xxsmall text-neutral500">
+          <span className="mt-0.5 block text-xxsmall text-neutral500">
             {new Date(order.created_at).toLocaleString("vi-VN")}
           </span>
         </div>
@@ -151,13 +151,13 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Timeline Trạng Thái Đơn Hàng */}
-      <div className="rounded-2xl border border-black/5 bg-transparent p-4">
-        <span className="mb-3 block text-xs font-bold text-neutral800">
+      <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
+        <span className="mb-3 block text-xs font-bold text-neutral900">
           {copy.orderDetail.timelineSection}
         </span>
 
         {isCancelled ? (
-          <div className="rounded-xl border border-red-200/50 bg-red-50 p-3 text-xs text-red-700">
+          <div className="rounded-xl border border-red-200/70 bg-red-50 p-3 text-xs text-red-700">
             {copy.orderDetail.cancelledNotice}
             {order.cancellation_reason && (
               <span className="mt-0.5 block text-neutral600">
@@ -169,11 +169,11 @@ export default function OrderDetailPage() {
         ) : (
           <div className="relative flex items-start justify-between pt-2">
             {/* Progress Line */}
-            <div className="absolute left-4 right-4 top-4 -z-0 h-0.5 bg-black/10" />
+            <div className="absolute left-6 right-6 top-5 -z-0 h-0.5 bg-stone-200" />
             <div
-              className="absolute left-4 top-4 -z-0 h-0.5 bg-primary transition-all duration-500"
+              className="absolute left-6 top-5 -z-0 h-0.5 bg-primary transition-all duration-500"
               style={{
-                width: `${(currentStep / Math.max(1, steps.length - 1)) * 90}%`,
+                width: `${(currentStep / Math.max(1, steps.length - 1)) * 88}%`,
               }}
             />
 
@@ -184,25 +184,27 @@ export default function OrderDetailPage() {
               return (
                 <div
                   key={step.key}
-                  className="z-10 flex w-12 flex-col items-center text-center"
+                  className="z-10 flex w-14 flex-col items-center text-center"
                 >
                   <div
                     className={`flex h-6 w-6 items-center justify-center rounded-full text-xs transition-all ${
                       isPassed
                         ? "shadow-xs bg-primary text-white"
-                        : "bg-black/10 text-neutral400"
+                        : "border border-black/[0.08] bg-stone-100 text-neutral400"
                     } ${isCurrent ? "scale-110 ring-4 ring-primary/20" : ""}`}
                   >
                     {isPassed && idx < currentStep ? (
-                      <CheckIcon className="h-3 w-3" />
+                      <CheckIcon className="h-3 w-3 text-white" />
                     ) : (
-                      <span className="text-xxxxsmall">{idx + 1}</span>
+                      <span className="text-xxxxsmall font-bold">
+                        {idx + 1}
+                      </span>
                     )}
                   </div>
                   <span
-                    className={`mt-1.5 text-xxxxsmall leading-tight ${
+                    className={`mt-2 text-xxxxsmall leading-tight ${
                       isCurrent
-                        ? "font-bold text-primary"
+                        ? "font-bold text-olive900"
                         : isPassed
                           ? "font-medium text-neutral800"
                           : "text-neutral400"
@@ -219,16 +221,16 @@ export default function OrderDetailPage() {
 
       {/* Khối Thanh Toán VietQR Tức Thì (Nếu chọn BANK_TRANSFER) */}
       {isBankTransfer && !isCancelled && (
-        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
-          <div className="mb-2 flex items-center justify-between">
+        <div className="shadow-xs space-y-3 rounded-2xl border border-primary/25 bg-olive50/60 p-4">
+          <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-neutral900">
               {copy.orderDetail.vietqrTitle}
             </span>
             <span
-              className={`rounded px-2 py-0.5 text-xxsmall font-bold ${
+              className={`rounded-md px-2 py-0.5 text-xxsmall font-bold ${
                 isPaid
-                  ? "border border-primary/30 bg-primary/15 text-primaryDark"
-                  : "animate-pulse bg-amber-100 text-amber-800"
+                  ? "border border-primary/30 bg-olive100 text-olive900"
+                  : "animate-pulse border border-amber-300/50 bg-amber-100 text-amber-800"
               }`}
             >
               {isPaid
@@ -329,14 +331,14 @@ export default function OrderDetailPage() {
       )}
 
       {/* Thông tin nhận hàng (Giao tận nơi vs Tự đến lấy) */}
-      <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
-        <span className="mb-2 block text-xs font-bold text-neutral800">
+      <div className="shadow-xs space-y-2 rounded-2xl border border-black/[0.06] bg-white p-4">
+        <span className="block text-xs font-bold text-neutral900">
           {isPickup
             ? copy.checkout.pickupStoreSection
             : copy.checkout.deliveryAddressSection}
         </span>
         <div className="space-y-1 text-xs text-neutral800">
-          <div className="font-semibold">
+          <div className="font-semibold text-neutral900">
             {copy.orderDetail.recipient}: {order.recipient_name} • {order.phone}
           </div>
           <div>
@@ -352,8 +354,7 @@ export default function OrderDetailPage() {
           </div>
           {order.scheduled_delivery_at && (
             <div className="mt-1.5 flex items-center gap-1.5">
-              <span className="rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
-                ⏰{" "}
+              <span className="rounded-md border border-primary/20 bg-olive50/90 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
                 {isPickup
                   ? copy.orderDetail.scheduledPickupTime
                   : copy.orderDetail.scheduledDeliveryTime}{" "}
@@ -376,18 +377,18 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Danh sách món ăn */}
-      <div className="rounded-2xl border border-black/5 bg-transparent p-3.5">
-        <span className="mb-2.5 block text-xs font-bold text-neutral800">
+      <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
+        <span className="mb-2.5 block text-xs font-bold text-neutral900">
           {copy.orderDetail.itemsSection} ({order.items.length})
         </span>
-        <div className="space-y-3 divide-y divide-black/5">
+        <div className="space-y-3 divide-y divide-black/[0.05]">
           {order.items.map((item) => (
             <div
               key={item.id}
               className="flex items-start justify-between pt-2 first:pt-0"
             >
               <div className="flex-1 pr-3">
-                <div className="text-xs font-normal text-black">
+                <div className="text-xs font-medium text-neutral900">
                   {item.product_name}{" "}
                   <span className="font-normal text-neutral500">
                     x{item.quantity}
@@ -404,7 +405,7 @@ export default function OrderDetailPage() {
                   </div>
                 )}
               </div>
-              <span className="whitespace-nowrap text-xs font-normal text-black">
+              <span className="whitespace-nowrap text-xs font-bold text-neutral900">
                 {formatCurrency(item.subtotal)}đ
               </span>
             </div>
@@ -413,13 +414,13 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Chi tiết thanh toán */}
-      <div className="space-y-2 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
-        <span className="mb-1 block text-xs font-bold text-neutral800">
+      <div className="shadow-xs space-y-2.5 rounded-2xl border border-black/[0.06] bg-white p-4 text-xs">
+        <span className="block text-xs font-bold text-neutral900">
           {copy.orderDetail.totalSection}
         </span>
         <div className="flex justify-between text-neutral600">
           <span>{copy.checkout.subtotal}</span>
-          <span className="font-normal text-black">
+          <span className="font-medium text-neutral900">
             {formatCurrency(order.subtotal)}đ
           </span>
         </div>
@@ -429,21 +430,23 @@ export default function OrderDetailPage() {
               ? "Hình thức"
               : `${copy.checkout.shippingFee} (${order.distance_km?.toFixed(1)} km)`}
           </span>
-          <span className="font-normal text-black">
+          <span className="font-medium text-neutral900">
             {isPickup
               ? "Tự đến lấy (0đ)"
               : `${formatCurrency(order.shipping_fee)}đ`}
           </span>
         </div>
         {order.discount > 0 && (
-          <div className="flex justify-between font-normal text-primary">
+          <div className="flex justify-between font-medium text-primary">
             <span>{copy.checkout.discount}</span>
             <span>-{formatCurrency(order.discount)}đ</span>
           </div>
         )}
-        <div className="flex items-center justify-between border-t border-black/5 pt-2 text-sm font-normal text-black">
-          <span>{copy.checkout.total}</span>
-          <span className="text-base font-bold text-neutral-900">
+        <div className="flex items-center justify-between border-t border-black/[0.05] pt-3 text-sm">
+          <span className="font-bold text-neutral900">
+            {copy.checkout.total}
+          </span>
+          <span className="text-base font-extrabold text-neutral900">
             {formatCurrency(order.total_amount)}đ
           </span>
         </div>

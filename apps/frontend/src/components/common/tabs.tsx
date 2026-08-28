@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useRef, useEffect } from "react";
 import { cn } from "@/utils/cn";
 
 export interface Tab<T extends string = string> {
@@ -20,16 +20,37 @@ export function Tabs<T extends string>({
   tabs,
   activeTab,
   onChange,
-  fullWidth = false,
   className = "",
 }: TabsProps<T>) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto scroll active tab into view horizontally without touching window/page scroll
+  useEffect(() => {
+    if (!activeTab || !containerRef.current) return;
+    const activeButton = containerRef.current.querySelector(
+      `[data-tab-value="${activeTab}"]`,
+    ) as HTMLElement;
+
+    if (activeButton && containerRef.current) {
+      const container = containerRef.current;
+      const buttonLeft = activeButton.offsetLeft;
+      const buttonWidth = activeButton.offsetWidth;
+      const containerWidth = container.offsetWidth;
+      const targetScrollLeft =
+        buttonLeft - containerWidth / 2 + buttonWidth / 2;
+
+      container.scrollTo({
+        left: Math.max(0, targetScrollLeft),
+        behavior: "smooth",
+      });
+    }
+  }, [activeTab]);
+
   return (
     <div
+      ref={containerRef}
       className={cn(
-        "w-full min-w-0 select-none items-center gap-2 scroll-smooth py-1",
-        fullWidth
-          ? "flex justify-between rounded-xl border border-black/[0.06] bg-black/[0.03] p-1"
-          : "horizontal-scroll flex bg-transparent",
+        "horizontal-scroll flex w-full min-w-0 select-none items-center gap-2 scroll-smooth bg-transparent py-1 pr-2",
         className,
       )}
     >
@@ -38,22 +59,15 @@ export function Tabs<T extends string>({
         return (
           <button
             key={tab.value}
+            data-tab-value={tab.value}
             onClick={() => onChange(tab.value)}
             className={cn(
-              "flex shrink-0 items-center justify-center px-4 py-1.5 text-xs outline-none transition-colors duration-150 focus:outline-none active:scale-95",
+              "flex min-h-[36px] shrink-0 items-center justify-center rounded-xl border px-4 py-2 text-xs font-semibold transition-colors duration-150 active:scale-[0.98]",
+              "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
               "select-none whitespace-nowrap",
-              fullWidth ? "flex-1 rounded-lg" : "w-auto rounded-full",
               isActive
-                ? fullWidth
-                  ? // Segment active: lifted white card — no hover needed (already selected)
-                    "border border-black/[0.06] bg-white font-semibold text-primaryDark shadow-sm"
-                  : // Chip active: solid primary tint — matches category-list.tsx token
-                    "border border-primary/20 bg-primary/10 font-semibold text-primaryDark"
-                : fullWidth
-                  ? // Segment inactive: subtle hover bg để có touch feedback nhất quán với chip
-                    "border border-transparent font-medium text-stone-500 hover:bg-black/[0.04] hover:text-primaryDark"
-                  : // Chip inactive: subtle bg + hover tint (unchanged)
-                    "border border-transparent bg-black/[0.04] font-medium text-stone-500 hover:bg-primary/5 hover:text-primaryDark",
+                ? "border-primary/30 bg-olive50/80 text-olive900"
+                : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50 hover:text-olive900",
             )}
             type="button"
           >
@@ -64,14 +78,10 @@ export function Tabs<T extends string>({
             {tab.badge !== undefined && (
               <span
                 className={cn(
-                  "ml-1.5 rounded-full px-1.5 text-xxxxsmall font-bold",
+                  "ml-1.5 rounded-md px-1.5 py-0.5 text-xxxxsmall font-bold",
                   isActive
-                    ? fullWidth
-                      ? // Segment active badge: tint trên nền trắng — đủ tương phản
-                        "bg-primary/20 text-primaryDark"
-                      : // Chip active badge: đậm hơn để nổi trên nền bg-primary/10
-                        "bg-primaryDark/20 text-primaryDark"
-                    : "bg-black/10 text-stone-600",
+                    ? "bg-olive100 text-olive900"
+                    : "bg-black/[0.07] text-neutral600",
                 )}
               >
                 {tab.badge}

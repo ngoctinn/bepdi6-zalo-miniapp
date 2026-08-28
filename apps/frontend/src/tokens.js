@@ -78,7 +78,7 @@ const base = {
     neutral800: "#292524",
     neutral900: "#0F172A", // Slate 900 cho độ tương phản sắc nét, sạch sẽ
 
-    stone50: "#FAFAF9",
+    stone50: "#FCFCFB", // Soft Clean Off-White — Nền sáng dịu mắt, sạch sẽ
     stone100: "#F5F5F4",
     stone200: "#E7E5E4",
     stone800: "#292524",
@@ -129,7 +129,7 @@ const semantic = {
     primaryDark: base.colors.olive800, // #3F6212
     primaryLight: base.colors.olive100, // #ECFCCB
     brandAccent: base.colors.amber600, // #D97706 — Vàng gừng mật ong
-    background: base.colors.stone50, // #FAFAF9 — Nền sạch ấm cúng
+    background: base.colors.stone50, // #FCFCFB — Nền sáng dịu sạch sẽ
     surface: "#FFFFFF",
     surfaceSubtle: "rgba(0,0,0,0.02)",
     price: base.colors.neutral900,

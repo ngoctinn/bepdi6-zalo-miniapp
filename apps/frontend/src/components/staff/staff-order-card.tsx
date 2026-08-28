@@ -110,7 +110,7 @@ export function StaffOrderCard({
         </div>
 
         {isDelivery && order.delivery_address && (
-          <div className="mt-2 flex items-start gap-1.5 rounded-xl bg-stone-50 p-2.5 text-xs text-stone-700">
+          <div className="mt-1.5 flex items-start gap-1.5 text-xs text-stone-600">
             <Icon
               icon="zi-location-solid"
               className="mt-0.5 shrink-0 text-sm text-primary"
@@ -120,9 +120,9 @@ export function StaffOrderCard({
         )}
 
         {order.note && (
-          <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-2 text-xs font-semibold text-amber-900">
-            <span className="font-bold">Lưu ý giao: </span>
-            {order.note}
+          <div className="mt-1.5 text-xs text-amber-800">
+            <span className="font-semibold">Lưu ý: </span>
+            <span className="italic">{order.note}</span>
           </div>
         )}
       </div>
@@ -161,9 +161,8 @@ export function StaffOrderCard({
               </div>
 
               {item.note && (
-                <div className="mt-1.5 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-900">
-                  <span className="font-bold">Ghi chú món: </span>
-                  {item.note}
+                <div className="mt-1 text-xs italic text-amber-800">
+                  Ghi chú: {item.note}
                 </div>
               )}
             </div>

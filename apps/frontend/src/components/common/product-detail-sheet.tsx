@@ -182,12 +182,20 @@ export default function ProductDetailSheet({
         const count = (selectedOptions[group.id] || []).length;
         if (group.is_required && count === 0) {
           setValidationError(`Vui lòng chọn tùy chọn trong "${group.name}"`);
+          const el = document.getElementById(`option-group-${group.id}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
           return;
         }
         if (group.min_select > 0 && count < group.min_select) {
           setValidationError(
             `Vui lòng chọn tối thiểu ${group.min_select} tùy chọn trong "${group.name}"`,
           );
+          const el = document.getElementById(`option-group-${group.id}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
           return;
         }
       }
@@ -323,19 +331,24 @@ export default function ProductDetailSheet({
                 )}
               </div>
 
-              {/* Option Groups — Full-width list rows */}
+              {/* Option Groups */}
               {product.option_groups && product.option_groups.length > 0 && (
-                <div className="space-y-4 border-t border-black/5 pt-2">
+                <div className="space-y-5 border-t border-black/5 pt-3">
                   {product.option_groups.map((group) => {
                     const currentGroupSelections =
                       selectedOptions[group.id] || [];
+                    const isSingleSelect = group.max_select === 1;
 
                     return (
-                      <div key={group.id} className="space-y-2">
+                      <div
+                        key={group.id}
+                        id={`option-group-${group.id}`}
+                        className="scroll-mt-4 space-y-2.5"
+                      >
                         {/* Group header */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-baseline justify-between gap-2">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-neutral900">
+                            <span className="text-[13px] font-bold text-neutral900">
                               {group.name}
                             </span>
                             {group.is_required ? (
@@ -348,22 +361,23 @@ export default function ProductDetailSheet({
                               </Badge>
                             )}
                           </div>
-                          <span className="text-xxsmall font-medium text-neutral500">
+                          <span className="shrink-0 text-[10px] font-medium text-neutral400">
                             {group.max_select === 1
                               ? "Chọn 1"
-                              : `Tối đa ${group.max_select}`}
+                              : currentGroupSelections.length > 0
+                                ? `Đã chọn ${currentGroupSelections.length}/${group.max_select}`
+                                : `Tối đa ${group.max_select}`}
                           </span>
                         </div>
 
-                        {/* Option rows */}
-                        <div className="overflow-hidden rounded-xl border border-black/[0.06]">
-                          {group.options?.map((option, idx) => {
+                        {/* Single-select & Multi-select: Cùng style soft card/badge riêng biệt từng hàng */}
+                        <div className="flex flex-col gap-2">
+                          {group.options?.map((option) => {
                             const isSelected = currentGroupSelections.includes(
                               option.id,
                             );
                             const isUnavailable = option.status === "INACTIVE";
                             const hasExtraPrice = Number(option.price) > 0;
-                            const isLast = idx === (group.options?.length ?? 0) - 1;
 
                             return (
                               <button
@@ -375,55 +389,51 @@ export default function ProductDetailSheet({
                                   handleOptionToggle(group, option)
                                 }
                                 className={cn(
-                                  "flex w-full items-center justify-between px-3 py-2.5 text-xs transition-colors duration-150",
-                                  !isLast && "border-b border-black/[0.05]",
+                                  "flex min-h-[44px] w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150 active:scale-[0.99]",
                                   isSelected
-                                    ? "bg-primary/[0.07]"
-                                    : "bg-white active:bg-black/[0.03]",
-                                  isUnavailable && "cursor-not-allowed opacity-40",
+                                    ? "shadow-xs border border-primary/30 bg-olive50/80 font-semibold text-primaryDark"
+                                    : "border border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10 active:bg-black/[0.02]",
+                                  isUnavailable &&
+                                    "cursor-not-allowed opacity-40",
                                 )}
                               >
-                                {/* Left: name + price */}
+                                {/* Left: Name + Extra price */}
                                 <div className="flex flex-col items-start gap-0.5">
                                   <span
                                     className={cn(
-                                      "font-medium leading-snug",
+                                      "text-xs leading-snug",
                                       isSelected
-                                        ? "text-primaryDark"
-                                        : "text-neutral800",
+                                        ? "font-semibold text-olive900"
+                                        : "font-medium text-neutral800",
                                     )}
                                   >
                                     {option.name}
                                   </span>
-                                  {hasExtraPrice ? (
+                                  {hasExtraPrice && (
                                     <span
                                       className={cn(
-                                        "text-[10px] font-normal",
+                                        "text-[11px]",
                                         isSelected
-                                          ? "text-primary/80"
+                                          ? "font-medium text-primary"
                                           : "text-neutral500",
                                       )}
                                     >
                                       +{formatCurrency(option.price)}đ
                                     </span>
-                                  ) : (
-                                    <span className="text-[10px] font-normal text-neutral400">
-                                      Miễn phí
-                                    </span>
                                   )}
                                 </div>
 
-                                {/* Right: indicator */}
+                                {/* Right: Soft Circle Indicator */}
                                 <span
                                   className={cn(
-                                    "ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-150",
+                                    "ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150",
                                     isSelected
-                                      ? "border-primary bg-primary"
-                                      : "border-stone-300 bg-transparent",
+                                      ? "shadow-xs border border-primary/40 bg-primary text-white"
+                                      : "border border-stone-300 bg-transparent",
                                   )}
                                 >
                                   {isSelected && (
-                                    <CheckIcon className="h-2.5 w-2.5 text-white" />
+                                    <CheckIcon className="h-3 w-3 text-white" />
                                   )}
                                 </span>
                               </button>
@@ -457,13 +467,6 @@ export default function ProductDetailSheet({
             {validationError && (
               <div className="mb-2 rounded-xl border border-red-200 bg-red-500/10 py-1.5 text-center text-xs font-medium text-red-600">
                 ⚠️ {validationError}
-              </div>
-            )}
-
-            {/* Savings indicator */}
-            {totalSavings > 0 && (
-              <div className="mb-2 rounded-xl border border-green-200/80 bg-green-50 px-3 py-1.5 text-center text-xs font-semibold text-green-700">
-                🎉 Bạn tiết kiệm được {formatCurrency(totalSavings)}đ
               </div>
             )}
 

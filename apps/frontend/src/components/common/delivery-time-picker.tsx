@@ -76,77 +76,109 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
   const isAsap = !scheduledTime;
 
   return (
-    <div className="rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
-      <div className="mb-2.5 flex items-center justify-between">
-        <span className="text-xs font-bold text-neutral800">
+    <div className="flex flex-col gap-2 text-xs">
+      <div className="px-1">
+        <span className="text-xs font-bold text-neutral900">
           THỜI GIAN {deliveryType === "PICKUP" ? "LẤY MÓN" : "GIAO HÀNG"}
         </span>
       </div>
 
-      <div className="space-y-1.5 divide-y divide-black/5">
+      <div className="flex flex-col gap-2">
         {/* Lựa chọn 1: Càng sớm càng tốt */}
-        <div
+        <button
+          type="button"
           onClick={() => onChange(undefined)}
-          className="flex cursor-pointer items-center justify-between py-2 first:pt-0"
+          className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-left transition-all duration-150 active:scale-[0.99] ${
+            isAsap
+              ? "shadow-xs border-primary/40 bg-olive50/90 font-semibold text-olive900"
+              : "border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10"
+          }`}
         >
-          <div className="flex items-center gap-2.5">
-            <div
-              className={`flex h-4 w-4 items-center justify-center rounded-full border transition-all ${
-                isAsap
-                  ? "border-primary bg-primary"
-                  : "border-neutral300 bg-transparent"
-              }`}
+          <div className="flex flex-col">
+            <span
+              className={`text-xs ${isAsap ? "font-semibold text-olive900" : "font-medium text-neutral900"}`}
             >
-              {isAsap && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-neutral900">
-                Càng sớm càng tốt
-              </span>
-              <span className="text-xxsmall text-neutral500">
-                Ước tính khoảng {asapEstimateText}
-              </span>
-            </div>
+              Càng sớm càng tốt
+            </span>
+            <span className="mt-0.5 text-xxsmall text-neutral500">
+              Ước tính khoảng {asapEstimateText}
+            </span>
           </div>
-        </div>
+
+          <span
+            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150 ${
+              isAsap
+                ? "shadow-xs border border-primary/40 bg-primary text-white"
+                : "border border-stone-300 bg-transparent"
+            }`}
+          >
+            {isAsap && (
+              <svg
+                className="h-3 w-3 fill-current text-white"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+          </span>
+        </button>
 
         {/* Lựa chọn 2: Hẹn giờ hôm nay */}
-        <div className="pt-2">
-          <div
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
             onClick={() => {
               if (isAsap && timeSlots.length > 0) {
                 onChange(timeSlots[0].value);
               }
             }}
-            className="flex cursor-pointer items-center justify-between"
+            className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-left transition-all duration-150 active:scale-[0.99] ${
+              !isAsap
+                ? "shadow-xs border-primary/40 bg-olive50/90 font-semibold text-olive900"
+                : "border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10"
+            }`}
           >
-            <div className="flex items-center gap-2.5">
-              <div
-                className={`flex h-4 w-4 items-center justify-center rounded-full border transition-all ${
-                  !isAsap
-                    ? "border-primary bg-primary"
-                    : "border-neutral300 bg-transparent"
-                }`}
+            <div className="flex flex-col">
+              <span
+                className={`text-xs ${!isAsap ? "font-semibold text-olive900" : "font-medium text-neutral900"}`}
               >
-                {!isAsap && (
-                  <div className="h-1.5 w-1.5 rounded-full bg-white" />
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-neutral900">
-                  Hẹn giờ nhận hôm nay
-                </span>
-                <span className="text-xxsmall text-neutral500">
-                  Chọn khung giờ bạn muốn nhận món
-                </span>
-              </div>
+                Hẹn giờ nhận hôm nay
+              </span>
+              <span className="mt-0.5 text-xxsmall text-neutral500">
+                Chọn khung giờ bạn muốn nhận món
+              </span>
             </div>
-          </div>
+
+            <span
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150 ${
+                !isAsap
+                  ? "shadow-xs border border-primary/40 bg-primary text-white"
+                  : "border border-stone-300 bg-transparent"
+              }`}
+            >
+              {!isAsap && (
+                <svg
+                  className="h-3 w-3 fill-current text-white"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </span>
+          </button>
 
           {!isAsap && (
-            <div className="pl-6.5 mt-3">
+            <div className="shadow-xs rounded-xl border border-black/[0.06] bg-white p-3">
               {timeSlots.length > 0 ? (
-                <div className="grid max-h-36 grid-cols-3 gap-1.5 overflow-y-auto pr-1">
+                <div className="grid max-h-36 grid-cols-3 gap-1.5 overflow-y-auto pr-0.5">
                   {timeSlots.map((slot) => {
                     const isSelected = scheduledTime === slot.value;
                     return (
@@ -154,10 +186,10 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
                         key={slot.value}
                         type="button"
                         onClick={() => onChange(slot.value)}
-                        className={`rounded-xl py-1.5 text-center text-xs transition-all ${
+                        className={`rounded-lg py-2 text-center text-xs transition-all duration-150 active:scale-95 ${
                           isSelected
-                            ? "shadow-xs bg-primary font-bold text-white"
-                            : "bg-black/[0.04] font-medium text-neutral700 hover:bg-black/[0.08]"
+                            ? "shadow-xs border border-primary/40 bg-primary font-bold text-white"
+                            : "border border-black/[0.06] bg-stone-50/70 font-medium text-neutral700 hover:border-black/10"
                         }`}
                       >
                         {slot.timeText}
@@ -166,7 +198,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
                   })}
                 </div>
               ) : (
-                <div className="py-1 text-xxsmall italic text-neutral500">
+                <div className="py-1 text-center text-xxsmall italic text-neutral500">
                   Hiện đã gần giờ đóng cửa, vui lòng chọn &quot;Càng sớm càng
                   tốt&quot;.
                 </div>

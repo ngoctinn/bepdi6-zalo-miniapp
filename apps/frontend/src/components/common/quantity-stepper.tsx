@@ -29,12 +29,12 @@ export default function QuantityStepper({
 
   const sizeClasses = {
     small: {
-      button: "w-7 h-7 text-base min-w-[28px] min-h-[28px]",
-      display: "w-7 text-center text-xs font-bold",
+      button: "w-6 h-6 text-sm min-w-[24px] min-h-[24px]",
+      display: "min-w-[20px] px-1 text-center text-xs font-bold",
     },
     medium: {
-      button: "w-8 h-8 text-lg min-w-[32px] min-h-[32px]",
-      display: "min-w-[28px] text-center text-sm font-semibold",
+      button: "w-7 h-7 text-base min-w-[28px] min-h-[28px]",
+      display: "min-w-[24px] text-center text-sm font-semibold",
     },
     large: {
       button: "w-9 h-9 text-xl min-w-[36px] min-h-[36px]",
@@ -44,12 +44,12 @@ export default function QuantityStepper({
 
   const variantClasses = {
     default: "border border-divider01 rounded-xl px-3 py-2",
-    rounded: "gap-2",
+    rounded: "gap-1.5",
   };
 
   const buttonBaseClasses =
     variant === "rounded"
-      ? "rounded-full flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-primary text-primary bg-transparent active:bg-primary/10"
+      ? "rounded-full flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-black/[0.12] bg-white text-neutral800 hover:border-black/20 hover:bg-stone-50 active:scale-95 shadow-xs"
       : "flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
 
   return (

@@ -59,7 +59,13 @@ body,
   box-sizing: border-box;
 }
 
-/* Eliminate native focus blue rings globally on inputs */
+/* Eliminate native focus blue/black rings and tap highlights globally */
+*,
+*::before,
+*::after {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
 input:focus,
 textarea:focus,
 select:focus {
@@ -68,10 +74,13 @@ select:focus {
   box-shadow: 0 0 0 1px rgba(77, 124, 15, 0.25) !important;
 }
 
+button,
 button:focus,
 button:focus-visible,
-button:active {
+button:active,
+button:focus-within {
   outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 * {

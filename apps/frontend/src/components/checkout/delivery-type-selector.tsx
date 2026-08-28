@@ -1,6 +1,6 @@
 import { DeliveryType } from "@/types/order.types";
 import { copy } from "@/constants/copy";
-import { Tabs, Tab } from "@/components/common/tabs";
+import { cn } from "@/utils/cn";
 
 interface DeliveryTypeSelectorProps {
   deliveryType: DeliveryType;
@@ -11,13 +11,27 @@ export function DeliveryTypeSelector({
   deliveryType,
   onChange,
 }: DeliveryTypeSelectorProps) {
-  const tabs: Tab<DeliveryType>[] = [
-    {
-      value: "DELIVERY",
-      label: copy.checkout.delivery,
-      icon: (
+  const isDelivery = deliveryType === "DELIVERY";
+  const isPickup = deliveryType === "PICKUP";
+
+  return (
+    <div className="grid w-full grid-cols-2 gap-2.5">
+      <button
+        type="button"
+        onClick={() => onChange("DELIVERY")}
+        className={cn(
+          "flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition-all duration-150 active:scale-[0.98]",
+          "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
+          isDelivery
+            ? "shadow-xs border-primary/40 bg-olive50/90 text-olive900"
+            : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50",
+        )}
+      >
         <svg
-          className="h-4 w-4"
+          className={cn(
+            "h-4 w-4 shrink-0 transition-colors",
+            isDelivery ? "text-primary" : "text-neutral500",
+          )}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -28,14 +42,25 @@ export function DeliveryTypeSelector({
           <circle cx="5.5" cy="18.5" r="2.5" />
           <circle cx="18.5" cy="18.5" r="2.5" />
         </svg>
-      ),
-    },
-    {
-      value: "PICKUP",
-      label: copy.checkout.pickup,
-      icon: (
+        <span className="truncate">{copy.checkout.delivery}</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onChange("PICKUP")}
+        className={cn(
+          "flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition-all duration-150 active:scale-[0.98]",
+          "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
+          isPickup
+            ? "shadow-xs border-primary/40 bg-olive50/90 text-olive900"
+            : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50",
+        )}
+      >
         <svg
-          className="h-4 w-4"
+          className={cn(
+            "h-4 w-4 shrink-0 transition-colors",
+            isPickup ? "text-primary" : "text-neutral500",
+          )}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -45,18 +70,8 @@ export function DeliveryTypeSelector({
           <line x1="3" y1="6" x2="21" y2="6" />
           <path d="M16 10a4 4 0 0 1-8 0" />
         </svg>
-      ),
-    },
-  ];
-
-  return (
-    <div className="w-full">
-      <Tabs<DeliveryType>
-        tabs={tabs}
-        activeTab={deliveryType}
-        onChange={onChange}
-        fullWidth
-      />
+        <span className="truncate">{copy.checkout.pickup}</span>
+      </button>
     </div>
   );
 }

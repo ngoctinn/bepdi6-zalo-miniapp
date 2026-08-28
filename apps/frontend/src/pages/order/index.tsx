@@ -45,7 +45,7 @@ export default function OrderPage() {
   }, [orders, activeTab]);
 
   return (
-    <div className="relative flex h-full flex-col bg-transparent">
+    <div className="relative flex flex-col bg-transparent">
       {/* Sticky Header: Tên trang + Tabs dùng nền sạch sẽ đồng bộ */}
       <div className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md">
         <div className="header-margin px-3.5 pb-1 pr-20 pt-3">
@@ -63,7 +63,7 @@ export default function OrderPage() {
         </div>
       </div>
 
-      <div className="no-scrollbar flex-1 overflow-y-auto px-3.5 py-3 pb-24">
+      <div className="flex-1 px-3.5 py-3 pb-24">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Spinner />

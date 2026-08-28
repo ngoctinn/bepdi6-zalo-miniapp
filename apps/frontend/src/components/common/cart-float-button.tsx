@@ -59,17 +59,17 @@ export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
     <>
       <div
         onClick={() => setCartSheetVisible(true)}
-        className="absolute -top-16 left-3.5 right-3.5 z-50 flex cursor-pointer items-center justify-between rounded-2xl bg-primary px-4 py-2.5 text-white shadow-lg shadow-stone-900/15 transition-all active:scale-[0.98]"
+        className="absolute -top-16 left-3.5 right-3.5 z-50 flex cursor-pointer items-center justify-between rounded-2xl border border-white/20 bg-primary/80 px-4 py-2.5 text-white backdrop-blur-lg transition-all active:scale-[0.98]"
         role="button"
         tabIndex={0}
         aria-label="Xem món đang chọn"
       >
         <div className="flex items-center gap-2.5">
-          <div className="flex h-7 min-w-[28px] items-center justify-center rounded-full bg-white/20 px-2 text-xs font-extrabold text-white">
+          <div className="flex h-7 min-w-[28px] items-center justify-center rounded-xl bg-white/25 px-2 text-xs font-extrabold text-white">
             {itemCount}
           </div>
           <div className="flex flex-col text-left">
-            <span className="text-xxxsmall font-medium text-white/90">
+            <span className="text-xxxsmall font-medium text-white/80">
               {itemCount} {copy.common.items}
             </span>
             <span className="text-sm font-extrabold text-white">
@@ -78,7 +78,7 @@ export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1 rounded-xl bg-white/15 px-3 py-1.5 text-xs font-bold text-white transition-all">
+        <div className="flex items-center gap-1 rounded-xl border border-white/20 bg-white/20 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-white/30">
           <span>{copy.common.viewDetails}</span>
           <svg
             width="14"

@@ -234,7 +234,7 @@ export default function StaffOrdersPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-background pb-20 font-sans">
+    <div className="relative flex flex-col bg-background pb-24 font-sans">
       {/* Sticky Header Topbar chuẩn Zalo Mini App - Gọn gàng thanh lịch */}
       <div className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md">
         <StaffHeaderActions

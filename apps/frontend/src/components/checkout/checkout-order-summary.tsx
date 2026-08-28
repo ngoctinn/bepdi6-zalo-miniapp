@@ -27,14 +27,14 @@ export function CheckoutOrderSummary({
   return (
     <>
       {/* Chi tiết thanh toán */}
-      <div className="space-y-2.5 rounded-2xl border border-black/5 bg-transparent p-3.5 text-xs">
+      <div className="shadow-xs space-y-3 rounded-2xl border border-black/[0.06] bg-white p-4 text-xs">
         <span className="block text-xs font-bold text-neutral900">
           {copy.checkout.paymentDetailSection}
         </span>
 
         <div className="flex justify-between text-neutral600">
           <span>{copy.checkout.subtotal}</span>
-          <span className="font-normal text-black">
+          <span className="font-medium text-neutral900">
             {formatCurrency(displaySubtotal)}đ
           </span>
         </div>
@@ -49,7 +49,7 @@ export function CheckoutOrderSummary({
                     : ""
                 }`}
           </span>
-          <span className="font-normal text-black">
+          <span className="font-medium text-neutral900">
             {deliveryType === "PICKUP"
               ? copy.checkout.selfPickupFree || "Tự đến lấy (0đ)"
               : displayShippingFee > 0
@@ -65,8 +65,10 @@ export function CheckoutOrderSummary({
           </div>
         )}
 
-        <div className="flex items-center justify-between border-t border-black/5 pt-2.5 text-sm font-normal text-black">
-          <span>{copy.checkout.total}</span>
+        <div className="flex items-center justify-between border-t border-black/[0.05] pt-3 text-sm">
+          <span className="font-bold text-neutral900">
+            {copy.checkout.total}
+          </span>
           <div className="text-right">
             <div className="text-base font-extrabold text-neutral900">
               {formatCurrency(displayTotal)}đ

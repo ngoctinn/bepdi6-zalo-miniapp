@@ -6,6 +6,8 @@ interface SwipeableItemProps {
   onDelete: () => void;
   deleteLabel?: string;
   disabled?: boolean;
+  className?: string;
+  contentClassName?: string;
 }
 
 const ACTION_WIDTH = 76; // Chiều rộng nút xóa (px)
@@ -16,6 +18,8 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
   onDelete,
   deleteLabel = "Xóa",
   disabled = false,
+  className = "",
+  contentClassName = "bg-background",
 }) => {
   const [offsetX, setOffsetX] = useState<number>(0);
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -110,10 +114,16 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
   }, [isOpen]);
 
   return (
-    <div className="relative select-none overflow-hidden rounded-2xl">
+    <div
+      className={`relative select-none overflow-hidden rounded-2xl ${className}`}
+    >
       {/* Nút Xóa (Nền đỏ phía dưới) */}
       <div
-        className="absolute inset-y-0 right-0 flex items-center justify-center bg-danger text-white transition-opacity"
+        className={`absolute inset-y-0 right-0 flex items-center justify-center bg-danger text-white transition-opacity ${
+          offsetX !== 0 || isOpen || isDragging
+            ? "opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
         style={{ width: `${ACTION_WIDTH}px` }}
       >
         <button
@@ -134,7 +144,7 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
 
       {/* Nội dung item trượt phía trên */}
       <div
-        className="relative bg-background transition-transform"
+        className={`relative transition-transform ${contentClassName}`}
         style={{
           transform: `translateX(${offsetX}px)`,
           transitionDuration: isDragging ? "0ms" : "200ms",

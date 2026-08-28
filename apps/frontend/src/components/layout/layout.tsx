@@ -19,7 +19,9 @@ export default function Layout() {
 
   return (
     <div
-      className={cn("relative flex h-screen w-screen flex-col bg-background")}
+      className={cn(
+        "relative flex h-screen w-full max-w-full flex-col overflow-x-hidden bg-background",
+      )}
     >
       {!hideHeader && (
         <Header
@@ -30,7 +32,7 @@ export default function Layout() {
       )}
       <div
         id="main-scroll-container"
-        className="min-h-0 flex-1 overflow-y-auto"
+        className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
       >
         <Outlet />
       </div>

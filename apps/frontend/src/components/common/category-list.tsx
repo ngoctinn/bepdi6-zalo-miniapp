@@ -55,11 +55,12 @@ export default function CategoryList({
             key={category.id}
             data-category-id={category.id}
             className={cn(
-              "flex shrink-0 items-center justify-center rounded-full px-4 py-1.5 text-xs outline-none transition-colors duration-150 focus:outline-none active:scale-95",
+              "flex min-h-[36px] shrink-0 items-center justify-center rounded-xl border px-4 py-2 text-xs font-semibold transition-colors duration-150 active:scale-[0.98]",
+              "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
               "select-none whitespace-nowrap",
               isSelected
-                ? "border border-primary/20 bg-primary/10 font-semibold text-primaryDark"
-                : "border border-transparent bg-black/[0.04] font-medium text-stone-500 hover:bg-primary/5 hover:text-primaryDark",
+                ? "border-primary/30 bg-olive50/80 text-olive900"
+                : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50 hover:text-olive900",
             )}
             onClick={() => onCategorySelect?.(category)}
           >
