@@ -22,7 +22,10 @@ import {
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
-import { getLocation, getAccessToken } from "zmp-sdk/apis";
+import {
+  getZaloLocationCredentials,
+  isZaloRuntime,
+} from "@/utils/zalo-permissions";
 
 // Modularized Checkout Sub-components
 import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
@@ -43,7 +46,7 @@ function generateUUID() {
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { showSuccess, showWarning } = useAppToast();
-  const { customer } = useAuth();
+  const { customer, requestPhoneNumber } = useAuth();
 
   // Stores
   const { items: cartItems, updateQuantity, clearCart } = useCartStore();
@@ -84,12 +87,21 @@ export default function CheckoutPage() {
 
   // Idempotency Key cố định cho phiên thanh toán hiện tại
   const idempotencyKeyRef = useRef<string>(generateUUID());
+  const isCompletingOrderRef = useRef(false);
+  const hasRequestedPhoneRef = useRef(false);
 
   // Mutations
   const previewMutation = usePreviewCheckout();
   const createOrderMutation = useCreateOrder();
   const decodeLocationMutation = useDecodeLocation();
   const createAddressMutation = useCreateAddress();
+
+  useEffect(() => {
+    if (customer && !customer.phone && !hasRequestedPhoneRef.current) {
+      hasRequestedPhoneRef.current = true;
+      void requestPhoneNumber();
+    }
+  }, [customer, requestPhoneNumber]);
 
   /**
    * Tự động dò và ghim toạ độ GPS khi khách chưa có địa chỉ nào
@@ -98,29 +110,17 @@ export default function CheckoutPage() {
     if (isLocating || selectedAddress) return;
     setIsLocating(true);
     try {
-      let locationToken = "";
-      let userAccessToken = "";
-
-      try {
-        userAccessToken = await getAccessToken({});
-      } catch {
-        // Mock fallback outside Zalo
-      }
-
-      try {
-        const data = await getLocation({});
-        if (data && typeof data === "object" && "token" in data && data.token) {
-          locationToken = data.token as string;
-        } else {
-          locationToken = "dev_browser_mock_location_token";
-        }
-      } catch {
-        locationToken = "dev_browser_mock_location_token";
-      }
+      const { token: locationToken, accessToken: userAccessToken } =
+        isZaloRuntime()
+          ? await getZaloLocationCredentials()
+          : {
+              token: "dev_browser_mock_location_token",
+              accessToken: "dev_browser_mock_access_token",
+            };
 
       const decoded = await decodeLocationMutation.mutateAsync({
         token: locationToken,
-        access_token: userAccessToken || undefined,
+        access_token: userAccessToken,
       });
 
       if (decoded && decoded.latitude && decoded.longitude) {
@@ -227,6 +227,28 @@ export default function CheckoutPage() {
     );
   }, [cartItems, selectedAddress, deliveryType, appliedVoucherCode]);
 
+  // Fallback calculation directly from cart store if preview response is delayed
+  const cartSubtotal = useMemo(() => {
+    return cartItems.reduce(
+      (sum, item) => sum + item.unit_price * item.quantity,
+      0,
+    );
+  }, [cartItems]);
+
+  const displaySubtotal = previewData?.subtotal ?? cartSubtotal;
+  const displayShippingFee =
+    deliveryType === "PICKUP" ? 0 : (previewData?.shipping_fee ?? 0);
+  const displayDiscount = previewData?.discount ?? 0;
+  const displayTotal =
+    previewData?.total_amount ??
+    Math.max(0, displaySubtotal + displayShippingFee - displayDiscount);
+
+  useEffect(() => {
+    if (cartItems.length === 0 && !isCompletingOrderRef.current) {
+      navigate("/", { replace: true });
+    }
+  }, [cartItems.length, navigate]);
+
   const handleApplyVoucher = () => {
     if (!voucherCodeInput.trim()) return;
     setAppliedVoucherCode(voucherCodeInput.trim().toUpperCase());
@@ -330,10 +352,12 @@ export default function CheckoutPage() {
         }
       }
 
+      isCompletingOrderRef.current = true;
       clearCart();
       showSuccess(copy.checkout.orderSuccess);
       navigate(`/order/${order.id}`);
     } catch (err) {
+      isCompletingOrderRef.current = false;
       setOrderErrorModal({
         visible: true,
         title: copy.checkout.orderFailedTitle,
@@ -380,22 +404,6 @@ export default function CheckoutPage() {
       </div>
     );
   }
-
-  // Fallback calculation directly from cart store if preview response is delayed
-  const cartSubtotal = useMemo(() => {
-    return cartItems.reduce(
-      (sum, item) => sum + item.unit_price * item.quantity,
-      0,
-    );
-  }, [cartItems]);
-
-  const displaySubtotal = previewData?.subtotal ?? cartSubtotal;
-  const displayShippingFee =
-    deliveryType === "PICKUP" ? 0 : (previewData?.shipping_fee ?? 0);
-  const displayDiscount = previewData?.discount ?? 0;
-  const displayTotal =
-    previewData?.total_amount ??
-    Math.max(0, displaySubtotal + displayShippingFee - displayDiscount);
 
   return (
     <div className="flex flex-col gap-3 p-3.5 pb-32">

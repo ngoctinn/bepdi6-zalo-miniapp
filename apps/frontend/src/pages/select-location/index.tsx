@@ -14,7 +14,10 @@ import {
 } from "@/services/address/address.queries";
 import { Address, CreateAddressRequest } from "@/types/customer.types";
 import { useLocationStore } from "@/stores/location.store";
-import { getLocation, getAccessToken } from "zmp-sdk/apis";
+import {
+  getZaloLocationCredentials,
+  isZaloRuntime,
+} from "@/utils/zalo-permissions";
 import { Badge } from "@/components/common/badge";
 import { ConfirmModal } from "@/components/common/confirm-modal";
 import { useAppToast } from "@/hooks/use-app-toast";
@@ -78,32 +81,18 @@ export default function SelectLocationPage() {
     setIsGettingLocation(true);
     setFormError(null);
     try {
-      let locationToken = "";
-      let userAccessToken = "";
-
-      try {
-        userAccessToken = await getAccessToken({});
-      } catch {
-        // ignore in dev browser
-      }
-
-      try {
-        const data = await getLocation({});
-        // ZMP SDK returns { token: string }
-        if (data && typeof data === "object" && "token" in data && data.token) {
-          locationToken = data.token as string;
-        } else {
-          locationToken = "dev_browser_mock_location_token";
-        }
-      } catch {
-        // Fallback when running on browser simulator or outside Zalo App
-        locationToken = "dev_browser_mock_location_token";
-      }
+      const { token: locationToken, accessToken: userAccessToken } =
+        isZaloRuntime()
+          ? await getZaloLocationCredentials()
+          : {
+              token: "dev_browser_mock_location_token",
+              accessToken: "dev_browser_mock_access_token",
+            };
 
       // Gửi token kèm access_token lên backend để giải mã Server-to-Server
       const decoded = await decodeLocationMutation.mutateAsync({
         token: locationToken,
-        access_token: userAccessToken || undefined,
+        access_token: userAccessToken,
       });
 
       if (decoded && decoded.latitude && decoded.longitude) {

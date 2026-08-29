@@ -49,6 +49,11 @@ export default function ProductCard({
     : Number(product.price);
   const originalPrice = Number(product.price);
   const discountPct = product.discount_percent;
+  const canQuickAddDirectly =
+    Array.isArray(product.option_groups) &&
+    !product.option_groups.some(
+      (group) => group.is_required || group.min_select > 0,
+    );
 
   // Số lượng của món này hiện có trong giỏ hàng
   const cartItemsForProduct = items.filter(
@@ -67,11 +72,23 @@ export default function ProductCard({
     }
 
     if (totalQuantityInCart === 0) {
-      if (onClick) {
-        onClick();
-      } else {
-        navigate(`/product/${product.id}`);
+      if (!canQuickAddDirectly) {
+        if (onClick) {
+          onClick();
+        } else {
+          navigate(`/product/${product.id}`);
+        }
+        return;
       }
+
+      addToCart({
+        product_id: product.id,
+        product_name: product.name,
+        product_image: imageUrl,
+        unit_price: displayPrice,
+        quantity: 1,
+        options: [],
+      });
       return;
     }
 

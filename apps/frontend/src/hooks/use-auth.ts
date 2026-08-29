@@ -1,8 +1,12 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAccessToken, getPhoneNumber } from "zmp-sdk/apis";
 import { authService } from "../services/auth/auth.api";
 import { Customer, ZaloAuthRequest } from "../types/customer.types";
+import {
+  getZaloLoginAccessToken,
+  getZaloPhoneCredentials,
+  isZaloRuntime,
+} from "../utils/zalo-permissions";
 
 const DEV_MOCK_ZALO_TOKEN = "dev_browser_mock_access_token";
 
@@ -41,8 +45,8 @@ export function useAuth() {
   const { mutateAsync: mutateLoginAsync } = loginMutation;
 
   /**
-   * 1. Silent Login Flow:
-   * Chỉ lấy access token để xác thực, không làm phiền người dùng lúc mở app
+   * 1. Login Flow:
+   * Xin quyền thông tin người dùng trước khi lấy access token để xác thực
    */
   const loginWithZaloSDK = useCallback(async () => {
     if (authService.isAuthenticated() || isLoggingInRef.current) {
@@ -52,10 +56,9 @@ export function useAuth() {
     setIsLoggingIn(true);
     try {
       let accessToken = "";
-      try {
-        accessToken = await getAccessToken({});
-      } catch {
-        // Fallback for local browser debugging outside Zalo App
+      if (isZaloRuntime()) {
+        accessToken = await getZaloLoginAccessToken();
+      } else {
         accessToken = DEV_MOCK_ZALO_TOKEN;
       }
 
@@ -80,35 +83,17 @@ export function useAuth() {
   const requestPhoneNumber = useCallback(async (): Promise<string | null> => {
     setIsRequestingPhone(true);
     try {
-      let phoneToken = "";
-      let userAccessToken = "";
-
-      try {
-        userAccessToken = await getAccessToken({});
-      } catch {
-        // ignore in dev browser
-      }
-
-      try {
-        const phoneData = await getPhoneNumber({});
-        if (
-          phoneData &&
-          typeof phoneData === "object" &&
-          "token" in phoneData &&
-          phoneData.token
-        ) {
-          phoneToken = phoneData.token as string;
-        } else {
-          phoneToken = "dev_mock_phone_token";
-        }
-      } catch {
-        phoneToken = "dev_mock_phone_token";
-      }
+      const { token: phoneToken, accessToken: userAccessToken } = isZaloRuntime()
+        ? await getZaloPhoneCredentials()
+        : {
+            token: "dev_mock_phone_token",
+            accessToken: DEV_MOCK_ZALO_TOKEN,
+          };
 
       if (phoneToken) {
         const updatedCustomer = await authService.updatePhoneNumber(
           phoneToken,
-          userAccessToken || undefined,
+          userAccessToken,
         );
         queryClient.setQueryData(["customer", "me"], updatedCustomer);
         return updatedCustomer.phone || null;
