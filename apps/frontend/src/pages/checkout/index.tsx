@@ -163,11 +163,7 @@ export default function CheckoutPage() {
     previewData?.total_amount ??
     Math.max(0, displaySubtotal + displayShippingFee - displayDiscount);
 
-  useEffect(() => {
-    if (cartItems.length === 0 && !isCompletingOrderRef.current) {
-      navigate("/", { replace: true });
-    }
-  }, [cartItems.length, navigate]);
+
 
   const handleApplyVoucher = () => {
     if (!voucherCodeInput.trim()) return;

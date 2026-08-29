@@ -1,6 +1,4 @@
-import { useState, useMemo } from "react";
-import CartSheet from "./cart-sheet";
-import ProductDetailSheet from "./product-detail-sheet";
+import { useMemo } from "react";
 import { useCartStore } from "@/stores/cart.store";
 import { formatCurrency } from "@/utils/format";
 import { useNavigate } from "react-router-dom";
@@ -12,14 +10,7 @@ interface CartFloatButtonProps {
 
 export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
   const navigate = useNavigate();
-  const [cartSheetVisible, setCartSheetVisible] = useState(false);
-  const [editingItem, setEditingItem] = useState<{
-    productId: number;
-    cartItemId: string;
-  } | null>(null);
-
   const items = useCartStore((state) => state.items);
-  const updateQuantity = useCartStore((state) => state.updateQuantity);
 
   const subtotal = useMemo(() => {
     return items.reduce((sum, item) => {
@@ -33,34 +24,12 @@ export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
     }, 0);
   }, [items]);
 
-  const handleUpdateQuantity = (id: string, quantity: number) => {
-    updateQuantity(id, quantity);
-  };
-
-  const handleEditCartItem = (itemId: string) => {
-    const item = items.find((i) => i.id === itemId);
-    if (item) {
-      setCartSheetVisible(false);
-      setTimeout(() => {
-        setEditingItem({
-          productId: item.product_id,
-          cartItemId: item.id,
-        });
-      }, 300);
-    }
-  };
-
-  const handleConfirmCart = () => {
-    setCartSheetVisible(false);
-    navigate("/checkout");
-  };
-
   if (itemCount === 0) return null;
 
   return (
     <>
       <div
-        onClick={() => setCartSheetVisible(true)}
+        onClick={() => navigate("/checkout")}
         className="absolute -top-16 left-3.5 right-3.5 z-50 flex cursor-pointer items-center justify-between rounded-2xl border border-white/20 bg-primary/80 px-4 py-2.5 text-white backdrop-blur-lg transition-all active:scale-[0.98]"
         role="button"
         tabIndex={0}
@@ -96,29 +65,6 @@ export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
           </svg>
         </div>
       </div>
-
-      <CartSheet
-        visible={cartSheetVisible}
-        onClose={() => setCartSheetVisible(false)}
-        items={items}
-        onUpdateQuantity={handleUpdateQuantity}
-        onConfirm={handleConfirmCart}
-        onEdit={handleEditCartItem}
-      />
-
-      {editingItem && (
-        <ProductDetailSheet
-          productId={editingItem.productId}
-          editCartItemId={editingItem.cartItemId}
-          visible={Boolean(editingItem)}
-          onClose={() => {
-            setEditingItem(null);
-            setTimeout(() => {
-              setCartSheetVisible(true);
-            }, 300);
-          }}
-        />
-      )}
     </>
   );
 }

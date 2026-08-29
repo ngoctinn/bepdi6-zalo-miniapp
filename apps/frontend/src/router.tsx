@@ -10,6 +10,7 @@ import OrderSuccessPage from "./pages/order-success";
 import OrderDetailPage from "./pages/order-detail";
 import StaffOrdersPage from "./pages/staff-orders";
 import RouteErrorBoundary from "./components/common/route-error-boundary";
+import ProductDetailPage from "./pages/product-detail";
 
 const router = createBrowserRouter(
   [
@@ -88,6 +89,18 @@ const router = createBrowserRouter(
             hideHeader: true,
           },
         },
+        {
+          path: "/product/:id",
+          element: <ProductDetailPage />,
+          handle: {
+            title: "Chi tiết món",
+            back: true,
+            hideFooter: true,
+            hideCart: true,
+            headerPosition: "sticky",
+          },
+        },
+
       ],
     },
   ],

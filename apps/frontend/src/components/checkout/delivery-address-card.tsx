@@ -134,17 +134,26 @@ export function DeliveryAddressCard({
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-black/[0.05] pt-3">
-              <div>
-                <label className="mb-1 block text-xxsmall font-semibold text-neutral700">
-                  Người đến nhận
-                </label>
-                <div className="text-xs font-semibold text-neutral900">
-                  {pickupName || "Chưa có tên"} • {pickupPhone || "Chưa có SĐT"}
-                </div>
+            <div className="space-y-2 border-t border-black/[0.05] pt-3">
+              <label className="block text-xxsmall font-semibold text-neutral700">
+                Thông tin người nhận
+              </label>
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  placeholder="Tên người nhận"
+                  value={pickupName}
+                  onChange={(e) => onPickupNameChange(e.target.value)}
+                  className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
+                />
+                <input
+                  type="tel"
+                  placeholder="Số điện thoại"
+                  value={pickupPhone}
+                  onChange={(e) => onPickupPhoneChange(e.target.value)}
+                  className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
+                />
               </div>
-              {/* Optional: Add an edit button here if needed in the future, 
-                  but Zalo profile auto-fill is usually sufficient for PICKUP. */}
             </div>
           </div>
         )}

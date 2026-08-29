@@ -21,19 +21,15 @@ export default function Layout() {
 
   useEffect(() => {
     const cleanupGhostMasks = () => {
-      document
-        .querySelectorAll(".zaui-modal-wrapper, .zaui-sheet-mask")
-        .forEach((el) => {
-          const wrapper = el as HTMLElement;
-          const hasActiveContent = wrapper.querySelector(
-            '.zaui-sheet-content[style*="visibility: visible"], .zaui-modal-content',
-          );
-          if (!hasActiveContent && wrapper.style.display !== "none") {
-            wrapper.style.pointerEvents = "none";
-          } else {
-            wrapper.style.pointerEvents = "auto";
-          }
-        });
+      document.querySelectorAll(".zaui-modal-wrapper").forEach((el) => {
+        const wrapper = el as HTMLElement;
+        const hasActiveContent = wrapper.querySelector(".zaui-modal-content");
+        if (!hasActiveContent && wrapper.style.display !== "none") {
+          wrapper.style.pointerEvents = "none";
+        } else {
+          wrapper.style.pointerEvents = "auto";
+        }
+      });
     };
     cleanupGhostMasks();
     const interval = setInterval(cleanupGhostMasks, 1000);

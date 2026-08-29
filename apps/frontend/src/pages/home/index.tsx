@@ -2,7 +2,6 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CategoryList from "@/components/common/category-list";
 import ProductCard from "@/components/common/product-card";
-import ProductDetailSheet from "@/components/common/product-detail-sheet";
 import { useCategories } from "@/services/category/category.queries";
 import { useProducts } from "@/services/product/product.queries";
 import { useAuth } from "@/hooks/use-auth";
@@ -23,9 +22,6 @@ export default function HomePage() {
 
   const [activeCategoryId, setActiveCategoryId] = useState<
     number | string | null
-  >(null);
-  const [selectedProductId, setSelectedProductId] = useState<
-    string | number | null
   >(null);
 
   const isManualScrollingRef = useRef(false);
@@ -205,7 +201,7 @@ export default function HomePage() {
                   <ProductCard
                     key={product.id}
                     product={product}
-                    onClick={() => setSelectedProductId(product.id)}
+                    onClick={() => navigate(`/product/${product.id}`)}
                   />
                 ))}
               </div>
@@ -217,13 +213,6 @@ export default function HomePage() {
           </div>
         )}
       </div>
-
-      {/* Product Detail Sheet 80vh theo chuẩn Zalo */}
-      <ProductDetailSheet
-        productId={selectedProductId}
-        visible={Boolean(selectedProductId)}
-        onClose={() => setSelectedProductId(null)}
-      />
     </div>
   );
 }
