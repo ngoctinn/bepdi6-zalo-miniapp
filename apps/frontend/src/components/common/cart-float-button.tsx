@@ -40,11 +40,13 @@ export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
   const handleEditCartItem = (itemId: string) => {
     const item = items.find((i) => i.id === itemId);
     if (item) {
-      setEditingItem({
-        productId: item.product_id,
-        cartItemId: item.id,
-      });
       setCartSheetVisible(false);
+      setTimeout(() => {
+        setEditingItem({
+          productId: item.product_id,
+          cartItemId: item.id,
+        });
+      }, 300);
     }
   };
 
@@ -111,7 +113,9 @@ export default function CartFloatButton({ itemCount }: CartFloatButtonProps) {
           visible={Boolean(editingItem)}
           onClose={() => {
             setEditingItem(null);
-            setCartSheetVisible(true);
+            setTimeout(() => {
+              setCartSheetVisible(true);
+            }, 300);
           }}
         />
       )}

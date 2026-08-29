@@ -134,31 +134,17 @@ export function DeliveryAddressCard({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5 border-t border-black/[0.05] pt-3">
+            <div className="flex items-center justify-between border-t border-black/[0.05] pt-3">
               <div>
                 <label className="mb-1 block text-xxsmall font-semibold text-neutral700">
-                  {copy.checkout.pickupName}
+                  Người đến nhận
                 </label>
-                <input
-                  type="text"
-                  value={pickupName}
-                  onChange={(e) => onPickupNameChange(e.target.value)}
-                  placeholder={copy.checkout.pickupNamePlaceholder}
-                  className="w-full rounded-xl border border-black/[0.08] bg-stone-50/50 p-2.5 text-xs text-neutral900 transition-colors focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
-                />
+                <div className="text-xs font-semibold text-neutral900">
+                  {pickupName || "Chưa có tên"} • {pickupPhone || "Chưa có SĐT"}
+                </div>
               </div>
-              <div>
-                <label className="mb-1 block text-xxsmall font-semibold text-neutral700">
-                  {copy.checkout.pickupPhone}
-                </label>
-                <input
-                  type="tel"
-                  value={pickupPhone}
-                  onChange={(e) => onPickupPhoneChange(e.target.value)}
-                  placeholder={copy.checkout.pickupPhonePlaceholder}
-                  className="w-full rounded-xl border border-black/[0.08] bg-stone-50/50 p-2.5 text-xs text-neutral900 transition-colors focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
-                />
-              </div>
+              {/* Optional: Add an edit button here if needed in the future, 
+                  but Zalo profile auto-fill is usually sufficient for PICKUP. */}
             </div>
           </div>
         )}

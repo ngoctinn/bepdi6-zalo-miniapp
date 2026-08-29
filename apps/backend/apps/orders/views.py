@@ -96,6 +96,7 @@ class CheckoutPreviewView(APIView):
                     "discount": calc_result["discount"],
                     "total_amount": calc_result["total_amount"],
                     "is_deliverable": calc_result["is_deliverable"],
+                    "is_valid": calc_result["is_deliverable"],
                 }
             )
         except OrderProcessingError as e:
@@ -121,6 +122,7 @@ class CheckoutPreviewView(APIView):
                         "discount": Decimal("0.00"),
                         "total_amount": subtotal,
                         "is_deliverable": False,
+                        "is_valid": False,
                         "message": e.message,
                     }
                 )

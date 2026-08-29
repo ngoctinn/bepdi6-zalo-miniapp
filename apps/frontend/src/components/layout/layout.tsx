@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, useMatches, useLocation } from "react-router-dom";
 import Header from "./header";
 import Footer from "./footer";
@@ -16,6 +17,28 @@ export default function Layout() {
 
   const { items } = useCartStore();
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const location = useLocation();
+
+  useEffect(() => {
+    const cleanupGhostMasks = () => {
+      document
+        .querySelectorAll(".zaui-modal-wrapper, .zaui-sheet-mask")
+        .forEach((el) => {
+          const wrapper = el as HTMLElement;
+          const hasActiveContent = wrapper.querySelector(
+            '.zaui-sheet-content[style*="visibility: visible"], .zaui-modal-content',
+          );
+          if (!hasActiveContent && wrapper.style.display !== "none") {
+            wrapper.style.pointerEvents = "none";
+          } else {
+            wrapper.style.pointerEvents = "auto";
+          }
+        });
+    };
+    cleanupGhostMasks();
+    const interval = setInterval(cleanupGhostMasks, 1000);
+    return () => clearInterval(interval);
+  }, [location.pathname]);
 
   return (
     <div
