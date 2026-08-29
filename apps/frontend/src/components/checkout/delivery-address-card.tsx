@@ -39,150 +39,148 @@ export function DeliveryAddressCard({
   const { showWarning } = useAppToast();
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-3">
       {/* Tab chuyển đổi: Giao tận nơi vs Tự đến lấy */}
       <DeliveryTypeSelector
         deliveryType={deliveryType}
         onChange={onDeliveryTypeChange}
       />
 
-      {/* Card thông tin địa chỉ / nhận hàng */}
-      <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
-        {deliveryType === "DELIVERY" ? (
-          <div>
-            <div className="mb-2.5 flex items-center justify-between">
-              <span className="text-xs font-bold text-neutral900">
-                {copy.checkout.deliveryAddressSection}
-              </span>
-              {selectedAddress && (
+      {deliveryType === "DELIVERY" ? (
+        <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4 transition-all">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-sm font-bold text-neutral900">
+              {copy.checkout.deliveryAddressSection}
+            </span>
+            {selectedAddress && (
+              <button
+                type="button"
+                onClick={() => navigate("/select-location")}
+                className="text-xs font-semibold text-primary transition-opacity hover:opacity-80"
+              >
+                {copy.common.edit}
+              </button>
+            )}
+          </div>
+
+          {isLocating ? (
+            <div className="flex animate-pulse items-center gap-3 py-2 text-sm text-primaryDark">
+              <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <span className="font-medium">{copy.checkout.locatingGps}</span>
+            </div>
+          ) : selectedAddress ? (
+            <div
+              onClick={() => navigate("/select-location")}
+              className="flex cursor-pointer items-start justify-between text-sm text-neutral700 transition-all active:scale-[0.99]"
+            >
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 shrink-0 text-primary">
+                  <MapPinIcon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-neutral900">
+                      {selectedAddress.recipient_name} • {selectedAddress.phone}
+                    </span>
+                    {(!selectedAddress.id || selectedAddress.id === 0) && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-olive100 px-1.5 py-0.5 text-xs font-bold text-olive900">
+                        <MapPinIcon className="h-3 w-3 text-primary" />
+                        <span>{copy.checkout.currentGpsLocation}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1 line-clamp-2 leading-relaxed text-neutral600">
+                    {selectedAddress.address_text}
+                  </div>
+                  {distanceKm !== undefined && (
+                    <div className="mt-2 inline-flex items-center gap-1 rounded-md border border-primary/20 bg-olive50/90 px-2 py-1 text-xs font-medium text-primaryDark">
+                      <span>
+                        {copy.checkout.distanceEstimate} ~
+                        {distanceKm.toFixed(1)} km
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <ChevronRightIcon className="mt-1 h-5 w-5 shrink-0 text-neutral400" />
+            </div>
+          ) : (
+            <div
+              onClick={() => navigate("/select-location")}
+              className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3 text-sm text-primary transition-all active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-2 font-semibold">
+                <MapPinIcon className="h-5 w-5 text-primary" />
+                <span>{copy.checkout.selectAddressHint}</span>
+              </div>
+              <ChevronRightIcon className="h-5 w-5 text-primary" />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {/* Thông tin cửa hàng */}
+          <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
+            <h3 className="mb-2 text-sm font-bold text-neutral900">Thông tin cửa hàng</h3>
+            <div className="text-sm leading-relaxed text-neutral700">
+              <div className="font-semibold text-neutral900">
+                {shopInfo?.shop_name || copy.brand.name}
+              </div>
+              <div className="mt-1 text-neutral600">
+                {shopInfo?.address_text ||
+                  "123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh"}
+              </div>
+              {shopInfo?.hotline && (
+                <div className="mt-2 text-xs font-semibold text-primary">
+                  Hotline: {shopInfo.hotline}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Thông tin người nhận */}
+          <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-neutral900">Thông tin người đến lấy</h3>
+              {isZaloRuntime() && (
                 <button
                   type="button"
-                  onClick={() => navigate("/select-location")}
-                  className="text-xxsmall font-semibold text-primary transition-opacity hover:opacity-80"
+                  className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-bold text-primary transition-all active:opacity-70"
+                  onClick={async () => {
+                    try {
+                      const phone = await requestPhoneNumber();
+                      if (phone) {
+                        onPickupPhoneChange(phone);
+                      }
+                    } catch (e) {
+                      showWarning("Không thể lấy số điện thoại từ Zalo");
+                    }
+                  }}
                 >
-                  {copy.common.edit}
+                  <MapPinIcon className="h-3.5 w-3.5" />
+                  Lấy SĐT Zalo
                 </button>
               )}
             </div>
-
-            {isLocating ? (
-              <div className="flex animate-pulse items-center gap-3 py-1 text-xs text-primaryDark">
-                <div className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                <span className="font-medium">{copy.checkout.locatingGps}</span>
-              </div>
-            ) : selectedAddress ? (
-              <div
-                onClick={() => navigate("/select-location")}
-                className="flex cursor-pointer items-start justify-between text-xs text-neutral700 transition-all active:scale-[0.99]"
-              >
-                <div className="flex items-start gap-2.5">
-                  <div className="mt-0.5 shrink-0 text-primary">
-                    <MapPinIcon className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-neutral900">
-                        {selectedAddress.recipient_name} •{" "}
-                        {selectedAddress.phone}
-                      </span>
-                      {(!selectedAddress.id || selectedAddress.id === 0) && (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-olive100 px-1.5 py-0.5 text-xxxxsmall font-bold text-olive900">
-                          <MapPinIcon className="h-2.5 w-2.5 text-primary" />
-                          <span>{copy.checkout.currentGpsLocation}</span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-1 line-clamp-2 leading-relaxed text-neutral600">
-                      {selectedAddress.address_text}
-                    </div>
-                    {distanceKm !== undefined && (
-                      <div className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-primary/20 bg-olive50/90 px-1.5 py-0.5 text-xxsmall font-medium text-primaryDark">
-                        <span>
-                          {copy.checkout.distanceEstimate} ~
-                          {distanceKm.toFixed(1)} km
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <ChevronRightIcon className="mt-1 h-4 w-4 shrink-0 text-neutral400" />
-              </div>
-            ) : (
-              <div
-                onClick={() => navigate("/select-location")}
-                className="flex cursor-pointer items-center justify-between py-1 text-xs text-primary transition-all active:scale-[0.99]"
-              >
-                <div className="flex items-center gap-2 font-medium">
-                  <MapPinIcon className="h-4 w-4 text-primary" />
-                  <span>{copy.checkout.selectAddressHint}</span>
-                </div>
-                <ChevronRightIcon className="h-4 w-4 text-neutral400" />
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3 text-xs">
-            <div>
-              <div className="text-xs leading-relaxed text-neutral700">
-                <div className="font-semibold text-neutral900">
-                  {shopInfo?.shop_name || copy.brand.name}
-                </div>
-                <div className="mt-0.5 text-neutral600">
-                  {shopInfo?.address_text ||
-                    "123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh"}
-                </div>
-                {shopInfo?.hotline && (
-                  <div className="mt-1 text-xxsmall font-semibold text-primary">
-                    Hotline: {shopInfo.hotline}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2 border-t border-black/[0.05] pt-3">
-              <div className="flex items-center justify-between">
-                <label className="block text-xxsmall font-semibold text-neutral700">
-                  Thông tin người nhận
-                </label>
-                {isZaloRuntime() && (
-                  <button
-                    type="button"
-                    className="text-[10px] font-bold text-primary active:opacity-70"
-                    onClick={async () => {
-                      try {
-                        const phone = await requestPhoneNumber();
-                        if (phone) {
-                          onPickupPhoneChange(phone);
-                        }
-                      } catch (e) {
-                        showWarning("Không thể lấy số điện thoại từ Zalo");
-                      }
-                    }}
-                  >
-                    Lấy SĐT Zalo
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <input
-                  type="text"
-                  placeholder="Tên người nhận"
-                  value={pickupName}
-                  onChange={(e) => onPickupNameChange(e.target.value)}
-                  className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
-                />
-                <input
-                  type="tel"
-                  placeholder="Số điện thoại"
-                  value={pickupPhone}
-                  onChange={(e) => onPickupPhoneChange(e.target.value)}
-                  className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
-                />
-              </div>
+            <div className="flex flex-col gap-2.5">
+              <input
+                type="text"
+                placeholder="Tên người đến lấy"
+                value={pickupName}
+                onChange={(e) => onPickupNameChange(e.target.value)}
+                className="w-full rounded-xl border border-black/10 bg-black/[0.02] px-3.5 py-2.5 text-sm transition-colors focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+              />
+              <input
+                type="tel"
+                placeholder="Số điện thoại liên hệ"
+                value={pickupPhone}
+                onChange={(e) => onPickupPhoneChange(e.target.value)}
+                className="w-full rounded-xl border border-black/10 bg-black/[0.02] px-3.5 py-2.5 text-sm transition-colors focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+              />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

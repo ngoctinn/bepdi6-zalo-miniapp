@@ -3,12 +3,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../services/auth/auth.api";
 import { Customer, ZaloAuthRequest } from "../types/customer.types";
 import {
+  ensureZaloPermission,
   getZaloLoginCredentials,
   getZaloPhoneCredentials,
   isZaloRuntime,
 } from "../utils/zalo-permissions";
 
-const DEV_MOCK_ZALO_TOKEN = "dev_browser_mock_access_token";
+// Hardcode mock token for browser testing using Admin UID
+const DEV_MOCK_ZALO_TOKEN = "test_5746042945227030407";
 
 export function useAuth() {
   const queryClient = useQueryClient();

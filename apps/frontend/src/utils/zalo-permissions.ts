@@ -33,10 +33,8 @@ async function getRequiredAccessToken() {
 }
 
 export async function getZaloLoginCredentials() {
-  await ensureZaloPermission("scope.userInfo");
-  const accessToken = await getRequiredAccessToken();
-  
   try {
+    const accessToken = await getRequiredAccessToken();
     const { userInfo } = await getUserInfo({});
     return {
       accessToken,
@@ -45,7 +43,12 @@ export async function getZaloLoginCredentials() {
     };
   } catch (error) {
     console.warn("Failed to get Zalo user info locally", error);
-    return { accessToken, name: "", avatar: "" };
+    try {
+      const accessToken = await getRequiredAccessToken();
+      return { accessToken, name: "", avatar: "" };
+    } catch {
+      return { accessToken: "", name: "", avatar: "" };
+    }
   }
 }
 
