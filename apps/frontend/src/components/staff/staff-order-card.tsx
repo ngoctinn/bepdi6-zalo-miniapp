@@ -184,7 +184,7 @@ export function StaffOrderCard({
                 {Number(order.total_amount || 0).toLocaleString("vi-VN")}đ
               </span>
               {isPaid ? (
-                <span className="rounded bg-olive-100 px-1.5 py-0.5 text-xxxxsmall font-bold text-olive-900">
+                <span className="bg-olive-100 text-olive-900 rounded px-1.5 py-0.5 text-xxxxsmall font-bold">
                   ĐÃ TT
                 </span>
               ) : (
@@ -273,7 +273,7 @@ export function StaffOrderCard({
             <button
               disabled={isProcessing}
               onClick={() => onUpdateStatus(order.id, "COMPLETED")}
-              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-olive-700 text-sm font-bold text-white shadow-sm active:opacity-90 disabled:opacity-50"
+              className="bg-olive-700 flex h-12 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white shadow-sm active:opacity-90 disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />

@@ -83,12 +83,13 @@ export function useAuth() {
   const requestPhoneNumber = useCallback(async (): Promise<string | null> => {
     setIsRequestingPhone(true);
     try {
-      const { token: phoneToken, accessToken: userAccessToken } = isZaloRuntime()
-        ? await getZaloPhoneCredentials()
-        : {
-            token: "dev_mock_phone_token",
-            accessToken: DEV_MOCK_ZALO_TOKEN,
-          };
+      const { token: phoneToken, accessToken: userAccessToken } =
+        isZaloRuntime()
+          ? await getZaloPhoneCredentials()
+          : {
+              token: "dev_mock_phone_token",
+              accessToken: DEV_MOCK_ZALO_TOKEN,
+            };
 
       if (phoneToken) {
         const updatedCustomer = await authService.updatePhoneNumber(
