@@ -4,6 +4,7 @@ import {
   getLocation,
   getPhoneNumber,
   getSetting,
+  getUserInfo,
 } from "zmp-sdk/apis";
 
 type ZaloScope =
@@ -31,21 +32,40 @@ async function getRequiredAccessToken() {
   return accessToken;
 }
 
-export async function getZaloLoginAccessToken() {
+export async function getZaloLoginCredentials() {
   await ensureZaloPermission("scope.userInfo");
-  return getRequiredAccessToken();
+  const accessToken = await getRequiredAccessToken();
+  
+  try {
+    const { userInfo } = await getUserInfo({});
+    return {
+      accessToken,
+      name: userInfo?.name || "",
+      avatar: userInfo?.avatar || "",
+    };
+  } catch (error) {
+    console.warn("Failed to get Zalo user info locally", error);
+    return { accessToken, name: "", avatar: "" };
+  }
 }
 
 export async function getZaloLocationCredentials() {
   await ensureZaloPermission("scope.userLocation");
   const accessToken = await getRequiredAccessToken();
-  const location = await getLocation({});
+  const location: any = await getLocation({});
 
-  if (!location?.token) {
-    throw new Error("Zalo không trả về location token hợp lệ");
+  // ZMP SDK Location can return a token (server-to-server) OR raw coordinates depending on the app/SDK context
+  if (location?.token) {
+    return { token: location.token, accessToken };
+  } else if (location?.latitude && location?.longitude) {
+    return {
+      latitude: location.latitude,
+      longitude: location.longitude,
+      token: null, // Indicates raw coordinates
+    };
   }
 
-  return { token: location.token, accessToken };
+  throw new Error("Zalo không trả về location hợp lệ");
 }
 
 export async function getZaloPhoneCredentials() {

@@ -31,7 +31,7 @@ const DEFAULT_LONGITUDE = 106.660172;
 export default function SelectLocationPage() {
   const navigate = useNavigate();
   const { showSuccess, showWarning } = useAppToast();
-  const { customer } = useAuth();
+  const { customer, requestPhoneNumber } = useAuth();
   const { data: addresses, isLoading } = useAddresses();
   const createAddressMutation = useCreateAddress();
   const deleteAddressMutation = useDeleteAddress();
@@ -81,19 +81,31 @@ export default function SelectLocationPage() {
     setIsGettingLocation(true);
     setFormError(null);
     try {
-      const { token: locationToken, accessToken: userAccessToken } =
-        isZaloRuntime()
-          ? await getZaloLocationCredentials()
-          : {
-              token: "dev_browser_mock_location_token",
-              accessToken: "dev_browser_mock_access_token",
-            };
+      const credentials = isZaloRuntime()
+        ? await getZaloLocationCredentials()
+        : {
+            token: "dev_browser_mock_location_token",
+            accessToken: "dev_browser_mock_access_token",
+            latitude: null,
+            longitude: null,
+          };
 
-      // Gửi token kèm access_token lên backend để giải mã Server-to-Server
-      const decoded = await decodeLocationMutation.mutateAsync({
-        token: locationToken,
-        access_token: userAccessToken,
-      });
+      let decoded: any = null;
+
+      if (credentials.token) {
+        // Gửi token kèm access_token lên backend để giải mã Server-to-Server
+        decoded = await decodeLocationMutation.mutateAsync({
+          token: credentials.token,
+          access_token: credentials.accessToken,
+        });
+      } else if (credentials.latitude && credentials.longitude) {
+        // ZMP SDK trả về tọa độ trực tiếp (không hỗ trợ token API cho version này)
+        decoded = {
+          latitude: credentials.latitude,
+          longitude: credentials.longitude,
+          address_text: "",
+        };
+      }
 
       if (decoded && decoded.latitude && decoded.longitude) {
         setFormData((prev) => ({
@@ -270,9 +282,29 @@ export default function SelectLocationPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-neutral800">
-                {copy.selectLocation.phoneLabel}
-              </label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-semibold text-neutral800">
+                  {copy.selectLocation.phoneLabel}
+                </label>
+                {isZaloRuntime() && (
+                  <button
+                    type="button"
+                    className="text-[10px] font-bold text-primary active:opacity-70"
+                    onClick={async () => {
+                      try {
+                        const phone = await requestPhoneNumber();
+                        if (phone) {
+                          setFormData((prev) => ({ ...prev, phone }));
+                        }
+                      } catch (e) {
+                        showWarning("Không thể lấy số điện thoại từ Zalo");
+                      }
+                    }}
+                  >
+                    Lấy SĐT Zalo
+                  </button>
+                )}
+              </div>
               <input
                 type="tel"
                 value={formData.phone}

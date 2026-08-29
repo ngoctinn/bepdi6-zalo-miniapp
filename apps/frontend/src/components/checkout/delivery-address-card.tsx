@@ -5,6 +5,9 @@ import { Address } from "@/types/customer.types";
 import { DeliveryType } from "@/types/order.types";
 import { DeliveryTypeSelector } from "./delivery-type-selector";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
+import { useAppToast } from "@/hooks/use-app-toast";
+import { isZaloRuntime } from "@/utils/zalo-permissions";
 
 interface DeliveryAddressCardProps {
   deliveryType: DeliveryType;
@@ -32,6 +35,8 @@ export function DeliveryAddressCard({
   onPickupPhoneChange,
 }: DeliveryAddressCardProps) {
   const navigate = useNavigate();
+  const { requestPhoneNumber } = useAuth();
+  const { showWarning } = useAppToast();
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -135,9 +140,29 @@ export function DeliveryAddressCard({
             </div>
 
             <div className="space-y-2 border-t border-black/[0.05] pt-3">
-              <label className="block text-xxsmall font-semibold text-neutral700">
-                Thông tin người nhận
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-xxsmall font-semibold text-neutral700">
+                  Thông tin người nhận
+                </label>
+                {isZaloRuntime() && (
+                  <button
+                    type="button"
+                    className="text-[10px] font-bold text-primary active:opacity-70"
+                    onClick={async () => {
+                      try {
+                        const phone = await requestPhoneNumber();
+                        if (phone) {
+                          onPickupPhoneChange(phone);
+                        }
+                      } catch (e) {
+                        showWarning("Không thể lấy số điện thoại từ Zalo");
+                      }
+                    }}
+                  >
+                    Lấy SĐT Zalo
+                  </button>
+                )}
+              </div>
               <div className="flex flex-col gap-2">
                 <input
                   type="text"

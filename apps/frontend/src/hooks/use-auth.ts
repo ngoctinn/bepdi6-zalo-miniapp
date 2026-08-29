@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../services/auth/auth.api";
 import { Customer, ZaloAuthRequest } from "../types/customer.types";
 import {
-  getZaloLoginAccessToken,
+  getZaloLoginCredentials,
   getZaloPhoneCredentials,
   isZaloRuntime,
 } from "../utils/zalo-permissions";
@@ -56,14 +56,24 @@ export function useAuth() {
     setIsLoggingIn(true);
     try {
       let accessToken = "";
+      let name = "";
+      let avatar = "";
+      
       if (isZaloRuntime()) {
-        accessToken = await getZaloLoginAccessToken();
+        const credentials = await getZaloLoginCredentials();
+        accessToken = credentials.accessToken;
+        name = credentials.name;
+        avatar = credentials.avatar;
       } else {
         accessToken = DEV_MOCK_ZALO_TOKEN;
       }
 
       if (accessToken) {
-        const payload: ZaloAuthRequest = { access_token: accessToken };
+        const payload: ZaloAuthRequest = { 
+          access_token: accessToken,
+          name: name,
+          avatar_url: avatar
+        };
         await mutateLoginAsync(payload);
       }
     } catch (err) {

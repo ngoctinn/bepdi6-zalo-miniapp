@@ -87,12 +87,6 @@ export default function CheckoutPage() {
   const createOrderMutation = useCreateOrder();
   const createAddressMutation = useCreateAddress();
 
-  useEffect(() => {
-    if (customer && !customer.phone && !hasRequestedPhoneRef.current) {
-      hasRequestedPhoneRef.current = true;
-      void requestPhoneNumber();
-    }
-  }, [customer, requestPhoneNumber]);
 
   // Select the default address only; GPS permission is requested from the explicit location-selection action.
   useEffect(() => {
