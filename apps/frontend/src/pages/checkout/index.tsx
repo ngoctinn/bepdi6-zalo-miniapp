@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { DeliveryTimePicker } from "@/components/common/delivery-time-picker";
 import { useCartStore } from "@/stores/cart.store";
@@ -9,7 +9,6 @@ import {
 } from "@/services/order/order.mutations";
 import {
   useAddresses,
-  useDecodeLocation,
   useCreateAddress,
 } from "@/services/address/address.queries";
 import { useShopInfo } from "@/services/shop/shop.queries";
@@ -22,10 +21,6 @@ import {
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
-import {
-  getZaloLocationCredentials,
-  isZaloRuntime,
-} from "@/utils/zalo-permissions";
 
 // Modularized Checkout Sub-components
 import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
@@ -67,8 +62,6 @@ export default function CheckoutPage() {
   >(undefined);
   const [previewData, setPreviewData] =
     useState<CheckoutPreviewResponse | null>(null);
-  const [isLocating, setIsLocating] = useState(false);
-  const [hasAttemptedAutoLocate, setHasAttemptedAutoLocate] = useState(false);
   const [orderErrorModal, setOrderErrorModal] = useState<{
     visible: boolean;
     title?: string;
@@ -77,13 +70,12 @@ export default function CheckoutPage() {
     visible: false,
   });
 
-  // Prefill customer info for Pickup
+  // Prefill customer info for Pickup.
   useEffect(() => {
-    if (customer) {
-      if (!pickupName && customer.name) setPickupName(customer.name);
-      if (!pickupPhone && customer.phone) setPickupPhone(customer.phone);
-    }
-  }, [customer]);
+    if (!customer) return;
+    if (!pickupName && customer.name) setPickupName(customer.name);
+    if (!pickupPhone && customer.phone) setPickupPhone(customer.phone);
+  }, [customer, pickupName, pickupPhone]);
 
   // Idempotency Key cố định cho phiên thanh toán hiện tại
   const idempotencyKeyRef = useRef<string>(generateUUID());
@@ -93,7 +85,6 @@ export default function CheckoutPage() {
   // Mutations
   const previewMutation = usePreviewCheckout();
   const createOrderMutation = useCreateOrder();
-  const decodeLocationMutation = useDecodeLocation();
   const createAddressMutation = useCreateAddress();
 
   useEffect(() => {
@@ -103,86 +94,15 @@ export default function CheckoutPage() {
     }
   }, [customer, requestPhoneNumber]);
 
-  /**
-   * Tự động dò và ghim toạ độ GPS khi khách chưa có địa chỉ nào
-   */
-  const autoDetectLocation = useCallback(async () => {
-    if (isLocating || selectedAddress) return;
-    setIsLocating(true);
-    try {
-      const { token: locationToken, accessToken: userAccessToken } =
-        isZaloRuntime()
-          ? await getZaloLocationCredentials()
-          : {
-              token: "dev_browser_mock_location_token",
-              accessToken: "dev_browser_mock_access_token",
-            };
-
-      const decoded = await decodeLocationMutation.mutateAsync({
-        token: locationToken,
-        access_token: userAccessToken,
-      });
-
-      if (decoded && decoded.latitude && decoded.longitude) {
-        const fallbackAddressText =
-          decoded.address_text ||
-          `${decoded.ward ? decoded.ward + ", " : ""}${decoded.district ? decoded.district + ", " : ""}${decoded.city || "TP. Hồ Chí Minh"}` ||
-          copy.checkout.currentGpsLocation;
-
-        const temporaryGpsAddress = {
-          id: 0, // Temporary ID indicating unpersisted GPS address
-          recipient_name: customer?.name || "Khách Zalo",
-          phone: customer?.phone || "0987654321",
-          address_text: fallbackAddressText,
-          latitude: Number(decoded.latitude),
-          longitude: Number(decoded.longitude),
-          is_default: false,
-        };
-
-        setSelectedAddress(temporaryGpsAddress);
-      }
-    } catch {
-      // User denied or decode failed - degrade gracefully to manual selection
-    } finally {
-      setIsLocating(false);
-      setHasAttemptedAutoLocate(true);
-    }
-  }, [
-    isLocating,
-    selectedAddress,
-    customer,
-    decodeLocationMutation,
-    setSelectedAddress,
-  ]);
-
-  /**
-   * Priority Cascade để gán địa chỉ:
-   * 1. selectedAddress đã có trong store -> giữ nguyên
-   * 2. userAddresses từ DB -> chọn default address
-   * 3. Chưa có gì -> tự động kích hoạt GPS auto-detect
-   */
+  // Select the default address only; GPS permission is requested from the explicit location-selection action.
   useEffect(() => {
-    if (selectedAddress || isLoadingAddresses || hasAttemptedAutoLocate) {
-      return;
-    }
-
+    if (selectedAddress || isLoadingAddresses) return;
     if (userAddresses && userAddresses.length > 0) {
       const defaultAddr =
         userAddresses.find((a) => a.is_default) || userAddresses[0];
       setSelectedAddress(defaultAddr);
-      setHasAttemptedAutoLocate(true);
-    } else if (userAddresses && userAddresses.length === 0) {
-      // Khách chưa có sổ địa chỉ -> Tự động gọi GPS
-      autoDetectLocation();
     }
-  }, [
-    selectedAddress,
-    userAddresses,
-    isLoadingAddresses,
-    hasAttemptedAutoLocate,
-    setSelectedAddress,
-    autoDetectLocation,
-  ]);
+  }, [selectedAddress, userAddresses, isLoadingAddresses, setSelectedAddress]);
 
   // Chuyển đổi giỏ hàng sang payload backend
   const orderItemsPayload = useMemo(
@@ -271,6 +191,15 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (
+      deliveryType === "DELIVERY" &&
+      (!selectedAddress?.recipient_name?.trim() ||
+        !selectedAddress?.phone?.trim())
+    ) {
+      showWarning(copy.checkout.missingAddressWarning);
+      return;
+    }
+
     if (deliveryType === "PICKUP") {
       if (!pickupName.trim()) {
         showWarning(copy.checkout.missingPickupNameWarning);
@@ -339,7 +268,7 @@ export default function CheckoutPage() {
         (!selectedAddress.id || selectedAddress.id === 0)
       ) {
         try {
-          createAddressMutation.mutate({
+          await createAddressMutation.mutateAsync({
             recipient_name: selectedAddress.recipient_name,
             phone: selectedAddress.phone,
             address_text: selectedAddress.address_text,
@@ -420,7 +349,7 @@ export default function CheckoutPage() {
         onDeliveryTypeChange={setDeliveryType}
         selectedAddress={selectedAddress}
         shopInfo={shopInfo}
-        isLocating={isLocating}
+        isLocating={false}
         distanceKm={previewData?.distance_km}
         pickupName={pickupName}
         pickupPhone={pickupPhone}

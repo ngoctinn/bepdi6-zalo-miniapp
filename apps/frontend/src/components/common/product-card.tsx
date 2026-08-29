@@ -201,12 +201,12 @@ export default function ProductCard({
                 <button
                   type="button"
                   onClick={handleQuickDecrease}
-                  className="shadow-xs flex h-8 w-8 items-center justify-center rounded-full border border-primary/25 bg-olive50/80 text-olive900 transition-transform active:scale-90"
+                  className="shadow-xs flex h-9 min-h-[36px] w-9 min-w-[36px] touch-manipulation items-center justify-center rounded-full border border-primary/25 bg-olive50/80 text-olive900 transition-transform active:scale-90"
                   aria-label="Giảm số lượng"
                 >
                   <svg
-                    width="12"
-                    height="12"
+                    width="13"
+                    height="13"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -218,19 +218,19 @@ export default function ProductCard({
                   </svg>
                 </button>
 
-                <span className="min-w-[18px] text-center text-xs font-bold text-neutral900">
+                <span className="min-w-[20px] text-center text-xs font-bold text-neutral900">
                   {totalQuantityInCart}
                 </span>
 
                 <button
                   type="button"
                   onClick={handleQuickAdd}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90"
+                  className="flex h-9 min-h-[36px] w-9 min-w-[36px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90"
                   aria-label="Tăng số lượng"
                 >
                   <svg
-                    width="12"
-                    height="12"
+                    width="13"
+                    height="13"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -247,12 +247,12 @@ export default function ProductCard({
               <button
                 type="button"
                 onClick={handleQuickAdd}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-sm transition-all active:scale-90 active:shadow-none"
+                className="flex h-10 min-h-[40px] w-10 min-w-[40px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-all active:scale-90 active:shadow-none"
                 aria-label="Thêm vào giỏ"
               >
                 <svg
-                  width="15"
-                  height="15"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

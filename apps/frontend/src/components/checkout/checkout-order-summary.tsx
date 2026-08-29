@@ -88,26 +88,37 @@ export function CheckoutOrderSummary({
           type="button"
           disabled={isSubmitting || isUpdatingFee}
           onClick={onPlaceOrder}
-          className="flex w-full items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-sm transition-all hover:bg-primaryDark active:scale-[0.99] disabled:opacity-60"
+          className="flex min-h-[48px] w-full touch-manipulation items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-sm transition-all hover:bg-primaryDark active:scale-[0.99] disabled:opacity-75"
         >
-          <span>
-            {isSubmitting ? copy.checkout.processing : copy.checkout.placeOrder}
-          </span>
+          <div className="flex items-center gap-2">
+            {isUpdatingFee && (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            )}
+            <span>
+              {isSubmitting
+                ? copy.checkout.processing
+                : isUpdatingFee
+                  ? "Đang tính phí giao hàng..."
+                  : copy.checkout.placeOrder}
+            </span>
+          </div>
           <div className="flex items-center gap-1 font-extrabold">
             <span>{formatCurrency(displayTotal)}đ</span>
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            {!isUpdatingFee && !isSubmitting && (
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            )}
           </div>
         </button>
       </div>

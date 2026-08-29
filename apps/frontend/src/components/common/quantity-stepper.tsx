@@ -29,15 +29,18 @@ export default function QuantityStepper({
 
   const sizeClasses = {
     small: {
-      button: "w-6 h-6 text-sm min-w-[24px] min-h-[24px]",
+      button:
+        "w-7 h-7 text-sm min-w-[28px] min-h-[28px] p-1 touch-manipulation",
       display: "min-w-[20px] px-1 text-center text-xs font-bold",
     },
     medium: {
-      button: "w-7 h-7 text-base min-w-[28px] min-h-[28px]",
+      button:
+        "w-8 h-8 text-base min-w-[32px] min-h-[32px] p-1.5 touch-manipulation",
       display: "min-w-[24px] text-center text-sm font-semibold",
     },
     large: {
-      button: "w-9 h-9 text-xl min-w-[36px] min-h-[36px]",
+      button:
+        "w-9 h-9 text-xl min-w-[36px] min-h-[36px] p-1.5 touch-manipulation",
       display: "w-9 text-center text-base font-semibold",
     },
   };
@@ -49,8 +52,8 @@ export default function QuantityStepper({
 
   const buttonBaseClasses =
     variant === "rounded"
-      ? "rounded-full flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-black/[0.12] bg-white text-neutral800 hover:border-black/20 hover:bg-stone-50 active:scale-95 shadow-xs"
-      : "flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
+      ? "rounded-full flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-black/[0.12] bg-white text-neutral800 hover:border-black/20 hover:bg-stone-50 active:scale-95 shadow-xs select-none relative after:content-[''] after:absolute after:-inset-1.5 after:z-10"
+      : "flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed select-none relative after:content-[''] after:absolute after:-inset-1.5 after:z-10";
 
   return (
     <div

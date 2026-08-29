@@ -169,7 +169,7 @@ export default function HomePage() {
       </div>
 
       {/* Danh sách món ăn phân theo từng Danh Mục (Có ngăn cách & Scroll-spy) */}
-      <div className="flex flex-col gap-6 px-3.5 pb-24 pt-2">
+      <div className="flex flex-col gap-6 px-3.5 pb-32 pt-2">
         {isLoadingProducts ? (
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (

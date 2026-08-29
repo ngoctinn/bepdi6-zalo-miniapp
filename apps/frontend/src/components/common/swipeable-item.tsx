@@ -46,9 +46,9 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
     const diffX = touch.clientX - startXRef.current;
     const diffY = touch.clientY - startYRef.current;
 
-    // Xác định hướng vuốt ngay khi bắt đầu di chuyển
+    // Xác định hướng vuốt ngay khi bắt đầu di chuyển (ngưỡng 15px để không nuốt tap click)
     if (isHorizontalSwipe.current === null) {
-      if (Math.abs(diffX) > 5 || Math.abs(diffY) > 5) {
+      if (Math.abs(diffX) > 15 || Math.abs(diffY) > 15) {
         isHorizontalSwipe.current = Math.abs(diffX) > Math.abs(diffY);
       }
     }
