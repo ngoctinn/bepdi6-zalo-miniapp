@@ -27,57 +27,61 @@ export function CheckoutOrderSummary({
   return (
     <>
       {/* Chi tiết thanh toán */}
-      <div className="shadow-xs space-y-3 rounded-2xl border border-black/[0.06] bg-white p-4 text-xs">
-        <span className="block text-xs font-bold text-neutral900">
-          {copy.checkout.paymentDetailSection}
-        </span>
-
-        <div className="flex justify-between text-neutral600">
-          <span>{copy.checkout.subtotal}</span>
-          <span className="font-medium text-neutral900">
-            {formatCurrency(displaySubtotal)}đ
+      <div className="flex flex-col gap-2 text-xs">
+        <div className="px-1">
+          <span className="text-xs font-bold uppercase text-neutral900">
+            {copy.checkout.paymentDetailSection}
           </span>
         </div>
 
-        <div className="flex justify-between text-neutral600">
-          <span>
-            {deliveryType === "PICKUP"
-              ? copy.checkout.deliveryMethod || "Hình thức"
-              : `${copy.checkout.shippingFee}${
-                  distanceKm !== undefined
-                    ? ` (~${distanceKm.toFixed(1)} km)`
-                    : ""
-                }`}
-          </span>
-          <span className="font-medium text-neutral900">
-            {deliveryType === "PICKUP"
-              ? copy.checkout.selfPickupFree || "Tự đến lấy (0đ)"
-              : displayShippingFee > 0
-                ? `${formatCurrency(displayShippingFee)}đ`
-                : copy.checkout.freeShipping}
-          </span>
-        </div>
-
-        {displayDiscount > 0 && (
-          <div className="flex justify-between font-medium text-primary">
-            <span>{copy.checkout.discount}</span>
-            <span>-{formatCurrency(displayDiscount)}đ</span>
+        <div className="shadow-xs space-y-3 rounded-2xl border border-black/[0.06] bg-white p-4">
+          <div className="flex justify-between text-neutral600">
+            <span>{copy.checkout.subtotal}</span>
+            <span className="font-medium text-neutral900">
+              {formatCurrency(displaySubtotal)}đ
+            </span>
           </div>
-        )}
 
-        <div className="flex items-center justify-between border-t border-black/[0.05] pt-3 text-sm">
-          <span className="font-bold text-neutral900">
-            {copy.checkout.total}
-          </span>
-          <div className="text-right">
-            <div className="text-base font-extrabold text-neutral900">
-              {formatCurrency(displayTotal)}đ
+          <div className="flex justify-between text-neutral600">
+            <span>
+              {deliveryType === "PICKUP"
+                ? copy.checkout.deliveryMethod || "Hình thức"
+                : `${copy.checkout.shippingFee}${
+                    distanceKm !== undefined
+                      ? ` (~${distanceKm.toFixed(1)} km)`
+                      : ""
+                  }`}
+            </span>
+            <span className="font-medium text-neutral900">
+              {deliveryType === "PICKUP"
+                ? copy.checkout.selfPickupFree || "Tự đến lấy (0đ)"
+                : displayShippingFee > 0
+                  ? `${formatCurrency(displayShippingFee)}đ`
+                  : copy.checkout.freeShipping}
+            </span>
+          </div>
+
+          {displayDiscount > 0 && (
+            <div className="flex justify-between font-medium text-primary">
+              <span>{copy.checkout.discount}</span>
+              <span>-{formatCurrency(displayDiscount)}đ</span>
             </div>
-            {isUpdatingFee && (
-              <div className="text-xxsmall text-neutral400">
-                Đang cập nhật phí...
+          )}
+
+          <div className="flex items-center justify-between border-t border-black/[0.05] pt-3 text-sm">
+            <span className="font-bold text-neutral900">
+              {copy.checkout.total}
+            </span>
+            <div className="text-right">
+              <div className="text-base font-extrabold text-neutral900">
+                {formatCurrency(displayTotal)}đ
               </div>
-            )}
+              {isUpdatingFee && (
+                <div className="text-xxsmall text-neutral400">
+                  Đang cập nhật phí...
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

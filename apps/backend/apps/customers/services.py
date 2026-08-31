@@ -3,6 +3,7 @@ import hmac
 import logging
 
 import requests
+import requests.adapters
 from django.conf import settings
 from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken

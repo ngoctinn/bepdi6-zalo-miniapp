@@ -1,5 +1,4 @@
 import React from "react";
-import { Modal, Button, Text } from "zmp-ui";
 
 export type ConfirmType = "danger" | "warning" | "info" | "primary";
 
@@ -16,9 +15,7 @@ export interface ConfirmModalProps {
 }
 
 /**
- * ConfirmModal: Popup hộp thoại xác nhận thao tác của người dùng theo Zalo Mini App Design Guidelines.
- * - Yêu cầu thao tác và quyết định của người dùng cho hướng đi tiếp theo.
- * - Font chữ, màu sắc nút bấm đồng bộ hệ thống Rustic Olive / Danger Semantic.
+ * ConfirmModal: Popup hộp thoại xác nhận thuần React + Tailwind, loại bỏ hoàn toàn lỗi backdrop overlay freeze từ zmp-ui.
  */
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   visible,
@@ -31,62 +28,55 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  if (!visible) return null;
+
   const getConfirmButtonClasses = () => {
     switch (type) {
       case "danger":
-        return "!bg-danger !text-white hover:opacity-90 active:scale-[0.98]";
+        return "bg-danger text-white hover:opacity-90 active:scale-[0.98]";
       case "warning":
-        return "!bg-amber-600 !text-white hover:opacity-90 active:scale-[0.98]";
+        return "bg-amber-600 text-white hover:opacity-90 active:scale-[0.98]";
       case "info":
       case "primary":
       default:
-        return "!bg-primary !text-white hover:!bg-primaryDark active:scale-[0.98]";
+        return "bg-primary text-white hover:bg-primaryDark active:scale-[0.98]";
     }
   };
 
   return (
-    <Modal
-      visible={visible}
-      onClose={onCancel}
-      mask
-      maskClosable={!loading}
-      zIndex={1500}
-      modalClassName="rounded-2xl w-[calc(100vw-32px)] max-w-[340px] p-5 sm:p-6 text-center shadow-2xl border-0 bg-white overflow-hidden box-border"
-    >
-      <div className="flex w-full flex-col overflow-hidden">
-        <Text.Title
-          size="small"
-          className="mb-2 break-words font-bold text-neutral900"
-        >
+    <div className="backdrop-blur-xs fixed inset-0 z-[1500] flex items-center justify-center bg-black/60 p-4">
+      <div className="w-full max-w-[320px] rounded-2xl bg-white p-5 text-center shadow-2xl">
+        <h3 className="mb-2 break-words text-base font-bold text-neutral900">
           {title}
-        </Text.Title>
+        </h3>
 
         {description && (
-          <div className="mb-6 text-sm leading-relaxed text-neutral600">
+          <div className="mb-5 text-xs leading-relaxed text-neutral600">
             {description}
           </div>
         )}
 
         <div className="mt-2 flex gap-3">
-          <Button
-            variant="secondary"
+          <button
+            type="button"
             onClick={onCancel}
             disabled={loading}
-            className="!h-11 flex-1 !rounded-xl !border-0 !bg-stone100 !text-sm !font-semibold !text-neutral700 transition-all hover:!bg-stone200 active:scale-[0.98]"
+            className="h-11 flex-1 rounded-xl bg-stone100 text-xs font-semibold text-neutral700 transition-all hover:bg-stone200 active:scale-[0.98] disabled:opacity-50"
           >
             {cancelText}
-          </Button>
+          </button>
 
-          <Button
+          <button
+            type="button"
             onClick={onConfirm}
-            loading={loading}
-            className={`!h-11 flex-1 !rounded-xl !border-0 !text-sm !font-bold shadow-md transition-all ${getConfirmButtonClasses()}`}
+            disabled={loading}
+            className={`flex h-11 flex-1 items-center justify-center rounded-xl text-xs font-bold shadow-md transition-all disabled:opacity-50 ${getConfirmButtonClasses()}`}
           >
-            {confirmText}
-          </Button>
+            {loading ? "Đang xử lý..." : confirmText}
+          </button>
         </div>
       </div>
-    </Modal>
+    </div>
   );
 };
 

@@ -47,9 +47,9 @@ export function DeliveryAddressCard({
       />
 
       {deliveryType === "DELIVERY" ? (
-        <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4 transition-all">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="text-sm font-bold text-neutral900">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-bold uppercase text-neutral900">
               {copy.checkout.deliveryAddressSection}
             </span>
             {selectedAddress && (
@@ -62,16 +62,17 @@ export function DeliveryAddressCard({
               </button>
             )}
           </div>
-
           {isLocating ? (
-            <div className="flex animate-pulse items-center gap-3 py-2 text-sm text-primaryDark">
-              <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              <span className="font-medium">{copy.checkout.locatingGps}</span>
+            <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4 transition-all">
+              <div className="flex animate-pulse items-center gap-3 py-2 text-sm text-primaryDark">
+                <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <span className="font-medium">{copy.checkout.locatingGps}</span>
+              </div>
             </div>
           ) : selectedAddress ? (
             <div
               onClick={() => navigate("/select-location")}
-              className="flex cursor-pointer items-start justify-between text-sm text-neutral700 transition-all active:scale-[0.99]"
+              className="shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border border-black/[0.06] bg-white p-4 text-sm text-neutral700 transition-all active:scale-[0.99]"
             >
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 shrink-0 text-primary">
@@ -107,45 +108,55 @@ export function DeliveryAddressCard({
           ) : (
             <div
               onClick={() => navigate("/select-location")}
-              className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3 text-sm text-primary transition-all active:scale-[0.99]"
+              className="shadow-xs flex cursor-pointer items-center justify-between rounded-2xl border border-black/[0.06] bg-white p-4 text-sm transition-all active:scale-[0.99]"
             >
-              <div className="flex items-center gap-2 font-semibold">
-                <MapPinIcon className="h-5 w-5 text-primary" />
+              <div className="flex items-center gap-3 font-semibold text-neutral900">
+                <div className="shrink-0 text-primary">
+                  <MapPinIcon className="h-5 w-5" />
+                </div>
                 <span>{copy.checkout.selectAddressHint}</span>
               </div>
-              <ChevronRightIcon className="h-5 w-5 text-primary" />
+              <ChevronRightIcon className="h-5 w-5 text-neutral400" />
             </div>
           )}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {/* Thông tin cửa hàng */}
-          <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
-            <h3 className="mb-2 text-sm font-bold text-neutral900">Thông tin cửa hàng</h3>
-            <div className="text-sm leading-relaxed text-neutral700">
-              <div className="font-semibold text-neutral900">
-                {shopInfo?.shop_name || copy.brand.name}
-              </div>
-              <div className="mt-1 text-neutral600">
-                {shopInfo?.address_text ||
-                  "123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh"}
-              </div>
-              {shopInfo?.hotline && (
-                <div className="mt-2 text-xs font-semibold text-primary">
-                  Hotline: {shopInfo.hotline}
+          <div className="flex flex-col gap-2">
+            <div className="px-1">
+              <span className="text-xs font-bold uppercase text-neutral900">
+                Thông tin cửa hàng
+              </span>
+            </div>
+            <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
+              <div className="text-sm leading-relaxed text-neutral700">
+                <div className="font-semibold text-neutral900">
+                  {shopInfo?.shop_name || copy.brand.name}
                 </div>
-              )}
+                <div className="mt-1 text-neutral600">
+                  {shopInfo?.address_text ||
+                    "123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh"}
+                </div>
+                {shopInfo?.hotline && (
+                  <div className="mt-2 text-xs font-semibold text-primary">
+                    Hotline: {shopInfo.hotline}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Thông tin người nhận */}
-          <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-neutral900">Thông tin người đến lấy</h3>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold uppercase text-neutral900">
+                Thông tin người đến lấy
+              </span>
               {isZaloRuntime() && (
                 <button
                   type="button"
-                  className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-bold text-primary transition-all active:opacity-70"
+                  className="text-xs font-semibold text-primary transition-opacity hover:opacity-80"
                   onClick={async () => {
                     try {
                       const phone = await requestPhoneNumber();
@@ -157,25 +168,24 @@ export function DeliveryAddressCard({
                     }
                   }}
                 >
-                  <MapPinIcon className="h-3.5 w-3.5" />
                   Lấy SĐT Zalo
                 </button>
               )}
             </div>
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2">
               <input
                 type="text"
                 placeholder="Tên người đến lấy"
                 value={pickupName}
                 onChange={(e) => onPickupNameChange(e.target.value)}
-                className="w-full rounded-xl border border-black/10 bg-black/[0.02] px-3.5 py-2.5 text-sm transition-colors focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+                className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
               <input
                 type="tel"
                 placeholder="Số điện thoại liên hệ"
                 value={pickupPhone}
                 onChange={(e) => onPickupPhoneChange(e.target.value)}
-                className="w-full rounded-xl border border-black/10 bg-black/[0.02] px-3.5 py-2.5 text-sm transition-colors focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+                className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
             </div>
           </div>

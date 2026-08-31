@@ -60,7 +60,7 @@ export function useAuth() {
       let accessToken = "";
       let name = "";
       let avatar = "";
-      
+
       if (isZaloRuntime()) {
         const credentials = await getZaloLoginCredentials();
         accessToken = credentials.accessToken;
@@ -71,10 +71,10 @@ export function useAuth() {
       }
 
       if (accessToken) {
-        const payload: ZaloAuthRequest = { 
+        const payload: ZaloAuthRequest = {
           access_token: accessToken,
           name: name,
-          avatar_url: avatar
+          avatar_url: avatar,
         };
         await mutateLoginAsync(payload);
       }

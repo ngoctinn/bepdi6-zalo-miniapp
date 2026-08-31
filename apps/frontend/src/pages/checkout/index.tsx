@@ -87,10 +87,32 @@ export default function CheckoutPage() {
   const createOrderMutation = useCreateOrder();
   const createAddressMutation = useCreateAddress();
 
-
   // Select the default address only; GPS permission is requested from the explicit location-selection action.
   useEffect(() => {
-    if (selectedAddress || isLoadingAddresses) return;
+    if (isLoadingAddresses) return;
+
+    // Nếu có địa chỉ đã chọn (có id > 0) từ database, kiểm tra xem nó còn tồn tại trong list không (phòng khi bị xoá)
+    if (
+      selectedAddress &&
+      selectedAddress.id &&
+      selectedAddress.id > 0 &&
+      userAddresses
+    ) {
+      const stillExists = userAddresses.some(
+        (a) => a.id === selectedAddress.id,
+      );
+      if (!stillExists) {
+        const defaultAddr =
+          userAddresses.length > 0
+            ? userAddresses.find((a) => a.is_default) || userAddresses[0]
+            : null;
+        setSelectedAddress(defaultAddr);
+        return;
+      }
+    }
+
+    if (selectedAddress) return;
+
     if (userAddresses && userAddresses.length > 0) {
       const defaultAddr =
         userAddresses.find((a) => a.is_default) || userAddresses[0];
@@ -156,8 +178,6 @@ export default function CheckoutPage() {
   const displayTotal =
     previewData?.total_amount ??
     Math.max(0, displaySubtotal + displayShippingFee - displayDiscount);
-
-
 
   const handleApplyVoucher = () => {
     if (!voucherCodeInput.trim()) return;
@@ -380,7 +400,7 @@ export default function CheckoutPage() {
       {/* Ghi chú đơn hàng */}
       <div className="flex flex-col gap-2">
         <div className="px-1">
-          <span className="text-xs font-bold text-neutral900">
+          <span className="text-xs font-bold uppercase text-neutral900">
             {copy.checkout.note}
           </span>
         </div>

@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { DeliveryType, ShopInfo } from "@/types/shop.types";
+import { DeliveryType } from "@/types/order.types";
+import { ShopInfo } from "@/types/shop.types";
 
 interface DeliveryTimePickerProps {
   deliveryType: DeliveryType;
@@ -78,7 +79,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
   return (
     <div className="flex flex-col gap-2 text-xs">
       <div className="px-1">
-        <span className="text-xs font-bold text-neutral900">
+        <span className="text-xs font-bold uppercase text-neutral900">
           THỜI GIAN {deliveryType === "PICKUP" ? "LẤY MÓN" : "GIAO HÀNG"}
         </span>
       </div>

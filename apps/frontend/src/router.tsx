@@ -100,7 +100,6 @@ const router = createBrowserRouter(
             headerPosition: "sticky",
           },
         },
-
       ],
     },
   ],

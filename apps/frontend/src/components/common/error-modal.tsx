@@ -1,5 +1,4 @@
 import React from "react";
-import { Modal, Button, Text, Icon } from "zmp-ui";
 
 export interface ErrorModalProps {
   visible: boolean;
@@ -12,9 +11,7 @@ export interface ErrorModalProps {
 }
 
 /**
- * ErrorModal: Thông báo lỗi dạng Modal theo Zalo Mini App Design Guidelines:
- * - Dùng icon Zalo UI chuẩn (`zi-close-circle`).
- * - Cơ chế: Dạng Modal lớp trên cùng (z-index: 9999).
+ * ErrorModal: Thông báo lỗi dạng Modal thuần React + Tailwind độc lập, loại bỏ hoàn toàn lỗi backdrop overlay freeze từ zmp-ui.
  */
 export const ErrorModal: React.FC<ErrorModalProps> = ({
   visible,
@@ -25,17 +22,12 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({
   onClose,
   onAction,
 }) => {
+  if (!visible) return null;
+
   return (
-    <Modal
-      visible={visible}
-      onClose={onClose}
-      mask
-      maskClosable={false}
-      zIndex={9999}
-      modalClassName="rounded-2xl w-[calc(100vw-32px)] max-w-[340px] p-5 sm:p-6 text-center shadow-2xl border-0 bg-white overflow-hidden box-border"
-    >
-      <div className="flex w-full flex-col overflow-hidden">
-        {/* Soft Error Icon badge sử dụng SVG Vector độc lập */}
+    <div className="backdrop-blur-xs fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4">
+      <div className="w-full max-w-[320px] rounded-2xl bg-white p-5 text-center shadow-2xl">
+        {/* Soft Error Icon badge */}
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-danger">
           <svg
             className="h-8 w-8 text-danger"
@@ -52,12 +44,9 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({
           </svg>
         </div>
 
-        <Text.Title
-          size="small"
-          className="mb-2 break-words font-bold text-neutral900"
-        >
+        <h3 className="mb-2 break-words text-base font-bold text-neutral900">
           {title}
-        </Text.Title>
+        </h3>
 
         <div className="mb-6 break-words text-sm leading-relaxed text-neutral600">
           {message}
@@ -65,24 +54,25 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({
 
         <div className="flex gap-3">
           {actionText && onAction && (
-            <Button
-              variant="secondary"
+            <button
+              type="button"
               onClick={onClose}
-              className="!h-11 flex-1 !rounded-xl !border-0 !bg-stone100 !text-sm !font-semibold !text-neutral700 transition-all hover:!bg-stone200 active:scale-[0.98]"
+              className="h-11 flex-1 rounded-xl bg-stone100 text-sm font-semibold text-neutral700 transition-all hover:bg-stone200 active:scale-[0.98]"
             >
               {closeText}
-            </Button>
+            </button>
           )}
 
-          <Button
+          <button
+            type="button"
             onClick={onAction || onClose}
-            className="!h-11 flex-1 !rounded-xl !border-0 !bg-danger !text-sm !font-bold !text-white shadow-md transition-all hover:opacity-90 active:scale-[0.98]"
+            className="h-11 flex-1 rounded-xl bg-danger text-sm font-bold text-white shadow-md transition-all hover:opacity-90 active:scale-[0.98]"
           >
             {actionText || closeText}
-          </Button>
+          </button>
         </div>
       </div>
-    </Modal>
+    </div>
   );
 };
 
