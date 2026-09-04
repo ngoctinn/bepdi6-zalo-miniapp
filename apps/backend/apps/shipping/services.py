@@ -157,11 +157,19 @@ class ShippingService:
                 "distance_km": Decimal,
                 "shipping_fee": Decimal,
                 "is_deliverable": bool,
+                "shipping_status": str,
+                "fee_reason": str,
+                "can_checkout": bool,
             }
         """
         distance_km = DistanceCalculator.calculate_estimated_distance(
             destination_lat=destination_lat,
             destination_lon=destination_lon,
+        )
+        min_order_for_freeship = ShopConfig.get_solo().min_order_for_freeship
+        is_freeship = (
+            min_order_for_freeship > Decimal("0.00")
+            and Decimal(str(order_subtotal)) >= min_order_for_freeship
         )
 
         try:
@@ -173,10 +181,18 @@ class ShippingService:
                 "distance_km": distance_km,
                 "shipping_fee": shipping_fee,
                 "is_deliverable": True,
+                "shipping_status": "FREESHIP" if is_freeship else "CALCULATED",
+                "fee_reason": (
+                    "ORDER_SUBTOTAL_THRESHOLD" if is_freeship else "DISTANCE_TIER"
+                ),
+                "can_checkout": True,
             }
         except OutOfDeliveryRadiusError:
             return {
                 "distance_km": distance_km,
                 "shipping_fee": Decimal("0.00"),
                 "is_deliverable": False,
+                "shipping_status": "OUT_OF_RADIUS",
+                "fee_reason": "OUT_OF_DELIVERY_RADIUS",
+                "can_checkout": False,
             }

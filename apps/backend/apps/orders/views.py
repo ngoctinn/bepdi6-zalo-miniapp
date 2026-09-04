@@ -26,6 +26,7 @@ from apps.orders.services import (
     OrderService,
 )
 from apps.payments.models import Payment
+from apps.shipping.models import ShopConfig
 
 
 class CheckoutPreviewView(APIView):
@@ -71,14 +72,7 @@ class CheckoutPreviewView(APIView):
                 if not address:
                     address = Address.objects.filter(customer=customer).first()
                 if not address:
-                    address = Address(
-                        customer=customer,
-                        recipient_name=customer.name or "Khách hàng",
-                        phone=customer.phone or "0900000000",
-                        address_text="TP.HCM",
-                        latitude=Decimal("10.762622"),
-                        longitude=Decimal("106.660172"),
-                    )
+                    address = None
 
         try:
             calc_result = OrderService.validate_and_calculate_cart(
@@ -88,6 +82,20 @@ class CheckoutPreviewView(APIView):
                 voucher_code=data.get("voucher_code"),
                 delivery_type=delivery_type,
             )
+            shop_config = ShopConfig.get_solo()
+            if delivery_type == Order.DeliveryType.PICKUP:
+                shipping_status = "PICKUP"
+                fee_reason = "PICKUP"
+            elif (
+                shop_config.min_order_for_freeship > Decimal("0.00")
+                and calc_result["subtotal"] >= shop_config.min_order_for_freeship
+            ):
+                shipping_status = "FREESHIP"
+                fee_reason = "ORDER_SUBTOTAL_THRESHOLD"
+            else:
+                shipping_status = "CALCULATED"
+                fee_reason = "DISTANCE_TIER"
+
             return Response(
                 {
                     "subtotal": calc_result["subtotal"],
@@ -97,6 +105,9 @@ class CheckoutPreviewView(APIView):
                     "total_amount": calc_result["total_amount"],
                     "is_deliverable": calc_result["is_deliverable"],
                     "is_valid": calc_result["is_deliverable"],
+                    "shipping_status": shipping_status,
+                    "fee_reason": fee_reason,
+                    "can_checkout": True,
                 }
             )
         except OrderProcessingError as e:
@@ -114,6 +125,11 @@ class CheckoutPreviewView(APIView):
                     if p:
                         subtotal += p.price * qty
 
+                shipping_status = (
+                    "OUT_OF_RADIUS"
+                    if e.code == "OUT_OF_DELIVERY_RADIUS"
+                    else "NOT_CALCULATED"
+                )
                 return Response(
                     {
                         "subtotal": subtotal,
@@ -124,6 +140,9 @@ class CheckoutPreviewView(APIView):
                         "is_deliverable": False,
                         "is_valid": False,
                         "message": e.message,
+                        "shipping_status": shipping_status,
+                        "fee_reason": e.code,
+                        "can_checkout": False,
                     }
                 )
             raise ValidationError({"code": e.code, "message": e.message}) from None

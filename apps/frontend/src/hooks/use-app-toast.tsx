@@ -73,6 +73,15 @@ export const useToastStore = create<ToastStore>((set) => ({
         }
         return state;
       });
+      // Sau khi hiệu ứng fade-out 300ms kết thúc, unmount hoàn toàn
+      setTimeout(() => {
+        set((state) => {
+          if (state.currentToast?.id === id && !state.currentToast.visible) {
+            return { currentToast: null };
+          }
+          return state;
+        });
+      }, 350);
     }, duration);
   },
   hide: () => {
@@ -86,6 +95,14 @@ export const useToastStore = create<ToastStore>((set) => ({
       }
       return state;
     });
+    setTimeout(() => {
+      set((state) => {
+        if (state.currentToast && !state.currentToast.visible) {
+          return { currentToast: null };
+        }
+        return state;
+      });
+    }, 350);
   },
 }));
 
@@ -333,7 +350,9 @@ export const AppToastContainer: React.FC = () => {
     >
       <div
         onClick={hide}
-        className={`pointer-events-auto flex w-[calc(100vw-32px)] max-w-[460px] items-center gap-2.5 rounded-[14px] border p-3 shadow-xl backdrop-blur-md transition-all active:scale-[0.99] ${variant.card}`}
+        className={`${
+          visible ? "pointer-events-auto" : "pointer-events-none"
+        } flex w-[calc(100vw-32px)] max-w-[460px] items-center gap-2.5 rounded-[14px] border p-3 shadow-xl backdrop-blur-md transition-all active:scale-[0.99] ${variant.card}`}
       >
         {/* Icon */}
         {renderIcon()}

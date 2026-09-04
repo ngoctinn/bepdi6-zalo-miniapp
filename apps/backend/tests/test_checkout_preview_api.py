@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 from apps.customers.models import Customer, User
 from apps.menu.models import Category, Option, OptionGroup, Product
 from apps.orders.models import Order
+from apps.shipping.models import ShopConfig
 from apps.vouchers.models import Voucher
 
 
@@ -68,6 +69,21 @@ def test_data(db):
     }
 
 
+@pytest.fixture
+def configured_shop_config(db):
+    config = ShopConfig.get_solo()
+    config.latitude = Decimal("10.78000000")
+    config.longitude = Decimal("106.70000000")
+    config.max_delivery_radius_km = Decimal("5.00")
+    config.min_order_amount = Decimal("0.00")
+    config.min_order_for_freeship = Decimal("50000.00")
+    config.shipping_tiers = [
+        {"from_km": 0.0, "to_km": 5.0, "fee": 10000.0},
+    ]
+    config.save()
+    return config
+
+
 @pytest.mark.django_db
 class TestCheckoutPreviewAPI:
     def test_checkout_preview_pickup_no_shipping_fee(self, api_client, test_data):
@@ -91,6 +107,69 @@ class TestCheckoutPreviewAPI:
         assert Decimal(str(data["subtotal"])) == Decimal("54000")
         assert Decimal(str(data["shipping_fee"])) == Decimal("0")
         assert Decimal(str(data["total_amount"])) == Decimal("54000")
+        assert data["shipping_status"] == "PICKUP"
+        assert data["fee_reason"] == "PICKUP"
+        assert data["can_checkout"] is True
+
+    def test_checkout_preview_marks_valid_freeship_explicitly(
+        self, api_client, test_data, configured_shop_config
+    ):
+        response = api_client.post(
+            reverse("checkout-preview"),
+            {
+                "delivery_type": Order.DeliveryType.DELIVERY,
+                "delivery_latitude": float(configured_shop_config.latitude),
+                "delivery_longitude": float(configured_shop_config.longitude),
+                "items": [{"product_id": test_data["product"].id, "quantity": 2}],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert Decimal(str(data["shipping_fee"])) == Decimal("0.00")
+        assert data["shipping_status"] == "FREESHIP"
+        assert data["fee_reason"] == "ORDER_SUBTOTAL_THRESHOLD"
+        assert data["can_checkout"] is True
+
+    def test_checkout_preview_marks_out_of_radius_zero_fee_as_not_checkoutable(
+        self, api_client, test_data, configured_shop_config
+    ):
+        response = api_client.post(
+            reverse("checkout-preview"),
+            {
+                "delivery_type": Order.DeliveryType.DELIVERY,
+                "delivery_latitude": 11.0,
+                "delivery_longitude": float(configured_shop_config.longitude),
+                "items": [{"product_id": test_data["product"].id, "quantity": 1}],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert Decimal(str(data["shipping_fee"])) == Decimal("0.00")
+        assert data["shipping_status"] == "OUT_OF_RADIUS"
+        assert data["fee_reason"] == "OUT_OF_DELIVERY_RADIUS"
+        assert data["can_checkout"] is False
+
+    def test_checkout_preview_without_delivery_address_is_not_a_free_quote(
+        self, api_client, test_data, configured_shop_config
+    ):
+        response = api_client.post(
+            reverse("checkout-preview"),
+            {
+                "delivery_type": Order.DeliveryType.DELIVERY,
+                "items": [{"product_id": test_data["product"].id, "quantity": 1}],
+            },
+            format="json",
+        )
+
+        assert response.status_code == 200
+        data = response.json()["data"]
+        assert data["shipping_status"] == "NOT_CALCULATED"
+        assert data["fee_reason"] == "MISSING_ADDRESS"
+        assert data["can_checkout"] is False
 
     def test_checkout_preview_with_voucher_discount(self, api_client, test_data):
         url = reverse("checkout-preview")

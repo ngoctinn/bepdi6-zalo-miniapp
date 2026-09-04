@@ -48,9 +48,9 @@ export default function ProductCard({
     ? product.effective_price!
     : Number(product.price);
   const originalPrice = Number(product.price);
-  const discountPct = product.discount_percent;
   const canQuickAddDirectly =
-    Array.isArray(product.option_groups) &&
+    !product.option_groups ||
+    product.option_groups.length === 0 ||
     !product.option_groups.some(
       (group) => group.is_required || group.min_select > 0,
     );

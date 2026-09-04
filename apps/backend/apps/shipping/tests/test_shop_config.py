@@ -173,3 +173,33 @@ class TestShopConfig:
         )
         assert calc_2["is_deliverable"] is True
         assert calc_2["shipping_fee"] == Decimal("0.00")
+
+    def test_shipping_result_distinguishes_freeship_from_out_of_radius(self):
+        """A zero fee is valid only when the result explains why it is free."""
+        self.config.min_order_for_freeship = Decimal("100000.00")
+        self.config.max_delivery_radius_km = Decimal("5.00")
+        self.config.shipping_tiers = [
+            {"from_km": 0.0, "to_km": 5.0, "fee": 10000.0},
+        ]
+        self.config.save()
+
+        freeship = ShippingService.calculate_shipping(
+            destination_lat=self.config.latitude,
+            destination_lon=self.config.longitude,
+            order_subtotal=Decimal("100000.00"),
+        )
+        out_of_radius = ShippingService.calculate_shipping(
+            destination_lat=Decimal("11.00000000"),
+            destination_lon=self.config.longitude,
+            order_subtotal=Decimal("100000.00"),
+        )
+
+        assert freeship["shipping_fee"] == Decimal("0.00")
+        assert freeship["shipping_status"] == "FREESHIP"
+        assert freeship["fee_reason"] == "ORDER_SUBTOTAL_THRESHOLD"
+        assert freeship["can_checkout"] is True
+
+        assert out_of_radius["shipping_fee"] == Decimal("0.00")
+        assert out_of_radius["shipping_status"] == "OUT_OF_RADIUS"
+        assert out_of_radius["fee_reason"] == "OUT_OF_DELIVERY_RADIUS"
+        assert out_of_radius["can_checkout"] is False

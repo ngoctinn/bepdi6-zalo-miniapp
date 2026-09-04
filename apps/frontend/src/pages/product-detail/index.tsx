@@ -199,7 +199,7 @@ export default function ProductDetailPage() {
 
     if (isEditMode && editCartItemId) {
       updateCartItem(editCartItemId, cartItemPayload);
-      navigate("/cart", { replace: true });
+      navigate("/checkout", { replace: true });
     } else {
       addToCart(cartItemPayload);
       navigate(-1);
