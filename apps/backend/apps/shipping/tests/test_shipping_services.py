@@ -37,13 +37,13 @@ def test_estimated_distance_with_multiplier():
 
 @pytest.mark.django_db
 def test_shipping_fee_tiers():
-    # Tier 1: <= 2km -> 10,000 VND
+    # Half-open tiers: 0 <= distance < 2km -> 10,000 VND.
     assert ShippingFeeCalculator.calculate_fee(1.5) == Decimal("10000.00")
-    assert ShippingFeeCalculator.calculate_fee(2.0) == Decimal("10000.00")
+    assert ShippingFeeCalculator.calculate_fee(2.0) == Decimal("15000.00")
 
-    # Tier 2: > 2km & <= 5km -> 15,000 VND
+    # 2 <= distance < 5km -> 15,000 VND.
     assert ShippingFeeCalculator.calculate_fee(2.1) == Decimal("15000.00")
-    assert ShippingFeeCalculator.calculate_fee(5.0) == Decimal("15000.00")
+    assert ShippingFeeCalculator.calculate_fee(5.0) == Decimal("20000.00")
 
     # Tier 3: > 5km & <= 7km -> 20,000 VND
     assert ShippingFeeCalculator.calculate_fee(5.1) == Decimal("20000.00")

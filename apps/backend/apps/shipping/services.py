@@ -1,7 +1,7 @@
 import math
 from decimal import Decimal
 
-from apps.shipping.models import ShopConfig
+from apps.shipping.models import ShopConfig, normalize_shipping_tiers
 
 
 class ShippingCalculationError(Exception):
@@ -95,15 +95,21 @@ class ShippingFeeCalculator:
         min_order_for_freeship: Decimal | float | None = None,
     ) -> Decimal:
         config = ShopConfig.get_solo()
-        if max_radius_km is None:
-            max_radius_km = config.max_delivery_radius_km
         if tiers is None:
             tiers = config.shipping_tiers
         if min_order_for_freeship is None:
             min_order_for_freeship = config.min_order_for_freeship
 
         distance = float(distance_km)
-        max_radius = float(max_radius_km)
+
+        try:
+            normalized_tiers = normalize_shipping_tiers(tiers)
+        except ValueError as exc:
+            raise OutOfDeliveryRadiusError("Bảng phí giao hàng không hợp lệ.") from exc
+
+        # The final tier is the single source of truth.  The stored radius is
+        # retained for compatibility and synchronized by model/admin writes.
+        max_radius = float(normalized_tiers[-1]["to_km"])
 
         if distance > max_radius:
             raise OutOfDeliveryRadiusError(
@@ -117,28 +123,18 @@ class ShippingFeeCalculator:
             return Decimal("0.00")
 
         # Match against shipping tiers
-        if tiers:
-            for tier in tiers:
+        if normalized_tiers:
+            final_index = len(normalized_tiers) - 1
+            for index, tier in enumerate(normalized_tiers):
                 from_km = float(tier.get("from_km", 0.0))
                 to_km = float(tier.get("to_km", 0.0))
                 fee = tier.get("fee", 0.0)
-                if from_km <= distance <= to_km:
+                if from_km <= distance < to_km or (
+                    index == final_index and distance == to_km
+                ):
                     return Decimal(str(fee))
 
-            # If distance <= max_radius but no tier directly matched, pick the highest tier fee
-            sorted_tiers = sorted(tiers, key=lambda x: float(x.get("to_km", 0.0)))
-            if sorted_tiers:
-                return Decimal(str(sorted_tiers[-1].get("fee", 0.0)))
-
-        # Fallback default calculation if no tiers configured
-        if distance <= 2.0:
-            return Decimal("10000.00")
-        elif distance <= 5.0:
-            return Decimal("15000.00")
-        elif distance <= 7.0:
-            return Decimal("20000.00")
-        else:
-            raise OutOfDeliveryRadiusError("Ngoài bán kính giao hàng")
+        raise OutOfDeliveryRadiusError("Không tìm thấy mốc phí giao hàng phù hợp.")
 
 
 class ShippingService:

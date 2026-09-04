@@ -1,8 +1,52 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+
+def normalize_shipping_tiers(tiers: object) -> list[dict[str, float]]:
+    """Return a canonical, contiguous delivery-tier schedule.
+
+    Tiers use half-open intervals ``[from_km, to_km)``.  The final tier also
+    includes its ``to_km`` endpoint so the advertised radius remains deliverable.
+    """
+    if not isinstance(tiers, list) or not tiers:
+        raise ValueError("shipping_tiers phải là một danh sách không rỗng.")
+
+    normalized: list[dict[str, Decimal]] = []
+    for index, tier in enumerate(tiers):
+        if not isinstance(tier, dict):
+            raise ValueError(f"Mốc thứ {index + 1} phải là một object.")
+        try:
+            from_km = Decimal(str(tier["from_km"]))
+            to_km = Decimal(str(tier["to_km"]))
+            fee = Decimal(str(tier["fee"]))
+        except (InvalidOperation, KeyError, TypeError, ValueError) as exc:
+            raise ValueError(
+                f"Mốc thứ {index + 1} phải chứa from_km, to_km và fee là số hợp lệ."
+            ) from exc
+
+        if not all(value.is_finite() for value in (from_km, to_km, fee)):
+            raise ValueError(f"Mốc thứ {index + 1} phải chứa số hữu hạn.")
+        if from_km < 0 or to_km <= from_km:
+            raise ValueError(
+                f"Mốc thứ {index + 1}: to_km phải lớn hơn from_km và from_km >= 0."
+            )
+        if fee < 0:
+            raise ValueError(f"Mốc thứ {index + 1}: fee không được âm.")
+        normalized.append({"from_km": from_km, "to_km": to_km, "fee": fee})
+
+    normalized.sort(key=lambda tier: (tier["from_km"], tier["to_km"]))
+    if normalized[0]["from_km"] != Decimal("0"):
+        raise ValueError("Mốc phí ship đầu tiên phải bắt đầu từ 0 km.")
+    for previous, current in zip(normalized, normalized[1:], strict=False):
+        if current["from_km"] != previous["to_km"]:
+            raise ValueError(
+                "Các mốc phí ship phải liên tục, không chồng lấn hoặc có khoảng trống."
+            )
+
+    return [{key: float(value) for key, value in tier.items()} for tier in normalized]
 
 
 class ShopConfig(models.Model):
@@ -140,7 +184,24 @@ class ShopConfig(models.Model):
         self.pk = 1
         if not self.shipping_tiers:
             self.shipping_tiers = self.DEFAULT_SHIPPING_TIERS
+        self.shipping_tiers = normalize_shipping_tiers(self.shipping_tiers)
+        self.max_delivery_radius_km = Decimal(str(self.shipping_tiers[-1]["to_km"]))
         super().save(*args, **kwargs)
+
+    def synchronize_shipping_config(self) -> bool:
+        """Canonicalize valid tiers and synchronize the legacy radius field."""
+        original_tiers = self.shipping_tiers
+        original_radius = self.max_delivery_radius_km
+        normalized_tiers = normalize_shipping_tiers(self.shipping_tiers)
+        effective_radius = Decimal(str(normalized_tiers[-1]["to_km"]))
+        changed = (
+            original_tiers != normalized_tiers or original_radius != effective_radius
+        )
+        if changed:
+            self.shipping_tiers = normalized_tiers
+            self.max_delivery_radius_km = effective_radius
+            self.save()
+        return changed
 
     @classmethod
     def get_solo(cls) -> "ShopConfig":

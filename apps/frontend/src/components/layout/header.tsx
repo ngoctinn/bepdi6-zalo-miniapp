@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "zmp-ui";
 import { BackIcon } from "../common/vectors";
 import { copy } from "@/constants/copy";
 

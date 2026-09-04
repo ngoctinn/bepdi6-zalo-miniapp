@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.shipping.models import ShopConfig
+from apps.shipping.models import ShopConfig, normalize_shipping_tiers
 
 
 class PublicShopInfoSerializer(serializers.ModelSerializer):
@@ -55,38 +55,17 @@ class AdminShopConfigSerializer(serializers.ModelSerializer):
         read_only_fields = ["updated_at"]
 
     def validate_shipping_tiers(self, value):
-        if not isinstance(value, list):
-            raise serializers.ValidationError(
-                "shipping_tiers phải là một danh sách các mốc cự ly."
-            )
+        try:
+            return normalize_shipping_tiers(value)
+        except ValueError as exc:
+            raise serializers.ValidationError(str(exc)) from exc
 
-        for index, tier in enumerate(value):
-            if not isinstance(tier, dict):
-                raise serializers.ValidationError(
-                    f"Mốc thứ {index + 1} phải là một object."
-                )
-
-            if "from_km" not in tier or "to_km" not in tier or "fee" not in tier:
-                raise serializers.ValidationError(
-                    f"Mốc thứ {index + 1} phải chứa đầy đủ: from_km, to_km, fee."
-                )
-
+    def validate(self, attrs):
+        """Validate a PATCH against its existing tier schedule as well."""
+        tiers = attrs.get("shipping_tiers")
+        if tiers is None and self.instance is not None:
             try:
-                from_km = float(tier["from_km"])
-                to_km = float(tier["to_km"])
-                fee = float(tier["fee"])
-            except (ValueError, TypeError):
-                raise serializers.ValidationError(
-                    f"Các giá trị trong mốc thứ {index + 1} phải là số."
-                ) from None
-
-            if from_km < 0 or to_km <= from_km:
-                raise serializers.ValidationError(
-                    f"Mốc thứ {index + 1}: to_km ({to_km}) phải lớn hơn from_km ({from_km}) và >= 0."
-                )
-            if fee < 0:
-                raise serializers.ValidationError(
-                    f"Mốc thứ {index + 1}: fee ({fee}) không được âm."
-                )
-
-        return value
+                normalize_shipping_tiers(self.instance.shipping_tiers)
+            except ValueError as exc:
+                raise serializers.ValidationError({"shipping_tiers": str(exc)}) from exc
+        return attrs
