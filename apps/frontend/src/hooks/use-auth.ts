@@ -8,9 +8,7 @@ import {
   getZaloPhoneCredentials,
   isZaloRuntime,
 } from "../utils/zalo-permissions";
-
-// Hardcode mock token for browser testing using Admin UID
-const DEV_MOCK_ZALO_TOKEN = "test_5746042945227030407";
+import { DEV_MOCK_ZALO_TOKEN } from "../utils/dev-mock";
 
 export function useAuth() {
   const queryClient = useQueryClient();

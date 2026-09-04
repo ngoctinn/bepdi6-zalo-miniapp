@@ -23,6 +23,7 @@ import { ConfirmModal } from "@/components/common/confirm-modal";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { copy } from "@/constants/copy";
+import { DEV_MOCK_LOCATION_CREDENTIALS } from "@/utils/dev-mock";
 
 // Tọa độ mặc định 0 để bắt buộc check GPS hợp lệ
 const DEFAULT_LATITUDE = 0;
@@ -84,12 +85,7 @@ export default function SelectLocationPage() {
       console.log("[SelectLocation] Requesting location...");
       const credentials = isZaloRuntime()
         ? await getZaloLocationCredentials()
-        : {
-            token: "dev_browser_mock_location_token",
-            accessToken: "dev_browser_mock_access_token",
-            latitude: null,
-            longitude: null,
-          };
+        : DEV_MOCK_LOCATION_CREDENTIALS;
 
       console.log("[SelectLocation] Got credentials:", credentials);
       let decoded: any = null;

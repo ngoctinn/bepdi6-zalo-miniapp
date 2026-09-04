@@ -1,5 +1,6 @@
 import { MapPinIcon, ChevronRightIcon } from "@/components/common/vectors";
 import { copy } from "@/constants/copy";
+import { DEFAULT_SHOP_ADDRESS } from "@/constants/shop";
 import { ShopInfo } from "@/types/shop.types";
 import { Address } from "@/types/customer.types";
 import { DeliveryType } from "@/types/order.types";
@@ -135,8 +136,7 @@ export function DeliveryAddressCard({
                   {shopInfo?.shop_name || copy.brand.name}
                 </div>
                 <div className="mt-1 text-neutral600">
-                  {shopInfo?.address_text ||
-                    "123 Đường Số 1, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh"}
+                  {shopInfo?.address_text || DEFAULT_SHOP_ADDRESS}
                 </div>
                 {shopInfo?.hotline && (
                   <div className="mt-2 text-xs font-semibold text-primary">

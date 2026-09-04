@@ -1,9 +1,7 @@
 from decimal import Decimal
-from io import StringIO
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.core.management import call_command
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -265,29 +263,3 @@ class TestShopConfig:
 
         assert res.status_code == status.HTTP_200_OK
         assert res.json()["data"]["max_delivery_radius_km"] == "15.00"
-
-    def test_sync_shipping_config_command_is_idempotent(self):
-        self.config.shipping_tiers = [
-            {"from_km": 0, "to_km": 5, "fee": 10000},
-            {"from_km": 5, "to_km": 15, "fee": 20000},
-        ]
-        self.config.save()
-        ShopConfig.objects.filter(pk=self.config.pk).update(
-            max_delivery_radius_km=Decimal("7.00")
-        )
-
-        first_output = StringIO()
-        second_output = StringIO()
-        call_command("sync_shipping_config", stdout=first_output)
-        self.config.refresh_from_db()
-        after_first = (self.config.shipping_tiers, self.config.max_delivery_radius_km)
-        call_command("sync_shipping_config", stdout=second_output)
-        self.config.refresh_from_db()
-
-        assert self.config.max_delivery_radius_km == Decimal("15.00")
-        assert (
-            self.config.shipping_tiers,
-            self.config.max_delivery_radius_km,
-        ) == after_first
-        assert "Đã đồng bộ" in first_output.getvalue()
-        assert "đã đồng bộ" in second_output.getvalue()

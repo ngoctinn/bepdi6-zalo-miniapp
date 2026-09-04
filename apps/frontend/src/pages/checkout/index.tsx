@@ -21,6 +21,7 @@ import {
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
+import { DEFAULT_SHOP_COORDINATES } from "@/constants/shop";
 
 // Modularized Checkout Sub-components
 import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
@@ -141,8 +142,9 @@ export default function CheckoutPage() {
       return;
     }
 
-    const lat = selectedAddress?.latitude || 10.762622;
-    const lng = selectedAddress?.longitude || 106.660172;
+    const lat = selectedAddress?.latitude || DEFAULT_SHOP_COORDINATES.latitude;
+    const lng =
+      selectedAddress?.longitude || DEFAULT_SHOP_COORDINATES.longitude;
 
     previewMutation.mutate(
       {

@@ -10,6 +10,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { ConfirmModal } from "@/components/common/confirm-modal";
 import { Badge } from "@/components/common/badge";
 import { copy } from "@/constants/copy";
+import { DEFAULT_BANK_CONFIG, getVietQrUrl } from "@/constants/shop";
 
 const DELIVERY_STATUS_STEPS: Array<{
   key: OrderStatus;
@@ -112,11 +113,11 @@ export default function OrderDetailPage() {
   const isPaid = order.payment?.status === "PAID";
   const qrUrl =
     order.payment?.qr_code_url ||
-    `https://img.vietqr.io/image/TCB-2907200329-compact2.png?amount=${Math.round(
-      order.total_amount,
-    )}&addInfo=${encodeURIComponent(order.order_code)}&accountName=${encodeURIComponent(
-      copy.orderDetail.accountHolderName,
-    )}`;
+    getVietQrUrl({
+      amount: order.total_amount,
+      orderCode: order.order_code,
+      accountHolderName: copy.orderDetail.accountHolderName,
+    });
 
   return (
     <div className="flex flex-col gap-3 p-3.5 pb-24">
@@ -264,12 +265,12 @@ export default function OrderDetailPage() {
                   </span>
                   <div className="flex items-center gap-1.5">
                     <span className="font-mono font-bold text-primary">
-                      2907200329
+                      {DEFAULT_BANK_CONFIG.accountNumber}
                     </span>
                     <button
                       onClick={() =>
                         handleCopy(
-                          "2907200329",
+                          DEFAULT_BANK_CONFIG.accountNumber,
                           copy.orderDetail.accountNumberLabel,
                         )
                       }

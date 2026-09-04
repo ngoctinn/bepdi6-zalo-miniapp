@@ -36,6 +36,8 @@ def run():
         {"from_km": 5.0, "to_km": 10.0, "fee": 35000.0},
         {"from_km": 10.0, "to_km": 15.0, "fee": 50000.0},
     ]
+    # Compatibility field is synchronized to the final tier by ShopConfig.save().
+    config.max_delivery_radius_km = Decimal("15.00")
     config.save()
     print("✅ Đã cập nhật ShopConfig & Shipping Tiers!")
 
