@@ -5,16 +5,17 @@ import { Order } from "@/types/order.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { ADMIN_ORDERS_QUERY_KEY } from "@/services/order/order.queries";
 import { Tabs, Tab } from "@/components/common/tabs";
-import { Spinner, Icon, useSnackbar } from "zmp-ui";
+import { Spinner, Icon } from "zmp-ui";
 import { StaffOrderCard } from "@/components/staff/staff-order-card";
 import { CancelOrderModal } from "@/components/staff/cancel-order-modal";
 import { StaffHeaderActions } from "@/components/staff/staff-header-actions";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 type StaffTab = "PENDING" | "PREPARING" | "READY" | "ALL";
 
 export default function StaffOrdersPage() {
   const queryClient = useQueryClient();
-  const { openSnackbar } = useSnackbar();
+  const { showSuccess, showError, showWarning, showToast } = useAppToast();
 
   const [activeTab, setActiveTab] = useState<StaffTab>("PENDING");
   const [isSoundEnabled, setIsSoundEnabled] = useState(false);
@@ -54,20 +55,13 @@ export default function StaffOrdersPage() {
         audioContextRef.current = ctx;
         setIsSoundEnabled(true);
         playBeep(ctx);
-        openSnackbar({
-          text: "Đã bật chuông báo đơn mới",
-          type: "success",
-          duration: 2000,
-        });
+        showSuccess("Đã bật chuông báo đơn mới", { duration: 2000 });
       } catch {
-        openSnackbar({
-          text: "Thiết bị không hỗ trợ Web Audio",
-          type: "warning",
-        });
+        showWarning("Thiết bị không hỗ trợ Web Audio");
       }
     } else {
       setIsSoundEnabled(false);
-      openSnackbar({ text: "Đã tắt chuông báo", type: "default" });
+      showToast("Đã tắt chuông báo");
     }
   };
 
@@ -179,15 +173,13 @@ export default function StaffOrdersPage() {
       await queryClient.invalidateQueries({
         queryKey: [ADMIN_ORDERS_QUERY_KEY],
       });
-      openSnackbar({
-        text: "Đã cập nhật trạng thái đơn hàng thành công",
-        type: "success",
+      showSuccess("Đã cập nhật trạng thái đơn hàng thành công", {
         duration: 2500,
       });
     } catch (err: unknown) {
       const errorMsg =
         (err as { message?: string })?.message || "Không thể cập nhật đơn";
-      openSnackbar({ text: errorMsg, type: "error", duration: 3000 });
+      showError(errorMsg, { duration: 3000 });
     } finally {
       setProcessingOrderId(null);
     }
@@ -218,15 +210,13 @@ export default function StaffOrdersPage() {
       await queryClient.invalidateQueries({
         queryKey: [ADMIN_ORDERS_QUERY_KEY],
       });
-      openSnackbar({
-        text: `Đã hủy đơn #${selectedOrderForCancel.order_code}`,
-        type: "default",
+      showToast(`Đã hủy đơn #${selectedOrderForCancel.order_code}`, "default", {
         duration: 2500,
       });
     } catch (err: unknown) {
       const errorMsg =
         (err as { message?: string })?.message || "Không thể hủy đơn hàng";
-      openSnackbar({ text: errorMsg, type: "error", duration: 3000 });
+      showError(errorMsg, { duration: 3000 });
     } finally {
       setProcessingOrderId(null);
       setSelectedOrderForCancel(null);

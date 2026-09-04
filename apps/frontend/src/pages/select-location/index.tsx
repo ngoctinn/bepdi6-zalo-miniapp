@@ -53,25 +53,12 @@ export default function SelectLocationPage() {
 
   // Tự động điền thông tin người nhận khi mở form thêm địa chỉ
   useEffect(() => {
-    if (isCreating) {
-      if (customer) {
-        setFormData((prev) => ({
-          ...prev,
-          recipient_name: prev.recipient_name || customer.name || "",
-          phone: prev.phone || customer.phone || "",
-        }));
-      }
-
-      // Tự động lấy số điện thoại nếu chưa có
-      if (!formData.phone && isZaloRuntime()) {
-        requestPhoneNumber()
-          .then((phone) => {
-            if (phone) {
-              setFormData((prev) => ({ ...prev, phone }));
-            }
-          })
-          .catch((err) => console.warn("Lỗi auto fetch phone", err));
-      }
+    if (isCreating && customer) {
+      setFormData((prev) => ({
+        ...prev,
+        recipient_name: prev.recipient_name || customer.name || "",
+        phone: prev.phone || customer.phone || "",
+      }));
     }
   }, [isCreating, customer]);
 

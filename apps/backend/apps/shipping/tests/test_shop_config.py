@@ -203,3 +203,64 @@ class TestShopConfig:
         assert out_of_radius["shipping_status"] == "OUT_OF_RADIUS"
         assert out_of_radius["fee_reason"] == "OUT_OF_DELIVERY_RADIUS"
         assert out_of_radius["can_checkout"] is False
+
+    def test_admin_tiers_are_sorted_and_sync_the_delivery_radius(self):
+        self.client.force_authenticate(user=self.admin_user)
+        res = self.client.patch(
+            "/api/v1/admin/shop/config",
+            {
+                "shipping_tiers": [
+                    {"from_km": 10, "to_km": 15, "fee": 50000},
+                    {"from_km": 0, "to_km": 2, "fee": 15000},
+                    {"from_km": 5, "to_km": 10, "fee": 35000},
+                    {"from_km": 2, "to_km": 5, "fee": 22000},
+                ],
+                "max_delivery_radius_km": "7.00",
+            },
+            format="json",
+        )
+
+        assert res.status_code == status.HTTP_200_OK
+        data = res.json()["data"]
+        assert [tier["from_km"] for tier in data["shipping_tiers"]] == [0, 2, 5, 10]
+        assert data["max_delivery_radius_km"] == "15.00"
+
+    @pytest.mark.parametrize(
+        "tiers",
+        [
+            [{"from_km": 1, "to_km": 2, "fee": 10000}],
+            [
+                {"from_km": 0, "to_km": 2, "fee": 10000},
+                {"from_km": 3, "to_km": 5, "fee": 15000},
+            ],
+            [
+                {"from_km": 0, "to_km": 3, "fee": 10000},
+                {"from_km": 2, "to_km": 5, "fee": 15000},
+            ],
+            [{"from_km": 0, "to_km": 2, "fee": -1}],
+        ],
+    )
+    def test_admin_rejects_non_contiguous_or_negative_shipping_tiers(self, tiers):
+        self.client.force_authenticate(user=self.admin_user)
+        res = self.client.patch(
+            "/api/v1/admin/shop/config", {"shipping_tiers": tiers}, format="json"
+        )
+
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+        assert "shipping_tiers" in res.json()["error"]["details"]
+
+    def test_partial_patch_preserves_existing_tiers_and_synced_radius(self):
+        self.config.shipping_tiers = [
+            {"from_km": 0, "to_km": 5, "fee": 10000},
+            {"from_km": 5, "to_km": 15, "fee": 20000},
+        ]
+        self.config.save()
+        self.client.force_authenticate(user=self.admin_user)
+        res = self.client.patch(
+            "/api/v1/admin/shop/config",
+            {"shop_name": "Bếp Dì 6 mới", "max_delivery_radius_km": "99.00"},
+            format="json",
+        )
+
+        assert res.status_code == status.HTTP_200_OK
+        assert res.json()["data"]["max_delivery_radius_km"] == "15.00"

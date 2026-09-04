@@ -73,3 +73,32 @@ def test_shipping_service_facade():
     assert far_result["is_deliverable"] is False
     assert far_result["shipping_fee"] == Decimal("0.00")
     assert far_result["distance_km"] > Decimal("7.00")
+
+
+@pytest.mark.django_db
+def test_fee_uses_half_open_tier_boundaries_and_final_inclusive_endpoint():
+    tiers = [
+        {"from_km": 0, "to_km": 2, "fee": 10000},
+        {"from_km": 2, "to_km": 5, "fee": 15000},
+    ]
+
+    assert ShippingFeeCalculator.calculate_fee(Decimal("1.99"), tiers=tiers) == Decimal(
+        "10000"
+    )
+    assert ShippingFeeCalculator.calculate_fee(Decimal("2.00"), tiers=tiers) == Decimal(
+        "15000"
+    )
+    assert ShippingFeeCalculator.calculate_fee(Decimal("5.00"), tiers=tiers) == Decimal(
+        "15000"
+    )
+
+
+@pytest.mark.django_db
+def test_fee_rejects_legacy_gapped_tiers_instead_of_using_last_tier_fee():
+    gapped_tiers = [
+        {"from_km": 0, "to_km": 2, "fee": 10000},
+        {"from_km": 3, "to_km": 5, "fee": 15000},
+    ]
+
+    with pytest.raises(OutOfDeliveryRadiusError):
+        ShippingFeeCalculator.calculate_fee(Decimal("2.50"), tiers=gapped_tiers)

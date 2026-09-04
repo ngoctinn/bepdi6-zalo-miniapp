@@ -40,7 +40,7 @@ function generateUUID() {
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { showSuccess, showWarning } = useAppToast();
+  const { showSuccess, showWarning, showError } = useAppToast();
   const { customer, requestPhoneNumber } = useAuth();
 
   // Stores
@@ -156,8 +156,13 @@ export default function CheckoutPage() {
         onSuccess: (data) => {
           setPreviewData(data);
         },
-        onError: () => {
-          // Preview error handled gracefully
+        onError: (err: any) => {
+          setPreviewData(null);
+          const errorMsg =
+            err?.response?.data?.error?.message ||
+            err?.message ||
+            "Không thể tính phí giao hàng. Vui lòng kiểm tra lại địa chỉ.";
+          showError(errorMsg);
         },
       },
     );
