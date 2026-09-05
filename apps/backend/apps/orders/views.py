@@ -201,16 +201,15 @@ class OrderListCreateView(APIView):
                 except Address.DoesNotExist:
                     raise NotFound("Địa chỉ giao hàng không tồn tại.") from None
             else:
-                lat = data.get("delivery_latitude") or Decimal("10.762622")
-                lng = data.get("delivery_longitude") or Decimal("106.660172")
-                addr_text = data.get("delivery_address") or "Địa chỉ giao hàng"
-                address = Address.objects.create(
+                # An ad-hoc location is snapshotted into the order only. Persisting it
+                # before the idempotency guard previously created duplicate addresses.
+                address = Address(
                     customer=customer,
                     recipient_name=rec_name,
                     phone=phone_num,
-                    address_text=addr_text,
-                    latitude=lat,
-                    longitude=lng,
+                    address_text=data["delivery_address"],
+                    latitude=data["delivery_latitude"],
+                    longitude=data["delivery_longitude"],
                     is_default=False,
                 )
 

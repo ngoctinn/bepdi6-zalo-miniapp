@@ -65,10 +65,16 @@ class AuthService:
             or zalo_token.startswith("mock_")
             or zalo_token.startswith("test_")
         ):
-            clean_token = zalo_token.replace('mock_', '').replace('test_', '')
-            zalo_user_id = clean_token if clean_token.isdigit() else f"zalo_{clean_token}"
+            clean_token = zalo_token.replace("mock_", "").replace("test_", "")
+            zalo_user_id = (
+                clean_token if clean_token.isdigit() else f"zalo_{clean_token}"
+            )
             phone = "0987654321" if phone_token else ""
-            user_name = name or (f"Khách Admin" if clean_token == "5746042945227030407" else f"Khách {zalo_user_id[-6:]}")
+            user_name = name or (
+                "Khách Admin"
+                if clean_token == "5746042945227030407"
+                else f"Khách {zalo_user_id[-6:]}"
+            )
             return {
                 "zalo_user_id": zalo_user_id,
                 "name": user_name,

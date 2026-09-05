@@ -52,6 +52,27 @@ class CheckoutPreviewRequestSerializer(serializers.Serializer):
         choices=Order.PaymentMethod.choices, default=Order.PaymentMethod.COD
     )
 
+    def validate(self, attrs):
+        """Reject partial or impossible coordinates before a shipping quote/order."""
+        latitude = attrs.get("delivery_latitude")
+        longitude = attrs.get("delivery_longitude")
+        has_latitude = latitude is not None
+        has_longitude = longitude is not None
+
+        if has_latitude != has_longitude:
+            raise serializers.ValidationError(
+                "Vị trí giao hàng phải có đủ vĩ độ và kinh độ."
+            )
+        if has_latitude and not -90 <= latitude <= 90:
+            raise serializers.ValidationError(
+                {"delivery_latitude": "Vĩ độ không hợp lệ."}
+            )
+        if has_longitude and not -180 <= longitude <= 180:
+            raise serializers.ValidationError(
+                {"delivery_longitude": "Kinh độ không hợp lệ."}
+            )
+        return attrs
+
 
 class OrderCreateRequestSerializer(CheckoutPreviewRequestSerializer):
     recipient_name = serializers.CharField(required=False, allow_blank=True, default="")
@@ -61,6 +82,25 @@ class OrderCreateRequestSerializer(CheckoutPreviewRequestSerializer):
     )
     note = serializers.CharField(required=False, allow_blank=True, default="")
     scheduled_delivery_at = serializers.DateTimeField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if (
+            attrs.get("delivery_type", Order.DeliveryType.DELIVERY)
+            == Order.DeliveryType.DELIVERY
+        ):
+            if not attrs.get("address_id"):
+                required_fields = (
+                    "delivery_latitude",
+                    "delivery_longitude",
+                    "delivery_address",
+                )
+                missing = [field for field in required_fields if not attrs.get(field)]
+                if missing:
+                    raise serializers.ValidationError(
+                        "Vui lòng chọn địa chỉ giao hàng hợp lệ trước khi đặt đơn."
+                    )
+        return attrs
 
 
 class OrderItemOptionSerializer(serializers.ModelSerializer):

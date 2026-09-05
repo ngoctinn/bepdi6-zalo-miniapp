@@ -6,9 +6,10 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from apps.customers.models import Customer, User
+from apps.customers.models import Address, Customer, User
 from apps.menu.models import Category, Option, OptionGroup, Product
 from apps.orders.models import Order
+from apps.shipping.models import ShopConfig
 from apps.vouchers.models import Voucher
 
 
@@ -127,6 +128,61 @@ class TestOrderCreationAPI:
         res_retry = response_retry.json()
         assert res_retry["success"] is True
         assert res_retry["data"]["id"] == order_id
+        assert Order.objects.filter(customer=customer).count() == 1
+
+    def test_delivery_without_a_complete_address_is_rejected(
+        self, api_client, order_fixture
+    ):
+        api_client.force_authenticate(user=order_fixture["user"])
+        response = api_client.post(
+            reverse("order-list-create"),
+            {
+                "delivery_type": Order.DeliveryType.DELIVERY,
+                "items": [{"product_id": order_fixture["product"].id, "quantity": 1}],
+            },
+            format="json",
+            HTTP_IDEMPOTENCY_KEY=str(uuid.uuid4()),
+        )
+        assert response.status_code == 400
+        assert Order.objects.filter(customer=order_fixture["customer"]).count() == 0
+
+    def test_delivery_retry_does_not_persist_an_unsaved_address(
+        self, api_client, order_fixture
+    ):
+        customer, user = order_fixture["customer"], order_fixture["user"]
+        config = ShopConfig.get_solo()
+        config.is_open = True
+        config.min_order_amount = Decimal("0.00")
+        config.min_order_for_freeship = Decimal("0.00")
+        config.shipping_tiers = [{"from_km": 0, "to_km": 5, "fee": 10000}]
+        config.save()
+        api_client.force_authenticate(user=user)
+        payload = {
+            "delivery_type": Order.DeliveryType.DELIVERY,
+            "recipient_name": customer.name,
+            "phone": customer.phone,
+            "delivery_address": "Vị trí tạm thời",
+            "delivery_latitude": str(config.latitude),
+            "delivery_longitude": str(config.longitude),
+            "payment_method": Order.PaymentMethod.COD,
+            "items": [{"product_id": order_fixture["product"].id, "quantity": 1}],
+        }
+        key = str(uuid.uuid4())
+        first = api_client.post(
+            reverse("order-list-create"),
+            payload,
+            format="json",
+            HTTP_IDEMPOTENCY_KEY=key,
+        )
+        retry = api_client.post(
+            reverse("order-list-create"),
+            payload,
+            format="json",
+            HTTP_IDEMPOTENCY_KEY=key,
+        )
+        assert first.status_code == 201
+        assert retry.status_code in (200, 201)
+        assert Address.objects.filter(customer=customer).count() == 0
         assert Order.objects.filter(customer=customer).count() == 1
 
     def test_create_order_ignores_client_tampered_pricing(

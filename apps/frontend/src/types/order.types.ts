@@ -97,6 +97,7 @@ export interface Order {
 export interface CheckoutPreviewRequest {
   items: OrderItemPayload[];
   delivery_type?: DeliveryType;
+  address_id?: number;
   delivery_latitude?: number;
   delivery_longitude?: number;
   voucher_code?: string;
@@ -110,11 +111,20 @@ export interface CheckoutPreviewResponse {
   total_amount: number;
   voucher_code?: string;
   is_valid: boolean;
+  can_checkout?: boolean;
+  shipping_status?:
+    | "CALCULATED"
+    | "FREESHIP"
+    | "PICKUP"
+    | "NOT_CALCULATED"
+    | "OUT_OF_RADIUS";
+  fee_reason?: string;
   message?: string;
 }
 
 export interface CreateOrderRequest {
   delivery_type?: DeliveryType;
+  address_id?: number;
   recipient_name: string;
   phone: string;
   delivery_address?: string;

@@ -22,7 +22,13 @@ export default function Header({ title, back, position }: HeaderProps) {
           <button
             type="button"
             className="flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-neutral-800 transition-all active:scale-95"
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (window.history.state?.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate("/", { replace: true });
+              }
+            }}
           >
             <BackIcon className="h-5 w-5" />
           </button>

@@ -82,21 +82,17 @@ export default function SelectLocationPage() {
     setIsGettingLocation(true);
     setFormError(null);
     try {
-      console.log("[SelectLocation] Requesting location...");
       const credentials = isZaloRuntime()
         ? await getZaloLocationCredentials()
         : DEV_MOCK_LOCATION_CREDENTIALS;
 
-      console.log("[SelectLocation] Got credentials:", credentials);
       let decoded: any = null;
 
       if (credentials.token) {
-        console.log("[SelectLocation] Decoding token server-to-server...");
         decoded = await decodeLocationMutation.mutateAsync({
           token: credentials.token,
           access_token: credentials.accessToken,
         });
-        console.log("[SelectLocation] Decoded result:", decoded);
       } else if (credentials.latitude && credentials.longitude) {
         decoded = {
           latitude: credentials.latitude,
@@ -118,8 +114,7 @@ export default function SelectLocationPage() {
       } else {
         throw new Error("Không lấy được tọa độ hợp lệ");
       }
-    } catch (err) {
-      console.error("[SelectLocation] Location error:", err);
+    } catch {
       showWarning(copy.selectLocation.gpsDenied);
     } finally {
       setIsGettingLocation(false);

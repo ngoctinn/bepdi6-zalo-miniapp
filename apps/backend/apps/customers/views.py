@@ -95,7 +95,7 @@ class ZaloLocationDecodeView(APIView):
     Decodes single-use location token from Zalo Mini App SDK into latitude, longitude, and address text.
     """
 
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         serializer = ZaloLocationDecodeRequestSerializer(data=request.data)

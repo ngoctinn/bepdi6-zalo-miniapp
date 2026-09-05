@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.test import APIClient
 
-from apps.customers.models import Customer
+from apps.customers.models import Customer, User
 
 
 @pytest.fixture
@@ -47,7 +47,23 @@ def test_zalo_auth_api(api_client):
 
 
 @pytest.mark.django_db
+def test_zalo_location_decode_requires_authentication(api_client):
+    response = api_client.post(
+        "/api/v1/customers/location/decode",
+        {"token": "dev_mock_location_token"},
+        format="json",
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
 def test_zalo_location_decode_api(api_client):
+    user = User.objects.create_user(
+        username="location_decode_customer",
+        zalo_user_id="location_decode_customer",
+        role=User.Role.CUSTOMER,
+    )
+    api_client.force_authenticate(user=user)
     payload = {
         "token": "dev_mock_location_token",
     }

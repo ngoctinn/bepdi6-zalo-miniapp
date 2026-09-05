@@ -8,7 +8,9 @@ interface CheckoutOrderSummaryProps {
   displayTotal: number;
   deliveryType: "DELIVERY" | "PICKUP";
   distanceKm?: number;
+  shippingStatus?: "CALCULATED" | "FREESHIP" | "PICKUP" | "NOT_CALCULATED" | "OUT_OF_RADIUS";
   isUpdatingFee: boolean;
+  isQuoteReady: boolean;
   isSubmitting: boolean;
   onPlaceOrder: () => void;
 }
@@ -20,10 +22,13 @@ export function CheckoutOrderSummary({
   displayTotal,
   deliveryType,
   distanceKm,
+  shippingStatus,
   isUpdatingFee,
+  isQuoteReady,
   isSubmitting,
   onPlaceOrder,
 }: CheckoutOrderSummaryProps) {
+  const isFreeShipping = deliveryType === "PICKUP" || shippingStatus === "FREESHIP";
   return (
     <>
       {/* Chi tiết thanh toán */}
@@ -55,9 +60,15 @@ export function CheckoutOrderSummary({
             <span className="font-medium text-neutral900">
               {deliveryType === "PICKUP"
                 ? copy.checkout.selfPickupFree || "Tự đến lấy (0đ)"
-                : displayShippingFee > 0
+                : displayShippingFee > 0 && !isFreeShipping
                   ? `${formatCurrency(displayShippingFee)}đ`
-                  : copy.checkout.freeShipping}
+                  : isFreeShipping
+                  ? copy.checkout.freeShipping
+                  : shippingStatus === "OUT_OF_RADIUS"
+                    ? "Ngoài vùng giao"
+                    : shippingStatus === "NOT_CALCULATED"
+                      ? "Chưa tính được"
+                      : "Đang tính phí"}
             </span>
           </div>
 
@@ -90,7 +101,7 @@ export function CheckoutOrderSummary({
       <div className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-3.5 pt-3.5 shadow-lg backdrop-blur-md">
         <button
           type="button"
-          disabled={isSubmitting || isUpdatingFee}
+          disabled={isSubmitting || isUpdatingFee || !isQuoteReady}
           onClick={onPlaceOrder}
           className="flex min-h-[48px] w-full touch-manipulation items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-sm transition-all hover:bg-primaryDark active:scale-[0.99] disabled:opacity-75"
         >

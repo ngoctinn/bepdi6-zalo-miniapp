@@ -7,10 +7,7 @@ import {
   useCreateOrder,
   usePreviewCheckout,
 } from "@/services/order/order.mutations";
-import {
-  useAddresses,
-  useCreateAddress,
-} from "@/services/address/address.queries";
+import { useAddresses } from "@/services/address/address.queries";
 import { useShopInfo } from "@/services/shop/shop.queries";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -21,7 +18,6 @@ import {
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
-import { DEFAULT_SHOP_COORDINATES } from "@/constants/shop";
 
 // Modularized Checkout Sub-components
 import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
@@ -82,11 +78,11 @@ export default function CheckoutPage() {
   const idempotencyKeyRef = useRef<string>(generateUUID());
   const isCompletingOrderRef = useRef(false);
   const hasRequestedPhoneRef = useRef(false);
+  const previewRequestIdRef = useRef(0);
 
   // Mutations
   const previewMutation = usePreviewCheckout();
   const createOrderMutation = useCreateOrder();
-  const createAddressMutation = useCreateAddress();
 
   // Select the default address only; GPS permission is requested from the explicit location-selection action.
   useEffect(() => {
@@ -142,23 +138,30 @@ export default function CheckoutPage() {
       return;
     }
 
-    const lat = selectedAddress?.latitude || DEFAULT_SHOP_COORDINATES.latitude;
-    const lng =
-      selectedAddress?.longitude || DEFAULT_SHOP_COORDINATES.longitude;
+    const lat = selectedAddress?.latitude;
+    const requestId = ++previewRequestIdRef.current;
+    setPreviewData(null);
+    const lng = selectedAddress?.longitude;
 
     previewMutation.mutate(
       {
         items: orderItemsPayload,
         delivery_type: deliveryType,
+        address_id:
+          deliveryType === "DELIVERY" && selectedAddress?.id
+            ? selectedAddress.id
+            : undefined,
         delivery_latitude: deliveryType === "DELIVERY" ? lat : undefined,
         delivery_longitude: deliveryType === "DELIVERY" ? lng : undefined,
         voucher_code: appliedVoucherCode || undefined,
       },
       {
         onSuccess: (data) => {
+          if (requestId !== previewRequestIdRef.current) return;
           setPreviewData(data);
         },
         onError: (err: any) => {
+          if (requestId !== previewRequestIdRef.current) return;
           setPreviewData(null);
           const errorMsg =
             err?.response?.data?.error?.message ||
@@ -237,6 +240,15 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (deliveryType === "DELIVERY" && (!previewData || previewData.can_checkout !== true)) {
+      setOrderErrorModal({
+        visible: true,
+        title: copy.checkout.invalidOrderTitle,
+        message: previewData?.message || "Chưa có báo giá giao hàng hợp lệ. Vui lòng kiểm tra lại địa chỉ.",
+      });
+      return;
+    }
+
     if (previewData && !previewData.is_valid && previewData.message) {
       setOrderErrorModal({
         visible: true,
@@ -261,11 +273,15 @@ export default function CheckoutPage() {
             }
           : {
               delivery_type: "DELIVERY" as DeliveryType,
+              address_id:
+                selectedAddress?.id && selectedAddress.id > 0
+                  ? selectedAddress.id
+                  : undefined,
               recipient_name: selectedAddress?.recipient_name || "",
               phone: selectedAddress?.phone || "",
               delivery_address: selectedAddress?.address_text || "",
-              delivery_latitude: selectedAddress?.latitude || 10.762622,
-              delivery_longitude: selectedAddress?.longitude || 106.660172,
+              delivery_latitude: selectedAddress?.latitude,
+              delivery_longitude: selectedAddress?.longitude,
               payment_method: paymentMethod,
               note: note.trim() || undefined,
               scheduled_delivery_at: scheduledDeliveryAt,
@@ -277,26 +293,6 @@ export default function CheckoutPage() {
         payload,
         idempotencyKey: idempotencyKeyRef.current,
       });
-
-      // Tự động lưu địa chỉ GPS tạm vào danh bạ sổ địa chỉ nếu chưa có ID
-      if (
-        deliveryType === "DELIVERY" &&
-        selectedAddress &&
-        (!selectedAddress.id || selectedAddress.id === 0)
-      ) {
-        try {
-          await createAddressMutation.mutateAsync({
-            recipient_name: selectedAddress.recipient_name,
-            phone: selectedAddress.phone,
-            address_text: selectedAddress.address_text,
-            latitude: selectedAddress.latitude,
-            longitude: selectedAddress.longitude,
-            is_default: true,
-          });
-        } catch {
-          // Non-blocking
-        }
-      }
 
       isCompletingOrderRef.current = true;
       clearCart();
@@ -368,6 +364,7 @@ export default function CheckoutPage() {
         shopInfo={shopInfo}
         isLocating={false}
         distanceKm={previewData?.distance_km}
+        shippingStatus={previewData?.shipping_status}
         pickupName={pickupName}
         pickupPhone={pickupPhone}
         onPickupNameChange={setPickupName}
@@ -428,7 +425,9 @@ export default function CheckoutPage() {
         displayTotal={displayTotal}
         deliveryType={deliveryType}
         distanceKm={previewData?.distance_km}
+        shippingStatus={previewData?.shipping_status}
         isUpdatingFee={previewMutation.isPending}
+        isQuoteReady={deliveryType === "PICKUP" || previewData?.can_checkout === true}
         isSubmitting={createOrderMutation.isPending}
         onPlaceOrder={handlePlaceOrder}
       />
