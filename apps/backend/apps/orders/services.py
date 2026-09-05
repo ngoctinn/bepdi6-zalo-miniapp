@@ -55,6 +55,7 @@ class OrderService:
     VALID_TRANSITIONS: dict[str, list[str]] = {
         Order.Status.PENDING_CONFIRMATION: [
             Order.Status.CONFIRMED,
+            Order.Status.PREPARING,  # Hỗ trợ thao tác 1-chạm "Xác Nhận & Nấu Món"
             Order.Status.CANCELLED,
         ],
         Order.Status.CONFIRMED: [
@@ -536,6 +537,9 @@ class OrderService:
         now = timezone.now()
         if new_status == Order.Status.CONFIRMED:
             order.confirmed_at = now
+        elif new_status == Order.Status.PREPARING:
+            if not order.confirmed_at:
+                order.confirmed_at = now
         elif new_status == Order.Status.COMPLETED:
             order.completed_at = now
             # BR-PAY-003: COD order is marked as PAID upon successful delivery completion

@@ -64,6 +64,7 @@ htmlcov/
 .pyright_cache/
 
 # >>> coding-friend managed
+docs/
 docs/plans/
 docs/memory/
 docs/research/

@@ -61,3 +61,10 @@ export interface DecodeLocationResponse {
   district?: string;
   city?: string;
 }
+
+export interface PlaceSuggestion {
+  name: string;
+  address_text: string;
+  latitude: number;
+  longitude: number;
+}

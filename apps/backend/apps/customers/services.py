@@ -322,6 +322,136 @@ class AuthService:
             headers = {
                 "User-Agent": "BepDi6-ZaloMiniApp/1.0 (contact: support@bepdi6.vn)",
             }
+
+            # 1. Thử nghiệm gọi Photon (dựa trên dữ liệu OpenStreetMap, tốc độ cao, không bị DNS sinkhole)
+            try:
+                photon_params = {
+                    "lat": lat,
+                    "lon": lng,
+                }
+                res = session.get(
+                    "https://photon.komoot.io/reverse",
+                    params=photon_params,
+                    headers=headers,
+                    timeout=3,
+                )
+                if res.status_code == 200:
+                    data = res.json()
+                    features = data.get("features", [])
+                    if features:
+                        props = features[0].get("properties", {})
+                        name = props.get("name", "")
+                        street = props.get("street", "")
+                        housenumber = props.get("housenumber", "")
+                        street_line = (
+                            f"{housenumber} {street}".strip()
+                            if housenumber and street
+                            else (street or housenumber or name)
+                        )
+                        ward = (
+                            props.get("suburb")
+                            or props.get("locality")
+                            or props.get("quarter")
+                            or ""
+                        )
+                        district = (
+                            props.get("district")
+                            or props.get("city_district")
+                            or props.get("county")
+                            or ""
+                        )
+                        city = (
+                            props.get("city")
+                            or props.get("state")
+                            or props.get("province")
+                            or ""
+                        )
+
+                        address_parts = [
+                            p
+                            for p in [
+                                name if name and name != street_line else "",
+                                street_line,
+                                ward,
+                                district,
+                                city,
+                            ]
+                            if p
+                        ]
+                        address_text = ", ".join(address_parts)
+                        if address_text:
+                            result = {
+                                "latitude": lat,
+                                "longitude": lng,
+                                "address_text": address_text,
+                                "ward": ward,
+                                "district": district,
+                                "city": city,
+                            }
+                            try:
+                                cache.set(cache_key, result, timeout=604800)
+                            except Exception as ce:
+                                logger.warning("Error caching reverse_geocode: %s", ce)
+                            return result
+                    elif "address" in data:
+                        addr = data.get("address", {})
+                        road = (
+                            addr.get("road")
+                            or addr.get("pedestrian")
+                            or addr.get("footway")
+                            or addr.get("street")
+                            or ""
+                        )
+                        house_number = addr.get("house_number", "")
+                        street_line = (
+                            f"{house_number} {road}".strip()
+                            if house_number and road
+                            else (road or house_number)
+                        )
+                        ward = (
+                            addr.get("suburb")
+                            or addr.get("quarter")
+                            or addr.get("neighbourhood")
+                            or addr.get("ward")
+                            or addr.get("village")
+                            or ""
+                        )
+                        district = (
+                            addr.get("city_district")
+                            or addr.get("district")
+                            or addr.get("county")
+                            or addr.get("town")
+                            or ""
+                        )
+                        city = (
+                            addr.get("city")
+                            or addr.get("state")
+                            or addr.get("province")
+                            or ""
+                        )
+                        address_parts = [
+                            p for p in [street_line, ward, district, city] if p
+                        ]
+                        address_text = ", ".join(address_parts) or data.get(
+                            "display_name", ""
+                        )
+                        result = {
+                            "latitude": lat,
+                            "longitude": lng,
+                            "address_text": address_text,
+                            "ward": ward,
+                            "district": district,
+                            "city": city,
+                        }
+                        try:
+                            cache.set(cache_key, result, timeout=604800)
+                        except Exception as ce:
+                            logger.warning("Error caching reverse_geocode: %s", ce)
+                        return result
+            except Exception as pe:
+                logger.info("Photon reverse geocode skipped: %s", pe)
+
+            # 2. Fallback sang OpenStreetMap Nominatim
             params = {
                 "lat": lat,
                 "lon": lng,
@@ -333,7 +463,7 @@ class AuthService:
                 "https://nominatim.openstreetmap.org/reverse",
                 params=params,
                 headers=headers,
-                timeout=4,
+                timeout=3,
             )
             if res.status_code == 200:
                 data = res.json()
@@ -401,6 +531,135 @@ class AuthService:
         except Exception as e:
             logger.warning("Error in reverse_geocode: %s", e)
             return default_result
+
+    @classmethod
+    def search_places(
+        cls,
+        query: str,
+        lat: float | int | str | None = None,
+        lng: float | int | str | None = None,
+        limit: int = 5,
+    ) -> list[dict]:
+        """
+        Searches for address and POI suggestions using Photon API (OpenStreetMap-based).
+        Results are cached in Redis for 1 day.
+        """
+        clean_query = str(query or "").strip()
+        if len(clean_query) < 2:
+            return []
+
+        parsed_lat: float | None = None
+        parsed_lng: float | None = None
+        if lat is not None and lng is not None:
+            try:
+                parsed_lat = float(lat)
+                parsed_lng = float(lng)
+            except (TypeError, ValueError):
+                pass
+
+        cache_lat = round(parsed_lat, 2) if parsed_lat is not None else 0
+        cache_lng = round(parsed_lng, 2) if parsed_lng is not None else 0
+        cache_key = (
+            f"place_search:{clean_query.lower()}:{cache_lat}:{cache_lng}:{limit}"
+        )
+
+        try:
+            cached_result = cache.get(cache_key)
+            if cached_result and isinstance(cached_result, list):
+                return cached_result
+        except Exception as e:
+            logger.warning("Error reading place_search from cache: %s", e)
+
+        try:
+            session = get_zalo_http_session()
+            headers = {
+                "User-Agent": "BepDi6-ZaloMiniApp/1.0 (contact: support@bepdi6.vn)",
+            }
+            params: dict[str, str | int | float] = {
+                "q": clean_query,
+                "limit": min(max(1, limit), 10),
+                "lang": "vi",
+            }
+            # Ưu tiên tọa độ gần quán hoặc vị trí khách
+            if parsed_lat is not None and parsed_lng is not None:
+                params["lat"] = parsed_lat
+                params["lon"] = parsed_lng
+
+            res = session.get(
+                "https://photon.komoot.io/api",
+                params=params,
+                headers=headers,
+                timeout=3,
+            )
+            if res.status_code == 200:
+                data = res.json()
+                features = data.get("features", [])
+                results = []
+                for feat in features:
+                    props = feat.get("properties", {})
+                    coords = feat.get("geometry", {}).get("coordinates", [0, 0])
+                    feat_lng = coords[0] if len(coords) > 0 else 0.0
+                    feat_lat = coords[1] if len(coords) > 1 else 0.0
+
+                    name = props.get("name", "")
+                    street = props.get("street", "")
+                    housenumber = props.get("housenumber", "")
+                    street_line = (
+                        f"{housenumber} {street}".strip()
+                        if housenumber and street
+                        else (street or housenumber)
+                    )
+                    ward = (
+                        props.get("suburb")
+                        or props.get("locality")
+                        or props.get("quarter")
+                        or ""
+                    )
+                    district = (
+                        props.get("district")
+                        or props.get("city_district")
+                        or props.get("county")
+                        or ""
+                    )
+                    city = (
+                        props.get("city")
+                        or props.get("state")
+                        or props.get("province")
+                        or ""
+                    )
+
+                    label_parts = [
+                        p
+                        for p in [
+                            name,
+                            street_line if street_line != name else "",
+                            ward,
+                            district,
+                            city,
+                        ]
+                        if p
+                    ]
+                    address_text = ", ".join(label_parts) or name
+
+                    results.append(
+                        {
+                            "name": name or street_line or clean_query,
+                            "address_text": address_text,
+                            "latitude": feat_lat,
+                            "longitude": feat_lng,
+                        }
+                    )
+
+                try:
+                    cache.set(cache_key, results, timeout=86400)
+                except Exception as ce:
+                    logger.warning("Error caching place_search: %s", ce)
+
+                return results
+        except Exception as e:
+            logger.warning("Error searching places: %s", e)
+
+        return []
 
     @classmethod
     def decode_zalo_location_token(

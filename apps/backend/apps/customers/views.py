@@ -179,6 +179,50 @@ class CustomerReverseGeocodeView(APIView):
         )
 
 
+class LocationSearchView(APIView):
+    """
+    GET /api/v1/customers/location/search?query=...&latitude=...&longitude=...&limit=5
+    Searches address and place suggestions for autocomplete.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        query = request.query_params.get("query", "").strip()
+        if len(query) < 2:
+            return Response(
+                {
+                    "success": True,
+                    "data": [],
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        lat_str = request.query_params.get("latitude")
+        lng_str = request.query_params.get("longitude")
+        limit_str = request.query_params.get("limit", "5")
+
+        try:
+            limit = int(limit_str)
+        except (ValueError, TypeError):
+            limit = 5
+
+        places = AuthService.search_places(
+            query=query,
+            lat=lat_str,
+            lng=lng_str,
+            limit=limit,
+        )
+
+        return Response(
+            {
+                "success": True,
+                "data": places,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class CustomerPhoneUpdateView(APIView):
     """
     POST /api/v1/customers/me/phone

@@ -8,7 +8,12 @@ interface CheckoutOrderSummaryProps {
   displayTotal: number;
   deliveryType: "DELIVERY" | "PICKUP";
   distanceKm?: number;
-  shippingStatus?: "CALCULATED" | "FREESHIP" | "PICKUP" | "NOT_CALCULATED" | "OUT_OF_RADIUS";
+  shippingStatus?:
+    | "CALCULATED"
+    | "FREESHIP"
+    | "PICKUP"
+    | "NOT_CALCULATED"
+    | "OUT_OF_RADIUS";
   isUpdatingFee: boolean;
   isQuoteReady: boolean;
   isSubmitting: boolean;
@@ -28,7 +33,8 @@ export function CheckoutOrderSummary({
   isSubmitting,
   onPlaceOrder,
 }: CheckoutOrderSummaryProps) {
-  const isFreeShipping = deliveryType === "PICKUP" || shippingStatus === "FREESHIP";
+  const isFreeShipping =
+    deliveryType === "PICKUP" || shippingStatus === "FREESHIP";
   return (
     <>
       {/* Chi tiết thanh toán */}
@@ -63,12 +69,12 @@ export function CheckoutOrderSummary({
                 : displayShippingFee > 0 && !isFreeShipping
                   ? `${formatCurrency(displayShippingFee)}đ`
                   : isFreeShipping
-                  ? copy.checkout.freeShipping
-                  : shippingStatus === "OUT_OF_RADIUS"
-                    ? "Ngoài vùng giao"
-                    : shippingStatus === "NOT_CALCULATED"
-                      ? "Chưa tính được"
-                      : "Đang tính phí"}
+                    ? copy.checkout.freeShipping
+                    : shippingStatus === "OUT_OF_RADIUS"
+                      ? "Ngoài vùng giao"
+                      : shippingStatus === "NOT_CALCULATED"
+                        ? "Chưa tính được"
+                        : "Đang tính phí"}
             </span>
           </div>
 

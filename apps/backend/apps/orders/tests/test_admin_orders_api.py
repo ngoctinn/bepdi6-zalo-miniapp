@@ -245,3 +245,46 @@ def test_cod_order_completed_updates_payment_to_paid(admin_setup):
     assert payment.status == Payment.Status.PAID
     assert payment.paid_at is not None
     assert payment.actual_paid_amount == Decimal("60000.00")
+
+
+@pytest.mark.django_db
+def test_admin_order_direct_preparing_transition():
+    """Verify staff can 1-touch confirm & start cooking from PENDING_CONFIRMATION to PREPARING."""
+    staff = User.objects.create_user(
+        username="staff_direct",
+        password="password123",
+        role=User.Role.STAFF,
+        is_staff=True,
+    )
+    client = APIClient()
+    client.force_authenticate(user=staff)
+
+    customer = Customer.objects.create(
+        zalo_user_id="zalo_direct_prep",
+        name="Direct Prep Customer",
+        phone="0911223344",
+    )
+    order = Order.objects.create(
+        order_code="FODIRPREP01",
+        idempotency_key="idemp_dir_prep_01",
+        customer=customer,
+        recipient_name=customer.name,
+        phone=customer.phone,
+        delivery_address="123 Test Street",
+        delivery_latitude=Decimal("10.77"),
+        delivery_longitude=Decimal("106.70"),
+        subtotal=Decimal("50000.00"),
+        total_amount=Decimal("50000.00"),
+        payment_method=Order.PaymentMethod.COD,
+        status=Order.Status.PENDING_CONFIRMATION,
+    )
+
+    res = client.post(
+        f"/api/v1/admin/orders/{order.id}/status",
+        {"status": "PREPARING"},
+        format="json",
+    )
+    assert res.status_code == 200
+    order.refresh_from_db()
+    assert order.status == Order.Status.PREPARING
+    assert order.confirmed_at is not None

@@ -240,11 +240,16 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (deliveryType === "DELIVERY" && (!previewData || previewData.can_checkout !== true)) {
+    if (
+      deliveryType === "DELIVERY" &&
+      (!previewData || previewData.can_checkout !== true)
+    ) {
       setOrderErrorModal({
         visible: true,
         title: copy.checkout.invalidOrderTitle,
-        message: previewData?.message || "Chưa có báo giá giao hàng hợp lệ. Vui lòng kiểm tra lại địa chỉ.",
+        message:
+          previewData?.message ||
+          "Chưa có báo giá giao hàng hợp lệ. Vui lòng kiểm tra lại địa chỉ.",
       });
       return;
     }
@@ -427,7 +432,9 @@ export default function CheckoutPage() {
         distanceKm={previewData?.distance_km}
         shippingStatus={previewData?.shipping_status}
         isUpdatingFee={previewMutation.isPending}
-        isQuoteReady={deliveryType === "PICKUP" || previewData?.can_checkout === true}
+        isQuoteReady={
+          deliveryType === "PICKUP" || previewData?.can_checkout === true
+        }
         isSubmitting={createOrderMutation.isPending}
         onPlaceOrder={handlePlaceOrder}
       />

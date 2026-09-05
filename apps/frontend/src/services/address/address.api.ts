@@ -4,6 +4,7 @@ import {
   CreateAddressRequest,
   DecodeLocationRequest,
   DecodeLocationResponse,
+  PlaceSuggestion,
   UpdateAddressRequest,
 } from "../../types/customer.types";
 
@@ -14,6 +15,20 @@ export const addressService = {
    */
   getAddresses: async (): Promise<Address[]> => {
     return api.get<Address[]>("customers/me/addresses");
+  },
+
+  /**
+   * Tìm kiếm gợi ý địa chỉ (Place Autocomplete)
+   * GET /api/v1/customers/location/search
+   */
+  searchPlaces: async (
+    query: string,
+    latitude?: number,
+    longitude?: number,
+  ): Promise<PlaceSuggestion[]> => {
+    return api.get<PlaceSuggestion[]>("customers/location/search", {
+      params: { query, latitude, longitude },
+    });
   },
 
   /**

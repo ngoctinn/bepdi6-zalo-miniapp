@@ -12,8 +12,13 @@ import {
   useDecodeLocation,
   useDeleteAddress,
   useReverseGeocode,
+  useSearchPlaces,
 } from "@/services/address/address.queries";
-import { Address, CreateAddressRequest } from "@/types/customer.types";
+import {
+  Address,
+  CreateAddressRequest,
+  PlaceSuggestion,
+} from "@/types/customer.types";
 import { useLocationStore } from "@/stores/location.store";
 import { LocationPickerMap } from "@/components/location/location-picker-map";
 import {
@@ -58,6 +63,25 @@ export default function SelectLocationPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 
+  // Search & Detailed Address State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [detailAddress, setDetailAddress] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const { data: searchResults = [], isFetching: isSearching } = useSearchPlaces(
+    debouncedSearch,
+    formData.latitude || undefined,
+    formData.longitude || undefined,
+  );
+
   // Tự động điền thông tin người nhận khi mở form thêm địa chỉ
   useEffect(() => {
     if (isCreating && customer) {
@@ -89,6 +113,7 @@ export default function SelectLocationPage() {
     if (reverseGeocodeTimeoutRef.current) {
       clearTimeout(reverseGeocodeTimeoutRef.current);
     }
+    // Debounce 800ms để tránh spam request khi rê bản đồ
     reverseGeocodeTimeoutRef.current = setTimeout(async () => {
       try {
         const res = await reverseGeocodeMutation.mutateAsync({
@@ -104,7 +129,18 @@ export default function SelectLocationPage() {
       } catch (err) {
         console.warn("Reverse geocode failed", err);
       }
-    }, 500);
+    }, 800);
+  };
+
+  const handleSelectSuggestion = (item: PlaceSuggestion) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: item.latitude,
+      longitude: item.longitude,
+      address_text: item.address_text,
+    }));
+    setSearchQuery(item.name || item.address_text);
+    setShowSuggestions(false);
   };
 
   const handleSelectAddress = (addr: Address) => {
@@ -177,11 +213,21 @@ export default function SelectLocationPage() {
       return;
     }
 
+    const finalAddress = detailAddress.trim()
+      ? `${detailAddress.trim()}, ${formData.address_text.trim()}`
+      : formData.address_text.trim();
+
     setFormError(null);
     try {
-      const newAddr = await createAddressMutation.mutateAsync(formData);
+      const newAddr = await createAddressMutation.mutateAsync({
+        ...formData,
+        address_text: finalAddress,
+      });
       setSelectedAddress(newAddr);
       setIsCreating(false);
+      setDetailAddress("");
+      setSearchQuery("");
+      setShowSuggestions(false);
       navigate(-1);
     } catch (err) {
       setFormError(
@@ -230,11 +276,11 @@ export default function SelectLocationPage() {
                         showWarning("Không lấy được tên từ Zalo");
                       }
                     } catch {
-                      showWarning("Không thể lấy tên từ Zalo");
+                      showWarning("Không thể lấy thông tin từ Zalo");
                     }
                   }}
                 >
-                  Lấy tên Zalo
+                  {copy.selectLocation.getNameZalo}
                 </button>
               )}
             </div>
@@ -252,7 +298,7 @@ export default function SelectLocationPage() {
             />
           </div>
 
-          {/* Số điện thoại */}
+          {/* Số điện thoại người nhận */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-semibold text-neutral800">
@@ -267,13 +313,16 @@ export default function SelectLocationPage() {
                       const phone = await requestPhoneNumber();
                       if (phone) {
                         setFormData((prev) => ({ ...prev, phone }));
+                        showSuccess("Lấy số điện thoại thành công!");
+                      } else {
+                        showWarning("Không lấy được số điện thoại từ Zalo");
                       }
-                    } catch (e) {
-                      showWarning("Không thể lấy số điện thoại từ Zalo");
+                    } catch {
+                      showWarning("Không thể lấy số điện thoại");
                     }
                   }}
                 >
-                  Lấy SĐT Zalo
+                  {copy.selectLocation.getPhoneZalo}
                 </button>
               )}
             </div>
@@ -288,11 +337,98 @@ export default function SelectLocationPage() {
             />
           </div>
 
+          {/* Thanh tìm kiếm địa chỉ thông minh (Address Autocomplete) */}
+          <div className="relative flex flex-col gap-1.5 pt-1">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-semibold text-neutral800">
+                Tìm kiếm địa điểm / địa chỉ
+              </span>
+            </div>
+            <div className="relative flex items-center">
+              <div className="pointer-events-none absolute left-3 flex items-center text-neutral400">
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                placeholder="Tìm chung cư, tên đường, địa danh..."
+                className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white py-2.5 pl-9 pr-8 text-xs text-neutral900 placeholder:text-neutral400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
+              />
+              {isSearching && (
+                <div className="absolute right-3">
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              )}
+              {!isSearching && searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setShowSuggestions(false);
+                  }}
+                  className="absolute right-2.5 rounded-full p-1 text-neutral400 hover:text-neutral600"
+                >
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Dropdown danh sách gợi ý địa điểm */}
+            {showSuggestions &&
+              debouncedSearch.length >= 2 &&
+              searchResults.length > 0 && (
+                <div className="absolute left-0 right-0 top-full z-[500] mt-1 max-h-56 overflow-y-auto rounded-xl border border-black/[0.08] bg-white p-1.5 shadow-xl">
+                  {searchResults.map((item, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => handleSelectSuggestion(item)}
+                      className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
+                    >
+                      <div className="mt-0.5 shrink-0 text-primary">
+                        <MapPinIcon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-semibold text-neutral900">
+                          {item.name}
+                        </p>
+                        <p className="line-clamp-1 text-[11px] text-neutral500">
+                          {item.address_text}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+          </div>
+
           {/* Bản đồ chọn vị trí trực quan */}
           <div className="flex flex-col gap-1.5 pt-1">
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-semibold text-neutral800">
-                Vị trí trên bản đồ
+                Vị trí trên bản đồ (Center-Pin)
               </span>
               {formData.latitude !== DEFAULT_LATITUDE && (
                 <span className="font-mono text-[10px] text-neutral400">
@@ -310,29 +446,51 @@ export default function SelectLocationPage() {
             />
           </div>
 
-          {/* Địa chỉ chi tiết */}
-          <div className="flex flex-col gap-2">
+          {/* Vị trí định vị trên bản đồ */}
+          <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-semibold text-neutral800">
-                {copy.selectLocation.addressLabel}
+                Địa chỉ định vị (từ bản đồ / tìm kiếm)
               </span>
               {reverseGeocodeMutation.isPending && (
                 <span className="flex items-center gap-1 text-[11px] font-medium text-primary">
                   <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-primary" />
-                  Đang tìm địa chỉ...
+                  Đang định vị...
                 </span>
               )}
             </div>
-            <textarea
-              rows={2}
-              value={formData.address_text}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  address_text: e.target.value,
-                }))
-              }
-              placeholder={copy.selectLocation.addressPlaceholder}
+            <div className="flex items-start gap-2.5 rounded-xl border border-black/[0.08] bg-stone-50/80 p-3">
+              <div className="mt-0.5 shrink-0 text-primary">
+                <MapPinIcon className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-medium leading-relaxed text-neutral800">
+                  {formData.address_text || (
+                    <span className="italic text-neutral400">
+                      Chưa có địa chỉ. Hãy kéo bản đồ, chọn gợi ý hoặc bấm "Lấy
+                      vị trí GPS".
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Chi tiết căn hộ / Tòa nhà / Số phòng */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-semibold text-neutral800">
+                Chi tiết căn hộ / Số nhà / Ghi chú cho tài xế
+              </span>
+              <span className="text-[10px] text-neutral400">
+                Không bắt buộc
+              </span>
+            </div>
+            <input
+              type="text"
+              value={detailAddress}
+              onChange={(e) => setDetailAddress(e.target.value)}
+              placeholder="Ví dụ: Phòng 402 Lô B, vào hẻm rẽ trái..."
               className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white p-3 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
             />
           </div>
@@ -362,6 +520,9 @@ export default function SelectLocationPage() {
               onClick={() => {
                 setIsCreating(false);
                 setFormError(null);
+                setSearchQuery("");
+                setDetailAddress("");
+                setShowSuggestions(false);
               }}
             >
               {copy.selectLocation.cancel}

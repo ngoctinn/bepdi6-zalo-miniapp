@@ -38,6 +38,20 @@ export function useReverseGeocode() {
   });
 }
 
+export function useSearchPlaces(
+  query: string,
+  latitude?: number,
+  longitude?: number,
+) {
+  const cleanQuery = query.trim();
+  return useQuery({
+    queryKey: ["places-search", cleanQuery, latitude, longitude],
+    queryFn: () => addressService.searchPlaces(cleanQuery, latitude, longitude),
+    enabled: cleanQuery.length >= 2,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export function useCreateAddress() {
   const queryClient = useQueryClient();
 

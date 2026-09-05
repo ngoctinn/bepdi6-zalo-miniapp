@@ -6,6 +6,7 @@ from apps.customers.views import (
     CustomerMeView,
     CustomerPhoneUpdateView,
     CustomerReverseGeocodeView,
+    LocationSearchView,
     ZaloAuthView,
     ZaloLocationDecodeView,
 )
@@ -21,6 +22,11 @@ urlpatterns = [
         "customers/location/reverse-geocode",
         CustomerReverseGeocodeView.as_view(),
         name="customer-location-reverse-geocode",
+    ),
+    path(
+        "customers/location/search",
+        LocationSearchView.as_view(),
+        name="customer-location-search",
     ),
     path("customers/me", CustomerMeView.as_view(), name="customer-me"),
     path(

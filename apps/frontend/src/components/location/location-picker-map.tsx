@@ -23,6 +23,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const isUserDraggingRef = useRef<boolean>(false);
+  const lastReportedPosRef = useRef<{ lat: number; lng: number } | null>(null);
   const [isMoving, setIsMoving] = useState(false);
 
   // Khởi tạo bản đồ Leaflet
@@ -33,6 +34,8 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
       latitude && latitude !== 0 ? latitude : DEFAULT_CENTER[0];
     const initialLng =
       longitude && longitude !== 0 ? longitude : DEFAULT_CENTER[1];
+
+    lastReportedPosRef.current = { lat: initialLat, lng: initialLng };
 
     const map = L.map(containerRef.current, {
       center: [initialLat, initialLng],
@@ -58,7 +61,14 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
     map.on("moveend", () => {
       setIsMoving(false);
       const center = map.getCenter();
-      onChangeLocation(center.lat, center.lng);
+      const last = lastReportedPosRef.current;
+
+      // Chỉ kích hoạt callback nếu dịch chuyển trên 25 mét so với vị trí đã gọi trước đó
+      if (!last || map.distance(center, [last.lat, last.lng]) > 25) {
+        lastReportedPosRef.current = { lat: center.lat, lng: center.lng };
+        onChangeLocation(center.lat, center.lng);
+      }
+
       // Đợi micro-task trước khi nhả cờ dragging để tránh xung đột với prop update
       setTimeout(() => {
         isUserDraggingRef.current = false;
@@ -73,20 +83,21 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
     };
   }, []);
 
-  // Đồng bộ vị trí bản đồ khi tọa độ thay đổi từ bên ngoài (ví dụ: bấm GPS)
+  // Đồng bộ vị trí bản đồ khi tọa độ thay đổi từ bên ngoài (bấm GPS hoặc chọn từ tìm kiếm)
   useEffect(() => {
     if (!mapRef.current) return;
     if (isUserDraggingRef.current) return;
 
     if (latitude && longitude && latitude !== 0 && longitude !== 0) {
+      lastReportedPosRef.current = { lat: latitude, lng: longitude };
       const currentCenter = mapRef.current.getCenter();
-      const distance = Math.hypot(
-        currentCenter.lat - latitude,
-        currentCenter.lng - longitude,
-      );
+      const distance = mapRef.current.distance(currentCenter, [
+        latitude,
+        longitude,
+      ]);
 
-      // Chỉ panTo nếu độ lệch lớn hơn ~1 mét để tránh giật lag khi drag
-      if (distance > 0.00002) {
+      // Chỉ bay tới nếu độ lệch lớn hơn 15 mét
+      if (distance > 15) {
         mapRef.current.flyTo([latitude, longitude], 17, {
           duration: 0.8,
         });
