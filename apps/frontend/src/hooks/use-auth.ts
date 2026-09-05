@@ -158,6 +158,20 @@ export function useAuth() {
     }
   }, [loginWithZaloSDK]);
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      queryClient.removeQueries({ queryKey: ["customer", "me"] });
+      if (!isLoggingInRef.current) {
+        loginWithZaloSDK();
+      }
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    };
+  }, [queryClient, loginWithZaloSDK]);
+
   const logout = useCallback(() => {
     authService.logout();
     queryClient.removeQueries({ queryKey: ["customer", "me"] });
