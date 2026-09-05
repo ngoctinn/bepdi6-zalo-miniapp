@@ -414,8 +414,21 @@ export default function ProductDetailPage() {
       {product && (
         <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-black/5 bg-background/95 px-4 py-3 pb-[max(16px,calc(var(--app-safe-area-bottom,0px)+12px))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-md">
           {validationError && (
-            <div className="mb-2 rounded-xl border border-red-200 bg-red-500/10 py-1.5 text-center text-xs font-medium text-red-600">
-              ⚠️ {validationError}
+            <div className="mb-2 flex items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-500/10 py-1.5 text-center text-xs font-medium text-red-600">
+              <svg
+                className="h-3.5 w-3.5 shrink-0 text-red-500"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>{validationError}</span>
             </div>
           )}
           <div className="flex items-center gap-3">

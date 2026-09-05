@@ -31,6 +31,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { copy } from "@/constants/copy";
 import { DEV_MOCK_LOCATION_CREDENTIALS } from "@/utils/dev-mock";
+import { parseVietnameseAddressInput } from "@/utils/format";
 
 // Tọa độ mặc định 0 để bắt buộc check GPS hợp lệ
 const DEFAULT_LATITUDE = 0;
@@ -63,18 +64,29 @@ export default function SelectLocationPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 
-  // Search & Detailed Address State
+  // Two-Tier Address State: Tách biệt Số nhà và Địa chỉ bản đồ
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [detailAddress, setDetailAddress] = useState("");
+  const [houseNumber, setHouseNumber] = useState("");
+  const [isEditingStreet, setIsEditingStreet] = useState(false);
 
+  // Smart Query Parser: Tự động bóc tách số nhà khi người dùng gõ tìm kiếm (ví dụ: "45 Đồng Nai")
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery.trim());
+      const trimmed = searchQuery.trim();
+      const parsed = parseVietnameseAddressInput(trimmed);
+
+      // Nếu phát hiện tiền tố số nhà trong chuỗi tìm kiếm và ô số nhà hiện tại đang trống
+      if (parsed.houseNumber && !houseNumber) {
+        setHouseNumber(parsed.houseNumber);
+      }
+
+      // Gửi phần tên đường sạch lên API định vị bản đồ
+      setDebouncedSearch(parsed.searchQuery || trimmed);
     }, 350);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, houseNumber]);
 
   const { data: searchResults = [], isFetching: isSearching } = useSearchPlaces(
     debouncedSearch,
@@ -133,6 +145,11 @@ export default function SelectLocationPage() {
   };
 
   const handleSelectSuggestion = (item: PlaceSuggestion) => {
+    const parsed = parseVietnameseAddressInput(searchQuery);
+    if (parsed.houseNumber) {
+      setHouseNumber(parsed.houseNumber);
+    }
+
     setFormData((prev) => ({
       ...prev,
       latitude: item.latitude,
@@ -212,10 +229,12 @@ export default function SelectLocationPage() {
       setFormError(copy.selectLocation.errMissingAddress);
       return;
     }
+    if (!houseNumber.trim()) {
+      setFormError("Vui lòng nhập số nhà, tên tòa nhà hoặc số phòng");
+      return;
+    }
 
-    const finalAddress = detailAddress.trim()
-      ? `${detailAddress.trim()}, ${formData.address_text.trim()}`
-      : formData.address_text.trim();
+    const finalAddress = `${houseNumber.trim()}, ${formData.address_text.trim()}`;
 
     setFormError(null);
     try {
@@ -225,9 +244,10 @@ export default function SelectLocationPage() {
       });
       setSelectedAddress(newAddr);
       setIsCreating(false);
-      setDetailAddress("");
+      setHouseNumber("");
       setSearchQuery("");
       setShowSuggestions(false);
+      setIsEditingStreet(false);
       navigate(-1);
     } catch (err) {
       setFormError(
@@ -248,8 +268,19 @@ export default function SelectLocationPage() {
           </div>
 
           {formError && (
-            <div className="rounded-xl border border-red-200/60 bg-red-50 p-2.5 text-xs font-medium text-red-600">
-              ⚠️ {formError}
+            <div className="flex items-center gap-2 rounded-xl border border-red-200/60 bg-red-50 p-2.5 text-xs font-medium text-red-600">
+              <svg
+                className="h-4 w-4 shrink-0 text-red-500"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>{formError}</span>
             </div>
           )}
 
@@ -365,7 +396,7 @@ export default function SelectLocationPage() {
                   setShowSuggestions(true);
                 }}
                 onFocus={() => setShowSuggestions(true)}
-                placeholder="Tìm chung cư, tên đường, địa danh..."
+                placeholder="Ví dụ: 45 Đồng Nai, hoặc gõ tên đường, chung cư..."
                 className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white py-2.5 pl-9 pr-8 text-xs text-neutral900 placeholder:text-neutral400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
               {isSearching && (
@@ -446,57 +477,8 @@ export default function SelectLocationPage() {
             />
           </div>
 
-          {/* Vị trí định vị trên bản đồ */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-semibold text-neutral800">
-                Địa chỉ định vị (từ bản đồ / tìm kiếm)
-              </span>
-              {reverseGeocodeMutation.isPending && (
-                <span className="flex items-center gap-1 text-[11px] font-medium text-primary">
-                  <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-primary" />
-                  Đang định vị...
-                </span>
-              )}
-            </div>
-            <div className="flex items-start gap-2.5 rounded-xl border border-black/[0.08] bg-stone-50/80 p-3">
-              <div className="mt-0.5 shrink-0 text-primary">
-                <MapPinIcon className="h-4 w-4" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs font-medium leading-relaxed text-neutral800">
-                  {formData.address_text || (
-                    <span className="italic text-neutral400">
-                      Chưa có địa chỉ. Hãy kéo bản đồ, chọn gợi ý hoặc bấm "Lấy
-                      vị trí GPS".
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Chi tiết căn hộ / Tòa nhà / Số phòng */}
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-semibold text-neutral800">
-                Chi tiết căn hộ / Số nhà / Ghi chú cho tài xế
-              </span>
-              <span className="text-[10px] text-neutral400">
-                Không bắt buộc
-              </span>
-            </div>
-            <input
-              type="text"
-              value={detailAddress}
-              onChange={(e) => setDetailAddress(e.target.value)}
-              placeholder="Ví dụ: Phòng 402 Lô B, vào hẻm rẽ trái..."
-              className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white p-3 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
-            />
-          </div>
-
-          {/* Lấy vị trí GPS */}
-          <div className="pt-1">
+          {/* Nút Lấy vị trí GPS */}
+          <div className="pt-0.5">
             <button
               type="button"
               className="shadow-xs flex w-full items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-olive50/90 py-2.5 text-xs font-bold text-primary transition-all hover:bg-olive100 active:scale-[0.98]"
@@ -512,6 +494,109 @@ export default function SelectLocationPage() {
             </button>
           </div>
 
+          {/* Ô 1: Số nhà / Tòa nhà / Số phòng (BẮT BUỘC - TẬP TRUNG NHẬP LIỆU) */}
+          <div className="flex flex-col gap-1.5 pt-1">
+            <div className="flex items-center justify-between px-1">
+              <span className="flex items-center gap-1 text-xs font-semibold text-neutral800">
+                <svg
+                  className="h-3.5 w-3.5 text-primary"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span>Số nhà, tên tòa nhà, số phòng</span>
+                <span className="text-red-500">*</span>
+              </span>
+            </div>
+            <input
+              type="text"
+              value={houseNumber}
+              onChange={(e) => setHouseNumber(e.target.value)}
+              placeholder="Ví dụ: 45, hoặc 123/45, P.402 Chung cư Botanica..."
+              className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white p-3 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+            />
+          </div>
+
+          {/* Ô 2: Địa chỉ đường / khu vực định vị (từ bản đồ & GPS) */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between px-1">
+              <span className="flex items-center gap-1 text-xs font-semibold text-neutral800">
+                <MapPinIcon className="h-3.5 w-3.5 text-primary" />
+                <span>Tên đường, phường, quận (từ bản đồ / GPS)</span>
+              </span>
+              <div className="flex items-center gap-2">
+                {reverseGeocodeMutation.isPending && (
+                  <span className="flex items-center gap-1 text-[11px] font-medium text-primary">
+                    <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-primary" />
+                    Đang định vị...
+                  </span>
+                )}
+                {formData.address_text && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingStreet(!isEditingStreet)}
+                    className="text-xxxxsmall font-semibold text-primary underline"
+                  >
+                    {isEditingStreet ? "Xong" : "Sửa tay"}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {isEditingStreet ? (
+              <textarea
+                rows={2}
+                value={formData.address_text}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    address_text: e.target.value,
+                  }))
+                }
+                placeholder="Nhập tên đường, phường, quận..."
+                className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white p-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+              />
+            ) : (
+              <div className="flex items-start gap-2.5 rounded-xl border border-black/[0.08] bg-stone-50/80 p-3">
+                <div className="mt-0.5 shrink-0 text-primary">
+                  <MapPinIcon className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium leading-relaxed text-neutral800">
+                    {formData.address_text || (
+                      <span className="italic text-neutral400">
+                        Chưa có địa chỉ đường. Hãy kéo bản đồ, chọn gợi ý hoặc
+                        bấm "Lấy vị trí GPS".
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Ô 3: Live Preview Địa chỉ giao hàng đầy đủ */}
+          {formData.address_text && (
+            <div className="flex items-start gap-2.5 rounded-xl border border-primary/20 bg-olive50/60 p-3 text-xs text-neutral700">
+              <div className="mt-0.5 shrink-0 text-primary">
+                <MapPinIconSolid className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <span className="block text-[11px] font-semibold text-primaryDark">
+                  Địa chỉ giao hàng đầy đủ (Shipper nhìn thấy):
+                </span>
+                <p className="mt-0.5 text-xs font-bold leading-relaxed text-neutral900">
+                  {houseNumber.trim() ? `${houseNumber.trim()}, ` : ""}
+                  {formData.address_text}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Nút Hành Động */}
           <div className="flex gap-2.5 pt-2">
             <button
@@ -521,8 +606,9 @@ export default function SelectLocationPage() {
                 setIsCreating(false);
                 setFormError(null);
                 setSearchQuery("");
-                setDetailAddress("");
+                setHouseNumber("");
                 setShowSuggestions(false);
+                setIsEditingStreet(false);
               }}
             >
               {copy.selectLocation.cancel}

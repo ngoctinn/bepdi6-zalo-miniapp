@@ -544,7 +544,7 @@ class AuthService:
         Searches for address and POI suggestions using Photon API (OpenStreetMap-based).
         Results are cached in Redis for 1 day.
         """
-        clean_query = str(query or "").strip()
+        clean_query = (query or "").strip()
         if len(clean_query) < 2:
             return []
 

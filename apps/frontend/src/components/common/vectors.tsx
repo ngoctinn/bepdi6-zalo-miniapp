@@ -507,7 +507,7 @@ export function MapPinIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function MapPinIconSolid() {
+export function MapPinIconSolid(props?: HTMLProps<SVGSVGElement>) {
   return (
     <svg
       width="14"
@@ -515,13 +515,13 @@ export function MapPinIconSolid() {
       viewBox="0 0 14 17"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M6.7088 0C3.0032 0 0 3.01776 0 6.74755C0 8.61246 0.750801 10.2981 1.96662 11.5188L6.7088 16.29L11.451 11.5188C12.7104 10.2497 13.4176 8.53495 13.4176 6.74755C13.4128 3.01774 10.4095 0 6.7088 0ZM6.7088 9.74592C5.9144 9.74592 5.15392 9.42624 4.59685 8.86434C4.03978 8.30245 3.72495 7.54195 3.72495 6.74755C3.72495 5.95315 4.03496 5.19267 4.59685 4.63076C5.1539 4.06887 5.9144 3.75403 6.7088 3.74919C7.5032 3.74919 8.26367 4.06887 8.82074 4.63076C9.37781 5.19266 9.69264 5.95315 9.69264 6.74755C9.69747 7.54195 9.38264 8.30245 8.82074 8.86434C8.25885 9.42624 7.49835 9.74107 6.7088 9.74592Z"
-        fill="#1C1F23"
-        fill-opacity="0.2"
+        fill="currentColor"
       />
     </svg>
   );

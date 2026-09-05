@@ -90,7 +90,21 @@ export default function OrderDetailPage() {
   if (error || !order) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-center">
-        <div className="text-4xl">❌</div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+          <svg
+            className="h-6 w-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+        </div>
         <Text size="small" className="font-medium text-neutral700">
           {copy.orderDetail.notFound}
         </Text>
