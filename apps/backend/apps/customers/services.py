@@ -279,7 +279,9 @@ class AuthService:
         return phone_number
 
     @classmethod
-    def reverse_geocode(cls, latitude: float, longitude: float) -> dict:
+    def reverse_geocode(
+        cls, latitude: float | int | str, longitude: float | int | str
+    ) -> dict:
         """
         Reverse geocodes latitude/longitude into human-readable Vietnamese address.
         Uses Redis cache (TTL 7 days) keyed by 4-decimal precision (~11m).

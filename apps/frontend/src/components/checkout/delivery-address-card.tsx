@@ -17,6 +17,7 @@ interface DeliveryAddressCardProps {
   shopInfo?: ShopInfo;
   isLocating: boolean;
   distanceKm?: number;
+  shippingStatus?: string;
   pickupName: string;
   pickupPhone: string;
   onPickupNameChange: (val: string) => void;
@@ -30,6 +31,7 @@ export function DeliveryAddressCard({
   shopInfo,
   isLocating,
   distanceKm,
+  shippingStatus,
   pickupName,
   pickupPhone,
   onPickupNameChange,

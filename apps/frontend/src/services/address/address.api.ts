@@ -31,6 +31,22 @@ export const addressService = {
   },
 
   /**
+   * Dịch tọa độ sang địa chỉ đọc được (Reverse Geocoding)
+   * GET /api/v1/customers/location/reverse-geocode
+   */
+  reverseGeocode: async (
+    latitude: number,
+    longitude: number,
+  ): Promise<DecodeLocationResponse> => {
+    return api.get<DecodeLocationResponse>(
+      "customers/location/reverse-geocode",
+      {
+        params: { latitude, longitude },
+      },
+    );
+  },
+
+  /**
    * Thêm địa chỉ giao hàng mới
    * POST /api/v1/customers/me/addresses
    */

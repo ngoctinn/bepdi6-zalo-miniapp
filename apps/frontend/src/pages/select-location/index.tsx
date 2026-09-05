@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Spinner, Text } from "zmp-ui";
 import {
@@ -11,9 +11,11 @@ import {
   useCreateAddress,
   useDecodeLocation,
   useDeleteAddress,
+  useReverseGeocode,
 } from "@/services/address/address.queries";
 import { Address, CreateAddressRequest } from "@/types/customer.types";
 import { useLocationStore } from "@/stores/location.store";
+import { LocationPickerMap } from "@/components/location/location-picker-map";
 import {
   getZaloLocationCredentials,
   isZaloRuntime,
@@ -37,6 +39,10 @@ export default function SelectLocationPage() {
   const createAddressMutation = useCreateAddress();
   const deleteAddressMutation = useDeleteAddress();
   const decodeLocationMutation = useDecodeLocation();
+  const reverseGeocodeMutation = useReverseGeocode();
+  const reverseGeocodeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const { selectedAddress, setSelectedAddress } = useLocationStore();
 
   const [isCreating, setIsCreating] = useState(false);
@@ -64,6 +70,42 @@ export default function SelectLocationPage() {
       }));
     }
   }, [isCreating, customer]);
+
+  useEffect(() => {
+    return () => {
+      if (reverseGeocodeTimeoutRef.current) {
+        clearTimeout(reverseGeocodeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMapLocationChange = (lat: number, lng: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: lat,
+      longitude: lng,
+    }));
+
+    if (reverseGeocodeTimeoutRef.current) {
+      clearTimeout(reverseGeocodeTimeoutRef.current);
+    }
+    reverseGeocodeTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await reverseGeocodeMutation.mutateAsync({
+          latitude: lat,
+          longitude: lng,
+        });
+        if (res && res.address_text) {
+          setFormData((prev) => ({
+            ...prev,
+            address_text: res.address_text,
+          }));
+        }
+      } catch (err) {
+        console.warn("Reverse geocode failed", err);
+      }
+    }, 500);
+  };
 
   const handleSelectAddress = (addr: Address) => {
     setSelectedAddress(addr);
@@ -108,9 +150,7 @@ export default function SelectLocationPage() {
           ...prev,
           latitude: Number(decoded.latitude),
           longitude: Number(decoded.longitude),
-          address_text: prev.address_text.trim()
-            ? prev.address_text
-            : decoded.address_text || prev.address_text,
+          address_text: decoded.address_text || prev.address_text,
         }));
         showSuccess(copy.selectLocation.gpsSuccess);
       } else {
@@ -248,12 +288,40 @@ export default function SelectLocationPage() {
             />
           </div>
 
+          {/* Bản đồ chọn vị trí trực quan */}
+          <div className="flex flex-col gap-1.5 pt-1">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-semibold text-neutral800">
+                Vị trí trên bản đồ
+              </span>
+              {formData.latitude !== DEFAULT_LATITUDE && (
+                <span className="font-mono text-[10px] text-neutral400">
+                  {formData.latitude.toFixed(4)},{" "}
+                  {formData.longitude.toFixed(4)}
+                </span>
+              )}
+            </div>
+            <LocationPickerMap
+              latitude={formData.latitude}
+              longitude={formData.longitude}
+              onChangeLocation={handleMapLocationChange}
+              isLocating={isGettingLocation}
+              onLocateCurrent={handleGetCurrentLocation}
+            />
+          </div>
+
           {/* Địa chỉ chi tiết */}
           <div className="flex flex-col gap-2">
-            <div className="px-1">
+            <div className="flex items-center justify-between px-1">
               <span className="text-xs font-semibold text-neutral800">
                 {copy.selectLocation.addressLabel}
               </span>
+              {reverseGeocodeMutation.isPending && (
+                <span className="flex items-center gap-1 text-[11px] font-medium text-primary">
+                  <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-primary" />
+                  Đang tìm địa chỉ...
+                </span>
+              )}
             </div>
             <textarea
               rows={2}

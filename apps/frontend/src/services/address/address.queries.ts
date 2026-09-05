@@ -26,6 +26,18 @@ export function useDecodeLocation() {
   });
 }
 
+export function useReverseGeocode() {
+  return useMutation({
+    mutationFn: ({
+      latitude,
+      longitude,
+    }: {
+      latitude: number;
+      longitude: number;
+    }) => addressService.reverseGeocode(latitude, longitude),
+  });
+}
+
 export function useCreateAddress() {
   const queryClient = useQueryClient();
 
