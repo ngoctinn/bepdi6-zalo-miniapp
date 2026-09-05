@@ -5,6 +5,7 @@ import logging
 import requests
 import requests.adapters
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -278,6 +279,128 @@ class AuthService:
         return phone_number
 
     @classmethod
+    def reverse_geocode(cls, latitude: float, longitude: float) -> dict:
+        """
+        Reverse geocodes latitude/longitude into human-readable Vietnamese address.
+        Uses Redis cache (TTL 7 days) keyed by 4-decimal precision (~11m).
+        Gracefully falls back to empty strings on external network failure or timeout.
+        """
+        try:
+            lat = float(latitude)
+            lng = float(longitude)
+        except (TypeError, ValueError):
+            return {
+                "latitude": 0.0,
+                "longitude": 0.0,
+                "address_text": "",
+                "ward": "",
+                "district": "",
+                "city": "",
+            }
+
+        cache_key = f"reverse_geo:{round(lat, 4)}:{round(lng, 4)}"
+        try:
+            cached_result = cache.get(cache_key)
+            if cached_result and isinstance(cached_result, dict):
+                return cached_result
+        except Exception as e:
+            logger.warning("Error reading reverse_geocode from cache: %s", e)
+
+        default_result = {
+            "latitude": lat,
+            "longitude": lng,
+            "address_text": "",
+            "ward": "",
+            "district": "",
+            "city": "",
+        }
+
+        try:
+            session = get_zalo_http_session()
+            headers = {
+                "User-Agent": "BepDi6-ZaloMiniApp/1.0 (contact: support@bepdi6.vn)",
+            }
+            params = {
+                "lat": lat,
+                "lon": lng,
+                "format": "jsonv2",
+                "addressdetails": 1,
+                "accept-language": "vi",
+            }
+            res = session.get(
+                "https://nominatim.openstreetmap.org/reverse",
+                params=params,
+                headers=headers,
+                timeout=4,
+            )
+            if res.status_code == 200:
+                data = res.json()
+                addr = data.get("address", {})
+                road = (
+                    addr.get("road")
+                    or addr.get("pedestrian")
+                    or addr.get("footway")
+                    or addr.get("street")
+                    or ""
+                )
+                house_number = addr.get("house_number", "")
+                street_line = (
+                    f"{house_number} {road}".strip()
+                    if house_number and road
+                    else (road or house_number)
+                )
+
+                ward = (
+                    addr.get("suburb")
+                    or addr.get("quarter")
+                    or addr.get("neighbourhood")
+                    or addr.get("ward")
+                    or addr.get("village")
+                    or ""
+                )
+                district = (
+                    addr.get("city_district")
+                    or addr.get("district")
+                    or addr.get("county")
+                    or addr.get("town")
+                    or ""
+                )
+                city = (
+                    addr.get("city") or addr.get("state") or addr.get("province") or ""
+                )
+
+                address_parts = [p for p in [street_line, ward, district, city] if p]
+                address_text = ", ".join(address_parts)
+                if not address_text:
+                    address_text = data.get("display_name", "")
+
+                result = {
+                    "latitude": lat,
+                    "longitude": lng,
+                    "address_text": address_text,
+                    "ward": ward,
+                    "district": district,
+                    "city": city,
+                }
+                try:
+                    # Cache for 7 days (604,800 seconds)
+                    cache.set(cache_key, result, timeout=604800)
+                except Exception as ce:
+                    logger.warning("Error caching reverse_geocode: %s", ce)
+
+                return result
+            else:
+                logger.warning(
+                    "Reverse geocode HTTP %s: %s",
+                    res.status_code,
+                    res.text[:200],
+                )
+                return default_result
+        except Exception as e:
+            logger.warning("Error in reverse_geocode: %s", e)
+            return default_result
+
+    @classmethod
     def decode_zalo_location_token(
         cls, token: str, access_token: str = ""
     ) -> dict | None:
@@ -296,6 +419,19 @@ class AuthService:
             or token.startswith("mock_")
             or token.startswith("test_")
         ):
+            if token.startswith("test_raw_"):
+                lat = 10.762622
+                lng = 106.660172
+                geo = cls.reverse_geocode(lat, lng)
+                return {
+                    "latitude": lat,
+                    "longitude": lng,
+                    "address_text": geo.get("address_text", ""),
+                    "ward": geo.get("ward", ""),
+                    "district": geo.get("district", ""),
+                    "city": geo.get("city", ""),
+                }
+
             return {
                 "latitude": 10.762622,
                 "longitude": 106.660172,
@@ -342,14 +478,26 @@ class AuthService:
                 data.get("city_name"),
             ]
             address_text = ", ".join([p for p in address_parts if p]) or ""
+            ward = data.get("ward_name", "")
+            district = data.get("district_name", "")
+            city = data.get("city_name", "")
+
+            # If Zalo only returned raw coordinates without human-readable address,
+            # perform automatic reverse geocoding to pre-fill address for the user.
+            if not address_text:
+                geo = cls.reverse_geocode(float(lat), float(lng))
+                address_text = geo.get("address_text", "")
+                ward = ward or geo.get("ward", "")
+                district = district or geo.get("district", "")
+                city = city or geo.get("city", "")
 
             return {
                 "latitude": float(lat),
                 "longitude": float(lng),
                 "address_text": address_text,
-                "ward": data.get("ward_name", ""),
-                "district": data.get("district_name", ""),
-                "city": data.get("city_name", ""),
+                "ward": ward,
+                "district": district,
+                "city": city,
             }
         except Exception as e:
             logger.error("Error decoding Zalo location token: %s", e)

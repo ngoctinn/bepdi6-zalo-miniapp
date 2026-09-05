@@ -128,6 +128,57 @@ class ZaloLocationDecodeView(APIView):
         )
 
 
+class CustomerReverseGeocodeView(APIView):
+    """
+    GET /api/v1/customers/location/reverse-geocode?latitude=...&longitude=...
+    Translates latitude and longitude into human-readable Vietnamese address.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        lat_str = request.query_params.get("latitude")
+        lng_str = request.query_params.get("longitude")
+
+        if lat_str is None or lng_str is None:
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "MISSING_COORDINATES",
+                        "message": "Vui lòng cung cấp đầy đủ latitude và longitude.",
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            latitude = float(lat_str)
+            longitude = float(lng_str)
+            if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+                raise ValueError("Out of range")
+        except (ValueError, TypeError):
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "INVALID_COORDINATES",
+                        "message": "Tọa độ latitude hoặc longitude không hợp lệ.",
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = AuthService.reverse_geocode(latitude, longitude)
+        return Response(
+            {
+                "success": True,
+                "data": data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class CustomerPhoneUpdateView(APIView):
     """
     POST /api/v1/customers/me/phone
