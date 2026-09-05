@@ -35,7 +35,7 @@ async function getRequiredAccessToken() {
 export async function getZaloLoginCredentials() {
   try {
     const accessToken = await getRequiredAccessToken();
-    const { userInfo } = await getUserInfo({});
+    const { userInfo } = await getUserInfo({ autoRequestPermission: true });
     return {
       accessToken,
       name: userInfo?.name || "",
@@ -50,6 +50,15 @@ export async function getZaloLoginCredentials() {
       return { accessToken: "", name: "", avatar: "" };
     }
   }
+}
+
+export async function requestZaloUserInfo() {
+  await ensureZaloPermission("scope.userInfo");
+  const { userInfo } = await getUserInfo({ autoRequestPermission: true });
+  return {
+    name: userInfo?.name || "",
+    avatar: userInfo?.avatar || "",
+  };
 }
 
 export async function getZaloLocationCredentials() {

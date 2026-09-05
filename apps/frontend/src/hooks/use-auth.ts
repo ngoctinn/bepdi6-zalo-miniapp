@@ -6,6 +6,7 @@ import {
   ensureZaloPermission,
   getZaloLoginCredentials,
   getZaloPhoneCredentials,
+  requestZaloUserInfo,
   isZaloRuntime,
 } from "../utils/zalo-permissions";
 import { DEV_MOCK_ZALO_TOKEN } from "../utils/dev-mock";
@@ -14,6 +15,7 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isRequestingPhone, setIsRequestingPhone] = useState(false);
+  const [isRequestingUserInfo, setIsRequestingUserInfo] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const isLoggingInRef = useRef(false);
 
@@ -120,6 +122,36 @@ export function useAuth() {
     }
   }, [queryClient]);
 
+  /**
+   * 3. On-Demand Request User Info Flow:
+   * Kích hoạt khi người dùng muốn cập nhật tên/avatar thật từ Zalo
+   */
+  const requestUserInfo = useCallback(async (): Promise<string | null> => {
+    setIsRequestingUserInfo(true);
+    try {
+      const { name, avatar } = isZaloRuntime()
+        ? await requestZaloUserInfo()
+        : { name: "Nguyễn Văn Test", avatar: "" };
+
+      if (name) {
+        const updatedCustomer = await authService.updateMe({
+          name,
+          avatar_url: avatar || undefined,
+        });
+        queryClient.setQueryData(["customer", "me"], updatedCustomer);
+        return updatedCustomer.name || null;
+      }
+      return null;
+    } catch (err) {
+      setAuthError(
+        err instanceof Error ? err.message : "Không thể lấy thông tin từ Zalo",
+      );
+      return null;
+    } finally {
+      setIsRequestingUserInfo(false);
+    }
+  }, [queryClient]);
+
   useEffect(() => {
     if (!authService.isAuthenticated() && !isLoggingInRef.current) {
       loginWithZaloSDK();
@@ -136,9 +168,11 @@ export function useAuth() {
     isAuthenticated: authService.isAuthenticated(),
     isLoading: isLoggingIn || isFetchingCustomer,
     isRequestingPhone,
+    isRequestingUserInfo,
     authError,
     login: loginWithZaloSDK,
     requestPhoneNumber,
+    requestUserInfo,
     logout,
     refetchCustomer,
   };

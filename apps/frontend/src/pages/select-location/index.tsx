@@ -32,7 +32,7 @@ const DEFAULT_LONGITUDE = 0;
 export default function SelectLocationPage() {
   const navigate = useNavigate();
   const { showSuccess, showWarning } = useAppToast();
-  const { customer, requestPhoneNumber } = useAuth();
+  const { customer, requestPhoneNumber, requestUserInfo } = useAuth();
   const { data: addresses, isLoading } = useAddresses();
   const createAddressMutation = useCreateAddress();
   const deleteAddressMutation = useDeleteAddress();
@@ -55,9 +55,11 @@ export default function SelectLocationPage() {
   // Tự động điền thông tin người nhận khi mở form thêm địa chỉ
   useEffect(() => {
     if (isCreating && customer) {
+      const validName =
+        customer.name && customer.name !== "Khách Zalo" ? customer.name : "";
       setFormData((prev) => ({
         ...prev,
-        recipient_name: prev.recipient_name || customer.name || "",
+        recipient_name: prev.recipient_name || validName,
         phone: prev.phone || customer.phone || "",
       }));
     }
@@ -167,10 +169,34 @@ export default function SelectLocationPage() {
 
           {/* Tên người nhận */}
           <div className="flex flex-col gap-2">
-            <div className="px-1">
+            <div className="flex items-center justify-between px-1">
               <span className="text-xs font-semibold text-neutral800">
                 {copy.selectLocation.nameLabel}
               </span>
+              {isZaloRuntime() && (
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-primary transition-opacity hover:opacity-80"
+                  onClick={async () => {
+                    try {
+                      const name = await requestUserInfo();
+                      if (name && name !== "Khách Zalo") {
+                        setFormData((prev) => ({
+                          ...prev,
+                          recipient_name: name,
+                        }));
+                        showSuccess("Lấy tên từ Zalo thành công!");
+                      } else {
+                        showWarning("Không lấy được tên từ Zalo");
+                      }
+                    } catch {
+                      showWarning("Không thể lấy tên từ Zalo");
+                    }
+                  }}
+                >
+                  Lấy tên Zalo
+                </button>
+              )}
             </div>
             <input
               type="text"
