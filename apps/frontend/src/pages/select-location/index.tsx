@@ -5,6 +5,8 @@ import {
   MapPinIcon,
   MapPinIconSolid,
   PlusIcon,
+  RadioIcon,
+  TrashIcon,
 } from "@/components/common/vectors";
 import {
   useAddresses,
@@ -438,7 +440,7 @@ export default function SelectLocationPage() {
                       onClick={() => handleSelectSuggestion(item)}
                       className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
                     >
-                      <div className="mt-0.5 shrink-0 text-primary">
+                      <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
                         <MapPinIcon className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -497,9 +499,9 @@ export default function SelectLocationPage() {
           {/* Ô 1: Số nhà / Tòa nhà / Số phòng (BẮT BUỘC - TẬP TRUNG NHẬP LIỆU) */}
           <div className="flex flex-col gap-1.5 pt-1">
             <div className="flex items-center justify-between px-1">
-              <span className="flex items-center gap-1 text-xs font-semibold text-neutral800">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-neutral800">
                 <svg
-                  className="h-3.5 w-3.5 text-primary"
+                  className="h-3.5 w-3.5 shrink-0 text-primary"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -508,7 +510,7 @@ export default function SelectLocationPage() {
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
-                <span>Số nhà, tên tòa nhà, số phòng</span>
+                <span>{copy.selectLocation.houseNumberLabel}</span>
                 <span className="text-red-500">*</span>
               </span>
             </div>
@@ -516,7 +518,7 @@ export default function SelectLocationPage() {
               type="text"
               value={houseNumber}
               onChange={(e) => setHouseNumber(e.target.value)}
-              placeholder="Ví dụ: 45, hoặc 123/45, P.402 Chung cư Botanica..."
+              placeholder={copy.selectLocation.houseNumberPlaceholder}
               className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white p-3 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
             />
           </div>
@@ -524,15 +526,15 @@ export default function SelectLocationPage() {
           {/* Ô 2: Địa chỉ đường / khu vực định vị (từ bản đồ & GPS) */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between px-1">
-              <span className="flex items-center gap-1 text-xs font-semibold text-neutral800">
-                <MapPinIcon className="h-3.5 w-3.5 text-primary" />
-                <span>Tên đường, phường, quận (từ bản đồ / GPS)</span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-neutral800">
+                <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
+                <span>{copy.selectLocation.streetLabel}</span>
               </span>
               <div className="flex items-center gap-2">
                 {reverseGeocodeMutation.isPending && (
                   <span className="flex items-center gap-1 text-[11px] font-medium text-primary">
                     <span className="inline-block h-1.5 w-1.5 animate-ping rounded-full bg-primary" />
-                    Đang định vị...
+                    {copy.selectLocation.locatingStreet}
                   </span>
                 )}
                 {formData.address_text && (
@@ -541,7 +543,9 @@ export default function SelectLocationPage() {
                     onClick={() => setIsEditingStreet(!isEditingStreet)}
                     className="text-xxxxsmall font-semibold text-primary underline"
                   >
-                    {isEditingStreet ? "Xong" : "Sửa tay"}
+                    {isEditingStreet
+                      ? copy.selectLocation.doneManual
+                      : copy.selectLocation.editManual}
                   </button>
                 )}
               </div>
@@ -557,20 +561,19 @@ export default function SelectLocationPage() {
                     address_text: e.target.value,
                   }))
                 }
-                placeholder="Nhập tên đường, phường, quận..."
+                placeholder={copy.selectLocation.streetPlaceholder}
                 className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white p-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
             ) : (
               <div className="flex items-start gap-2.5 rounded-xl border border-black/[0.08] bg-stone-50/80 p-3">
-                <div className="mt-0.5 shrink-0 text-primary">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
                   <MapPinIcon className="h-4 w-4" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-medium leading-relaxed text-neutral800">
+                  <p className="text-xs font-medium leading-5 text-neutral800">
                     {formData.address_text || (
                       <span className="italic text-neutral400">
-                        Chưa có địa chỉ đường. Hãy kéo bản đồ, chọn gợi ý hoặc
-                        bấm "Lấy vị trí GPS".
+                        {copy.selectLocation.noStreetHint}
                       </span>
                     )}
                   </p>
@@ -582,12 +585,12 @@ export default function SelectLocationPage() {
           {/* Ô 3: Live Preview Địa chỉ giao hàng đầy đủ */}
           {formData.address_text && (
             <div className="flex items-start gap-2.5 rounded-xl border border-primary/20 bg-olive50/60 p-3 text-xs text-neutral700">
-              <div className="mt-0.5 shrink-0 text-primary">
+              <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
                 <MapPinIconSolid className="h-4 w-4" />
               </div>
               <div className="flex-1">
                 <span className="block text-[11px] font-semibold text-primaryDark">
-                  Địa chỉ giao hàng đầy đủ (Shipper nhìn thấy):
+                  {copy.selectLocation.fullAddressPreview}
                 </span>
                 <p className="mt-0.5 text-xs font-bold leading-relaxed text-neutral900">
                   {houseNumber.trim() ? `${houseNumber.trim()}, ` : ""}
@@ -648,16 +651,18 @@ export default function SelectLocationPage() {
               return (
                 <div
                   key={addr.id}
+                  role="radio"
+                  aria-checked={isSelected}
                   onClick={() => handleSelectAddress(addr)}
-                  className={`shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border p-3.5 transition-all ${
+                  className={`shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border bg-white p-3.5 transition-all ${
                     isSelected
-                      ? "border-primary bg-primary/10"
-                      : "border-black/[0.06] bg-white active:bg-black/[0.02]"
+                      ? "border-[1.5px] border-primary shadow-sm ring-1 ring-primary/20"
+                      : "border-black/[0.06] hover:border-black/15 active:bg-black/[0.02]"
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 text-primary">
-                      <MapPinIconSolid />
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
+                      <RadioIcon selected={isSelected} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -681,26 +686,14 @@ export default function SelectLocationPage() {
 
                   <button
                     type="button"
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-xs font-semibold text-red-600 transition-all hover:bg-red-500/20 active:scale-90"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-neutral400 transition-all hover:bg-red-50 hover:text-red-600 active:scale-90"
                     onClick={(e) => {
                       e.stopPropagation();
                       setDeleteAddressId(addr.id);
                     }}
                     aria-label={copy.common.delete}
                   >
-                    <svg
-                      className="h-4 w-4"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M3 6h18" />
-                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                    </svg>
+                    <TrashIcon className="h-4 w-4" />
                   </button>
                 </div>
               );

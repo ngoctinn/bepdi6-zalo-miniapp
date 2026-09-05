@@ -1,5 +1,7 @@
-import { HTMLProps } from "react";
+import React from "react";
 import { theme } from "@/constants/copy";
+
+export type SvgProps = React.SVGProps<SVGSVGElement>;
 
 const iconColors = {
   active: theme.colors.primary, // #4D7C0F — xanh rêu rustic olive khi active
@@ -11,7 +13,7 @@ const iconColors = {
 
 export const navIconColors = iconColors;
 
-export function SearchIcon(props: HTMLProps<SVGSVGElement>) {
+export function SearchIcon(props: SvgProps) {
   return (
     <svg
       width="24"
@@ -395,7 +397,7 @@ export function CoffeeIcon({ active }: { active: boolean }) {
   );
 }
 
-export function BackIcon(props: HTMLProps<SVGSVGElement>) {
+export function BackIcon(props: SvgProps) {
   return (
     <svg
       width="24"
@@ -431,7 +433,7 @@ export function TickIcon() {
   );
 }
 
-export function CartIcon(props: HTMLProps<SVGSVGElement>) {
+export function CartIcon(props: SvgProps) {
   return (
     <svg
       width="24"
@@ -449,7 +451,7 @@ export function CartIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-type CloseIconProps = HTMLProps<SVGSVGElement> & {
+type CloseIconProps = SvgProps & {
   color?: string;
   size?: number | string;
   strokeWidth?: number;
@@ -483,7 +485,7 @@ export function CloseIcon({
   );
 }
 
-export function MapPinIcon(props: HTMLProps<SVGSVGElement>) {
+export function MapPinIcon(props: SvgProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -507,7 +509,7 @@ export function MapPinIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function MapPinIconSolid(props?: HTMLProps<SVGSVGElement>) {
+export function MapPinIconSolid(props?: SvgProps) {
   return (
     <svg
       width="14"
@@ -527,7 +529,7 @@ export function MapPinIconSolid(props?: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function ChevronRightIcon(props: HTMLProps<SVGSVGElement>) {
+export function ChevronRightIcon(props: SvgProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -546,7 +548,7 @@ export function ChevronRightIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function ProfileUserIcon(props: HTMLProps<SVGSVGElement>) {
+export function ProfileUserIcon(props: SvgProps) {
   return (
     <svg
       width="15"
@@ -554,10 +556,11 @@ export function ProfileUserIcon(props: HTMLProps<SVGSVGElement>) {
       viewBox="0 0 15 17"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M7.5 16.6665C5.35875 16.6665 3.74769 16.5139 2.57475 16.2C1.81466 15.9981 1.24501 15.739 0.83325 15.408C0.288133 14.9644 0 14.391 0 13.7498C0 13.1662 0.235433 12.5663 0.69975 11.967C1.11569 11.4516 1.68625 10.9645 2.34975 10.5585C3.81533 9.66086 5.64438 9.1665 7.5 9.1665C9.35562 9.1665 11.1847 9.66086 12.6502 10.5585C13.3137 10.9645 13.8843 11.4516 14.3002 11.967C14.7646 12.5664 15 13.1662 15 13.7498C15 14.391 14.7119 14.9644 14.1667 15.408C13.755 15.739 13.1853 15.9981 12.4253 16.2C11.2523 16.5139 9.64125 16.6665 7.5 16.6665ZM7.5 10.833C5.98042 10.833 4.41924 11.2523 3.21675 11.9835C2.71219 12.2908 2.29439 12.6422 2.0085 12.9998C1.69982 13.3951 1.6665 13.656 1.6665 13.7498C1.6665 13.843 1.69176 13.951 1.875 14.1082C2.09814 14.2864 2.47666 14.4492 3 14.592C4.02362 14.8627 5.53763 15 7.5 15C9.46236 15 10.9764 14.8627 12 14.592C12.5233 14.4492 12.9019 14.2864 13.125 14.1082C13.3082 13.951 13.3335 13.843 13.3335 13.7498C13.3335 13.656 13.3002 13.3951 12.9915 12.9998C12.7056 12.6422 12.2878 12.2908 11.7832 11.9835C10.5808 11.2523 9.01958 10.833 7.5 10.833ZM7.5 8.33325C5.20231 8.33325 3.333 6.46427 3.333 4.167C3.333 1.86931 5.20231 0 7.5 0C9.79769 0 11.667 1.86931 11.667 4.167C11.667 6.46427 9.79769 8.33325 7.5 8.33325ZM7.5 1.6665C6.12163 1.6665 5.00025 2.78822 5.00025 4.167C5.00025 5.54537 6.12163 6.66675 7.5 6.66675C8.87837 6.66675 9.99975 5.54537 9.99975 4.167C9.99975 2.78822 8.87837 1.6665 7.5 1.6665Z"
         fill="#1C1F23"
       />
@@ -565,7 +568,7 @@ export function ProfileUserIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function VoucherIcon(props: HTMLProps<SVGSVGElement>) {
+export function VoucherIcon(props: SvgProps) {
   return (
     <svg
       width="17"
@@ -573,17 +576,18 @@ export function VoucherIcon(props: HTMLProps<SVGSVGElement>) {
       viewBox="0 0 17 14"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
-      <g clip-path="url(#clip0_1_21845)">
+      <g clipPath="url(#clip0_1_21845)">
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M13.0419 0H3.13005C1.40147 0 0 1.40147 0 3.13008C0 3.76489 0.341675 4.36592 0.912148 4.64368C1.63076 4.99295 2.08687 5.72194 2.08669 6.52097C2.08669 7.3204 1.63045 8.04922 0.911728 8.39839C0.341675 8.67622 0 9.27698 0 9.91182C0 11.6407 1.40147 13.0419 3.13005 13.0419H13.0419C14.7704 13.0419 16.1719 11.6407 16.1719 9.91182C16.1719 9.27698 15.8302 8.67625 15.2598 8.39818C14.5411 8.04892 14.085 7.31993 14.0852 6.52097C14.0852 5.72145 14.5415 4.99258 15.2602 4.64351C15.8302 4.36592 16.1719 3.76466 16.1719 3.13008C16.1719 1.4015 14.7704 0 13.0419 0ZM13.0419 1.56503C13.905 1.56503 14.6069 2.26669 14.6069 3.13008C14.6069 3.19003 14.5806 3.23128 14.5745 3.2365C13.3267 3.84398 12.5202 5.13329 12.5202 6.52097C12.5202 7.90863 13.3267 9.19794 14.5717 9.80359C14.5806 9.81088 14.6069 9.85184 14.6069 9.91182C14.6069 10.775 13.905 11.4769 13.0419 11.4769H3.13005C2.26693 11.4769 1.56503 10.775 1.56503 9.91182C1.56503 9.85184 1.59135 9.81088 1.59735 9.80542C2.84519 9.19736 3.65171 7.90863 3.65171 6.52097C3.65171 5.13329 2.84519 3.84398 1.60021 3.23857C1.59135 3.23128 1.56501 3.19006 1.56501 3.13008C1.56501 2.26672 2.26693 1.56503 3.13001 1.56503H13.0419Z"
           fill="#1C1F23"
         />
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M5.9993 9.65173C5.5672 9.65173 5.2168 9.30139 5.2168 8.8692V4.17413C5.2168 3.74194 5.5672 3.3916 5.9993 3.3916C6.43152 3.3916 6.78189 3.74194 6.78189 4.17413V8.8692C6.78189 9.30139 6.43152 9.65173 5.9993 9.65173Z"
           fill="#1C1F23"
         />
@@ -597,7 +601,7 @@ export function VoucherIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function TrashIcon(props: HTMLProps<SVGSVGElement>) {
+export function TrashIcon(props: SvgProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -616,7 +620,7 @@ export function TrashIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function SupportIcon(props: HTMLProps<SVGSVGElement>) {
+export function SupportIcon(props: SvgProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -635,7 +639,7 @@ export function SupportIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function StoreIcon(props: HTMLProps<SVGSVGElement>) {
+export function StoreIcon(props: SvgProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -663,7 +667,7 @@ export function DrinkIcon() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g clip-path="url(#clip0_86_5362)">
+      <g clipPath="url(#clip0_86_5362)">
         <path
           d="M9.67578 4.96588C9.87649 4.96602 10.0117 5.1011 10.0117 5.30182L9.47363 11.752C9.44129 12.0761 9.28298 12.3802 9.02832 12.6085C8.77466 12.8359 8.45572 12.962 8.12988 12.962H2.55273C2.22704 12.9619 1.90784 12.8358 1.6543 12.6085C1.39979 12.3802 1.24131 12.076 1.20898 11.752L0.671875 5.30182C0.671875 5.16813 0.805927 4.96588 1.00781 4.96588H9.67578ZM5.375 7.65338C4.63415 7.6535 4.03125 8.25629 4.03125 8.99713C4.03125 9.73804 4.63416 10.3408 5.375 10.3409C6.11594 10.3409 6.71875 9.73811 6.71875 8.99713C6.71875 8.25622 6.11595 7.65338 5.375 7.65338Z"
           fill={iconColors.white}
@@ -682,7 +686,7 @@ export function DrinkIcon() {
   );
 }
 
-export function PlusIcon(props: HTMLProps<SVGSVGElement>) {
+export function PlusIcon(props: SvgProps) {
   return (
     <svg
       width="11"
@@ -717,7 +721,7 @@ export function PlusIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function CheckIcon(props: HTMLProps<SVGSVGElement>) {
+export function CheckIcon(props: SvgProps) {
   return (
     <svg
       width="16"
@@ -735,7 +739,7 @@ export function CheckIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function SparklesIcon(props: HTMLProps<SVGSVGElement>) {
+export function SparklesIcon(props: SvgProps) {
   return (
     <svg
       width="16"
@@ -749,7 +753,7 @@ export function SparklesIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function FireIcon(props: HTMLProps<SVGSVGElement>) {
+export function FireIcon(props: SvgProps) {
   return (
     <svg
       width="16"
@@ -767,7 +771,7 @@ export function FireIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function TruckIcon(props: HTMLProps<SVGSVGElement>) {
+export function TruckIcon(props: SvgProps) {
   return (
     <svg
       width="16"
@@ -788,7 +792,7 @@ export function TruckIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function InfoIcon(props: HTMLProps<SVGSVGElement>) {
+export function InfoIcon(props: SvgProps) {
   return (
     <svg
       width="16"
@@ -808,7 +812,7 @@ export function InfoIcon(props: HTMLProps<SVGSVGElement>) {
   );
 }
 
-export function AlertCircleIcon(props: HTMLProps<SVGSVGElement>) {
+export function AlertCircleIcon(props: SvgProps) {
   return (
     <svg
       width="16"
@@ -824,6 +828,33 @@ export function AlertCircleIcon(props: HTMLProps<SVGSVGElement>) {
       <circle cx="12" cy="12" r="10" />
       <line x1="12" y1="8" x2="12" y2="12" />
       <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+  );
+}
+
+export function RadioIcon({
+  selected,
+  className,
+  ...props
+}: { selected: boolean } & SvgProps) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      {...props}
+    >
+      <circle
+        cx="10"
+        cy="10"
+        r="8.5"
+        stroke={selected ? "currentColor" : "#D6D3D1"}
+        strokeWidth="2"
+      />
+      {selected && <circle cx="10" cy="10" r="5" fill="currentColor" />}
     </svg>
   );
 }

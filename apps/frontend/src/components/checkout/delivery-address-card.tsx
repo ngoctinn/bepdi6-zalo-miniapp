@@ -78,7 +78,7 @@ export function DeliveryAddressCard({
               className="shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border border-black/[0.06] bg-white p-4 text-sm text-neutral700 transition-all active:scale-[0.99]"
             >
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 shrink-0 text-primary">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
                   <MapPinIcon className="h-5 w-5" />
                 </div>
                 <div>
@@ -106,7 +106,9 @@ export function DeliveryAddressCard({
                   )}
                 </div>
               </div>
-              <ChevronRightIcon className="mt-1 h-5 w-5 shrink-0 text-neutral400" />
+              <div className="flex h-5 w-5 shrink-0 items-center justify-center text-neutral400">
+                <ChevronRightIcon className="h-5 w-5" />
+              </div>
             </div>
           ) : (
             <div

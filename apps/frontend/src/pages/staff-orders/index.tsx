@@ -10,6 +10,7 @@ import { StaffOrderCard } from "@/components/staff/staff-order-card";
 import { CancelOrderModal } from "@/components/staff/cancel-order-modal";
 import { StaffHeaderActions } from "@/components/staff/staff-header-actions";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { copy } from "@/constants/copy";
 
 type StaffTab = "PENDING" | "PREPARING" | "READY" | "ALL";
 
@@ -55,13 +56,13 @@ export default function StaffOrdersPage() {
         audioContextRef.current = ctx;
         setIsSoundEnabled(true);
         playBeep(ctx);
-        showSuccess("Đã bật chuông báo đơn mới", { duration: 2000 });
+        showSuccess(copy.staff.soundOnSuccess, { duration: 2000 });
       } catch {
-        showWarning("Thiết bị không hỗ trợ Web Audio");
+        showWarning(copy.staff.soundUnsupported);
       }
     } else {
       setIsSoundEnabled(false);
-      showToast("Đã tắt chuông báo");
+      showToast(copy.staff.soundOff);
     }
   };
 
@@ -113,22 +114,22 @@ export default function StaffOrdersPage() {
     () => [
       {
         value: "PENDING",
-        label: "Chờ nhận",
+        label: copy.staff.tabs.pending,
         badge: stats.pending > 0 ? stats.pending : undefined,
       },
       {
         value: "PREPARING",
-        label: "Đang nấu",
+        label: copy.staff.tabs.preparing,
         badge: stats.preparing > 0 ? stats.preparing : undefined,
       },
       {
         value: "READY",
-        label: "Đang giao",
+        label: copy.staff.tabs.ready,
         badge: stats.ready > 0 ? stats.ready : undefined,
       },
       {
         value: "ALL",
-        label: "Tất cả",
+        label: copy.staff.tabs.all,
         badge: stats.total > 0 ? stats.total : undefined,
       },
     ],
@@ -273,11 +274,11 @@ export default function StaffOrdersPage() {
             <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Icon icon="zi-list-1" className="text-2xl" />
             </div>
-            <p className="text-sm font-bold text-neutral-900">
-              Không có đơn hàng nào
+            <p className="text-sm font-bold text-neutral900">
+              {copy.staff.emptyOrdersTitle}
             </p>
             <p className="mt-1 text-xs text-stone-500">
-              Các đơn hàng mới sẽ tự động hiển thị tại đây khi khách đặt món.
+              {copy.staff.emptyOrdersHint}
             </p>
           </div>
         ) : (
