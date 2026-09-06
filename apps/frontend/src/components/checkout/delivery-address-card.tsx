@@ -22,6 +22,9 @@ interface DeliveryAddressCardProps {
   pickupPhone: string;
   onPickupNameChange: (val: string) => void;
   onPickupPhoneChange: (val: string) => void;
+  hasAddressError?: boolean;
+  hasPickupNameError?: boolean;
+  hasPickupPhoneError?: boolean;
 }
 
 export function DeliveryAddressCard({
@@ -36,6 +39,9 @@ export function DeliveryAddressCard({
   pickupPhone,
   onPickupNameChange,
   onPickupPhoneChange,
+  hasAddressError,
+  hasPickupNameError,
+  hasPickupPhoneError,
 }: DeliveryAddressCardProps) {
   const navigate = useNavigate();
   const { requestPhoneNumber } = useAuth();
@@ -111,17 +117,32 @@ export function DeliveryAddressCard({
               </div>
             </div>
           ) : (
-            <div
-              onClick={() => navigate("/select-location")}
-              className="shadow-xs flex cursor-pointer items-center justify-between rounded-2xl border border-black/[0.06] bg-white p-4 text-sm transition-all active:scale-[0.99]"
-            >
-              <div className="flex items-center gap-3 font-semibold text-neutral900">
-                <div className="shrink-0 text-primary">
-                  <MapPinIcon className="h-5 w-5" />
+            <div>
+              <div
+                onClick={() => navigate("/select-location")}
+                className={`shadow-xs flex cursor-pointer items-center justify-between rounded-2xl border p-4 text-sm transition-all active:scale-[0.99] ${
+                  hasAddressError
+                    ? "border-red-500 bg-red-50/50 text-red-600 ring-1 ring-red-500"
+                    : "border-black/[0.06] bg-white text-neutral900"
+                }`}
+              >
+                <div className="flex items-center gap-3 font-semibold">
+                  <div
+                    className={`shrink-0 ${hasAddressError ? "text-red-500" : "text-primary"}`}
+                  >
+                    <MapPinIcon className="h-5 w-5" />
+                  </div>
+                  <span>{copy.checkout.selectAddressHint}</span>
                 </div>
-                <span>{copy.checkout.selectAddressHint}</span>
+                <ChevronRightIcon
+                  className={`h-5 w-5 ${hasAddressError ? "text-red-400" : "text-neutral400"}`}
+                />
               </div>
-              <ChevronRightIcon className="h-5 w-5 text-neutral400" />
+              {hasAddressError && (
+                <p className="mt-1.5 px-1 text-xxsmall font-medium text-red-500">
+                  {copy.checkout.missingAddressWarning}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -177,20 +198,42 @@ export function DeliveryAddressCard({
               )}
             </div>
             <div className="flex flex-col gap-2">
-              <input
-                type="text"
-                placeholder="Tên người đến lấy"
-                value={pickupName}
-                onChange={(e) => onPickupNameChange(e.target.value)}
-                className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
-              />
-              <input
-                type="tel"
-                placeholder="Số điện thoại liên hệ"
-                value={pickupPhone}
-                onChange={(e) => onPickupPhoneChange(e.target.value)}
-                className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
-              />
+              <div>
+                <input
+                  type="text"
+                  placeholder="Tên người đến lấy"
+                  value={pickupName}
+                  onChange={(e) => onPickupNameChange(e.target.value)}
+                  className={`shadow-xs w-full rounded-xl border bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:outline-none ${
+                    hasPickupNameError
+                      ? "border-red-500 ring-1 ring-red-500 focus:border-red-500"
+                      : "border-black/[0.08] focus:border-primary focus:ring-1 focus:ring-primary/30"
+                  }`}
+                />
+                {hasPickupNameError && (
+                  <p className="mt-1 px-1 text-xxsmall font-medium text-red-500">
+                    {copy.checkout.missingPickupNameWarning}
+                  </p>
+                )}
+              </div>
+              <div>
+                <input
+                  type="tel"
+                  placeholder="Số điện thoại liên hệ"
+                  value={pickupPhone}
+                  onChange={(e) => onPickupPhoneChange(e.target.value)}
+                  className={`shadow-xs w-full rounded-xl border bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:outline-none ${
+                    hasPickupPhoneError
+                      ? "border-red-500 ring-1 ring-red-500 focus:border-red-500"
+                      : "border-black/[0.08] focus:border-primary focus:ring-1 focus:ring-primary/30"
+                  }`}
+                />
+                {hasPickupPhoneError && (
+                  <p className="mt-1 px-1 text-xxsmall font-medium text-red-500">
+                    {copy.checkout.missingPickupPhoneWarning}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

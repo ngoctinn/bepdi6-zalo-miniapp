@@ -67,6 +67,11 @@ export default function CheckoutPage() {
   }>({
     visible: false,
   });
+  const [validationErrors, setValidationErrors] = useState<{
+    address?: boolean;
+    pickupName?: boolean;
+    pickupPhone?: boolean;
+  }>({});
 
   // Prefill customer info for Pickup.
   useEffect(() => {
@@ -117,6 +122,14 @@ export default function CheckoutPage() {
       setSelectedAddress(defaultAddr);
     }
   }, [selectedAddress, userAddresses, isLoadingAddresses, setSelectedAddress]);
+
+  useEffect(() => {
+    if (selectedAddress?.recipient_name && selectedAddress?.phone) {
+      setValidationErrors((prev) =>
+        prev.address ? { ...prev, address: false } : prev,
+      );
+    }
+  }, [selectedAddress]);
 
   // Chuyển đổi giỏ hàng sang payload backend
   const orderItemsPayload = useMemo(
@@ -206,28 +219,31 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (deliveryType === "DELIVERY" && !selectedAddress) {
-      showWarning(copy.checkout.missingAddressWarning);
-      navigate("/select-location");
-      return;
-    }
-
     if (
       deliveryType === "DELIVERY" &&
-      (!selectedAddress?.recipient_name?.trim() ||
-        !selectedAddress?.phone?.trim())
+      (!selectedAddress ||
+        !selectedAddress.recipient_name?.trim() ||
+        !selectedAddress.phone?.trim())
     ) {
-      showWarning(copy.checkout.missingAddressWarning);
+      setValidationErrors((prev) => ({ ...prev, address: true }));
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
     if (deliveryType === "PICKUP") {
+      let hasError = false;
+      const newErrors = { pickupName: false, pickupPhone: false };
       if (!pickupName.trim()) {
-        showWarning(copy.checkout.missingPickupNameWarning);
-        return;
+        newErrors.pickupName = true;
+        hasError = true;
       }
       if (!pickupPhone.trim()) {
-        showWarning(copy.checkout.missingPickupPhoneWarning);
+        newErrors.pickupPhone = true;
+        hasError = true;
+      }
+      if (hasError) {
+        setValidationErrors((prev) => ({ ...prev, ...newErrors }));
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
     }
@@ -365,7 +381,10 @@ export default function CheckoutPage() {
       {/* Khung Thông Tin Nhận Hàng (Bao gồm tab Giao tận nơi / Tự đến lấy + Địa chỉ) */}
       <DeliveryAddressCard
         deliveryType={deliveryType}
-        onDeliveryTypeChange={setDeliveryType}
+        onDeliveryTypeChange={(type) => {
+          setDeliveryType(type);
+          setValidationErrors({});
+        }}
         selectedAddress={selectedAddress}
         shopInfo={shopInfo}
         isLocating={false}
@@ -373,8 +392,21 @@ export default function CheckoutPage() {
         shippingStatus={previewData?.shipping_status}
         pickupName={pickupName}
         pickupPhone={pickupPhone}
-        onPickupNameChange={setPickupName}
-        onPickupPhoneChange={setPickupPhone}
+        onPickupNameChange={(val) => {
+          setPickupName(val);
+          if (validationErrors.pickupName) {
+            setValidationErrors((prev) => ({ ...prev, pickupName: false }));
+          }
+        }}
+        onPickupPhoneChange={(val) => {
+          setPickupPhone(val);
+          if (validationErrors.pickupPhone) {
+            setValidationErrors((prev) => ({ ...prev, pickupPhone: false }));
+          }
+        }}
+        hasAddressError={validationErrors.address}
+        hasPickupNameError={validationErrors.pickupName}
+        hasPickupPhoneError={validationErrors.pickupPhone}
       />
 
       {/* Chọn thời gian nhận hàng / lấy món */}

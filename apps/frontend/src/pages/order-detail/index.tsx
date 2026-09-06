@@ -22,6 +22,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { ConfirmModal } from "@/components/common/confirm-modal";
 import { Badge } from "@/components/common/badge";
 import { copy } from "@/constants/copy";
+import { cn } from "@/utils/cn";
 import {
   DEFAULT_BANK_CONFIG,
   DEFAULT_SHOP_ADDRESS,
@@ -76,8 +77,10 @@ export default function OrderDetailPage() {
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isSavingQr, setIsSavingQr] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isSavedQrSuccess, setIsSavedQrSuccess] = useState(false);
 
-  const handleCopy = async (text: string, label: string) => {
+  const handleCopy = async (text: string, key: string, _label?: string) => {
     try {
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
@@ -96,7 +99,10 @@ export default function OrderDetailPage() {
           throw new Error("Copy command failed");
         }
       }
-      showSuccess(`Đã sao chép ${label}`);
+      setCopiedKey(key);
+      setTimeout(() => {
+        setCopiedKey((prev) => (prev === key ? null : prev));
+      }, 1500);
     } catch (err) {
       console.warn("[Clipboard] copy failed:", err);
       showError("Không thể tự động sao chép. Vui lòng sao chép thủ công.");
@@ -125,7 +131,8 @@ export default function OrderDetailPage() {
       await saveImageToGallery({
         imageUrl: qrUrl,
       });
-      showSuccess(copy.orderDetail.savedQrSuccess);
+      setIsSavedQrSuccess(true);
+      setTimeout(() => setIsSavedQrSuccess(false), 2000);
     } catch (err) {
       console.warn("[VietQR] saveImageToGallery error:", err);
       showError(copy.orderDetail.savedQrFailed);
@@ -370,14 +377,25 @@ export default function OrderDetailPage() {
                 type="button"
                 onClick={handleSaveQr}
                 disabled={isSavingQr}
-                className="shadow-2xs inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-white px-3.5 py-2 text-xs font-bold text-primary transition-all active:scale-95 active:bg-olive50"
+                className={cn(
+                  "shadow-2xs inline-flex items-center justify-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all active:scale-95",
+                  isSavedQrSuccess
+                    ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
+                    : "border-primary/30 bg-white text-primary active:bg-olive50",
+                )}
               >
                 {isSavingQr ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                ) : isSavedQrSuccess ? (
+                  <CheckIcon className="h-4 w-4 text-emerald-600" />
                 ) : (
                   <DownloadIcon className="h-4 w-4" />
                 )}
-                <span>{copy.orderDetail.saveQrToGallery}</span>
+                <span>
+                  {isSavedQrSuccess
+                    ? "Đã lưu vào máy!"
+                    : copy.orderDetail.saveQrToGallery}
+                </span>
               </button>
 
               <div className="w-full space-y-2.5 rounded-xl border border-black/5 bg-black/[0.02] p-3.5 text-left text-xs">
@@ -402,12 +420,25 @@ export default function OrderDetailPage() {
                       onClick={() =>
                         handleCopy(
                           bankAccountNo,
+                          "bankAccountNo",
                           copy.orderDetail.accountNumberLabel,
                         )
                       }
-                      className="shadow-2xs inline-flex min-h-[28px] items-center justify-center rounded-md border border-primary/30 bg-white px-2.5 py-1 text-xxsmall font-semibold text-primary transition-all active:scale-95 active:bg-primary/10"
+                      className={cn(
+                        "shadow-2xs inline-flex min-h-[28px] items-center justify-center gap-1 rounded-md border px-2.5 py-1 text-xxsmall font-semibold transition-all active:scale-95",
+                        copiedKey === "bankAccountNo"
+                          ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
+                          : "border-primary/30 bg-white text-primary active:bg-primary/10",
+                      )}
                     >
-                      {copy.orderDetail.copy}
+                      {copiedKey === "bankAccountNo" ? (
+                        <>
+                          <CheckIcon className="h-3 w-3 text-emerald-600" />
+                          <span>Đã chép</span>
+                        </>
+                      ) : (
+                        copy.orderDetail.copy
+                      )}
                     </button>
                   </div>
                 </div>
@@ -440,12 +471,25 @@ export default function OrderDetailPage() {
                       onClick={() =>
                         handleCopy(
                           order.order_code,
+                          "orderCode",
                           copy.orderDetail.transferContentLabel,
                         )
                       }
-                      className="shadow-2xs inline-flex min-h-[28px] items-center justify-center rounded-md border border-primary/30 bg-white px-2.5 py-1 text-xxsmall font-semibold text-primary transition-all active:scale-95 active:bg-primary/10"
+                      className={cn(
+                        "shadow-2xs inline-flex min-h-[28px] items-center justify-center gap-1 rounded-md border px-2.5 py-1 text-xxsmall font-semibold transition-all active:scale-95",
+                        copiedKey === "orderCode"
+                          ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
+                          : "border-primary/30 bg-white text-primary active:bg-primary/10",
+                      )}
                     >
-                      {copy.orderDetail.copy}
+                      {copiedKey === "orderCode" ? (
+                        <>
+                          <CheckIcon className="h-3 w-3 text-emerald-600" />
+                          <span>Đã chép</span>
+                        </>
+                      ) : (
+                        copy.orderDetail.copy
+                      )}
                     </button>
                   </div>
                 </div>
@@ -500,13 +544,31 @@ export default function OrderDetailPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    handleCopy(shopAddress, copy.orderDetail.shopAddressLabel)
+                    handleCopy(
+                      shopAddress,
+                      "shopAddress",
+                      copy.orderDetail.shopAddressLabel,
+                    )
                   }
-                  className="shadow-2xs flex items-center justify-center gap-1 rounded-lg border border-black/10 bg-white px-2.5 py-2 text-xs font-semibold text-neutral700 transition-all active:scale-[0.98] active:bg-stone-50"
+                  className={cn(
+                    "shadow-2xs flex items-center justify-center gap-1 rounded-lg border px-2.5 py-2 text-xs font-semibold transition-all active:scale-[0.98]",
+                    copiedKey === "shopAddress"
+                      ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
+                      : "border-black/10 bg-white text-neutral700 active:bg-stone-50",
+                  )}
                   title={copy.orderDetail.copyAddress}
                 >
-                  <CopyIcon className="h-3.5 w-3.5" />
-                  <span>{copy.orderDetail.copy}</span>
+                  {copiedKey === "shopAddress" ? (
+                    <>
+                      <CheckIcon className="h-3.5 w-3.5 text-emerald-600" />
+                      <span>Đã chép</span>
+                    </>
+                  ) : (
+                    <>
+                      <CopyIcon className="h-3.5 w-3.5" />
+                      <span>{copy.orderDetail.copy}</span>
+                    </>
+                  )}
                 </button>
                 <button
                   type="button"

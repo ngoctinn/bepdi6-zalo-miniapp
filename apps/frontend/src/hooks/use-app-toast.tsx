@@ -338,7 +338,7 @@ export const AppToastContainer: React.FC = () => {
       style={{ zIndex: options.zIndex ?? 99999 }}
       className={`pointer-events-none fixed left-1/2 -translate-x-1/2 transition-all duration-300 ease-out ${
         position === "top"
-          ? "top-[calc(var(--zaui-safe-area-inset-top,16px)+16px)]"
+          ? "top-[calc(var(--zaui-safe-area-inset-top,16px)+56px)]"
           : "bottom-[calc(var(--zaui-safe-area-inset-bottom,16px)+88px)]"
       } ${
         visible
