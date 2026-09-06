@@ -1,16 +1,28 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useOrder } from "@/services/order/order.queries";
+import { useShopInfo } from "@/services/shop/shop.queries";
 import { useCancelOrder } from "@/services/order/order.mutations";
 import { Button, Spinner, Text } from "zmp-ui";
 import { formatCurrency } from "@/utils/format";
-import { BackIcon, CheckIcon } from "@/components/common/vectors";
+import {
+  CheckIcon,
+  NavigationIcon,
+  PhoneIcon,
+  StoreIcon,
+  MapPinIcon,
+} from "@/components/common/vectors";
 import { OrderStatus } from "@/types/order.types";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ConfirmModal } from "@/components/common/confirm-modal";
 import { Badge } from "@/components/common/badge";
 import { copy } from "@/constants/copy";
-import { DEFAULT_BANK_CONFIG, getVietQrUrl } from "@/constants/shop";
+import {
+  DEFAULT_BANK_CONFIG,
+  DEFAULT_SHOP_ADDRESS,
+  DEFAULT_SHOP_COORDINATES,
+  getVietQrUrl,
+} from "@/constants/shop";
 
 const DELIVERY_STATUS_STEPS: Array<{
   key: OrderStatus;
@@ -47,6 +59,7 @@ export default function OrderDetailPage() {
   const { showSuccess, showError } = useAppToast();
 
   const { data: order, isLoading, error } = useOrder(orderId);
+  const { data: shopInfo } = useShopInfo();
   const cancelOrderMutation = useCancelOrder();
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -133,8 +146,18 @@ export default function OrderDetailPage() {
       accountHolderName: copy.orderDetail.accountHolderName,
     });
 
+  const shopLat = shopInfo?.latitude ?? DEFAULT_SHOP_COORDINATES.latitude;
+  const shopLng = shopInfo?.longitude ?? DEFAULT_SHOP_COORDINATES.longitude;
+  const shopAddress = shopInfo?.address_text || DEFAULT_SHOP_ADDRESS;
+  const shopHotline = shopInfo?.hotline || "0987654321";
+  const shopName = shopInfo?.shop_name || copy.brand.name || "Bếp Dì 6";
+
+  const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+    shopAddress,
+  )}`;
+
   return (
-    <div className="flex flex-col gap-3 p-3.5 pb-24">
+    <div className="flex flex-col gap-3 p-3.5 pb-28">
       {/* Order Info */}
       <div className="shadow-xs flex items-center justify-between rounded-2xl border border-black/[0.06] bg-white p-4">
         <div>
@@ -264,7 +287,7 @@ export default function OrderDetailPage() {
                 />
               </div>
 
-              <div className="w-full space-y-2 rounded-xl border border-black/5 bg-black/[0.02] p-3 text-left text-xs">
+              <div className="w-full space-y-2.5 rounded-xl border border-black/5 bg-black/[0.02] p-3.5 text-left text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-neutral500">
                     {copy.orderDetail.bankLabel}
@@ -277,18 +300,19 @@ export default function OrderDetailPage() {
                   <span className="text-neutral500">
                     {copy.orderDetail.accountNumberLabel}
                   </span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-primary">
                       {DEFAULT_BANK_CONFIG.accountNumber}
                     </span>
                     <button
+                      type="button"
                       onClick={() =>
                         handleCopy(
                           DEFAULT_BANK_CONFIG.accountNumber,
                           copy.orderDetail.accountNumberLabel,
                         )
                       }
-                      className="rounded border border-primary/30 px-1.5 py-0.5 text-xxsmall text-primary active:bg-primary/10"
+                      className="shadow-2xs inline-flex min-h-[28px] items-center justify-center rounded-md border border-primary/30 bg-white px-2.5 py-1 text-xxsmall font-semibold text-primary transition-all active:scale-95 active:bg-primary/10"
                     >
                       {copy.orderDetail.copy}
                     </button>
@@ -314,18 +338,19 @@ export default function OrderDetailPage() {
                   <span className="text-neutral500">
                     {copy.orderDetail.transferContentLabel}
                   </span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-neutral900">
                       {order.order_code}
                     </span>
                     <button
+                      type="button"
                       onClick={() =>
                         handleCopy(
                           order.order_code,
                           copy.orderDetail.transferContentLabel,
                         )
                       }
-                      className="rounded border border-primary/30 px-1.5 py-0.5 text-xxsmall text-primary active:bg-primary/10"
+                      className="shadow-2xs inline-flex min-h-[28px] items-center justify-center rounded-md border border-primary/30 bg-white px-2.5 py-1 text-xxsmall font-semibold text-primary transition-all active:scale-95 active:bg-primary/10"
                     >
                       {copy.orderDetail.copy}
                     </button>
@@ -346,49 +371,116 @@ export default function OrderDetailPage() {
       )}
 
       {/* Thông tin nhận hàng (Giao tận nơi vs Tự đến lấy) */}
-      <div className="shadow-xs space-y-2 rounded-2xl border border-black/[0.06] bg-white p-4">
-        <span className="block text-xs font-bold text-neutral900">
+      <div className="shadow-xs space-y-3 rounded-2xl border border-black/[0.06] bg-white p-4">
+        <span className="block text-xs font-bold uppercase tracking-wider text-neutral900">
           {isPickup
             ? copy.checkout.pickupStoreSection
             : copy.checkout.deliveryAddressSection}
         </span>
-        <div className="space-y-1 text-xs text-neutral800">
-          <div className="font-semibold text-neutral900">
-            {copy.orderDetail.recipient}: {order.recipient_name} • {order.phone}
+
+        {isPickup ? (
+          <div className="space-y-3">
+            {/* Thẻ thông tin địa chỉ cửa hàng + nút chỉ đường */}
+            <div className="rounded-xl border border-primary/20 bg-olive50/40 p-3">
+              <div className="flex items-start gap-2.5">
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <StoreIcon className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-bold text-neutral900">{shopName}</div>
+                  <div className="mt-1 text-xs leading-relaxed text-neutral700">
+                    {shopAddress}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons: Google Maps & Hotline */}
+              <div className="mt-3 flex items-center gap-2 pt-1">
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shadow-xs flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-all active:scale-[0.98] active:bg-primaryDark"
+                >
+                  <NavigationIcon className="h-3.5 w-3.5" />
+                  <span>{copy.orderDetail.openGoogleMap}</span>
+                </a>
+                <a
+                  href={`tel:${shopHotline}`}
+                  className="shadow-2xs flex items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-2 text-xs font-semibold text-primary transition-all active:scale-[0.98] active:bg-olive50"
+                >
+                  <PhoneIcon className="h-3.5 w-3.5" />
+                  <span>{shopHotline}</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Thông tin người đến lấy */}
+            <div className="space-y-1 rounded-xl border border-black/[0.05] bg-stone-50/70 p-3 text-xs">
+              <div className="text-xxsmall font-medium text-neutral500">
+                {copy.orderDetail.recipient}:
+              </div>
+              <div className="font-semibold text-neutral900">
+                {order.recipient_name} • {order.phone}
+              </div>
+              {order.scheduled_delivery_at && (
+                <div className="mt-1.5 flex items-center gap-1.5 pt-0.5">
+                  <span className="rounded-md border border-primary/20 bg-olive50/90 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
+                    {copy.orderDetail.scheduledPickupTime}{" "}
+                    {new Date(order.scheduled_delivery_at).toLocaleTimeString(
+                      "vi-VN",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      },
+                    )}
+                  </span>
+                </div>
+              )}
+              {order.note && (
+                <div className="mt-1 text-xxsmall italic text-neutral500">
+                  {copy.checkout.note}: "{order.note}"
+                </div>
+              )}
+            </div>
           </div>
-          <div>
-            {isPickup ? (
-              <span className="text-neutral600">
-                {copy.orderDetail.directPickupHint}
-              </span>
-            ) : (
-              <span className="leading-relaxed text-neutral600">
-                {order.delivery_address}
-              </span>
+        ) : (
+          /* Giao tận nơi */
+          <div className="space-y-2 text-xs text-neutral800">
+            <div className="flex items-start gap-2">
+              <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <div>
+                <div className="font-semibold text-neutral900">
+                  {copy.orderDetail.recipient}: {order.recipient_name} •{" "}
+                  {order.phone}
+                </div>
+                <div className="mt-1 leading-relaxed text-neutral600">
+                  {order.delivery_address}
+                </div>
+              </div>
+            </div>
+
+            {order.scheduled_delivery_at && (
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <span className="rounded-md border border-primary/20 bg-olive50/90 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
+                  {copy.orderDetail.scheduledDeliveryTime}{" "}
+                  {new Date(order.scheduled_delivery_at).toLocaleTimeString(
+                    "vi-VN",
+                    {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    },
+                  )}
+                </span>
+              </div>
+            )}
+            {order.note && (
+              <div className="mt-1 text-xxsmall italic text-neutral500">
+                {copy.checkout.note}: "{order.note}"
+              </div>
             )}
           </div>
-          {order.scheduled_delivery_at && (
-            <div className="mt-1.5 flex items-center gap-1.5">
-              <span className="rounded-md border border-primary/20 bg-olive50/90 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
-                {isPickup
-                  ? copy.orderDetail.scheduledPickupTime
-                  : copy.orderDetail.scheduledDeliveryTime}{" "}
-                {new Date(order.scheduled_delivery_at).toLocaleTimeString(
-                  "vi-VN",
-                  {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  },
-                )}
-              </span>
-            </div>
-          )}
-          {order.note && (
-            <div className="mt-1 text-xxsmall italic text-neutral500">
-              {copy.checkout.note}: "{order.note}"
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Danh sách món ăn */}
@@ -467,18 +559,24 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Footer Action: Hủy đơn nếu còn Chờ xác nhận */}
+      {/* Footer Action: Hủy đơn nếu còn Chờ xác nhận (Chuẩn Touch-Target Zalo 48px) */}
       {order.status === "PENDING_CONFIRMATION" && (
-        <div className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-3 pt-3 shadow-lg backdrop-blur-md">
-          <Button
-            size="small"
-            type="neutral"
+        <div className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-4 pb-3 pt-3 shadow-lg backdrop-blur-md">
+          <button
+            type="button"
             onClick={() => setShowCancelModal(true)}
-            loading={isCancelling}
-            className="w-full rounded-xl border border-red-300/50 bg-red-50 py-2.5 text-xs font-semibold text-red-600 transition-all active:scale-[0.99]"
+            disabled={isCancelling}
+            className="shadow-2xs flex h-12 w-full items-center justify-center rounded-xl border border-red-200 bg-red-50/90 text-sm font-semibold text-red-600 transition-all active:scale-[0.98] active:bg-red-100 disabled:opacity-50"
           >
-            {copy.orderDetail.cancelButton}
-          </Button>
+            {isCancelling ? (
+              <div className="flex items-center gap-2">
+                <Spinner />
+                <span>Đang xử lý...</span>
+              </div>
+            ) : (
+              <span>{copy.orderDetail.cancelButton}</span>
+            )}
+          </button>
         </div>
       )}
 
