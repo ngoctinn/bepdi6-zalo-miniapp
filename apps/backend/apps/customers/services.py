@@ -559,9 +559,12 @@ class AuthService:
 
         cache_lat = round(parsed_lat, 2) if parsed_lat is not None else 0
         cache_lng = round(parsed_lng, 2) if parsed_lng is not None else 0
-        cache_key = (
-            f"place_search:{clean_query.lower()}:{cache_lat}:{cache_lng}:{limit}"
-        )
+        import hashlib
+
+        cache_hash = hashlib.md5(
+            f"{clean_query.lower()}:{cache_lat}:{cache_lng}:{limit}".encode()
+        ).hexdigest()
+        cache_key = f"place_search:{cache_hash}"
 
         try:
             cached_result = cache.get(cache_key)
@@ -575,12 +578,15 @@ class AuthService:
             headers = {
                 "User-Agent": "BepDi6-ZaloMiniApp/1.0 (contact: support@bepdi6.vn)",
             }
+            # Photon API parameters
+            # Lưu ý: Không gửi 'lang: vi' vì Photon chỉ hỗ trợ default, de, en, fr (gửi vi sẽ trả lỗi 400).
+            # Bbox giới hạn phạm vi tìm kiếm trong lãnh thổ Việt Nam.
             params: dict[str, str | int | float] = {
                 "q": clean_query,
                 "limit": min(max(1, limit), 10),
-                "lang": "vi",
+                "bbox": "102.14,8.18,109.46,23.39",
             }
-            # Ưu tiên tọa độ gần quán hoặc vị trí khách
+            # Ưu tiên tọa độ gần vị trí khách hoặc quán
             if parsed_lat is not None and parsed_lng is not None:
                 params["lat"] = parsed_lat
                 params["lon"] = parsed_lng
@@ -594,8 +600,22 @@ class AuthService:
             if res.status_code == 200:
                 data = res.json()
                 features = data.get("features", [])
+
+                # Ưu tiên các kết quả tại Việt Nam
+                vn_features = [
+                    f
+                    for f in features
+                    if f.get("properties", {}).get("countrycode") == "VN"
+                ]
+                other_features = [
+                    f
+                    for f in features
+                    if f.get("properties", {}).get("countrycode") != "VN"
+                ]
+                ordered_features = vn_features + other_features
+
                 results = []
-                for feat in features:
+                for feat in ordered_features[:limit]:
                     props = feat.get("properties", {})
                     coords = feat.get("geometry", {}).get("coordinates", [0, 0])
                     feat_lng = coords[0] if len(coords) > 0 else 0.0

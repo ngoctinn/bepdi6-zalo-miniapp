@@ -191,3 +191,51 @@ def test_order_create_and_get_detail_api(api_client, checkout_setup):
     )
     assert res_re_cancel.status_code == 400
     assert res_re_cancel.json()["error"]["code"] == "INVALID_STATE_TRANSITION"
+
+
+@pytest.mark.django_db
+def test_order_creation_resilient_to_celery_broker_failure(
+    checkout_setup, api_client, monkeypatch
+):
+    """
+    Verifies that when Celery broker fails (e.g. OperationalError in commit hook),
+    the order is still successfully created, committed, and returned with HTTP 201 (no 500 error).
+    """
+    from apps.notifications import tasks as notif_tasks
+
+    def mock_broken_delay(*args, **kwargs):
+        raise ConnectionError("Only 0th database is supported! Selected DB: 1")
+
+    monkeypatch.setattr(
+        notif_tasks.send_telegram_staff_order_alert, "delay", mock_broken_delay
+    )
+    monkeypatch.setattr(
+        notif_tasks.send_zalo_oa_staff_alert, "delay", mock_broken_delay
+    )
+    monkeypatch.setattr(
+        notif_tasks.send_in_app_notification, "delay", mock_broken_delay
+    )
+
+    customer = checkout_setup["customer"]
+    address = checkout_setup["address"]
+    prod = checkout_setup["prod"]
+
+    payload = {
+        "address_id": address.id,
+        "payment_method": "BANK_TRANSFER",
+        "items": [{"product_id": prod.id, "quantity": 1, "option_ids": []}],
+    }
+
+    res = api_client.post(
+        "/api/v1/orders",
+        payload,
+        format="json",
+        HTTP_X_CUSTOMER_ID=str(customer.id),
+        HTTP_IDEMPOTENCY_KEY="idemp_broker_fail_test",
+    )
+
+    assert res.status_code == 201
+    data = res.json()["data"]
+    assert data["order_code"].startswith("FO")
+    assert data["status"] == "PENDING_CONFIRMATION"
+

@@ -1,3 +1,4 @@
+import logging
 import uuid
 from decimal import Decimal
 
@@ -24,6 +25,64 @@ from apps.vouchers.services import (
     VoucherService,
     VoucherValidationError,
 )
+
+logger = logging.getLogger(__name__)
+
+
+def safe_on_commit(func):
+    """
+    Executes a callback inside django's transaction.on_commit with an error boundary.
+    Guarantees that exceptions raised during side-effects (e.g. Celery broker failure)
+    will never bubble up to break a committed database transaction or HTTP response.
+    """
+
+    def wrapper():
+        try:
+            func()
+        except Exception:
+            logger.exception("Failed to execute on_commit side-effect.")
+
+    transaction.on_commit(wrapper)
+
+
+def _dispatch_order_created_notifications(
+    order_id: int, customer_id: int, order_code: str
+):
+    """
+    Safely enqueues staff alerts and customer in-app notifications upon order creation.
+    Isolates each notification channel so one failure does not suppress others.
+    """
+    try:
+        send_telegram_staff_order_alert.delay(order_id)
+    except Exception:
+        logger.exception(
+            "Failed to enqueue Telegram staff alert for order #%s (%s)",
+            order_code,
+            order_id,
+        )
+
+    try:
+        send_zalo_oa_staff_alert.delay(order_id)
+    except Exception:
+        logger.exception(
+            "Failed to enqueue Zalo OA staff alert for order #%s (%s)",
+            order_code,
+            order_id,
+        )
+
+    try:
+        send_in_app_notification.delay(
+            customer_id=customer_id,
+            title="Đơn hàng đã được đặt",
+            message=f"Đơn hàng #{order_code} đã được gửi đến Bếp Dì 6. Quán sẽ sớm liên hệ xác nhận!",
+            order_id=order_id,
+        )
+    except Exception:
+        logger.exception(
+            "Failed to enqueue customer in-app notification for order #%s (%s)",
+            order_code,
+            order_id,
+        )
 
 
 class OrderProcessingError(Exception):
@@ -497,14 +556,9 @@ class OrderService:
             )
 
         # Trigger async notifications after database transaction commits (BR-NOTI-001)
-        transaction.on_commit(lambda: send_telegram_staff_order_alert.delay(order.id))
-        transaction.on_commit(lambda: send_zalo_oa_staff_alert.delay(order.id))
-        transaction.on_commit(
-            lambda: send_in_app_notification.delay(
-                customer_id=customer.id,
-                title="Đơn hàng đã được đặt",
-                message=f"Đơn hàng #{order.order_code} đã được gửi đến Bếp Dì 6. Quán sẽ sớm liên hệ xác nhận!",
-                order_id=order.id,
+        safe_on_commit(
+            lambda: _dispatch_order_created_notifications(
+                order.id, customer.id, order.order_code
             )
         )
 
@@ -575,7 +629,7 @@ class OrderService:
 
         # Trigger async notifications on commit (BR-NOTI-001, BR-NOTI-002)
         if new_status == Order.Status.CONFIRMED:
-            transaction.on_commit(
+            safe_on_commit(
                 lambda: send_in_app_notification.delay(
                     customer_id=order.customer_id,
                     title="Đơn hàng đã được xác nhận",
@@ -584,8 +638,8 @@ class OrderService:
                 )
             )
         elif new_status == Order.Status.DELIVERING:
-            transaction.on_commit(lambda: send_zns_order_delivering.delay(order.id))
-            transaction.on_commit(
+            safe_on_commit(lambda: send_zns_order_delivering.delay(order.id))
+            safe_on_commit(
                 lambda: send_in_app_notification.delay(
                     customer_id=order.customer_id,
                     title="Đơn hàng đang được giao",
@@ -594,7 +648,7 @@ class OrderService:
                 )
             )
         elif new_status == Order.Status.COMPLETED:
-            transaction.on_commit(
+            safe_on_commit(
                 lambda: send_in_app_notification.delay(
                     customer_id=order.customer_id,
                     title="Đơn hàng hoàn tất",
@@ -603,7 +657,7 @@ class OrderService:
                 )
             )
         elif new_status == Order.Status.CANCELLED:
-            transaction.on_commit(
+            safe_on_commit(
                 lambda: send_in_app_notification.delay(
                     customer_id=order.customer_id,
                     title="Đơn hàng đã bị hủy",

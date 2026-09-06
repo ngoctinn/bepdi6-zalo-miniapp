@@ -1,9 +1,11 @@
 """Django settings for Bep Di 6 project."""
 
 import os
+import ssl
 import sys
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 
 import environ
 from corsheaders.defaults import default_headers
@@ -19,7 +21,7 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
     DATABASE_URL=(str, "postgres://postgres:postgres@localhost:5432/bepdi6_db"),
     REDIS_URL=(str, "redis://localhost:6379/0"),
-    CELERY_BROKER_URL=(str, "redis://localhost:6379/1"),
+    CELERY_BROKER_URL=(str, "redis://localhost:6379/0"),
     ZALO_APP_ID=(str, ""),
     ZALO_APP_SECRET=(str, ""),
     ZALO_OA_ID=(str, ""),
@@ -134,6 +136,7 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": env("REDIS_URL"),
+        "KEY_PREFIX": "bepdi6_cache",
     }
 }
 
@@ -254,11 +257,43 @@ SIMPLE_JWT = {
 
 # Celery Configuration
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
-CELERY_RESULT_BACKEND = env("REDIS_URL")
+CELERY_RESULT_BACKEND = env("REDIS_URL", default=None)
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_IGNORE_RESULT = True
+
+# Chuẩn hóa Redis Broker URL: Luôn sử dụng DB 0 để tương thích với Upstash Redis, Dragonfly, Redis Cluster
+if CELERY_BROKER_URL.startswith(("redis://", "rediss://")):
+    parsed_broker = urlparse(CELERY_BROKER_URL)
+    if parsed_broker.path not in ("", "/", "/0"):
+        CELERY_BROKER_URL = urlunparse(parsed_broker._replace(path="/0"))
+    if CELERY_BROKER_URL.startswith("rediss://"):
+        CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
+
+# Đồng bộ ngược vào os.environ vì Celery Settings.broker_url property ưu tiên đọc trực tiếp từ os.environ['CELERY_BROKER_URL']
+os.environ["CELERY_BROKER_URL"] = CELERY_BROKER_URL
+
+# Phân tách namespace cho Celery để an toàn khi dùng chung Redis DB 0 với Cache
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "global_keyprefix": "bepdi6_celery:",
+}
+
+if CELERY_RESULT_BACKEND and CELERY_RESULT_BACKEND.startswith(
+    ("redis://", "rediss://")
+):
+    parsed_backend = urlparse(CELERY_RESULT_BACKEND)
+    if parsed_backend.path not in ("", "/", "/0"):
+        CELERY_RESULT_BACKEND = urlunparse(parsed_backend._replace(path="/0"))
+    if CELERY_RESULT_BACKEND.startswith("rediss://"):
+        CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
+        sep = "&" if "?" in CELERY_RESULT_BACKEND else "?"
+        if "ssl_cert_reqs" not in CELERY_RESULT_BACKEND:
+            CELERY_RESULT_BACKEND = (
+                f"{CELERY_RESULT_BACKEND}{sep}ssl_cert_reqs=CERT_NONE"
+            )
+    os.environ["CELERY_RESULT_BACKEND"] = CELERY_RESULT_BACKEND
 
 # Business & Shop Configs
 SHOP_LATITUDE = env("SHOP_LATITUDE")
