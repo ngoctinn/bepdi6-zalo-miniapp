@@ -163,7 +163,11 @@ export default function SelectLocationPage() {
 
   const handleSelectAddress = (addr: Address) => {
     setSelectedAddress(addr);
-    navigate(-1);
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate("/checkout", { replace: true });
+    }
   };
 
   const handleConfirmDelete = async () => {
@@ -249,7 +253,11 @@ export default function SelectLocationPage() {
       setSearchQuery("");
       setShowSuggestions(false);
       setIsEditingStreet(false);
-      navigate(-1);
+      if (window.history.state && window.history.state.idx > 0) {
+        navigate(-1);
+      } else {
+        navigate("/checkout", { replace: true });
+      }
     } catch (err) {
       setFormError(
         err instanceof Error ? err.message : copy.selectLocation.errGeneric,

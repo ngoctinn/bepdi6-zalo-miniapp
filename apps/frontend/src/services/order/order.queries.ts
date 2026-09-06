@@ -15,7 +15,7 @@ export function useOrders(params?: {
   page_size?: number;
 }) {
   return useQuery<OrderListResponse | Order[]>({
-    queryKey: [ORDERS_QUERY_KEY, params],
+    queryKey: [...ORDERS_QUERY_KEY, params],
     queryFn: () => orderService.getOrders(params),
     enabled: authService.isAuthenticated(),
     staleTime: 30 * 1000,

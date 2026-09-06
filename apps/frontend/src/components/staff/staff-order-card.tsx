@@ -341,15 +341,31 @@ export function StaffOrderCard({
           {order.status === "READY" && (
             <button
               disabled={isProcessing}
-              onClick={() => onUpdateStatus(order.id, "DELIVERING")}
+              onClick={() =>
+                onUpdateStatus(
+                  order.id,
+                  order.delivery_type === "PICKUP" ? "COMPLETED" : "DELIVERING",
+                )
+              }
               className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />
               ) : (
                 <>
-                  <Icon icon="zi-location" className="text-lg" />
-                  <span>{copy.staff.actions.handoverShipper}</span>
+                  <Icon
+                    icon={
+                      order.delivery_type === "PICKUP"
+                        ? "zi-check-circle"
+                        : "zi-location"
+                    }
+                    className="text-lg"
+                  />
+                  <span>
+                    {order.delivery_type === "PICKUP"
+                      ? copy.staff.actions.pickupHandover || "Khách Đã Nhận Món"
+                      : copy.staff.actions.handoverShipper}
+                  </span>
                 </>
               )}
             </button>

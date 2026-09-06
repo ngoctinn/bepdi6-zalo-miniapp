@@ -202,7 +202,11 @@ export default function ProductDetailPage() {
       navigate("/checkout", { replace: true });
     } else {
       addToCart(cartItemPayload);
-      navigate(-1);
+      if (window.history.state && window.history.state.idx > 0) {
+        navigate(-1);
+      } else {
+        navigate("/", { replace: true });
+      }
     }
   };
 

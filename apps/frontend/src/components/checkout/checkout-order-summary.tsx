@@ -107,7 +107,7 @@ export function CheckoutOrderSummary({
       <div className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-3.5 pt-3.5 shadow-lg backdrop-blur-md">
         <button
           type="button"
-          disabled={isSubmitting || isUpdatingFee || !isQuoteReady}
+          disabled={isSubmitting || isUpdatingFee}
           onClick={onPlaceOrder}
           className="flex min-h-[48px] w-full touch-manipulation items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-sm transition-all hover:bg-primaryDark active:scale-[0.99] disabled:opacity-75"
         >

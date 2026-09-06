@@ -531,6 +531,7 @@ const semantic = {
         confirmAndCook: "Xác Nhận & Nấu Món",
         cookedReady: "Đã Nấu Xong (Sẵn Sàng Giao)",
         handoverShipper: "Bàn Giao Shipper",
+        pickupHandover: "Khách Đã Nhận Món",
         completeOrder: "Hoàn Tất Đơn Hàng",
         orderEnded: "Đơn hàng đã kết thúc",
         cancel: "Hủy",

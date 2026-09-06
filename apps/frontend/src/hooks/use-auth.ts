@@ -11,13 +11,14 @@ import {
 } from "../utils/zalo-permissions";
 import { DEV_MOCK_ZALO_TOKEN } from "../utils/dev-mock";
 
+let globalLoginPromise: Promise<void> | null = null;
+
 export function useAuth() {
   const queryClient = useQueryClient();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isRequestingPhone, setIsRequestingPhone] = useState(false);
   const [isRequestingUserInfo, setIsRequestingUserInfo] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const isLoggingInRef = useRef(false);
 
   const {
     data: customer,
@@ -51,41 +52,47 @@ export function useAuth() {
    * Xin quyền thông tin người dùng trước khi lấy access token để xác thực
    */
   const loginWithZaloSDK = useCallback(async () => {
-    if (authService.isAuthenticated() || isLoggingInRef.current) {
+    if (authService.isAuthenticated()) {
       return;
     }
-    isLoggingInRef.current = true;
-    setIsLoggingIn(true);
-    try {
-      let accessToken = "";
-      let name = "";
-      let avatar = "";
-
-      if (isZaloRuntime()) {
-        const credentials = await getZaloLoginCredentials();
-        accessToken = credentials.accessToken;
-        name = credentials.name;
-        avatar = credentials.avatar;
-      } else {
-        accessToken = DEV_MOCK_ZALO_TOKEN;
-      }
-
-      if (accessToken) {
-        const payload: ZaloAuthRequest = {
-          access_token: accessToken,
-          name: name,
-          avatar_url: avatar,
-        };
-        await mutateLoginAsync(payload);
-      }
-    } catch (err) {
-      setAuthError(
-        err instanceof Error ? err.message : "Không thể lấy Zalo Token",
-      );
-    } finally {
-      isLoggingInRef.current = false;
-      setIsLoggingIn(false);
+    if (globalLoginPromise) {
+      return globalLoginPromise;
     }
+    setIsLoggingIn(true);
+    globalLoginPromise = (async () => {
+      try {
+        let accessToken = "";
+        let name = "";
+        let avatar = "";
+
+        if (isZaloRuntime()) {
+          const credentials = await getZaloLoginCredentials();
+          accessToken = credentials.accessToken;
+          name = credentials.name;
+          avatar = credentials.avatar;
+        } else {
+          accessToken = DEV_MOCK_ZALO_TOKEN;
+        }
+
+        if (accessToken) {
+          const payload: ZaloAuthRequest = {
+            access_token: accessToken,
+            name: name,
+            avatar_url: avatar,
+          };
+          await mutateLoginAsync(payload);
+        }
+      } catch (err) {
+        setAuthError(
+          err instanceof Error ? err.message : "Không thể lấy Zalo Token",
+        );
+      } finally {
+        globalLoginPromise = null;
+        setIsLoggingIn(false);
+      }
+    })();
+
+    return globalLoginPromise;
   }, [mutateLoginAsync]);
 
   /**
@@ -153,7 +160,7 @@ export function useAuth() {
   }, [queryClient]);
 
   useEffect(() => {
-    if (!authService.isAuthenticated() && !isLoggingInRef.current) {
+    if (!authService.isAuthenticated() && !globalLoginPromise) {
       loginWithZaloSDK();
     }
   }, [loginWithZaloSDK]);
@@ -161,7 +168,7 @@ export function useAuth() {
   useEffect(() => {
     const handleUnauthorized = () => {
       queryClient.removeQueries({ queryKey: ["customer", "me"] });
-      if (!isLoggingInRef.current) {
+      if (!globalLoginPromise) {
         loginWithZaloSDK();
       }
     };

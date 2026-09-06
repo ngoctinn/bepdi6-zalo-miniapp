@@ -26,7 +26,7 @@ export interface ToastOptions {
   };
   /** Tùy chỉnh zIndex */
   zIndex?: number;
-  /** Vị trí hiển thị: "top" hoặc "bottom" (mặc định "bottom") */
+  /** Vị trí hiển thị: "top" hoặc "bottom" (mặc định "top") */
   position?: "top" | "bottom";
 }
 
@@ -186,7 +186,7 @@ export const AppToastContainer: React.FC = () => {
   if (!currentToast) return null;
 
   const { visible, type, options } = currentToast;
-  const position = options.position ?? "bottom";
+  const position = options.position ?? "top";
 
   const renderIcon = () => {
     if (options.icon) return options.icon;
@@ -339,7 +339,7 @@ export const AppToastContainer: React.FC = () => {
       className={`pointer-events-none fixed left-1/2 -translate-x-1/2 transition-all duration-300 ease-out ${
         position === "top"
           ? "top-[calc(var(--zaui-safe-area-inset-top,16px)+16px)]"
-          : "bottom-[calc(var(--zaui-safe-area-inset-bottom,16px)+24px)]"
+          : "bottom-[calc(var(--zaui-safe-area-inset-bottom,16px)+88px)]"
       } ${
         visible
           ? "translate-y-0 scale-100 opacity-100"

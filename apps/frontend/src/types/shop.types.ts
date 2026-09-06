@@ -19,6 +19,9 @@ export interface ShopInfo {
   min_order_amount: number;
   min_order_for_freeship: number;
   shipping_tiers: ShippingTier[];
+  vietqr_bank_id?: string;
+  vietqr_account_no?: string;
+  vietqr_account_name?: string;
 }
 
 export interface Voucher {

@@ -60,7 +60,9 @@ const PICKUP_STATUS_STEPS: Array<{
 const getStepIndex = (status: OrderStatus, isPickup: boolean): number => {
   const steps = isPickup ? PICKUP_STATUS_STEPS : DELIVERY_STATUS_STEPS;
   const index = steps.findIndex((s) => s.key === status);
-  return index > -1 ? index : 0;
+  if (index > -1) return index;
+  if (isPickup && status === "DELIVERING") return 3; // Mời đến lấy (READY)
+  return 0;
 };
 
 export default function OrderDetailPage() {
@@ -75,9 +77,30 @@ export default function OrderDetailPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isSavingQr, setIsSavingQr] = useState(false);
 
-  const handleCopy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    showSuccess(`Đã sao chép ${label}`);
+  const handleCopy = async (text: string, label: string) => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        textArea.style.top = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand("copy");
+        document.body.removeChild(textArea);
+        if (!successful) {
+          throw new Error("Copy command failed");
+        }
+      }
+      showSuccess(`Đã sao chép ${label}`);
+    } catch (err) {
+      console.warn("[Clipboard] copy failed:", err);
+      showError("Không thể tự động sao chép. Vui lòng sao chép thủ công.");
+    }
   };
 
   const handleOpenDirections = () => {
@@ -180,12 +203,22 @@ export default function OrderDetailPage() {
   const currentStep = getStepIndex(order.status, isPickup);
   const isBankTransfer = order.payment_method === "BANK_TRANSFER";
   const isPaid = order.payment?.status === "PAID";
+
+  const bankAccountNo =
+    shopInfo?.vietqr_account_no || DEFAULT_BANK_CONFIG.accountNumber;
+  const bankAccountHolder =
+    shopInfo?.vietqr_account_name || copy.orderDetail.accountHolderName;
+  const bankCode = shopInfo?.vietqr_bank_id || DEFAULT_BANK_CONFIG.bankCode;
+  const bankDisplayName = shopInfo?.vietqr_bank_id || copy.orderDetail.bankName;
+
   const qrUrl =
     order.payment?.qr_code_url ||
     getVietQrUrl({
       amount: order.total_amount,
       orderCode: order.order_code,
-      accountHolderName: copy.orderDetail.accountHolderName,
+      bankCode: bankCode,
+      accountNumber: bankAccountNo,
+      accountHolderName: bankAccountHolder,
     });
 
   const shopLat = shopInfo?.latitude ?? DEFAULT_SHOP_COORDINATES.latitude;
@@ -340,7 +373,7 @@ export default function OrderDetailPage() {
                 className="shadow-2xs inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-white px-3.5 py-2 text-xs font-bold text-primary transition-all active:scale-95 active:bg-olive50"
               >
                 {isSavingQr ? (
-                  <Spinner visible size="small" />
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 ) : (
                   <DownloadIcon className="h-4 w-4" />
                 )}
@@ -353,7 +386,7 @@ export default function OrderDetailPage() {
                     {copy.orderDetail.bankLabel}
                   </span>
                   <span className="font-bold text-neutral900">
-                    {copy.orderDetail.bankName}
+                    {bankDisplayName}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -362,13 +395,13 @@ export default function OrderDetailPage() {
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-primary">
-                      {DEFAULT_BANK_CONFIG.accountNumber}
+                      {bankAccountNo}
                     </span>
                     <button
                       type="button"
                       onClick={() =>
                         handleCopy(
-                          DEFAULT_BANK_CONFIG.accountNumber,
+                          bankAccountNo,
                           copy.orderDetail.accountNumberLabel,
                         )
                       }
@@ -383,7 +416,7 @@ export default function OrderDetailPage() {
                     {copy.orderDetail.accountHolderLabel}
                   </span>
                   <span className="font-bold text-neutral900">
-                    {copy.orderDetail.accountHolderName}
+                    {bankAccountHolder}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
