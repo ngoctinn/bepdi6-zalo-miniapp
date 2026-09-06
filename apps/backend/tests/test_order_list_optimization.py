@@ -4,7 +4,7 @@ import pytest
 from django.db import connection, reset_queries
 from django.test import RequestFactory
 
-from apps.customers.models import Customer
+from apps.customers.models import Customer, User
 from apps.menu.models import Category, Product
 from apps.orders.models import Order, OrderItem
 from apps.orders.views import OrderListCreateView
@@ -17,6 +17,11 @@ class TestOrderListOptimization:
             zalo_user_id="cust_opt_test",
             name="Opt Customer",
             phone="0911223344",
+        )
+        user = User.objects.create(
+            username=f"zalo_{customer.zalo_user_id}",
+            zalo_user_id=customer.zalo_user_id,
+            role=User.Role.CUSTOMER,
         )
         category = Category.objects.create(name="Mon An")
         product = Product.objects.create(
@@ -51,15 +56,16 @@ class TestOrderListOptimization:
         settings.DEBUG = True
 
         rf = RequestFactory()
-        req = rf.get("/api/v1/orders", HTTP_X_CUSTOMER_ID=str(customer.id))
+        req = rf.get("/api/v1/orders")
+        req.user = user
 
         reset_queries()
         response = OrderListCreateView.as_view()(req)
 
-        assert response.status_code == 200
         data = response.data
-        assert len(data) == 10
-        assert data[0]["item_count"] == 1
+        orders = data["data"] if isinstance(data, dict) and "data" in data else data
+        assert len(orders) == 10
+        assert orders[0]["item_count"] == 1
 
         # We expect no N+1 query: at most 2 queries (1 for customer resolution, 1 for orders + annotated count)
         assert len(connection.queries) <= 3

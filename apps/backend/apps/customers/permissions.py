@@ -1,6 +1,25 @@
+from django.conf import settings
 from rest_framework import permissions
 
 from apps.customers.models import User
+
+
+class IsAuthenticatedCustomer(permissions.BasePermission):
+    """
+    Ensures request has an authenticated user.
+    In production (DEBUG=False), strictly requires request.user.is_authenticated.
+    In development/testing (DEBUG=True), allows dev fallback via X-Customer-ID.
+    """
+
+    def has_permission(self, request, view):
+        if request.user and request.user.is_authenticated:
+            return True
+        if getattr(settings, "DEBUG", False) and (
+            request.headers.get("X-Customer-ID")
+            or request.query_params.get("customer_id")
+        ):
+            return True
+        return False
 
 
 class IsStaffOrAdminUser(permissions.BasePermission):

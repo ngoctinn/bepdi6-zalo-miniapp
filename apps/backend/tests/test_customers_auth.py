@@ -42,7 +42,9 @@ class TestCustomerAuthAndLocation:
         assert "access_token" in data["data"]
         assert data["data"]["customer"]["name"] == "Khách Test Mới"
 
-    def test_zalo_location_decode_dev_mock(self, api_client):
+    def test_zalo_location_decode_dev_mock(self, api_client, auth_customer):
+        _, user = auth_customer
+        api_client.force_authenticate(user=user)
         url = reverse("customer-location-decode")
         payload = {"token": "dev_mock_token_123"}
         response = api_client.post(url, payload, format="json")
@@ -55,8 +57,10 @@ class TestCustomerAuthAndLocation:
 
     @patch("apps.customers.services.requests.Session.get")
     def test_zalo_location_decode_failure_returns_400(
-        self, mock_get, api_client, settings
+        self, mock_get, api_client, settings, auth_customer
     ):
+        _, user = auth_customer
+        api_client.force_authenticate(user=user)
         settings.ZALO_APP_ID = "real_app_id"
         settings.ZALO_APP_SECRET = "real_app_secret"
 

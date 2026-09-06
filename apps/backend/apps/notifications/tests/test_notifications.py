@@ -45,6 +45,11 @@ def test_data():
         name="Lê Văn Notif",
         phone="0911002233",
     )
+    customer_user = User.objects.create_user(
+        username="cust_user_notif",
+        zalo_user_id=customer.zalo_user_id,
+        role=User.Role.CUSTOMER,
+    )
     staff = User.objects.create_user(
         username="staff_01",
         password="password123",
@@ -80,7 +85,12 @@ def test_data():
         price=Decimal("10000.00"),
         quantity=1,
     )
-    return {"customer": customer, "staff": staff, "order": order}
+    return {
+        "customer": customer,
+        "customer_user": customer_user,
+        "staff": staff,
+        "order": order,
+    }
 
 
 @pytest.mark.django_db
@@ -174,6 +184,7 @@ def test_send_zns_order_delivering_gated(test_data):
 def test_notification_list_and_mark_read_api(api_client, test_data):
     customer = test_data["customer"]
     order = test_data["order"]
+    api_client.force_authenticate(user=test_data["customer_user"])
 
     notif = Notification.objects.create(
         customer=customer,

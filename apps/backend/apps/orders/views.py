@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.customers.models import Address
-from apps.customers.permissions import IsStaffOrAdminUser
+from apps.customers.permissions import IsAuthenticatedCustomer, IsStaffOrAdminUser
 from apps.customers.views import get_current_customer
 from apps.menu.models import Product
 from apps.orders.models import Order
@@ -26,7 +26,6 @@ from apps.orders.services import (
     OrderService,
 )
 from apps.payments.models import Payment
-from apps.shipping.models import ShopConfig
 
 
 class CheckoutPreviewView(APIView):
@@ -59,19 +58,20 @@ class CheckoutPreviewView(APIView):
             elif lat is not None and lng is not None:
                 address = Address(
                     customer=customer,
-                    recipient_name=customer.name or "Khách hàng",
-                    phone=customer.phone or "0900000000",
+                    recipient_name=(customer.name if customer else "") or "Khách hàng",
+                    phone=(customer.phone if customer else "") or "0900000000",
                     address_text="Vị trí đã chọn",
                     latitude=lat,
                     longitude=lng,
                 )
             else:
-                address = Address.objects.filter(
-                    customer=customer, is_default=True
-                ).first()
-                if not address:
-                    address = Address.objects.filter(customer=customer).first()
-                if not address:
+                if customer:
+                    address = Address.objects.filter(
+                        customer=customer, is_default=True
+                    ).first()
+                    if not address:
+                        address = Address.objects.filter(customer=customer).first()
+                else:
                     address = None
 
         try:
@@ -82,69 +82,59 @@ class CheckoutPreviewView(APIView):
                 voucher_code=data.get("voucher_code"),
                 delivery_type=delivery_type,
             )
-            shop_config = ShopConfig.get_solo()
-            if delivery_type == Order.DeliveryType.PICKUP:
-                shipping_status = "PICKUP"
-                fee_reason = "PICKUP"
-            elif (
-                shop_config.min_order_for_freeship > Decimal("0.00")
-                and calc_result["subtotal"] >= shop_config.min_order_for_freeship
-            ):
-                shipping_status = "FREESHIP"
-                fee_reason = "ORDER_SUBTOTAL_THRESHOLD"
-            else:
-                shipping_status = "CALCULATED"
-                fee_reason = "DISTANCE_TIER"
-
-            return Response(
-                {
-                    "subtotal": calc_result["subtotal"],
-                    "distance_km": calc_result["distance_km"],
-                    "shipping_fee": calc_result["shipping_fee"],
-                    "discount": calc_result["discount"],
-                    "total_amount": calc_result["total_amount"],
-                    "is_deliverable": calc_result["is_deliverable"],
-                    "is_valid": calc_result["is_deliverable"],
-                    "shipping_status": shipping_status,
-                    "fee_reason": fee_reason,
-                    "can_checkout": True,
-                }
-            )
+            payload = {
+                "subtotal": calc_result["subtotal"],
+                "distance_km": calc_result["distance_km"],
+                "shipping_fee": calc_result["shipping_fee"],
+                "discount": calc_result["discount"],
+                "total_amount": calc_result["total_amount"],
+                "is_deliverable": calc_result["is_deliverable"],
+                "is_valid": calc_result["is_deliverable"],
+                "shipping_status": calc_result["shipping_status"],
+                "fee_reason": calc_result["fee_reason"],
+                "can_checkout": True,
+            }
+            return Response({"success": True, "data": payload, **payload})
         except OrderProcessingError as e:
             if e.code in [
                 "OUT_OF_DELIVERY_RADIUS",
                 "ORDER_AMOUNT_BELOW_MINIMUM",
                 "MISSING_ADDRESS",
             ]:
-                # Tính subtotal chính xác từ Product trong database
-                subtotal = Decimal("0.00")
-                for item in data.get("items", []):
-                    qty = int(item.get("quantity", 1))
-                    pid = item.get("product_id")
-                    p = Product.objects.filter(pk=pid).first()
-                    if p:
-                        subtotal += p.price * qty
+                # Batch query products to calculate subtotal with effective promotional price without N+1 queries
+                item_list = data.get("items", [])
+                pids = [
+                    it.get("product_id") for it in item_list if it.get("product_id")
+                ]
+                products_by_id = {p.id: p for p in Product.objects.filter(id__in=pids)}
+                subtotal = sum(
+                    (
+                        products_by_id[it["product_id"]].effective_price
+                        * int(it.get("quantity", 1))
+                    )
+                    for it in item_list
+                    if it.get("product_id") in products_by_id
+                )
 
                 shipping_status = (
                     "OUT_OF_RADIUS"
                     if e.code == "OUT_OF_DELIVERY_RADIUS"
                     else "NOT_CALCULATED"
                 )
-                return Response(
-                    {
-                        "subtotal": subtotal,
-                        "distance_km": Decimal("0.00"),
-                        "shipping_fee": Decimal("0.00"),
-                        "discount": Decimal("0.00"),
-                        "total_amount": subtotal,
-                        "is_deliverable": False,
-                        "is_valid": False,
-                        "message": e.message,
-                        "shipping_status": shipping_status,
-                        "fee_reason": e.code,
-                        "can_checkout": False,
-                    }
-                )
+                err_payload = {
+                    "subtotal": subtotal,
+                    "distance_km": Decimal("0.00"),
+                    "shipping_fee": Decimal("0.00"),
+                    "discount": Decimal("0.00"),
+                    "total_amount": subtotal,
+                    "is_deliverable": False,
+                    "is_valid": False,
+                    "message": e.message,
+                    "shipping_status": shipping_status,
+                    "fee_reason": e.code,
+                    "can_checkout": False,
+                }
+                return Response({"success": False, "data": err_payload, **err_payload})
             raise ValidationError({"code": e.code, "message": e.message}) from None
 
 
@@ -154,12 +144,19 @@ class OrderListCreateView(APIView):
     GET /api/v1/orders - Returns customer order history
     """
 
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticatedCustomer]
 
     def get(self, request):
         from django.db.models import Count
 
         customer = get_current_customer(request)
+        if not customer:
+            raise ValidationError(
+                {
+                    "code": "CUSTOMER_NOT_FOUND",
+                    "message": "Không tìm thấy thông tin khách hàng.",
+                }
+            )
         queryset = (
             Order.objects.filter(customer=customer)
             .annotate(item_count=Count("items"))
@@ -171,7 +168,7 @@ class OrderListCreateView(APIView):
             queryset = queryset.filter(status=status_filter)
 
         serializer = OrderListSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
 
     def post(self, request):
         idempotency_key = request.headers.get("Idempotency-Key")
@@ -188,6 +185,13 @@ class OrderListCreateView(APIView):
         data = serializer.validated_data
 
         customer = get_current_customer(request)
+        if not customer:
+            raise ValidationError(
+                {
+                    "code": "CUSTOMER_NOT_FOUND",
+                    "message": "Không tìm thấy thông tin khách hàng.",
+                }
+            )
         delivery_type = data.get("delivery_type", Order.DeliveryType.DELIVERY)
         address_id = data.get("address_id")
         rec_name = data.get("recipient_name") or customer.name or "Khách hàng"
@@ -236,14 +240,15 @@ class OrderListCreateView(APIView):
         if hasattr(order, "payment"):
             payment_data = PaymentSerializer(order.payment).data
 
+        payload = {
+            "id": order.id,
+            "order_code": order.order_code,
+            "status": order.status,
+            "total_amount": order.total_amount,
+            "payment": payment_data,
+        }
         return Response(
-            {
-                "id": order.id,
-                "order_code": order.order_code,
-                "status": order.status,
-                "total_amount": order.total_amount,
-                "payment": payment_data,
-            },
+            {"success": True, "data": payload, **payload},
             status=status.HTTP_201_CREATED,
         )
 
@@ -254,10 +259,12 @@ class OrderDetailView(APIView):
     Returns detailed order information including items and payment details.
     """
 
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticatedCustomer]
 
     def get(self, request, pk):
         customer = get_current_customer(request)
+        if not customer:
+            raise NotFound("Đơn hàng không tồn tại.") from None
         try:
             order = (
                 Order.objects.prefetch_related("items__options")
@@ -268,7 +275,7 @@ class OrderDetailView(APIView):
             raise NotFound("Đơn hàng không tồn tại.") from None
 
         serializer = OrderDetailSerializer(order)
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data, **serializer.data})
 
 
 class OrderPaymentDetailView(APIView):
@@ -277,10 +284,12 @@ class OrderPaymentDetailView(APIView):
     Returns payment information (method, status, QR code) for an order.
     """
 
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticatedCustomer]
 
     def get(self, request, pk):
         customer = get_current_customer(request)
+        if not customer:
+            raise NotFound("Đơn hàng không tồn tại.") from None
         try:
             order = Order.objects.select_related("payment").get(
                 pk=pk, customer=customer
@@ -289,7 +298,7 @@ class OrderPaymentDetailView(APIView):
             raise NotFound("Đơn hàng không tồn tại.") from None
 
         serializer = PaymentSerializer(order.payment)
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data, **serializer.data})
 
 
 class CustomerOrderCancelView(APIView):
@@ -298,10 +307,12 @@ class CustomerOrderCancelView(APIView):
     Customer cancels own order when in PENDING_CONFIRMATION (BR-ORD-005).
     """
 
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticatedCustomer]
 
     def post(self, request, pk: int):
         customer = get_current_customer(request)
+        if not customer:
+            raise NotFound("Đơn hàng không tồn tại.") from None
         try:
             order = Order.objects.get(pk=pk, customer=customer)
         except Order.DoesNotExist:
@@ -318,7 +329,8 @@ class CustomerOrderCancelView(APIView):
         except (OrderProcessingError, InvalidStateTransitionError) as e:
             raise ValidationError({"code": e.code, "message": e.message}) from None
 
-        return Response(OrderDetailSerializer(cancelled_order).data)
+        data = OrderDetailSerializer(cancelled_order).data
+        return Response({"success": True, "data": data, **data})
 
 
 # ----------------------------------------------------------------------

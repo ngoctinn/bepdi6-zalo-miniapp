@@ -4,10 +4,11 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from django.db.models import Prefetch, Q
 from django.utils import timezone
 
 from apps.customers.models import Address, Customer, User
-from apps.menu.models import Option, Product
+from apps.menu.models import Option, Product, ProductPromotion
 from apps.notifications.tasks import (
     send_in_app_notification,
     send_telegram_staff_order_alert,
@@ -168,6 +169,7 @@ class OrderService:
         address: Address | None = None,
         voucher_code: str | None = None,
         delivery_type: str = Order.DeliveryType.DELIVERY,
+        lock_voucher: bool = False,
     ) -> dict:
         """
         Validates cart items, options, calculates subtotal, distance, shipping fee, discount, total.
@@ -198,15 +200,24 @@ class OrderService:
         subtotal = Decimal("0.00")
         validated_items = []
 
-        # Batch fetch all products with preloaded option groups & options to eliminate N+1 queries
+        # Batch fetch all products with preloaded option groups, options & active promotions to eliminate N+1 queries
         product_ids = [
             item.get("product_id") for item in items_data if item.get("product_id")
         ]
+        now = timezone.now()
+        active_promos_prefetch = Prefetch(
+            "promotions",
+            queryset=ProductPromotion.objects.filter(is_active=True)
+            .filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now))
+            .filter(Q(valid_to__isnull=True) | Q(valid_to__gte=now))
+            .order_by("-created_at"),
+            to_attr="active_promotions",
+        )
         products_map = {
             p.id: p
             for p in Product.objects.filter(id__in=product_ids)
             .select_related("category")
-            .prefetch_related("option_groups__options")
+            .prefetch_related("option_groups__options", active_promos_prefetch)
         }
 
         for item in items_data:
@@ -243,7 +254,7 @@ class OrderService:
                     available_options_map[opt.id] = (opt, group.id)
 
             # Validate options and option group rules (BR-PROD-004)
-            item_price = product.price
+            item_price = product.effective_price
             validated_options = []
             if option_ids:
                 # Check for duplicate option IDs in the same item
@@ -295,7 +306,7 @@ class OrderService:
                 {
                     "product": product,
                     "product_name": product.name,
-                    "unit_price": product.price,
+                    "unit_price": product.effective_price,
                     "quantity": quantity,
                     "note": note,
                     "subtotal": item_subtotal,
@@ -319,6 +330,8 @@ class OrderService:
             shipping_fee = Decimal("0.00")
             distance_km = Decimal("0.00")
             is_deliverable = True
+            shipping_status = "PICKUP"
+            fee_reason = "PICKUP"
         else:
             if not address:
                 raise OrderProcessingError(
@@ -337,6 +350,8 @@ class OrderService:
             shipping_fee = shipping_info["shipping_fee"]
             distance_km = shipping_info["distance_km"]
             is_deliverable = True
+            shipping_status = shipping_info.get("shipping_status", "CALCULATED")
+            fee_reason = shipping_info.get("fee_reason", "DISTANCE_TIER")
 
         # 3. Voucher calculation
         discount = Decimal("0.00")
@@ -347,6 +362,7 @@ class OrderService:
                     code=voucher_code,
                     order_amount=subtotal,
                     customer=customer,
+                    lock=lock_voucher,
                 )
             except VoucherValidationError as e:
                 raise OrderProcessingError(e.code, e.message) from None
@@ -362,6 +378,8 @@ class OrderService:
             "discount": discount,
             "total_amount": total_amount,
             "is_deliverable": is_deliverable,
+            "shipping_status": shipping_status,
+            "fee_reason": fee_reason,
             "voucher": voucher_obj,
             "validated_items": validated_items,
         }
@@ -399,13 +417,14 @@ class OrderService:
         if existing_order:
             return existing_order
 
-        # Calculate and validate cart
+        # Calculate and validate cart (with voucher row locking to prevent race conditions)
         calculation = cls.validate_and_calculate_cart(
             customer=customer,
             items_data=items_data,
             address=address,
             voucher_code=voucher_code,
             delivery_type=delivery_type,
+            lock_voucher=True,
         )
 
         shop_config = ShopConfig.get_solo()
@@ -468,27 +487,29 @@ class OrderService:
         order_code = cls.generate_order_code()
 
         try:
-            order = Order.objects.create(
-                order_code=order_code,
-                idempotency_key=idempotency_key,
-                customer=customer,
-                status=Order.Status.PENDING_CONFIRMATION,
-                delivery_type=delivery_type,
-                recipient_name=rec_name,
-                phone=rec_phone,
-                delivery_address=delivery_address,
-                delivery_latitude=delivery_lat,
-                delivery_longitude=delivery_lon,
-                distance_km=calculation["distance_km"],
-                shipping_fee=calculation["shipping_fee"],
-                subtotal=calculation["subtotal"],
-                discount=calculation["discount"],
-                total_amount=calculation["total_amount"],
-                voucher=calculation["voucher"],
-                payment_method=payment_method,
-                note=note,
-                scheduled_delivery_at=scheduled_delivery_at,
-            )
+            # Wrap in savepoint so that IntegrityError on PostgreSQL does not abort outer transaction
+            with transaction.atomic():
+                order = Order.objects.create(
+                    order_code=order_code,
+                    idempotency_key=idempotency_key,
+                    customer=customer,
+                    status=Order.Status.PENDING_CONFIRMATION,
+                    delivery_type=delivery_type,
+                    recipient_name=rec_name,
+                    phone=rec_phone,
+                    delivery_address=delivery_address,
+                    delivery_latitude=delivery_lat,
+                    delivery_longitude=delivery_lon,
+                    distance_km=calculation["distance_km"],
+                    shipping_fee=calculation["shipping_fee"],
+                    subtotal=calculation["subtotal"],
+                    discount=calculation["discount"],
+                    total_amount=calculation["total_amount"],
+                    voucher=calculation["voucher"],
+                    payment_method=payment_method,
+                    note=note,
+                    scheduled_delivery_at=scheduled_delivery_at,
+                )
         except IntegrityError:
             # Fallback if concurrent request created same idempotency key
             existing = Order.objects.filter(
@@ -577,7 +598,23 @@ class OrderService:
         Updates order status following state machine rules (BR-STAT-001, BR-STAT-002).
         Records audit logs and releases voucher if cancelled.
         """
-        current_status = order.status
+        # Lock order row in DB to serialize transitions and guarantee fresh state
+        locked_status = (
+            Order.objects.select_for_update()
+            .filter(pk=order.pk)
+            .values_list("status", flat=True)
+            .first()
+        )
+        if locked_status is None:
+            raise InvalidStateTransitionError("Đơn hàng không tồn tại.")
+        current_status = locked_status
+
+        # Strict terminal state guard (BR-ORD terminal state rules)
+        if current_status in [Order.Status.COMPLETED, Order.Status.CANCELLED]:
+            raise InvalidStateTransitionError(
+                f"Đơn hàng đã ở trạng thái kết thúc '{current_status}', không thể thay đổi."
+            )
+
         allowed_next = cls.VALID_TRANSITIONS.get(current_status, [])
 
         if new_status not in allowed_next:
@@ -685,6 +722,12 @@ class OrderService:
         - If COD and edited_items is provided, recalculate items, subtotal, voucher eligibility, and totals.
         - Enforces BR-VOU-005: If edited order value no longer qualifies for voucher, release voucher.
         """
+        # Lock order row in DB to ensure fresh status and serialize transitions
+        order = Order.objects.select_for_update().get(pk=order.pk)
+        if order.status in [Order.Status.COMPLETED, Order.Status.CANCELLED]:
+            raise InvalidStateTransitionError(
+                f"Đơn hàng đã ở trạng thái kết thúc '{order.status}', không thể xác nhận."
+            )
         if order.status != Order.Status.PENDING_CONFIRMATION:
             raise InvalidStateTransitionError(
                 f"Chỉ có thể xác nhận đơn hàng đang ở trạng thái '{Order.Status.PENDING_CONFIRMATION}'."
@@ -707,11 +750,20 @@ class OrderService:
                 for item in edited_items
                 if item.get("product_id")
             ]
+            now = timezone.now()
+            active_promos_prefetch = Prefetch(
+                "promotions",
+                queryset=ProductPromotion.objects.filter(is_active=True)
+                .filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now))
+                .filter(Q(valid_to__isnull=True) | Q(valid_to__gte=now))
+                .order_by("-created_at"),
+                to_attr="active_promotions",
+            )
             products_map = {
                 p.id: p
                 for p in Product.objects.filter(id__in=product_ids)
                 .select_related("category")
-                .prefetch_related("option_groups__options")
+                .prefetch_related("option_groups__options", active_promos_prefetch)
             }
 
             for item in edited_items:
@@ -747,7 +799,7 @@ class OrderService:
                     for opt in group.options.all():
                         available_options_map[opt.id] = (opt, group.id)
 
-                item_price = product.price
+                item_price = product.effective_price
                 validated_options = []
                 if option_ids:
                     if len(set(option_ids)) != len(option_ids):
@@ -798,7 +850,7 @@ class OrderService:
                     {
                         "product": product,
                         "product_name": product.name,
-                        "unit_price": product.price,
+                        "unit_price": product.effective_price,
                         "quantity": quantity,
                         "note": item_note,
                         "subtotal": item_subtotal,
@@ -827,6 +879,30 @@ class OrderService:
                             discount = voucher.maximum_discount
                     if discount > subtotal:
                         discount = subtotal
+
+            shop_config = ShopConfig.get_solo()
+            if (
+                order.delivery_type != Order.DeliveryType.PICKUP
+                and shop_config.min_order_amount > Decimal("0.00")
+                and subtotal < shop_config.min_order_amount
+            ):
+                raise OrderProcessingError(
+                    "ORDER_AMOUNT_BELOW_MINIMUM",
+                    f"Đơn hàng giao tận nơi phải đạt tối thiểu {shop_config.min_order_amount:,.0f}đ.",
+                )
+
+            # Recalculate shipping fee if order is delivery
+            if (
+                order.delivery_type != Order.DeliveryType.PICKUP
+                and order.delivery_latitude is not None
+                and order.delivery_longitude is not None
+            ):
+                shipping_info = ShippingService.calculate_shipping(
+                    destination_lat=order.delivery_latitude,
+                    destination_lon=order.delivery_longitude,
+                    order_subtotal=subtotal,
+                )
+                order.shipping_fee = shipping_info["shipping_fee"]
 
             total_amount = subtotal + order.shipping_fee - discount
             if total_amount < Decimal("0.00"):
@@ -913,6 +989,18 @@ class OrderService:
         if scheduled_delivery_at is not None:
             order.scheduled_delivery_at = scheduled_delivery_at
 
+        order.save(
+            update_fields=[
+                "subtotal",
+                "discount",
+                "total_amount",
+                "voucher",
+                "shipping_fee",
+                "note",
+                "scheduled_delivery_at",
+            ]
+        )
+
         # Transition status to CONFIRMED
         return cls.update_order_status(
             order=order,
@@ -931,6 +1019,9 @@ class OrderService:
         """
         Customer cancels own order while in PENDING_CONFIRMATION state (BR-ORD-005, BR-SEC-001).
         """
+        # Lock order row in DB to serialize transitions
+        order = Order.objects.select_for_update().get(pk=order.pk)
+
         if order.customer_id != customer.id:
             raise OrderProcessingError(
                 "FORBIDDEN", "Bạn không có quyền hủy đơn hàng của người khác."

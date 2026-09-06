@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 from rest_framework.test import APIClient
 
-from apps.customers.models import Address, Customer
+from apps.customers.models import Address, Customer, User
 from apps.menu.models import Category, Option, OptionGroup, Product
 from apps.vouchers.models import Voucher
 
@@ -14,12 +14,18 @@ def api_client():
 
 
 @pytest.fixture
-def checkout_setup():
+def checkout_setup(api_client):
     customer = Customer.objects.create(
         zalo_user_id="cust_checkout_test",
         name="Trần Thị C",
         phone="0933445566",
     )
+    user = User.objects.create_user(
+        username="zalo_cust_checkout_test",
+        zalo_user_id=customer.zalo_user_id,
+        role=User.Role.CUSTOMER,
+    )
+    api_client.force_authenticate(user=user)
     address = Address.objects.create(
         customer=customer,
         label="Nhà riêng",

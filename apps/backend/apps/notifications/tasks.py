@@ -157,6 +157,7 @@ def send_zalo_oa_staff_alert(order_id: int) -> bool:
     # Find active staff/admin with linked zalo_user_id
     staff_recipients = User.objects.filter(
         status=User.Status.ACTIVE,
+        role__in=[User.Role.STAFF, User.Role.ADMIN],
         zalo_user_id__isnull=False,
     ).exclude(zalo_user_id="")
 

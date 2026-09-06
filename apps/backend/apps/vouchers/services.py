@@ -25,6 +25,7 @@ class VoucherService:
         code: str,
         order_amount: Decimal | float,
         customer: Customer | None = None,
+        lock: bool = False,
     ) -> tuple[Voucher, Decimal]:
         """
         Validates voucher eligibility based on:
@@ -39,7 +40,8 @@ class VoucherService:
         amount = Decimal(str(order_amount))
 
         try:
-            voucher = Voucher.objects.get(code=code.strip().upper())
+            query = Voucher.objects.select_for_update() if lock else Voucher.objects
+            voucher = query.get(code=code.strip().upper())
         except Voucher.DoesNotExist:
             raise VoucherValidationError(
                 "VOUCHER_INVALID", "Mã giảm giá không tồn tại."

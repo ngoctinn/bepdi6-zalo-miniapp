@@ -325,7 +325,7 @@ class OrderAdmin(ModelAdmin):
                 OrderService.update_order_status(
                     order,
                     Order.Status.CANCELLED,
-                    cancellation_reason="Hủy bởi quản trị viên",
+                    reason="Hủy bởi quản trị viên",
                     user=request.user,
                 )
                 count += 1

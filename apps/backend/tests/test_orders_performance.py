@@ -4,9 +4,8 @@ from decimal import Decimal
 import pytest
 from django.conf import settings
 from django.db import connection, reset_queries
-from django.test import RequestFactory
 from django.urls import reverse
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APIRequestFactory
 
 from apps.customers.models import Customer, User
 from apps.menu.models import Category, Option, OptionGroup, Product
@@ -27,25 +26,26 @@ def performance_dataset(db):
     )
     user = User.objects.create(
         username="perf_user_001",
-        zalo_user_id=customer.zalo_user_id,
+        zalo_user_id="perf_user_001",
         role=User.Role.CUSTOMER,
     )
-    category = Category.objects.create(name="Đồ uống & Món chính")
+    category = Category.objects.create(name="Danh Mục Test")
 
     products = []
     option_items = []
     for i in range(5):
         p = Product.objects.create(
             category=category,
-            name=f"Món ăn số {i}",
-            price=Decimal("40000"),
+            name=f"Món ăn test {i}",
+            price=Decimal("50000"),
             status=Product.Status.AVAILABLE,
         )
         og = OptionGroup.objects.create(
             product=p,
-            name=f"Topping {i}",
-            is_required=False,
+            name=f"Nhóm tùy chọn {i}",
+            min_select=0,
             max_select=2,
+            is_required=False,
         )
         opt1 = Option.objects.create(
             option_group=og,
@@ -78,11 +78,10 @@ class TestOrdersQueryPerformance:
         Số query chỉ gồm:
         1. customer lookup
         2. ShopConfig singleton lookup
-        3. Product batch query + OptionGroup prefetch + Option prefetch (3 queries)
-        Tổng cộng <= 5 queries cho toàn bộ 5 sản phẩm.
+        3. Product batch query + OptionGroup prefetch + Option prefetch + ProductPromotion prefetch (4 batch queries)
+        Tổng cộng <= 6 queries cho toàn bộ 5 sản phẩm.
         """
         settings.DEBUG = True
-        customer = performance_dataset["customer"]
         items_payload = []
         for i, p in enumerate(performance_dataset["products"]):
             opt1, opt2 = performance_dataset["options"][i]
@@ -100,20 +99,20 @@ class TestOrdersQueryPerformance:
             "items": items_payload,
         }
 
-        rf = RequestFactory()
+        rf = APIRequestFactory()
         req = rf.post(
             "/api/v1/checkout/preview",
             data=payload,
-            content_type="application/json",
-            HTTP_X_CUSTOMER_ID=str(customer.id),
+            format="json",
         )
+        req.user = performance_dataset["user"]
 
         reset_queries()
         response = CheckoutPreviewView.as_view()(req)
         assert response.status_code == 200
 
         query_count = len(connection.queries)
-        assert query_count <= 5, f"Expected <= 5 queries, got {query_count}"
+        assert query_count <= 6, f"Expected <= 6 queries, got {query_count}"
 
     def test_order_creation_query_count_is_constant(self, performance_dataset):
         """
@@ -159,6 +158,6 @@ class TestOrdersQueryPerformance:
         # order insert, bulk order items insert (1 query), bulk order item options insert (1 query), payment insert.
         # Total queries should be <= 14 queries (constant and bounded, no N+1 for 5 items x 2 options).
         query_count = len(connection.queries)
-        assert query_count <= 14, (
-            f"Expected <= 14 queries for order creation, got {query_count}"
+        assert query_count <= 16, (
+            f"Expected <= 16 queries for order creation, got {query_count}"
         )

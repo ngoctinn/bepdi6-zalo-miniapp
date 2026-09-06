@@ -183,29 +183,15 @@ class AuthService:
                 if updated_fields:
                     customer.save(update_fields=updated_fields)
 
-            # In dev/mock testing or when credentials not set, default role to ADMIN for staff testing
-            is_dev_env = (
-                not getattr(settings, "ZALO_APP_SECRET", "")
-                or customer.zalo_user_id.startswith("zalo_mock_")
-                or customer.zalo_user_id.startswith("zalo_test_")
-                or customer.zalo_user_id.startswith("zalo_default_")
-            )
-            is_admin = is_dev_env or customer.zalo_user_id == "5746042945227030407"
-            default_role = User.Role.ADMIN if is_admin else User.Role.CUSTOMER
-
             # Create or link internal Django User for JWT token issuance
-            user, created = User.objects.get_or_create(
+            user, _ = User.objects.get_or_create(
                 username=f"zalo_{customer.zalo_user_id}",
                 defaults={
                     "zalo_user_id": customer.zalo_user_id,
-                    "role": default_role,
-                    "is_staff": is_admin,
+                    "role": User.Role.CUSTOMER,
+                    "is_staff": False,
                 },
             )
-            if not created and is_admin and user.role == User.Role.CUSTOMER:
-                user.role = User.Role.ADMIN
-                user.is_staff = True
-                user.save(update_fields=["role", "is_staff"])
 
         refresh = RefreshToken.for_user(user)
         refresh["customer_id"] = customer.id

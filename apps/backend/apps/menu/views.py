@@ -57,13 +57,31 @@ def invalidate_menu_cache(product_id: int | None = None) -> None:
     if product_id is not None:
         keys_to_delete.append(f"{CACHE_KEY_PRODUCT_DETAIL_PREFIX}:{product_id}")
 
-    # Delete known static cache keys
+    try:
+        category_ids = list(Category.objects.values_list("id", flat=True))
+        for cat_id in category_ids:
+            keys_to_delete.extend(
+                [
+                    f"{CACHE_KEY_PRODUCTS_PREFIX}:{cat_id}:available",
+                    f"{CACHE_KEY_PRODUCTS_PREFIX}:{cat_id}:OUT_OF_STOCK",
+                    f"{CACHE_KEY_PRODUCTS_PREFIX}:{cat_id}:INACTIVE",
+                ]
+            )
+    except Exception:
+        pass
+
+    # Delete known static & per-category cache keys
     cache.delete_many(keys_to_delete)
 
-    # Invalidate pattern-based keys if supported by cache backend (e.g. redis or local fallback)
+    # Invalidate pattern-based keys on Redis backend
     try:
         if hasattr(cache, "delete_pattern"):
             cache.delete_pattern("menu:*")
+        elif hasattr(cache, "_cache") and hasattr(cache._cache, "get_client"):
+            r = cache._cache.get_client()
+            keys = r.keys("*menu:*")
+            if keys:
+                r.delete(*keys)
     except Exception:
         pass
 
