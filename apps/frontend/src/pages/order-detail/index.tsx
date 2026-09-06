@@ -4,13 +4,18 @@ import { useOrder } from "@/services/order/order.queries";
 import { useShopInfo } from "@/services/shop/shop.queries";
 import { useCancelOrder } from "@/services/order/order.mutations";
 import { Button, Spinner, Text } from "zmp-ui";
+import { openWebview, saveImageToGallery } from "zmp-sdk/apis";
 import { formatCurrency } from "@/utils/format";
+import { makePhoneCall } from "@/utils/phone";
 import {
   CheckIcon,
+  CopyIcon,
+  DownloadIcon,
   NavigationIcon,
   PhoneIcon,
   StoreIcon,
   MapPinIcon,
+  TruckIcon,
 } from "@/components/common/vectors";
 import { OrderStatus } from "@/types/order.types";
 import { useAppToast } from "@/hooks/use-app-toast";
@@ -23,6 +28,11 @@ import {
   DEFAULT_SHOP_COORDINATES,
   getVietQrUrl,
 } from "@/constants/shop";
+import {
+  getOrderStatusLabel,
+  getOrderStatusVariant,
+  getDeliveryTypeLabel,
+} from "@/utils/order-display";
 
 const DELIVERY_STATUS_STEPS: Array<{
   key: OrderStatus;
@@ -63,10 +73,42 @@ export default function OrderDetailPage() {
   const cancelOrderMutation = useCancelOrder();
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isSavingQr, setIsSavingQr] = useState(false);
 
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     showSuccess(`Đã sao chép ${label}`);
+  };
+
+  const handleOpenDirections = () => {
+    try {
+      openWebview({
+        url: googleMapsUrl,
+        config: {
+          style: "bottomSheet",
+          leftButton: "back",
+        },
+      });
+    } catch (e) {
+      console.warn("[Map] openWebview error, falling back to window.open:", e);
+      window.open(googleMapsUrl, "_blank");
+    }
+  };
+
+  const handleSaveQr = async () => {
+    if (!qrUrl || isSavingQr) return;
+    setIsSavingQr(true);
+    try {
+      await saveImageToGallery({
+        imageUrl: qrUrl,
+      });
+      showSuccess(copy.orderDetail.savedQrSuccess);
+    } catch (err) {
+      console.warn("[VietQR] saveImageToGallery error:", err);
+      showError(copy.orderDetail.savedQrFailed);
+    } finally {
+      setIsSavingQr(false);
+    }
   };
 
   const handleConfirmCancel = async () => {
@@ -166,8 +208,17 @@ export default function OrderDetailPage() {
               {copy.order.orderCodePrefix || "Đơn hàng #"}
               {order.order_code}
             </h1>
-            <Badge variant={isPickup ? "warning" : "primary"} size="small">
-              {isPickup ? copy.checkout.pickup : copy.checkout.delivery}
+            <Badge
+              variant="neutral"
+              size="small"
+              className="gap-1 border-stone-200 bg-stone-100 text-stone-700"
+            >
+              {isPickup ? (
+                <StoreIcon className="h-3 w-3 text-stone-600" />
+              ) : (
+                <TruckIcon className="h-3 w-3 text-stone-600" />
+              )}
+              <span>{getDeliveryTypeLabel(order.delivery_type)}</span>
             </Badge>
           </div>
           <span className="mt-0.5 block text-xxsmall text-neutral500">
@@ -175,16 +226,11 @@ export default function OrderDetailPage() {
           </span>
         </div>
         <Badge
-          variant={
-            isCancelled
-              ? "error"
-              : order.status === "COMPLETED"
-                ? "success"
-                : "warning"
-          }
+          variant={getOrderStatusVariant(order.status)}
           size="medium"
+          className="font-bold"
         >
-          {order.status_display || order.status}
+          {getOrderStatusLabel(order.status, order.delivery_type)}
         </Badge>
       </div>
 
@@ -286,6 +332,20 @@ export default function OrderDetailPage() {
                   className="h-52 w-52 object-contain"
                 />
               </div>
+
+              <button
+                type="button"
+                onClick={handleSaveQr}
+                disabled={isSavingQr}
+                className="shadow-2xs inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-white px-3.5 py-2 text-xs font-bold text-primary transition-all active:scale-95 active:bg-olive50"
+              >
+                {isSavingQr ? (
+                  <Spinner visible size="small" />
+                ) : (
+                  <DownloadIcon className="h-4 w-4" />
+                )}
+                <span>{copy.orderDetail.saveQrToGallery}</span>
+              </button>
 
               <div className="w-full space-y-2.5 rounded-xl border border-black/5 bg-black/[0.02] p-3.5 text-left text-xs">
                 <div className="flex items-center justify-between">
@@ -394,24 +454,35 @@ export default function OrderDetailPage() {
                 </div>
               </div>
 
-              {/* Action Buttons: Google Maps & Hotline */}
+              {/* Action Buttons: Google Maps, Sao chép địa chỉ & Hotline */}
               <div className="mt-3 flex items-center gap-2 pt-1">
-                <a
-                  href={googleMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={handleOpenDirections}
                   className="shadow-xs flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-all active:scale-[0.98] active:bg-primaryDark"
                 >
                   <NavigationIcon className="h-3.5 w-3.5" />
                   <span>{copy.orderDetail.openGoogleMap}</span>
-                </a>
-                <a
-                  href={`tel:${shopHotline}`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleCopy(shopAddress, copy.orderDetail.shopAddressLabel)
+                  }
+                  className="shadow-2xs flex items-center justify-center gap-1 rounded-lg border border-black/10 bg-white px-2.5 py-2 text-xs font-semibold text-neutral700 transition-all active:scale-[0.98] active:bg-stone-50"
+                  title={copy.orderDetail.copyAddress}
+                >
+                  <CopyIcon className="h-3.5 w-3.5" />
+                  <span>{copy.orderDetail.copy}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => makePhoneCall(shopHotline)}
                   className="shadow-2xs flex items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-2 text-xs font-semibold text-primary transition-all active:scale-[0.98] active:bg-olive50"
                 >
                   <PhoneIcon className="h-3.5 w-3.5" />
                   <span>{shopHotline}</span>
-                </a>
+                </button>
               </div>
             </div>
 

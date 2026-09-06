@@ -238,4 +238,3 @@ def test_order_creation_resilient_to_celery_broker_failure(
     data = res.json()["data"]
     assert data["order_code"].startswith("FO")
     assert data["status"] == "PENDING_CONFIRMATION"
-

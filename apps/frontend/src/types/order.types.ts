@@ -72,6 +72,7 @@ export interface Order {
   status: OrderStatus;
   status_display?: string;
   delivery_type?: DeliveryType;
+  delivery_type_display?: string;
   recipient_name: string;
   phone: string;
   delivery_address: string;

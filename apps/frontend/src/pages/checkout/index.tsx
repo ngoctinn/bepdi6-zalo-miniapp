@@ -18,6 +18,7 @@ import {
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
+import { makePhoneCall } from "@/utils/phone";
 
 // Modularized Checkout Sub-components
 import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
@@ -450,12 +451,13 @@ export default function CheckoutPage() {
               Hotline {shopInfo?.hotline} ({copy.checkout.consultSub})
             </div>
           </div>
-          <a
-            href={`tel:${shopInfo?.hotline || ""}`}
+          <button
+            type="button"
+            onClick={() => makePhoneCall(shopInfo?.hotline)}
             className="shadow-xs flex shrink-0 items-center gap-1 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white transition-all hover:bg-primaryDark active:scale-95"
           >
             <span>{copy.checkout.callShop}</span>
-          </a>
+          </button>
         </div>
       )}
 

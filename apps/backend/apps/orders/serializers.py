@@ -147,6 +147,10 @@ class PaymentSerializer(serializers.ModelSerializer):
 class OrderDetailSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     payment = PaymentSerializer(read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    delivery_type_display = serializers.CharField(
+        source="get_delivery_type_display", read_only=True
+    )
 
     class Meta:
         model = Order
@@ -154,7 +158,9 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             "id",
             "order_code",
             "status",
+            "status_display",
             "delivery_type",
+            "delivery_type_display",
             "recipient_name",
             "phone",
             "delivery_address",
@@ -180,6 +186,10 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 class OrderListSerializer(serializers.ModelSerializer):
     item_count = serializers.IntegerField(read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    delivery_type_display = serializers.CharField(
+        source="get_delivery_type_display", read_only=True
+    )
 
     class Meta:
         model = Order
@@ -187,7 +197,9 @@ class OrderListSerializer(serializers.ModelSerializer):
             "id",
             "order_code",
             "status",
+            "status_display",
             "delivery_type",
+            "delivery_type_display",
             "scheduled_delivery_at",
             "total_amount",
             "payment_method",

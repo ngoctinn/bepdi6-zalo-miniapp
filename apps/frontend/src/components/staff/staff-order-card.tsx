@@ -1,5 +1,6 @@
 import { copy } from "@/constants/copy";
 import { Order } from "@/types/order.types";
+import { makePhoneCall } from "@/utils/phone";
 import { useEffect, useState } from "react";
 import { Icon, Spinner } from "zmp-ui";
 
@@ -172,13 +173,14 @@ export function StaffOrderCard({
           </div>
 
           {order.phone && (
-            <a
-              href={`tel:${order.phone}`}
+            <button
+              type="button"
+              onClick={() => makePhoneCall(order.phone)}
               className="flex h-7 items-center gap-1 rounded-full border border-primary bg-primary/10 px-2.5 text-xs font-bold text-primaryDark transition-all active:scale-95"
             >
               <Icon icon="zi-call" className="text-xs" />
               <span>{copy.staff.actions.call}</span>
-            </a>
+            </button>
           )}
         </div>
 

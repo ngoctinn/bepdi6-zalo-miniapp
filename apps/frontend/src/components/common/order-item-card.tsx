@@ -2,6 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { Order } from "@/types/order.types";
 import { formatCurrency } from "@/utils/format";
 import { Badge } from "@/components/common/badge";
+import { StoreIcon, TruckIcon } from "@/components/common/vectors";
+import {
+  getOrderStatusLabel,
+  getOrderStatusVariant,
+  getDeliveryTypeLabel,
+} from "@/utils/order-display";
 
 interface OrderItemCardProps {
   order: Order;
@@ -14,8 +20,6 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
     0,
   );
 
-  const isCancelled = order.status === "CANCELLED";
-  const isCompleted = order.status === "COMPLETED";
   const isPickup = order.delivery_type === "PICKUP";
 
   return (
@@ -25,18 +29,28 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
     >
       <div className="mb-2.5 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Badge variant={isPickup ? "warning" : "primary"} size="small">
-            {isPickup ? "Tự lấy" : "Giao hàng"}
+          <Badge
+            variant="neutral"
+            size="small"
+            className="gap-1 border-stone-200 bg-stone-100 text-stone-700"
+          >
+            {isPickup ? (
+              <StoreIcon className="h-3 w-3 text-stone-600" />
+            ) : (
+              <TruckIcon className="h-3 w-3 text-stone-600" />
+            )}
+            <span>{getDeliveryTypeLabel(order.delivery_type)}</span>
           </Badge>
           <span className="text-xs font-bold text-neutral900">
             #{order.order_code}
           </span>
         </div>
         <Badge
-          variant={isCancelled ? "error" : isCompleted ? "success" : "warning"}
+          variant={getOrderStatusVariant(order.status)}
           size="small"
+          className="font-bold"
         >
-          {order.status_display || order.status}
+          {getOrderStatusLabel(order.status, order.delivery_type)}
         </Badge>
       </div>
 

@@ -593,6 +593,13 @@ const semantic = {
       copy: "Sao chép",
       autoUpdateNote:
         "* Hệ thống sẽ tự động cập nhật trạng thái ngay sau khi nhận được tiền.",
+      copyAddress: "Sao chép địa chỉ",
+      copiedAddress: "Đã sao chép địa chỉ quán",
+      saveQrToGallery: "Lưu mã QR vào máy",
+      savedQrSuccess:
+        "Đã lưu mã QR vào thư viện ảnh. Mời bạn mở app ngân hàng quét ảnh để thanh toán nhé!",
+      savedQrFailed:
+        "Không thể lưu mã QR. Bạn có thể chụp màn hình để quét thanh toán nhé!",
       paidSuccessMessage:
         "Đơn hàng đã được xác nhận thanh toán thành công. Bếp Dì 6 đang chuẩn bị món cho bạn!",
       cancelButton: "Hủy đơn hàng này",
