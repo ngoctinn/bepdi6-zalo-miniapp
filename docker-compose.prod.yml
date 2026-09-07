@@ -1,0 +1,124 @@
+services:
+  # -------------------------------------------------------------
+  # PostgreSQL 16 Relational Database
+  # -------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: bepdi6_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bepdi6_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      # Expose only to loopback on host for local administrative inspection
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bepdi6_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bepdi6_network
+
+  # -------------------------------------------------------------
+  # Redis 7 In-Memory Cache & Celery Message Broker
+  # -------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: bepdi6_redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      # Expose only to loopback on host
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bepdi6_network
+
+  # -------------------------------------------------------------
+  # Django Backend (Gunicorn WSGI)
+  # -------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bepdi6_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-bepdi6_db}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    ports:
+      # Expose only to host loopback (Direct public traffic routes through Cloudflare Tunnel)
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - media_data:/app/apps/backend/media
+    networks:
+      - bepdi6_network
+
+  # -------------------------------------------------------------
+  # Celery Asynchronous Background Task Worker
+  # -------------------------------------------------------------
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bepdi6_celery
+    restart: unless-stopped
+    command: ["celery", "-A", "config", "worker", "--loglevel=info", "--concurrency=2"]
+    working_dir: /app/apps/backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-bepdi6_db}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    volumes:
+      - media_data:/app/apps/backend/media
+    networks:
+      - bepdi6_network
+
+  # -------------------------------------------------------------
+  # Cloudflare Quick Tunnel (Tự tạo URL ngẫu nhiên *.trycloudflare.com, không cần Token)
+  # -------------------------------------------------------------
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: bepdi6_cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 --url http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - bepdi6_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_data:
+
+networks:
+  bepdi6_network:
+    driver: bridge

@@ -2,7 +2,7 @@ from django.contrib import admin
 from unfold.admin import ModelAdmin
 from unfold.decorators import display
 
-from apps.notifications.models import Notification
+from apps.notifications.models import Notification, ZaloOACredential
 
 
 @admin.register(Notification)
@@ -47,4 +47,50 @@ class NotificationAdmin(ModelAdmin):
         from django.utils import timezone
 
         local_time = timezone.localtime(obj.created_at)
+        return local_time.strftime("%d/%m/%Y %H:%M")
+
+
+@admin.register(ZaloOACredential)
+class ZaloOACredentialAdmin(ModelAdmin):
+    list_display = [
+        "oa_id",
+        "valid_badge",
+        "masked_access_token",
+        "expires_at_formatted",
+        "updated_at_formatted",
+    ]
+    search_fields = ["oa_id"]
+    readonly_fields = ["created_at", "updated_at"]
+
+    @display(
+        description="Trạng thái Token",
+        label={
+            True: "success",
+            False: "danger",
+        },
+    )
+    def valid_badge(self, obj):
+        from django.utils import timezone
+
+        is_valid = obj.expires_at > timezone.now()
+        return is_valid, "Còn hiệu lực" if is_valid else "Đã hết hạn"
+
+    @display(description="Access Token (Masked)")
+    def masked_access_token(self, obj):
+        if len(obj.access_token) > 16:
+            return f"{obj.access_token[:8]}...{obj.access_token[-8:]}"
+        return "***"
+
+    @display(description="Thời gian hết hạn", ordering="expires_at")
+    def expires_at_formatted(self, obj):
+        from django.utils import timezone
+
+        local_time = timezone.localtime(obj.expires_at)
+        return local_time.strftime("%d/%m/%Y %H:%M")
+
+    @display(description="Cập nhật lần cuối", ordering="updated_at")
+    def updated_at_formatted(self, obj):
+        from django.utils import timezone
+
+        local_time = timezone.localtime(obj.updated_at)
         return local_time.strftime("%d/%m/%Y %H:%M")

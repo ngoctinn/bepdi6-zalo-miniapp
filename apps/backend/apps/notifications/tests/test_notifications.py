@@ -213,3 +213,84 @@ def test_notification_list_and_mark_read_api(api_client, test_data):
     notif.refresh_from_db()
     assert notif.is_read is True
     assert notif.read_at is not None
+
+
+@pytest.mark.django_db
+def test_zalo_oa_token_service_rotation_and_cache(monkeypatch):
+    from datetime import timedelta
+    from unittest.mock import MagicMock
+
+    import requests
+    from django.core.cache import cache
+    from django.utils import timezone
+
+    from apps.notifications.models import ZaloOACredential
+    from apps.notifications.services import ZaloOATokenService
+
+    cache.clear()
+    oa_id = "test_oa_123"
+
+    # 1. Create credential with expired token
+    expired_time = timezone.now() - timedelta(minutes=10)
+    cred = ZaloOACredential.objects.create(
+        oa_id=oa_id,
+        access_token="old_access_token",
+        refresh_token="old_refresh_token",
+        expires_at=expired_time,
+    )
+
+    # 2. Mock Zalo OAuth Token Endpoint response
+    mock_post = MagicMock()
+    mock_post.return_value.status_code = 200
+    mock_post.return_value.json.return_value = {
+        "access_token": "new_refreshed_access_token",
+        "refresh_token": "new_refreshed_refresh_token",
+        "expires_in": 90000,
+    }
+    monkeypatch.setattr(requests, "post", mock_post)
+
+    # 3. Request valid token -> triggers auto-refresh
+    token = ZaloOATokenService.get_valid_access_token(oa_id=oa_id)
+    assert token == "new_refreshed_access_token"
+
+    # Verify DB was rotated
+    cred.refresh_from_db()
+    assert cred.access_token == "new_refreshed_access_token"
+    assert cred.refresh_token == "new_refreshed_refresh_token"
+    assert cred.expires_at > timezone.now()
+
+    # 4. Next call should hit Redis cache (mock_post not called again)
+    mock_post.reset_mock()
+    cached_token = ZaloOATokenService.get_valid_access_token(oa_id=oa_id)
+    assert cached_token == "new_refreshed_access_token"
+    mock_post.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_zalo_oauth_callback_endpoint(api_client, monkeypatch):
+    from unittest.mock import MagicMock
+
+    import requests
+
+    mock_post = MagicMock()
+    mock_post.return_value.status_code = 200
+    mock_post.return_value.json.return_value = {
+        "access_token": "init_access_token",
+        "refresh_token": "init_refresh_token",
+        "expires_in": 90000,
+        "oa_id": "oa_test_999",
+    }
+    monkeypatch.setattr(requests, "post", mock_post)
+
+    res = api_client.get(
+        "/api/v1/notifications/zalo/oauth/callback?code=auth_code_xyz&oa_id=oa_test_999"
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["success"] is True
+
+    from apps.notifications.models import ZaloOACredential
+
+    cred = ZaloOACredential.objects.get(oa_id="oa_test_999")
+    assert cred.access_token == "init_access_token"
+    assert cred.refresh_token == "init_refresh_token"

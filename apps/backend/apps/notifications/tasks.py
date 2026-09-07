@@ -161,7 +161,9 @@ def send_zalo_oa_staff_alert(order_id: int) -> bool:
         zalo_user_id__isnull=False,
     ).exclude(zalo_user_id="")
 
-    oa_access_token = getattr(settings, "ZALO_OA_ACCESS_TOKEN", "")
+    from apps.notifications.services import ZaloOATokenService
+
+    oa_access_token = ZaloOATokenService.get_valid_access_token()
     if not oa_access_token:
         logger.info(
             "ZALO_OA_ACCESS_TOKEN not configured. Mocking staff alert for Order #%s to %s recipients.",

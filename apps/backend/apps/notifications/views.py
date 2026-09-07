@@ -51,3 +51,66 @@ class NotificationMarkReadView(APIView):
             notification.save(update_fields=["is_read", "read_at"])
 
         return Response({"success": True})
+
+
+class ZaloOAuthCallbackView(APIView):
+    """
+    GET /api/v1/notifications/zalo/oauth/callback?code=...&oa_id=...
+    Endpoint receiving authorization code after Admin grants permission on Zalo OAuth portal.
+    Exchanges code for access_token and refresh_token, saving to DB & Redis.
+    """
+
+    permission_classes = []  # Handled via code verification and state
+
+    def get(self, request):
+        code = request.query_params.get("code")
+        oa_id = request.query_params.get("oa_id")
+        code_verifier = request.query_params.get("code_verifier", "")
+
+        if not code:
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "MISSING_CODE",
+                        "message": "Mã xác thực code là bắt buộc.",
+                    },
+                },
+                status=400,
+            )
+
+        from apps.notifications.services import ZaloOATokenService
+
+        try:
+            res_data = ZaloOATokenService.exchange_authorization_code(
+                code=code,
+                code_verifier=code_verifier,
+                oa_id=oa_id,
+            )
+            if res_data.get("error"):
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "ZALO_ERROR",
+                            "message": res_data.get("message"),
+                        },
+                    },
+                    status=400,
+                )
+            return Response(
+                {
+                    "success": True,
+                    "data": {
+                        "message": "Ủy quyền Zalo OA thành công! Token đã được lưu và kích hoạt tự động làm mới.",
+                    },
+                }
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "success": False,
+                    "error": {"code": "EXCHANGE_FAILED", "message": str(e)},
+                },
+                status=500,
+            )
