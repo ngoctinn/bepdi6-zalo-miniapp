@@ -150,6 +150,7 @@ button:focus-within {
 /* 1. Global Container */
 .zaui-snackbar-container {
   z-index: 99999 !important;
+  pointer-events: none !important;
 }
 
 /* 2. Base Snackbar Box (Soft Design System) */
@@ -164,36 +165,45 @@ button:focus-within {
     0 8px 24px -4px rgba(0, 0, 0, 0.08),
     0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  bottom: calc(var(--zaui-safe-area-inset-bottom, 16px) + 20px) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
   gap: 10px !important;
-  width: calc(100vw - 32px) !important;
-  max-width: 460px !important;
-  left: 50% !important;
-  margin: 0 !important;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: fixed !important;
+  left: 16px !important;
+  right: 16px !important;
+  width: auto !important;
+  max-width: 420px !important;
+  margin: 0 auto !important;
+  pointer-events: auto !important;
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out !important;
 }
 
 /* 3. Positioning & Animations */
 .zaui-snackbar-bottom {
-  transform: translateX(-50%) translateY(16px) !important;
+  bottom: calc(var(--zaui-safe-area-inset-bottom, 16px) + 20px) !important;
+  transform: translateY(16px) !important;
+  opacity: 0 !important;
 }
 
 .zaui-snackbar-bottom-visible {
-  transform: translateX(-50%) translateY(0) !important;
+  bottom: calc(var(--zaui-safe-area-inset-bottom, 16px) + 20px) !important;
+  transform: translateY(0) !important;
+  opacity: 1 !important;
 }
 
 .zaui-snackbar-top {
-  transform: translateX(-50%) translateY(-16px) !important;
-  top: calc(var(--zaui-safe-area-inset-top, 16px) + 16px) !important;
+  top: calc(var(--zaui-safe-area-inset-top, 16px) + 56px) !important;
+  transform: translateY(-16px) !important;
+  opacity: 0 !important;
 }
 
 .zaui-snackbar-top-visible {
-  transform: translateX(-50%) translateY(0) !important;
+  top: calc(var(--zaui-safe-area-inset-top, 16px) + 56px) !important;
+  transform: translateY(0) !important;
+  opacity: 1 !important;
 }
 
 /* 4. Internal Elements */

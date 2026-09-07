@@ -33,7 +33,6 @@ const router = createBrowserRouter(
           path: "/order",
           element: <OrderPage />,
           handle: {
-            hideCart: true,
             hideHeader: true,
           },
         },

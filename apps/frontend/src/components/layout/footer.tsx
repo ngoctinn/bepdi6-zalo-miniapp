@@ -88,7 +88,7 @@ export default function Footer() {
             <div className="relative flex h-6 w-6 items-center justify-center">
               <item.icon active={isActive} />
               {item.badge > 0 && (
-                <span className="shadow-xs absolute -right-2.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-xxxxsmall font-extrabold leading-none text-white ring-2 ring-white">
+                <span className="shadow-xs absolute -right-2.5 -top-1.5 flex h-4 min-w-[16px] animate-bounce items-center justify-center rounded-full bg-red-500 px-1 text-xxxxsmall font-extrabold leading-none text-white ring-2 ring-white [animation-iteration-count:2]">
                   {item.badge > 99 ? "99+" : item.badge}
                 </span>
               )}

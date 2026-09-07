@@ -2,20 +2,14 @@ import { Outlet, useMatches } from "react-router-dom";
 import Header from "./header";
 import Footer from "./footer";
 import { cn } from "@/utils/cn";
-import CartFloatButton from "../common/cart-float-button";
-import { useCartStore } from "@/stores/cart.store";
 
 export default function Layout() {
   const matches = useMatches();
 
   const current = matches[matches.length - 1];
   const hideFooter = (current.handle as any)?.hideFooter;
-  const hideCart = (current.handle as any)?.hideCart;
   const hideHeader = (current.handle as any)?.hideHeader;
   const headerPosition = (current.handle as any)?.headerPosition;
-
-  const { items } = useCartStore();
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div
@@ -39,7 +33,6 @@ export default function Layout() {
       {!hideFooter && (
         <div className="relative shrink-0">
           <Footer />
-          {!hideCart && <CartFloatButton itemCount={totalItems} />}
         </div>
       )}
     </div>

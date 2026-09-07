@@ -294,28 +294,28 @@ export const AppToastContainer: React.FC = () => {
     switch (type) {
       case "success":
         return {
-          card: "bg-[#F7FEE7] border-[#4D7C0F]/30 text-[#365314] shadow-lime-900/10",
+          card: "bg-[#F7FEE7]/95 border-[#4D7C0F]/25 text-[#365314] shadow-lime-900/10",
           title: "text-[#365314]",
           desc: "text-[#4D7C0F]",
           action: "text-[#4D7C0F] hover:text-[#3F6212]",
         };
       case "warning":
         return {
-          card: "bg-[#FFFBEB] border-[#D97706]/30 text-[#78350F] shadow-amber-900/10",
+          card: "bg-[#FFFBEB]/95 border-[#D97706]/25 text-[#78350F] shadow-amber-900/10",
           title: "text-[#78350F]",
           desc: "text-[#B45309]",
           action: "text-[#D97706] hover:text-[#B45309]",
         };
       case "error":
         return {
-          card: "bg-[#FEF2F2] border-[#DC2626]/30 text-[#991B1B] shadow-red-900/10",
+          card: "bg-[#FEF2F2]/95 border-[#DC2626]/25 text-[#991B1B] shadow-red-900/10",
           title: "text-[#991B1B]",
           desc: "text-[#DC2626]",
           action: "text-[#DC2626] hover:text-[#B91C1C]",
         };
       case "loading":
         return {
-          card: "bg-[#FAFAF9] border-[#4D7C0F]/30 text-[#0F172A] shadow-black/10",
+          card: "bg-[#FAFAF9]/95 border-[#4D7C0F]/25 text-[#0F172A] shadow-black/10",
           title: "text-[#0F172A]",
           desc: "text-neutral-500",
           action: "text-primary",
@@ -323,7 +323,7 @@ export const AppToastContainer: React.FC = () => {
       case "info":
       default:
         return {
-          card: "bg-[#FAFAF9] border-black/10 text-[#1C1917] shadow-black/10",
+          card: "bg-[#FAFAF9]/95 border-black/10 text-[#1C1917] shadow-black/10",
           title: "text-[#1C1917]",
           desc: "text-neutral-600",
           action: "text-primary",
@@ -336,7 +336,7 @@ export const AppToastContainer: React.FC = () => {
   return (
     <div
       style={{ zIndex: options.zIndex ?? 99999 }}
-      className={`pointer-events-none fixed left-1/2 -translate-x-1/2 transition-all duration-300 ease-out ${
+      className={`pointer-events-none fixed inset-x-0 flex justify-center px-4 transition-all duration-300 ease-out ${
         position === "top"
           ? "top-[calc(var(--zaui-safe-area-inset-top,16px)+56px)]"
           : "bottom-[calc(var(--zaui-safe-area-inset-bottom,16px)+88px)]"
@@ -352,7 +352,7 @@ export const AppToastContainer: React.FC = () => {
         onClick={hide}
         className={`${
           visible ? "pointer-events-auto" : "pointer-events-none"
-        } flex w-[calc(100vw-32px)] max-w-[460px] items-center gap-2.5 rounded-[14px] border p-3 shadow-xl backdrop-blur-md transition-all active:scale-[0.99] ${variant.card}`}
+        } flex w-full max-w-[420px] items-center gap-2.5 rounded-2xl border p-3 shadow-lg backdrop-blur-md transition-all active:scale-[0.99] ${variant.card}`}
       >
         {/* Icon */}
         {renderIcon()}
