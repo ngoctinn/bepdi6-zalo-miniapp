@@ -107,9 +107,9 @@ export function CheckoutOrderSummary({
       <div className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-3.5 pt-3.5 shadow-lg backdrop-blur-md">
         <button
           type="button"
-          disabled={isSubmitting || isUpdatingFee}
+          disabled={isSubmitting || isUpdatingFee || !isQuoteReady}
           onClick={onPlaceOrder}
-          className="flex min-h-[48px] w-full touch-manipulation items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-sm transition-all hover:bg-primaryDark active:scale-[0.99] disabled:opacity-75"
+          className="flex min-h-[48px] w-full touch-manipulation items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-sm transition-all hover:bg-primaryDark active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <div className="flex items-center gap-2">
             {isUpdatingFee && (
@@ -120,12 +120,16 @@ export function CheckoutOrderSummary({
                 ? copy.checkout.processing
                 : isUpdatingFee
                   ? "Đang tính phí giao hàng..."
-                  : copy.checkout.placeOrder}
+                  : shippingStatus === "OUT_OF_RADIUS"
+                    ? "Ngoài bán kính giao hàng"
+                    : !isQuoteReady
+                      ? "Chưa có báo giá giao hàng"
+                      : copy.checkout.placeOrder}
             </span>
           </div>
           <div className="flex items-center gap-1 font-extrabold">
             <span>{formatCurrency(displayTotal)}đ</span>
-            {!isUpdatingFee && !isSubmitting && (
+            {!isUpdatingFee && !isSubmitting && isQuoteReady && (
               <svg
                 className="h-4 w-4"
                 fill="none"

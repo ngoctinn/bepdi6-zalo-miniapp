@@ -147,11 +147,14 @@ class TestCheckoutPreviewAPI:
         )
 
         assert response.status_code == 200
-        data = response.json()["data"]
+        res_json = response.json()
+        assert res_json["success"] is True
+        data = res_json["data"]
         assert Decimal(str(data["shipping_fee"])) == Decimal("0.00")
         assert data["shipping_status"] == "OUT_OF_RADIUS"
         assert data["fee_reason"] == "OUT_OF_DELIVERY_RADIUS"
         assert data["can_checkout"] is False
+        assert Decimal(str(data["distance_km"])) > Decimal("0.00")
 
     def test_checkout_preview_without_delivery_address_is_not_a_free_quote(
         self, api_client, test_data, configured_shop_config

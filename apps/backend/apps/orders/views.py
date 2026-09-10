@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.utils import timezone
 from rest_framework import permissions, status
 from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -26,6 +27,18 @@ from apps.orders.services import (
     OrderService,
 )
 from apps.payments.models import Payment
+
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
+class AdminOrderPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = "page_size"
+    max_page_size = 200
 
 
 class CheckoutPreviewView(APIView):
@@ -121,9 +134,19 @@ class CheckoutPreviewView(APIView):
                     if e.code == "OUT_OF_DELIVERY_RADIUS"
                     else "NOT_CALCULATED"
                 )
+                calculated_distance = Decimal("0.00")
+                if address and address.latitude is not None and address.longitude is not None:
+                    try:
+                        from apps.shipping.services import DistanceCalculator
+                        calculated_distance = DistanceCalculator.calculate_estimated_distance(
+                            address.latitude, address.longitude
+                        )
+                    except Exception:
+                        calculated_distance = Decimal("0.00")
+
                 err_payload = {
                     "subtotal": subtotal,
-                    "distance_km": Decimal("0.00"),
+                    "distance_km": calculated_distance,
                     "shipping_fee": Decimal("0.00"),
                     "discount": Decimal("0.00"),
                     "total_amount": subtotal,
@@ -134,7 +157,7 @@ class CheckoutPreviewView(APIView):
                     "fee_reason": e.code,
                     "can_checkout": False,
                 }
-                return Response({"success": False, "data": err_payload, **err_payload})
+                return Response({"success": True, "data": err_payload, **err_payload})
             raise ValidationError({"code": e.code, "message": e.message}) from None
 
 
@@ -167,6 +190,24 @@ class OrderListCreateView(APIView):
         if status_filter:
             queryset = queryset.filter(status=status_filter)
 
+        paginator = StandardResultsSetPagination()
+        # If client explicitly asks for pagination via page or page_size params
+        if "page" in request.query_params or "page_size" in request.query_params:
+            page_qs = paginator.paginate_queryset(queryset, request, view=self)
+            serializer = OrderListSerializer(page_qs, many=True)
+            return Response(
+                {
+                    "success": True,
+                    "data": {
+                        "orders": serializer.data,
+                        "total": paginator.page.paginator.count,
+                        "page": paginator.page.number,
+                        "page_size": paginator.get_page_size(request),
+                    },
+                }
+            )
+
+        # Backward-compatible fallback for existing frontend/tests without pagination query params
         serializer = OrderListSerializer(queryset, many=True)
         return Response({"success": True, "data": serializer.data})
 
@@ -368,6 +409,12 @@ class AdminOrderListView(APIView):
                 | Q(recipient_name__icontains=search_param)
                 | Q(phone__icontains=search_param)
             )
+
+        paginator = AdminOrderPagination()
+        if "page" in request.query_params or "page_size" in request.query_params:
+            page_qs = paginator.paginate_queryset(queryset, request, view=self)
+            serializer = OrderDetailSerializer(page_qs, many=True)
+            return paginator.get_paginated_response(serializer.data)
 
         serializer = OrderDetailSerializer(queryset, many=True)
         return Response(serializer.data)

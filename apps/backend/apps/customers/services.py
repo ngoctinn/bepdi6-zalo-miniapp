@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import logging
+import time
 
 import requests
 import requests.adapters
@@ -311,6 +312,7 @@ class AuthService:
 
             # 1. Thử nghiệm gọi Photon (dựa trên dữ liệu OpenStreetMap, tốc độ cao, không bị DNS sinkhole)
             try:
+                t0 = time.perf_counter()
                 photon_params = {
                     "lat": lat,
                     "lon": lng,
@@ -321,6 +323,9 @@ class AuthService:
                     headers=headers,
                     timeout=3,
                 )
+                elapsed = time.perf_counter() - t0
+                if elapsed > 2.0:
+                    logger.warning("Slow reverse_geocode call: %.2fs for (%s, %s)", elapsed, lat, lng)
                 if res.status_code == 200:
                     data = res.json()
                     features = data.get("features", [])
@@ -577,12 +582,16 @@ class AuthService:
                 params["lat"] = parsed_lat
                 params["lon"] = parsed_lng
 
+            t0 = time.perf_counter()
             res = session.get(
                 "https://photon.komoot.io/api",
                 params=params,
                 headers=headers,
                 timeout=3,
             )
+            elapsed = time.perf_counter() - t0
+            if elapsed > 2.0:
+                logger.warning("Slow search_places call: %.2fs for query '%s'", elapsed, clean_query)
             if res.status_code == 200:
                 data = res.json()
                 features = data.get("features", [])

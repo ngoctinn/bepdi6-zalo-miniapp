@@ -102,13 +102,17 @@ services:
       - bepdi6_network
 
   # -------------------------------------------------------------
-  # Cloudflare Quick Tunnel (Tự tạo URL ngẫu nhiên *.trycloudflare.com, không cần Token)
+  # Ngrok Tunnel (HTTPS Ingress cho Zalo Mini App)
   # -------------------------------------------------------------
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    container_name: bepdi6_cloudflared
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: bepdi6_ngrok
     restart: unless-stopped
-    command: tunnel --no-autoupdate --protocol http2 --url http://backend:8000
+    ports:
+      - "127.0.0.1:4040:4040"
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    command: http backend:8000 --log stdout
     depends_on:
       - backend
     networks:

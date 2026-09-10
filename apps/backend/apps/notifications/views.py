@@ -1,5 +1,6 @@
 from django.utils import timezone
 from rest_framework.exceptions import NotFound
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -7,6 +8,12 @@ from apps.customers.permissions import IsAuthenticatedCustomer
 from apps.customers.views import get_current_customer
 from apps.notifications.models import Notification
 from apps.notifications.serializers import NotificationSerializer
+
+
+class NotificationPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 100
 
 
 class NotificationListView(APIView):
@@ -24,6 +31,22 @@ class NotificationListView(APIView):
         notifications = Notification.objects.filter(customer=customer).order_by(
             "-created_at"
         )
+        paginator = NotificationPagination()
+        if "page" in request.query_params or "page_size" in request.query_params:
+            page_qs = paginator.paginate_queryset(notifications, request, view=self)
+            serializer = NotificationSerializer(page_qs, many=True)
+            return Response(
+                {
+                    "success": True,
+                    "data": {
+                        "notifications": serializer.data,
+                        "total": paginator.page.paginator.count,
+                        "page": paginator.page.number,
+                        "page_size": paginator.get_page_size(request),
+                    },
+                }
+            )
+
         serializer = NotificationSerializer(notifications, many=True)
         return Response({"success": True, "data": serializer.data})
 

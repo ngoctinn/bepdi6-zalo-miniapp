@@ -2,7 +2,7 @@ import pytest
 from rest_framework.test import APIClient
 
 from apps.customers.models import User
-from apps.menu.models import Product
+from apps.menu.models import Category, Product
 
 
 @pytest.fixture
@@ -114,3 +114,29 @@ def test_admin_product_detail_prefetch_and_queries(
     assert len(data["option_groups"]) == 2
     assert len(data["option_groups"][0]["options"]) == 2
     assert len(data["option_groups"][1]["options"]) == 1
+
+
+@pytest.mark.django_db
+def test_admin_product_and_category_image_size_validation(admin_client):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    cat = Category.objects.create(name="Ăn vặt", sort_order=2)
+
+    # Fake oversized image (> 5MB)
+    large_content = b"x" * (5 * 1024 * 1024 + 1024)
+    oversized_file = SimpleUploadedFile("large.png", large_content, content_type="image/png")
+
+    res = admin_client.post(
+        "/api/v1/admin/products",
+        {
+            "category_id": cat.id,
+            "name": "Bánh tráng phơi sương",
+            "price": "25000.00",
+            "image": oversized_file,
+            "status": "AVAILABLE",
+        },
+        format="multipart",
+    )
+    assert res.status_code == 400
+    assert "Kích thước file ảnh không được vượt quá 5MB" in str(res.json())
+

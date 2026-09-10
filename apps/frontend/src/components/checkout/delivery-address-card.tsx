@@ -103,10 +103,18 @@ export function DeliveryAddressCard({
                     {selectedAddress.address_text}
                   </div>
                   {distanceKm !== undefined && (
-                    <div className="mt-2 inline-flex items-center gap-1 rounded-md border border-primary/20 bg-olive50/90 px-2 py-1 text-xs font-medium text-primaryDark">
+                    <div
+                      className={`mt-2 inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${
+                        shippingStatus === "OUT_OF_RADIUS"
+                          ? "border-red-200 bg-red-50 text-red-600"
+                          : "border-primary/20 bg-olive50/90 text-primaryDark"
+                      }`}
+                    >
                       <span>
                         {copy.checkout.distanceEstimate} ~
                         {distanceKm.toFixed(1)} km
+                        {shippingStatus === "OUT_OF_RADIUS" &&
+                          " (Ngoài bán kính giao hàng)"}
                       </span>
                     </div>
                   )}

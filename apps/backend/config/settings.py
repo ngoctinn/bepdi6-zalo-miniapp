@@ -250,6 +250,7 @@ else:
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "idempotency-key",
     "x-requested-with",
+    "ngrok-skip-browser-warning",
 ]
 
 # Security settings in production

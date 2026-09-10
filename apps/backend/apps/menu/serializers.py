@@ -3,6 +3,15 @@ from rest_framework import serializers
 from apps.menu.models import Category, Option, OptionGroup, Product, ProductPromotion
 from apps.menu.utils import optimize_image_to_webp
 
+MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
+
+
+class MaxSizeImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if data and getattr(data, "size", 0) > MAX_IMAGE_SIZE_BYTES:
+            raise serializers.ValidationError("Kích thước file ảnh không được vượt quá 5MB.")
+        return super().to_internal_value(data)
+
 
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,7 +57,7 @@ class ProductPromotionSerializer(serializers.ModelSerializer):
 class ProductListSerializer(serializers.ModelSerializer):
     category_id = serializers.IntegerField(required=True)
     image_url = serializers.CharField(required=False, allow_blank=True, default="")
-    image = serializers.ImageField(required=False, allow_null=True, write_only=True)
+    image = MaxSizeImageField(required=False, allow_null=True, write_only=True)
 
     # Computed promotion fields (read-only)
     effective_price = serializers.SerializerMethodField()
@@ -95,6 +104,11 @@ class ProductListSerializer(serializers.ModelSerializer):
         if has_active_promotion is not None:
             return None
         return obj.discount_percent
+
+    def validate_image(self, value):
+        if value and getattr(value, "size", 0) > MAX_IMAGE_SIZE_BYTES:
+            raise serializers.ValidationError("Kích thước file ảnh không được vượt quá 5MB.")
+        return value
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -174,7 +188,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     image_url = serializers.CharField(required=False, allow_blank=True, default="")
-    image = serializers.ImageField(required=False, allow_null=True, write_only=True)
+    image = MaxSizeImageField(required=False, allow_null=True, write_only=True)
 
     class Meta:
         model = Category
@@ -187,6 +201,11 @@ class CategorySerializer(serializers.ModelSerializer):
             "sort_order",
             "status",
         ]
+
+    def validate_image(self, value):
+        if value and getattr(value, "size", 0) > MAX_IMAGE_SIZE_BYTES:
+            raise serializers.ValidationError("Kích thước file ảnh không được vượt quá 5MB.")
+        return value
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

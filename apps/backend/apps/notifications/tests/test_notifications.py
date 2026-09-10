@@ -204,6 +204,17 @@ def test_notification_list_and_mark_read_api(api_client, test_data):
     assert len(data["data"]) == 1
     assert data["data"][0]["is_read"] is False
 
+    # 1b. GET /notifications with pagination
+    res_page = api_client.get(
+        "/api/v1/notifications?page=1&page_size=10",
+        HTTP_X_CUSTOMER_ID=str(customer.id),
+    )
+    assert res_page.status_code == 200
+    page_data = res_page.json()
+    assert page_data["success"] is True
+    assert page_data["data"]["total"] == 1
+    assert len(page_data["data"]["notifications"]) == 1
+
     # 2. POST /notifications/{id}/read
     res_read = api_client.post(
         f"/api/v1/notifications/{notif.id}/read",

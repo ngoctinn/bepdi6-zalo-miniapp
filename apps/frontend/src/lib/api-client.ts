@@ -64,6 +64,7 @@ export async function apiClient<T>(
   const requestHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "application/json",
+    "ngrok-skip-browser-warning": "69420",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     ...(headers as Record<string, string>),

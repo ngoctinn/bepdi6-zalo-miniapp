@@ -168,6 +168,18 @@ def test_order_create_and_get_detail_api(api_client, checkout_setup):
     assert len(orders_list) == 1
     assert orders_list[0]["id"] == order_id
 
+    # 3b. GET /orders with pagination query params
+    res_page = api_client.get(
+        "/api/v1/orders?page=1&page_size=10",
+        HTTP_X_CUSTOMER_ID=str(customer.id),
+    )
+    assert res_page.status_code == 200
+    page_data = res_page.json()["data"]
+    assert page_data["total"] == 1
+    assert page_data["page"] == 1
+    assert len(page_data["orders"]) == 1
+    assert page_data["orders"][0]["id"] == order_id
+
     # 4. GET /orders/{id} (Detail)
     res_detail = api_client.get(
         f"/api/v1/orders/{order_id}",
