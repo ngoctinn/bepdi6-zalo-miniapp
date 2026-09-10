@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "./components/layout";
 import { getBasePath } from "./utils/zma";
@@ -73,7 +73,6 @@ const router = createBrowserRouter(
             back: true,
             hideFooter: true,
             headerPosition: "sticky",
-            hideCart: true,
           },
         },
         {
@@ -84,7 +83,6 @@ const router = createBrowserRouter(
             back: false,
             hideFooter: false,
             headerPosition: "sticky",
-            hideCart: true,
             hideHeader: true,
           },
         },
@@ -95,7 +93,6 @@ const router = createBrowserRouter(
             title: "Chi tiết món",
             back: true,
             hideFooter: true,
-            hideCart: true,
             headerPosition: "sticky",
           },
         },

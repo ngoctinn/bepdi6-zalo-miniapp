@@ -135,11 +135,18 @@ class CheckoutPreviewView(APIView):
                     else "NOT_CALCULATED"
                 )
                 calculated_distance = Decimal("0.00")
-                if address and address.latitude is not None and address.longitude is not None:
+                if (
+                    address
+                    and address.latitude is not None
+                    and address.longitude is not None
+                ):
                     try:
                         from apps.shipping.services import DistanceCalculator
-                        calculated_distance = DistanceCalculator.calculate_estimated_distance(
-                            address.latitude, address.longitude
+
+                        calculated_distance = (
+                            DistanceCalculator.calculate_estimated_distance(
+                                address.latitude, address.longitude
+                            )
                         )
                     except Exception:
                         calculated_distance = Decimal("0.00")

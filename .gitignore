@@ -40,6 +40,10 @@ yarn-error.log*
 .pnpm-debug.log*
 dist/
 dist-ssr/
+www/
+apps/frontend/www/
+infra/backups/
+*.sql.gz
 *.local
 
 # Environment variables & secrets

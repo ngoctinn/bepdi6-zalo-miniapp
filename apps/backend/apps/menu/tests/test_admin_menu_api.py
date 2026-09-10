@@ -124,7 +124,9 @@ def test_admin_product_and_category_image_size_validation(admin_client):
 
     # Fake oversized image (> 5MB)
     large_content = b"x" * (5 * 1024 * 1024 + 1024)
-    oversized_file = SimpleUploadedFile("large.png", large_content, content_type="image/png")
+    oversized_file = SimpleUploadedFile(
+        "large.png", large_content, content_type="image/png"
+    )
 
     res = admin_client.post(
         "/api/v1/admin/products",
@@ -139,4 +141,3 @@ def test_admin_product_and_category_image_size_validation(admin_client):
     )
     assert res.status_code == 400
     assert "Kích thước file ảnh không được vượt quá 5MB" in str(res.json())
-

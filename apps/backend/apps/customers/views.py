@@ -1,11 +1,10 @@
-from django.conf import settings
 from django.db import transaction
 from rest_framework import permissions, status
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.customers.models import Address, Customer
+from apps.customers.models import Address
 from apps.customers.serializers import (
     AddressSerializer,
     CustomerSerializer,
@@ -13,48 +12,7 @@ from apps.customers.serializers import (
     ZaloLocationDecodeRequestSerializer,
     ZaloPhoneUpdateRequestSerializer,
 )
-from apps.customers.services import AuthService
-
-
-def get_current_customer(request) -> Customer | None:
-    """
-    Helper to resolve customer strictly from authenticated user.
-    Caches the resolved Customer instance on request._cached_customer to prevent duplicate DB hits.
-    In testing/dev environment (settings.DEBUG is True), falls back to X-Customer-ID for dev/mock testing.
-    In production (settings.DEBUG is False), never trusts client-supplied headers or query params.
-    """
-    if hasattr(request, "_cached_customer"):
-        return request._cached_customer
-
-    customer: Customer | None = None
-
-    if request.user and request.user.is_authenticated:
-        if hasattr(request.user, "customer_profile"):
-            customer = request.user.customer_profile
-        else:
-            zalo_user_id = (
-                getattr(request.user, "zalo_user_id", None) or f"user_{request.user.pk}"
-            )
-            customer, _ = Customer.objects.get_or_create(
-                zalo_user_id=zalo_user_id,
-                defaults={
-                    "name": request.user.get_full_name()
-                    or request.user.username
-                    or "Khách Zalo"
-                },
-            )
-    elif getattr(settings, "DEBUG", False):
-        cust_id = request.headers.get("X-Customer-ID") or request.query_params.get(
-            "customer_id"
-        )
-        if cust_id:
-            try:
-                customer = Customer.objects.get(pk=cust_id)
-            except (Customer.DoesNotExist, ValueError):
-                pass
-
-    request._cached_customer = customer
-    return customer
+from apps.customers.services import AuthService, get_current_customer
 
 
 class ZaloAuthView(APIView):

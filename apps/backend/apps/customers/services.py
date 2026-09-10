@@ -325,7 +325,12 @@ class AuthService:
                 )
                 elapsed = time.perf_counter() - t0
                 if elapsed > 2.0:
-                    logger.warning("Slow reverse_geocode call: %.2fs for (%s, %s)", elapsed, lat, lng)
+                    logger.warning(
+                        "Slow reverse_geocode call: %.2fs for (%s, %s)",
+                        elapsed,
+                        lat,
+                        lng,
+                    )
                 if res.status_code == 200:
                     data = res.json()
                     features = data.get("features", [])
@@ -591,7 +596,11 @@ class AuthService:
             )
             elapsed = time.perf_counter() - t0
             if elapsed > 2.0:
-                logger.warning("Slow search_places call: %.2fs for query '%s'", elapsed, clean_query)
+                logger.warning(
+                    "Slow search_places call: %.2fs for query '%s'",
+                    elapsed,
+                    clean_query,
+                )
             if res.status_code == 200:
                 data = res.json()
                 features = data.get("features", [])
@@ -778,3 +787,41 @@ class AuthService:
         except Exception as e:
             logger.error("Error decoding Zalo location token: %s", e)
             return None
+
+
+def get_current_customer(request) -> Customer | None:
+    """
+    Helper to resolve customer strictly from authenticated user.
+    Caches the resolved Customer instance on request._cached_customer to prevent duplicate DB hits.
+    In testing/dev environment (settings.DEBUG is True), falls back to X-Customer-ID for dev/mock testing.
+    In production (settings.DEBUG is False), never trusts client-supplied headers or query params.
+    """
+    if hasattr(request, "_cached_customer"):
+        return request._cached_customer
+
+    customer: Customer | None = None
+
+    if request.user and request.user.is_authenticated:
+        zalo_user_id = (
+            getattr(request.user, "zalo_user_id", None) or f"user_{request.user.pk}"
+        )
+        customer, _ = Customer.objects.get_or_create(
+            zalo_user_id=zalo_user_id,
+            defaults={
+                "name": request.user.get_full_name()
+                or request.user.username
+                or "Khách Zalo"
+            },
+        )
+    elif getattr(settings, "DEBUG", False):
+        cust_id = request.headers.get("X-Customer-ID") or request.query_params.get(
+            "customer_id"
+        )
+        if cust_id:
+            try:
+                customer = Customer.objects.get(pk=cust_id)
+            except (Customer.DoesNotExist, ValueError):
+                pass
+
+    request._cached_customer = customer
+    return customer

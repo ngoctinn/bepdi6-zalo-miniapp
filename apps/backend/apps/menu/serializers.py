@@ -9,7 +9,9 @@ MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
 class MaxSizeImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if data and getattr(data, "size", 0) > MAX_IMAGE_SIZE_BYTES:
-            raise serializers.ValidationError("Kích thước file ảnh không được vượt quá 5MB.")
+            raise serializers.ValidationError(
+                "Kích thước file ảnh không được vượt quá 5MB."
+            )
         return super().to_internal_value(data)
 
 
@@ -107,7 +109,9 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     def validate_image(self, value):
         if value and getattr(value, "size", 0) > MAX_IMAGE_SIZE_BYTES:
-            raise serializers.ValidationError("Kích thước file ảnh không được vượt quá 5MB.")
+            raise serializers.ValidationError(
+                "Kích thước file ảnh không được vượt quá 5MB."
+            )
         return value
 
     def to_representation(self, instance):
@@ -204,7 +208,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def validate_image(self, value):
         if value and getattr(value, "size", 0) > MAX_IMAGE_SIZE_BYTES:
-            raise serializers.ValidationError("Kích thước file ảnh không được vượt quá 5MB.")
+            raise serializers.ValidationError(
+                "Kích thước file ảnh không được vượt quá 5MB."
+            )
         return value
 
     def to_representation(self, instance):
