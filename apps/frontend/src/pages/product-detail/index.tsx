@@ -86,7 +86,7 @@ export default function ProductDetailPage() {
       });
     }
     setSelectedOptions(initialSelections);
-  }, [product, isEditMode, editCartItemId, items]);
+  }, [product, isEditMode, editCartItemId]);
 
   const handleOptionToggle = (group: OptionGroup, option: Option) => {
     if (option.status === "INACTIVE") return;

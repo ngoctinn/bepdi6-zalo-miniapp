@@ -66,6 +66,24 @@ export const authService = {
    * Kiểm tra đã đăng nhập chưa
    */
   isAuthenticated: (): boolean => {
-    return Boolean(getStoredToken());
+    const token = getStoredToken();
+    if (!token) return false;
+    try {
+      const parts = token.split(".");
+      if (parts.length === 3) {
+        const payloadBase64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const decodedJson = atob(payloadBase64);
+        const payload = JSON.parse(decodedJson);
+        if (payload.exp && typeof payload.exp === "number") {
+          if (Date.now() >= payload.exp * 1000) {
+            clearStoredTokens();
+            return false;
+          }
+        }
+      }
+    } catch {
+      // Fallback nếu token không phải chuẩn JWT
+    }
+    return true;
   },
 };

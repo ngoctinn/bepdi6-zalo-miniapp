@@ -19,8 +19,14 @@ type StaffTab = "PENDING" | "PREPARING" | "READY" | "ALL";
 export default function StaffOrdersPage() {
   const queryClient = useQueryClient();
   const { showSuccess, showError, showWarning, showToast } = useAppToast();
-  const { customer, requestPhoneNumber, isRequestingPhone, refetchCustomer } =
-    useAuth();
+  const {
+    customer,
+    isLoading: isAuthLoading,
+    requestPhoneNumber,
+    isRequestingPhone,
+    refetchCustomer,
+    login,
+  } = useAuth();
 
   const isDev = import.meta.env.DEV;
   const isStaffOrAdmin =
@@ -48,7 +54,9 @@ export default function StaffOrdersPage() {
     isRefetching,
     refetch,
     isError,
-  } = useAdminOrders();
+  } = useAdminOrders(undefined, {
+    enabled: isStaffOrAdmin,
+  });
 
   // Khởi tạo AudioContext khi bật chuông
   const toggleSound = () => {
@@ -237,7 +245,9 @@ export default function StaffOrdersPage() {
     try {
       const phone = await requestPhoneNumber();
       if (phone) {
+        await login(true);
         await refetchCustomer();
+        await queryClient.invalidateQueries();
         await refetch();
         showSuccess("Đã cập nhật số điện thoại thành công!", {
           duration: 2500,
@@ -247,6 +257,15 @@ export default function StaffOrdersPage() {
       showError("Không thể xác thực số điện thoại Zalo");
     }
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className="relative flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
+        <Spinner />
+        <p className="mt-3 text-xs text-stone-500">Đang kiểm tra quyền truy cập...</p>
+      </div>
+    );
+  }
 
   if (!isStaffOrAdmin) {
     return (

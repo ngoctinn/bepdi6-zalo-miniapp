@@ -49,14 +49,17 @@ export default function ProductCard({
     : Number(product.price);
   const originalPrice = Number(product.price);
   const discountPct = product.discount_percent;
-  const canQuickAddDirectly =
-    !product.option_groups ||
-    product.option_groups.length === 0 ||
-    !product.option_groups.some(
-      (group) => group.is_required || group.min_select > 0,
-    );
 
-  // Số lượng của món này hiện có trong giỏ hàng
+  // Sản phẩm chỉ có thể Quick Add trực tiếp nếu hoàn toàn không có option_groups nào có options
+  const hasOptionGroups = Boolean(
+    product.option_groups &&
+      product.option_groups.some(
+        (group) => group.options && group.options.length > 0,
+      ),
+  );
+  const canQuickAddDirectly = !hasOptionGroups;
+
+  // Lọc items của món này hiện có trong giỏ hàng
   const cartItemsForProduct = items.filter(
     (item) => item.product_id === product.id,
   );
@@ -67,21 +70,19 @@ export default function ProductCard({
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onAddToCart) {
-      onAddToCart();
+
+    // Nếu món có options (dù bắt buộc hay tùy chọn): Luôn mở trang/modal chi tiết để khách chọn topping/size
+    if (!canQuickAddDirectly) {
+      if (onClick) {
+        onClick();
+      } else {
+        navigate(`/product/${product.id}`);
+      }
       return;
     }
 
+    // Nếu món KHÔNG CÓ options:
     if (totalQuantityInCart === 0) {
-      if (!canQuickAddDirectly) {
-        if (onClick) {
-          onClick();
-        } else {
-          navigate(`/product/${product.id}`);
-        }
-        return;
-      }
-
       addToCart({
         product_id: product.id,
         product_name: product.name,
@@ -93,9 +94,10 @@ export default function ProductCard({
       return;
     }
 
+    // Nếu đã có trong giỏ (món không có options): tăng số lượng item đó
     if (cartItemsForProduct.length > 0) {
-      const lastItem = cartItemsForProduct[cartItemsForProduct.length - 1];
-      updateQuantity(lastItem.id, lastItem.quantity + 1);
+      const existingItem = cartItemsForProduct[0];
+      updateQuantity(existingItem.id, existingItem.quantity + 1);
     }
   };
 
@@ -103,11 +105,17 @@ export default function ProductCard({
     e.stopPropagation();
     if (cartItemsForProduct.length === 0) return;
 
-    const lastItem = cartItemsForProduct[cartItemsForProduct.length - 1];
-    if (lastItem.quantity > 1) {
-      updateQuantity(lastItem.id, lastItem.quantity - 1);
+    // Nếu có nhiều hơn 1 biến thể khác nhau trong giỏ: chuyển sang chi tiết hoặc giỏ hàng để người dùng tự chọn biến thể muốn giảm
+    if (cartItemsForProduct.length > 1) {
+      navigate(`/cart`);
+      return;
+    }
+
+    const targetItem = cartItemsForProduct[0];
+    if (targetItem.quantity > 1) {
+      updateQuantity(targetItem.id, targetItem.quantity - 1);
     } else {
-      removeFromCart(lastItem.id);
+      removeFromCart(targetItem.id);
     }
   };
 

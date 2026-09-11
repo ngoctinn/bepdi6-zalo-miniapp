@@ -77,34 +77,48 @@ export function CheckoutItemList({
                 contentClassName="bg-white p-3.5"
               >
                 <div className="flex items-center gap-3">
-                  <img
-                    draggable={false}
-                    src={imageUrl}
-                    alt={item.product_name}
-                    className="h-14 w-14 shrink-0 rounded-xl bg-neutral100 object-cover ring-1 ring-black/5"
-                  />
+                  <div
+                    className="flex min-w-0 flex-1 cursor-pointer items-center gap-3"
+                    onClick={() =>
+                      navigate(
+                        `/product/${item.product_id}?editCartItemId=${item.id}`,
+                      )
+                    }
+                  >
+                    <img
+                      draggable={false}
+                      src={imageUrl}
+                      alt={item.product_name}
+                      className="h-14 w-14 shrink-0 rounded-xl bg-neutral100 object-cover ring-1 ring-black/5"
+                    />
 
-                  <div className="min-w-0 flex-1">
-                    <div className="line-clamp-2 text-xs font-semibold leading-snug text-neutral900">
-                      {item.product_name}
-                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="line-clamp-2 text-xs font-semibold leading-snug text-neutral900">
+                        {item.product_name}
+                      </div>
 
-                    {item.options && item.options.length > 0 && (
-                      <div className="mt-0.5 space-y-0.5">
-                        <div className="line-clamp-1 text-xxsmall text-neutral500">
-                          + {formatVariantWithPercentage(item.options)}
+                      {item.options && item.options.length > 0 && (
+                        <div className="mt-0.5 space-y-0.5">
+                          <div className="line-clamp-1 text-xxsmall text-neutral500">
+                            + {formatVariantWithPercentage(item.options)}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {item.note && (
-                      <div className="mt-0.5 line-clamp-1 text-xxsmall italic text-amber-700">
-                        &ldquo;{item.note}&rdquo;
-                      </div>
-                    )}
+                      {item.note && (
+                        <div className="mt-0.5 line-clamp-1 text-xxsmall italic text-amber-700">
+                          &ldquo;{item.note}&rdquo;
+                        </div>
+                      )}
 
-                    <div className="mt-1 text-xs font-bold text-neutral900">
-                      {formatCurrency(itemTotal)}đ
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-neutral900">
+                          {formatCurrency(itemTotal)}đ
+                        </span>
+                        <span className="text-xxxxsmall font-medium text-primary underline">
+                          Sửa
+                        </span>
+                      </div>
                     </div>
                   </div>
 

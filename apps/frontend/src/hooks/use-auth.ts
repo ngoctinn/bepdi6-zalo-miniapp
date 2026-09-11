@@ -36,6 +36,7 @@ export function useAuth() {
     mutationFn: authService.loginWithZalo,
     onSuccess: (data) => {
       queryClient.setQueryData(["customer", "me"], data.customer);
+      queryClient.invalidateQueries();
       setAuthError(null);
     },
     onError: (err) => {
@@ -51,8 +52,8 @@ export function useAuth() {
    * 1. Login Flow:
    * Xin quyền thông tin người dùng trước khi lấy access token để xác thực
    */
-  const loginWithZaloSDK = useCallback(async () => {
-    if (authService.isAuthenticated()) {
+  const loginWithZaloSDK = useCallback(async (force = false) => {
+    if (!force && authService.isAuthenticated()) {
       return;
     }
     if (globalLoginPromise) {

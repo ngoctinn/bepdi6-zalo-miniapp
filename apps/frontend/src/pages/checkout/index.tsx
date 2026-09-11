@@ -19,6 +19,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
 import { makePhoneCall } from "@/utils/phone";
+import { calculateCartTotal } from "@/utils/cart";
 
 // Modularized Checkout Sub-components
 import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
@@ -27,8 +28,11 @@ import { VoucherInputSection } from "@/components/checkout/voucher-input-section
 import { PaymentMethodSelector } from "@/components/checkout/payment-method-selector";
 import { CheckoutOrderSummary } from "@/components/checkout/checkout-order-summary";
 
-// Hàm sinh UUID v4 cho Idempotency-Key
+// Hàm sinh UUID v4 cho Idempotency-Key chuẩn RFC 4122
 function generateUUID() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     const r = (Math.random() * 16) | 0;
     const v = c === "x" ? r : (r & 0x3) | 0x8;
@@ -177,6 +181,10 @@ export default function CheckoutPage() {
         onError: (err: any) => {
           if (requestId !== previewRequestIdRef.current) return;
           setPreviewData(null);
+          // H-05: Rollback applied voucher nếu server báo lỗi voucher
+          if (appliedVoucherCode) {
+            setAppliedVoucherCode("");
+          }
           const errorMsg =
             err?.response?.data?.error?.message ||
             err?.message ||
@@ -187,12 +195,9 @@ export default function CheckoutPage() {
     );
   }, [cartItems, selectedAddress, deliveryType, appliedVoucherCode]);
 
-  // Fallback calculation directly from cart store if preview response is delayed
+  // Fallback calculation directly from cart store using calculateCartTotal (H-04)
   const cartSubtotal = useMemo(() => {
-    return cartItems.reduce(
-      (sum, item) => sum + item.unit_price * item.quantity,
-      0,
-    );
+    return calculateCartTotal(cartItems);
   }, [cartItems]);
 
   const displaySubtotal = previewData?.subtotal ?? cartSubtotal;
@@ -214,6 +219,11 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
+    // Prevent double submission if request is in flight or order completed (C-03)
+    if (isCompletingOrderRef.current || createOrderMutation.isPending) {
+      return;
+    }
+
     if (cartItems.length === 0) {
       showWarning(copy.checkout.emptyCartWarning);
       return;
@@ -280,6 +290,7 @@ export default function CheckoutPage() {
       return;
     }
 
+    isCompletingOrderRef.current = true;
     try {
       const payload =
         deliveryType === "PICKUP"
@@ -316,11 +327,10 @@ export default function CheckoutPage() {
         idempotencyKey: idempotencyKeyRef.current,
       });
 
-      isCompletingOrderRef.current = true;
       clearCart();
       showSuccess(copy.checkout.orderSuccess);
       navigate(`/order/${order.id}`);
-    } catch (err) {
+    } catch (err: any) {
       isCompletingOrderRef.current = false;
       setOrderErrorModal({
         visible: true,
@@ -330,11 +340,18 @@ export default function CheckoutPage() {
             ? err.message
             : copy.checkout.orderFailedDefaultMsg,
       });
-      idempotencyKeyRef.current = generateUUID();
+      // Chỉ đổi Idempotency-Key khi có lỗi validation 4xx từ server (client cần sửa payload).
+      // Khi gặp Network/Timeout error, giữ nguyên Idempotency-Key để retry an toàn (BP-IDEM-1)
+      const isClientValidationError =
+        err?.response?.status >= 400 && err?.response?.status < 500 && err?.response?.status !== 408;
+      if (isClientValidationError) {
+        idempotencyKeyRef.current = generateUUID();
+      }
     }
   };
 
-  if (cartItems.length === 0) {
+  // Tránh flash màn hình "Giỏ hàng rỗng" trong 1 frame khi vừa clearCart() xong đang navigate (NEW-9)
+  if (cartItems.length === 0 && !isCompletingOrderRef.current) {
     return (
       <div className="flex h-full min-h-[60vh] flex-col items-center justify-center bg-background p-6 text-center">
         <div className="mb-4 flex h-28 w-28 items-center justify-center rounded-full bg-black/[0.03]">

@@ -60,15 +60,22 @@ export function useOrderPayment(id: number | string | undefined) {
 
 export const ADMIN_ORDERS_QUERY_KEY = ["admin", "orders"] as const;
 
-export function useAdminOrders(params?: {
-  status?: string;
-  date?: string;
-  search?: string;
-}) {
+export function useAdminOrders(
+  params?: {
+    status?: string;
+    date?: string;
+    search?: string;
+  },
+  options?: {
+    enabled?: boolean;
+  },
+) {
+  const isAuth = authService.isAuthenticated();
+  const isEnabled = (options?.enabled !== undefined ? options.enabled : true) && isAuth;
   return useQuery<Order[]>({
     queryKey: [ADMIN_ORDERS_QUERY_KEY, params],
     queryFn: () => orderService.getAdminOrders(params),
-    enabled: authService.isAuthenticated(),
-    refetchInterval: 5000, // Polling realtime 5 giây cho Màn hình Bếp
+    enabled: isEnabled,
+    refetchInterval: isEnabled ? 5000 : false, // Polling realtime 5 giây cho Màn hình Bếp khi enabled
   });
 }

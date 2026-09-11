@@ -7,7 +7,9 @@ const CART_STORAGE_KEY = "bepdi6_cart_items";
 const loadSavedCart = (): CartItem[] => {
   try {
     const saved = localStorage.getItem(CART_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -21,6 +23,12 @@ const saveCart = (items: CartItem[]) => {
   }
 };
 
+const getOptionsSignature = (options?: CartItem["options"]) =>
+  (options || [])
+    .map((o) => `${o.option_id}:${o.quantity || 1}`)
+    .sort()
+    .join("|");
+
 export const useCartStore = create<CartStore>((set, get) => ({
   items: loadSavedCart(),
 
@@ -28,25 +36,23 @@ export const useCartStore = create<CartStore>((set, get) => ({
     const { items } = get();
 
     // Check trùng món cùng options và cùng ghi chú
-    const optionsSignature = (options?: typeof itemData.options) =>
-      (options || [])
-        .map((o) => `${o.option_id}:${o.quantity}`)
-        .sort()
-        .join("|");
-
-    const newSignature = optionsSignature(itemData.options);
+    const newSignature = getOptionsSignature(itemData.options);
     const existingIndex = items.findIndex(
       (item) =>
         item.product_id === itemData.product_id &&
         (item.note || "") === (itemData.note || "") &&
-        optionsSignature(item.options) === newSignature,
+        getOptionsSignature(item.options) === newSignature,
     );
 
     let updatedItems: CartItem[];
     if (existingIndex > -1) {
       updatedItems = items.map((item, idx) =>
         idx === existingIndex
-          ? { ...item, quantity: item.quantity + itemData.quantity }
+          ? {
+              ...item,
+              unit_price: itemData.unit_price,
+              quantity: item.quantity + itemData.quantity,
+            }
           : item,
       );
     } else {
@@ -63,9 +69,40 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   updateCartItem: (id, itemData) => {
     const { items } = get();
-    const updatedItems = items.map((item) =>
-      item.id === id ? { ...item, ...itemData } : item,
+    const targetItem = items.find((item) => item.id === id);
+    if (!targetItem) return;
+
+    const mergedPayload = { ...targetItem, ...itemData };
+    if (mergedPayload.quantity <= 0) {
+      get().removeFromCart(id);
+      return;
+    }
+
+    const targetSignature = getOptionsSignature(mergedPayload.options);
+    const duplicateItemIndex = items.findIndex(
+      (item) =>
+        item.id !== id &&
+        item.product_id === mergedPayload.product_id &&
+        (item.note || "") === (mergedPayload.note || "") &&
+        getOptionsSignature(item.options) === targetSignature,
     );
+
+    let updatedItems: CartItem[];
+    if (duplicateItemIndex > -1) {
+      // Nếu sau khi sửa bị trùng với 1 item khác: gộp quantity và xóa item hiện tại
+      const targetExisting = items[duplicateItemIndex];
+      updatedItems = items
+        .filter((item) => item.id !== id)
+        .map((item) =>
+          item.id === targetExisting.id
+            ? { ...item, quantity: item.quantity + mergedPayload.quantity }
+            : item,
+        );
+    } else {
+      updatedItems = items.map((item) =>
+        item.id === id ? mergedPayload : item,
+      );
+    }
     saveCart(updatedItems);
     set({ items: updatedItems });
   },

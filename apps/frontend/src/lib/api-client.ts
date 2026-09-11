@@ -70,11 +70,16 @@ export async function apiClient<T>(
     ...(headers as Record<string, string>),
   };
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15_000); // 15s default timeout (NEW-10)
+
   try {
     const response = await fetch(url, {
       ...customConfig,
       headers: requestHeaders,
+      signal: customConfig.signal || controller.signal,
     });
+    clearTimeout(timeoutId);
 
     // Handle HTTP No Content
     if (response.status === 204) {
