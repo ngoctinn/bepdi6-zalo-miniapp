@@ -184,15 +184,27 @@ class AuthService:
                 if updated_fields:
                     customer.save(update_fields=updated_fields)
 
-            # Create or link internal Django User for JWT token issuance
-            user, _ = User.objects.get_or_create(
-                username=f"zalo_{customer.zalo_user_id}",
-                defaults={
-                    "zalo_user_id": customer.zalo_user_id,
-                    "role": User.Role.CUSTOMER,
-                    "is_staff": False,
-                },
-            )
+            # Create or link internal Django User for JWT token issuance.
+            # Ưu tiên liên kết với User có sẵn theo zalo_user_id hoặc phone (như Admin/Staff được tạo trước)
+            user = None
+            if customer.zalo_user_id:
+                user = User.objects.filter(zalo_user_id=customer.zalo_user_id).first()
+
+            if not user and customer.phone:
+                user = User.objects.filter(phone=customer.phone).first()
+                if user and not user.zalo_user_id:
+                    user.zalo_user_id = customer.zalo_user_id
+                    user.save(update_fields=["zalo_user_id", "updated_at"])
+
+            if not user:
+                user, _ = User.objects.get_or_create(
+                    username=f"zalo_{customer.zalo_user_id}",
+                    defaults={
+                        "zalo_user_id": customer.zalo_user_id,
+                        "role": User.Role.CUSTOMER,
+                        "is_staff": False,
+                    },
+                )
 
         refresh = RefreshToken.for_user(user)
         refresh["customer_id"] = customer.id
@@ -263,6 +275,12 @@ class AuthService:
         if phone_number:
             customer.phone = phone_number
             customer.save(update_fields=["phone", "updated_at"])
+
+            # Nếu số điện thoại vừa xác thực trùng khớp với số điện thoại của User (Staff/Admin)
+            user_by_phone = User.objects.filter(phone=phone_number).first()
+            if user_by_phone and not user_by_phone.zalo_user_id:
+                user_by_phone.zalo_user_id = customer.zalo_user_id
+                user_by_phone.save(update_fields=["zalo_user_id", "updated_at"])
         return phone_number
 
     @classmethod

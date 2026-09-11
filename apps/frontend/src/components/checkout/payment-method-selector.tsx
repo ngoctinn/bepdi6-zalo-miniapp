@@ -80,10 +80,10 @@ export function PaymentMethodSelector({
                     : "font-medium text-neutral800",
                 )}
               >
-                Chuyển khoản
+                {copy.checkout.paymentBankTransfer || "Chuyển khoản"}
               </span>
               <span className="inline-flex items-center justify-center rounded-md border border-olive600/20 bg-olive100 px-1.5 py-0.5 text-[10px] font-bold leading-none text-olive900">
-                Khuyên dùng
+                {copy.checkout.recommendedBadge || "Khuyên dùng"}
               </span>
             </div>
             <span className="mt-0.5 text-xxsmall font-medium text-neutral500">

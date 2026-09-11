@@ -303,6 +303,9 @@ const semantic = {
       total: "Tổng cộng",
       checkout: "Thanh toán",
       continue: "Tiếp tục mua sắm",
+      deleteConfirmTitle: "Xóa món khỏi đơn hàng?",
+      deleteConfirmButton: "Xóa món",
+      deleteKeepButton: "Giữ lại",
     },
     checkout: {
       title: "Thanh toán",
@@ -384,6 +387,12 @@ const semantic = {
       recommended: "Khuyên dùng",
       deliveryMethod: "Hình thức",
       selfPickupFree: "Tự đến lấy (0đ)",
+      storeInfoSection: "Thông tin cửa hàng",
+      calculatingShipping: "Đang tính phí giao hàng...",
+      outOfRadiusShipping: "Ngoài bán kính giao hàng",
+      quoteNotReady: "Chưa có báo giá giao hàng",
+      paymentBankTransfer: "Chuyển khoản",
+      recommendedBadge: "Khuyên dùng",
     },
     order: {
       title: "Đơn Hàng Của Tôi",
@@ -425,6 +434,8 @@ const semantic = {
       notFound: "Không tìm thấy sản phẩm",
       loading: "Đang tải...",
       outOfStock: "TẠM HẾT",
+      chooseOptionPrefix: "Vui lòng chọn tùy chọn trong",
+      minOptionPrefix: "Vui lòng chọn tối thiểu",
     },
     profile: {
       title: "Tài Khoản Của Tôi",
@@ -512,6 +523,10 @@ const semantic = {
       emptyOrdersTitle: "Không có đơn hàng nào",
       emptyOrdersHint:
         "Các đơn hàng mới sẽ tự động hiển thị tại đây khi khách đặt món.",
+      accessDeniedTitle: "Yêu cầu quyền Quản lý / Bếp",
+      accessDeniedDesc:
+        "Tài khoản hiện tại chưa được cấp quyền Quản lý hoặc Nhân viên Bếp. Vui lòng liên kết Số điện thoại hoặc liên hệ Quản trị viên để được cấp quyền truy cập.",
+      linkPhoneBtn: "Lấy Số Điện Thoại Zalo Để Xác Thực",
       tabs: {
         pending: "Chờ nhận",
         preparing: "Đang nấu",
@@ -612,6 +627,9 @@ const semantic = {
       cancelSuccess: "Đã hủy đơn hàng thành công",
       cancelFailed: "Không thể hủy đơn hàng",
       cancelReasonUser: "Khách hàng tự hủy trên ứng dụng",
+      copyFailedFallback:
+        "Không thể tự động sao chép. Vui lòng sao chép thủ công.",
+      processing: "Đang xử lý...",
     },
     orderSuccess: {
       title: "Đặt hàng thành công!",

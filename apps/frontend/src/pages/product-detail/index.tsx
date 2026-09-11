@@ -166,7 +166,9 @@ export default function ProductDetailPage() {
       for (const group of product.option_groups) {
         const count = (selectedOptions[group.id] || []).length;
         if (group.is_required && count === 0) {
-          setValidationError(`Vui lòng chọn tùy chọn trong "${group.name}"`);
+          setValidationError(
+            `${copy.product.chooseOptionPrefix || "Vui lòng chọn tùy chọn trong"} "${group.name}"`,
+          );
           const el = document.getElementById(`option-group-${group.id}`);
           if (el) {
             el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -175,7 +177,7 @@ export default function ProductDetailPage() {
         }
         if (group.min_select > 0 && count < group.min_select) {
           setValidationError(
-            `Vui lòng chọn tối thiểu ${group.min_select} tùy chọn trong "${group.name}"`,
+            `${copy.product.minOptionPrefix || "Vui lòng chọn tối thiểu"} ${group.min_select} tùy chọn trong "${group.name}"`,
           );
           const el = document.getElementById(`option-group-${group.id}`);
           if (el) {
@@ -416,7 +418,7 @@ export default function ProductDetailPage() {
 
       {/* Bottom Action Bar */}
       {product && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-black/5 bg-background/95 px-4 py-3 pb-[max(16px,calc(var(--app-safe-area-bottom,0px)+12px))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-md">
+        <div className="safe-bottom fixed bottom-0 left-0 right-0 z-50 border-t border-black/5 bg-background/95 px-4 pt-3 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-md">
           {validationError && (
             <div className="mb-2 flex items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-500/10 py-1.5 text-center text-xs font-medium text-red-600">
               <svg

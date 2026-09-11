@@ -160,7 +160,7 @@ export function DeliveryAddressCard({
           <div className="flex flex-col gap-2">
             <div className="px-1">
               <span className="text-xs font-bold uppercase text-neutral900">
-                Thông tin cửa hàng
+                {copy.checkout.storeInfoSection || "Thông tin cửa hàng"}
               </span>
             </div>
             <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
@@ -180,36 +180,27 @@ export function DeliveryAddressCard({
             </div>
           </div>
 
-          {/* Thông tin người nhận */}
+          {/* Người nhận món tại quán */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-bold uppercase text-neutral900">
-                Thông tin người đến lấy
+                {copy.checkout.pickupStoreSection}
               </span>
               {isZaloRuntime() && (
                 <button
                   type="button"
-                  className="text-xs font-semibold text-primary transition-opacity hover:opacity-80"
-                  onClick={async () => {
-                    try {
-                      const phone = await requestPhoneNumber();
-                      if (phone) {
-                        onPickupPhoneChange(phone);
-                      }
-                    } catch (e) {
-                      showWarning("Không thể lấy số điện thoại từ Zalo");
-                    }
-                  }}
+                  onClick={handleGetZaloProfile}
+                  className="text-xxxxsmall font-bold text-primary underline"
                 >
-                  Lấy SĐT Zalo
+                  {copy.checkout.getZaloProfile}
                 </button>
               )}
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="shadow-xs space-y-3 rounded-2xl border border-black/[0.06] bg-white p-4">
               <div>
                 <input
                   type="text"
-                  placeholder="Tên người đến lấy"
+                  placeholder={copy.checkout.pickupNamePlaceholder}
                   value={pickupName}
                   onChange={(e) => onPickupNameChange(e.target.value)}
                   className={`shadow-xs w-full rounded-xl border bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:outline-none ${
@@ -227,7 +218,10 @@ export function DeliveryAddressCard({
               <div>
                 <input
                   type="tel"
-                  placeholder="Số điện thoại liên hệ"
+                  placeholder={
+                    copy.checkout.pickupPhonePlaceholder ||
+                    "Số điện thoại liên hệ"
+                  }
                   value={pickupPhone}
                   onChange={(e) => onPickupPhoneChange(e.target.value)}
                   className={`shadow-xs w-full rounded-xl border bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:outline-none ${

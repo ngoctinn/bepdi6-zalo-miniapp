@@ -101,3 +101,37 @@ def test_customer_address_crud(auth_client):
     res_del = client.delete(f"/api/v1/customers/me/addresses/{addr1_id}")
     assert res_del.status_code == 200
     assert not Address.objects.filter(pk=addr1_id).exists()
+
+
+@pytest.mark.django_db
+def test_customer_phone_update_links_staff_role(auth_client):
+    client = auth_client["client"]
+    customer = auth_client["customer"]
+
+    # Pre-create staff user with phone
+    staff_user = User.objects.create_user(
+        username="chef_master",
+        phone="0933445566",
+        role=User.Role.STAFF,
+        is_staff=True,
+    )
+
+    from unittest.mock import patch
+
+    with patch(
+        "apps.customers.services.AuthService.decode_zalo_phone_token"
+    ) as mock_decode:
+        mock_decode.return_value = "0933445566"
+        res = client.post(
+            "/api/v1/customers/me/phone",
+            {"phone_token": "valid_token"},
+            format="json",
+        )
+
+    assert res.status_code == 200
+    data = res.json()["data"]
+    assert data["phone"] == "0933445566"
+    assert data["role"] == "STAFF"
+
+    staff_user.refresh_from_db()
+    assert staff_user.zalo_user_id == customer.zalo_user_id

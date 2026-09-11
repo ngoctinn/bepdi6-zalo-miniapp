@@ -105,7 +105,10 @@ export default function OrderDetailPage() {
       }, 1500);
     } catch (err) {
       console.warn("[Clipboard] copy failed:", err);
-      showError("Không thể tự động sao chép. Vui lòng sao chép thủ công.");
+      showError(
+        copy.orderDetail.copyFailedFallback ||
+          "Không thể tự động sao chép. Vui lòng sao chép thủ công.",
+      );
     }
   };
 
@@ -737,7 +740,7 @@ export default function OrderDetailPage() {
             {isCancelling ? (
               <div className="flex items-center gap-2">
                 <Spinner />
-                <span>Đang xử lý...</span>
+                <span>{copy.orderDetail.processing || "Đang xử lý..."}</span>
               </div>
             ) : (
               <span>{copy.orderDetail.cancelButton}</span>

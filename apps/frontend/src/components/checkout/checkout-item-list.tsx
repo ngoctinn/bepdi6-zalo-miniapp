@@ -129,9 +129,10 @@ export function CheckoutItemList({
       </div>
 
       {/* Confirmation Dialog: Xóa 1 món */}
+      {/* Confirmation Dialog: Xóa 1 món */}
       <ConfirmModal
         visible={Boolean(itemToDelete)}
-        title="Xóa món khỏi đơn hàng?"
+        title={copy.cart.deleteConfirmTitle || "Xóa món khỏi đơn hàng?"}
         description={
           itemToDelete ? (
             <span>
@@ -143,8 +144,8 @@ export function CheckoutItemList({
             </span>
           ) : undefined
         }
-        confirmText="Xóa món"
-        cancelText="Giữ lại"
+        confirmText={copy.cart.deleteConfirmButton || "Xóa món"}
+        cancelText={copy.cart.deleteKeepButton || "Giữ lại"}
         type="danger"
         onConfirm={confirmDeleteItem}
         onCancel={() => setItemToDelete(null)}

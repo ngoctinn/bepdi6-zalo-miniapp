@@ -12,11 +12,19 @@ import { StaffHeaderActions } from "@/components/staff/staff-header-actions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { copy } from "@/constants/copy";
 
+import { useAuth } from "@/hooks/use-auth";
+
 type StaffTab = "PENDING" | "PREPARING" | "READY" | "ALL";
 
 export default function StaffOrdersPage() {
   const queryClient = useQueryClient();
   const { showSuccess, showError, showWarning, showToast } = useAppToast();
+  const { customer, requestPhoneNumber, isRequestingPhone, refetchCustomer } =
+    useAuth();
+
+  const isDev = import.meta.env.DEV;
+  const isStaffOrAdmin =
+    isDev || customer?.role === "ADMIN" || customer?.role === "STAFF";
 
   const [activeTab, setActiveTab] = useState<StaffTab>("PENDING");
   const [isSoundEnabled, setIsSoundEnabled] = useState(false);
@@ -39,6 +47,7 @@ export default function StaffOrdersPage() {
     isLoading,
     isRefetching,
     refetch,
+    isError,
   } = useAdminOrders();
 
   // Khởi tạo AudioContext khi bật chuông
@@ -223,6 +232,54 @@ export default function StaffOrdersPage() {
       setSelectedOrderForCancel(null);
     }
   };
+
+  const handleLinkStaffPhone = async () => {
+    try {
+      const phone = await requestPhoneNumber();
+      if (phone) {
+        await refetchCustomer();
+        await refetch();
+        showSuccess("Đã cập nhật số điện thoại thành công!", {
+          duration: 2500,
+        });
+      }
+    } catch {
+      showError("Không thể xác thực số điện thoại Zalo");
+    }
+  };
+
+  if (!isStaffOrAdmin) {
+    return (
+      <div className="relative flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+          <Icon icon="zi-lock" className="text-3xl" />
+        </div>
+        <h2 className="text-base font-bold text-neutral900">
+          {copy.staff.accessDeniedTitle || "Yêu cầu quyền Quản lý / Bếp"}
+        </h2>
+        <p className="mt-2 max-w-sm text-xs leading-relaxed text-stone-500">
+          {copy.staff.accessDeniedDesc ||
+            "Tài khoản hiện tại chưa được cấp quyền Quản lý hoặc Bếp. Vui lòng liên kết Số điện thoại hoặc liên hệ Quản trị viên để được cấp quyền."}
+        </p>
+        <div className="mt-6 flex w-full max-w-xs flex-col gap-2.5">
+          <button
+            type="button"
+            disabled={isRequestingPhone}
+            onClick={handleLinkStaffPhone}
+            className="flex h-11 w-full items-center justify-center rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-all active:scale-95 disabled:opacity-50"
+          >
+            {isRequestingPhone ? (
+              <Spinner />
+            ) : (
+              <span>
+                {copy.staff.linkPhoneBtn || "Lấy SĐT Zalo Để Xác Thực"}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex flex-col bg-background pb-24 font-sans">

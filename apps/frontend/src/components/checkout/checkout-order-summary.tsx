@@ -119,11 +119,14 @@ export function CheckoutOrderSummary({
               {isSubmitting
                 ? copy.checkout.processing
                 : isUpdatingFee
-                  ? "Đang tính phí giao hàng..."
+                  ? copy.checkout.calculatingShipping ||
+                    "Đang tính phí giao hàng..."
                   : shippingStatus === "OUT_OF_RADIUS"
-                    ? "Ngoài bán kính giao hàng"
+                    ? copy.checkout.outOfRadiusShipping ||
+                      "Ngoài bán kính giao hàng"
                     : !isQuoteReady
-                      ? "Chưa có báo giá giao hàng"
+                      ? copy.checkout.quoteNotReady ||
+                        "Chưa có báo giá giao hàng"
                       : copy.checkout.placeOrder}
             </span>
           </div>

@@ -23,8 +23,24 @@ class CustomerSerializer(serializers.ModelSerializer):
     def get_role(self, obj) -> str:
         from apps.customers.models import User
 
-        user = User.objects.filter(zalo_user_id=obj.zalo_user_id).first()
-        return user.role if user else User.Role.CUSTOMER
+        # Tìm User theo zalo_user_id (ưu tiên role ADMIN / STAFF nếu có nhiều record)
+        users = User.objects.filter(zalo_user_id=obj.zalo_user_id).order_by("role")
+        for u in users:
+            if u.role in [User.Role.ADMIN, User.Role.STAFF]:
+                return u.role
+        if users.exists():
+            return users.first().role
+
+        # Fallback theo số điện thoại nếu đã có
+        if obj.phone:
+            user_by_phone = User.objects.filter(phone=obj.phone).first()
+            if user_by_phone and user_by_phone.role in [
+                User.Role.ADMIN,
+                User.Role.STAFF,
+            ]:
+                return user_by_phone.role
+
+        return User.Role.CUSTOMER
 
 
 class AddressSerializer(serializers.ModelSerializer):
