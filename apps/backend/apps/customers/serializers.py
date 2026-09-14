@@ -67,6 +67,22 @@ class AddressSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+    def to_internal_value(self, data):
+        """
+        Auto-rounds GPS coordinates from mobile/ZMP SDK to 8 decimal places
+        to ensure compatibility with max_digits=10 (lat) and max_digits=11 (lng).
+        """
+        if isinstance(data, dict):
+            data = data.copy()
+            for coord_field in ("latitude", "longitude"):
+                if coord_field in data and data[coord_field] is not None:
+                    try:
+                        val = float(data[coord_field])
+                        data[coord_field] = f"{val:.8f}"
+                    except (ValueError, TypeError):
+                        pass
+        return super().to_internal_value(data)
+
 
 class ZaloAuthRequestSerializer(serializers.Serializer):
     zalo_token = serializers.CharField(required=False, allow_blank=True, default="")

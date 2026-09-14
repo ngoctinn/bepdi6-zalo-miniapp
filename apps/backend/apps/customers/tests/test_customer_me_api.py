@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from rest_framework.test import APIClient
 
@@ -48,20 +50,22 @@ def test_customer_me_get_and_patch(auth_client):
 def test_customer_address_crud(auth_client):
     client = auth_client["client"]
 
-    # 1. POST /customers/me/addresses (Create first address -> is_default=True)
+    # 1. POST /customers/me/addresses (Create first address with high-precision float GPS -> is_default=True)
     payload_1 = {
         "label": "Nhà riêng",
         "recipient_name": "Lê Hoàng",
         "phone": "0901234567",
         "address_text": "123 Lê Lợi, Q.1",
-        "latitude": "10.77210000",
-        "longitude": "106.69830000",
+        "latitude": 10.730629202833462,
+        "longitude": 106.6250480578899,
         "is_default": False,
     }
     res_add1 = client.post("/api/v1/customers/me/addresses", payload_1, format="json")
     assert res_add1.status_code == 201
     addr1_id = res_add1.json()["data"]["id"]
     assert res_add1.json()["data"]["is_default"] is True
+    assert Decimal(str(res_add1.json()["data"]["latitude"])) == Decimal("10.73062920")
+    assert Decimal(str(res_add1.json()["data"]["longitude"])) == Decimal("106.62504806")
 
     # 2. POST second address with is_default=True -> switches addr1 to False
     payload_2 = {

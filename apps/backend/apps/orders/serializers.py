@@ -79,6 +79,19 @@ class CheckoutPreviewRequestSerializer(serializers.Serializer):
         choices=Order.PaymentMethod.choices, default=Order.PaymentMethod.COD
     )
 
+    def to_internal_value(self, data):
+        """Auto-rounds high-precision mobile GPS coordinates to 8 decimal places."""
+        if isinstance(data, dict):
+            data = data.copy()
+            for coord_field in ("delivery_latitude", "delivery_longitude"):
+                if coord_field in data and data[coord_field] is not None:
+                    try:
+                        val = float(data[coord_field])
+                        data[coord_field] = f"{val:.8f}"
+                    except (ValueError, TypeError):
+                        pass
+        return super().to_internal_value(data)
+
     def validate(self, attrs):
         """Reject partial or impossible coordinates before a shipping quote/order."""
         latitude = attrs.get("delivery_latitude")

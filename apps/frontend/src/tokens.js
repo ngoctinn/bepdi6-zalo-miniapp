@@ -585,7 +585,7 @@ const semantic = {
       timelineSection: "TIẾN TRÌNH ĐƠN HÀNG",
       recipient: "Người nhận",
       directPickupHint: "Nhận trực tiếp tại quán Bếp Dì 6",
-      openGoogleMap: "Chỉ đường qua Google Maps",
+      openGoogleMap: "Google Maps",
       callHotline: "Gọi hotline quán",
       shopAddressLabel: "Địa chỉ quán:",
       scheduledPickupTime: "Giờ hẹn lấy:",
