@@ -326,7 +326,7 @@ export default function CheckoutPage() {
 
       clearCart();
       showSuccess(copy.checkout.orderSuccess);
-      navigate(`/order/${order.id}`, { state: { order } });
+      navigate(`/order/${order.id}`, { replace: true, state: { order } });
     } catch (err: any) {
       isCompletingOrderRef.current = false;
       setOrderErrorModal({

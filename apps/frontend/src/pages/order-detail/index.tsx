@@ -4,6 +4,7 @@ import { useOrder } from "@/services/order/order.queries";
 import { useShopInfo } from "@/services/shop/shop.queries";
 import { useCancelOrder } from "@/services/order/order.mutations";
 import { useCartStore } from "@/stores/cart.store";
+import { useAuth } from "@/hooks/use-auth";
 import { Button, Spinner, Text } from "zmp-ui";
 import { openWebview, saveImageToGallery } from "zmp-sdk/apis";
 import { formatCurrency } from "@/utils/format";
@@ -18,7 +19,7 @@ import {
   MapPinIcon,
   TruckIcon,
 } from "@/components/common/vectors";
-import { OrderStatus } from "@/types/order.types";
+import { Order, OrderStatus } from "@/types/order.types";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ConfirmModal } from "@/components/common/confirm-modal";
 import { Badge } from "@/components/common/badge";
@@ -68,10 +69,12 @@ const getStepIndex = (status: OrderStatus, isPickup: boolean): number => {
 };
 
 export default function OrderDetailPage() {
+  useAuth();
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { showSuccess, showError } = useAppToast();
+  const { addToCart } = useCartStore();
 
   const initialOrder = (location.state as { order?: Order } | null | undefined)
     ?.order;
@@ -98,14 +101,16 @@ export default function OrderDetailPage() {
   const handleReorder = () => {
     if (!order?.items || order.items.length === 0) return;
     for (const item of order.items) {
+      const productId = item.product_id ?? item.product;
+      if (!productId) continue;
       addToCart({
-        product_id: item.product,
+        product_id: productId,
         product_name: item.product_name,
         unit_price: item.unit_price,
         quantity: item.quantity,
         note: item.note,
         options: (item.options || []).map((opt) => ({
-          option_id: opt.option,
+          option_id: (opt.option_id ?? opt.option) as number,
           option_name: opt.option_name,
           price: opt.price,
           quantity: opt.quantity,
@@ -755,7 +760,7 @@ export default function OrderDetailPage() {
           <span>
             {isPickup
               ? "Hình thức"
-              : `${copy.checkout.shippingFee} (${order.distance_km?.toFixed(1)} km)`}
+              : `${copy.checkout.shippingFee} (${Number(order.distance_km ?? 0).toFixed(1)} km)`}
           </span>
           <span className="font-medium text-neutral900">
             {isPickup

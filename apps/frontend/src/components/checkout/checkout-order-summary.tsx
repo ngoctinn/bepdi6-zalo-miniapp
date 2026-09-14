@@ -59,7 +59,7 @@ export function CheckoutOrderSummary({
                 ? copy.checkout.deliveryMethod || "Hình thức"
                 : `${copy.checkout.shippingFee}${
                     distanceKm !== undefined
-                      ? ` (~${distanceKm.toFixed(1)} km)`
+                      ? ` (~${Number(distanceKm || 0).toFixed(1)} km)`
                       : ""
                   }`}
             </span>

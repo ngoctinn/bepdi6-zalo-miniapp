@@ -35,7 +35,8 @@ export interface OrderItemPayload {
 
 export interface OrderItemOptionResponse {
   id: number;
-  option: number;
+  option?: number;
+  option_id?: number;
   option_name: string;
   price: number;
   quantity: number;
@@ -43,7 +44,8 @@ export interface OrderItemOptionResponse {
 
 export interface OrderItemResponse {
   id: number;
-  product: number;
+  product?: number;
+  product_id?: number;
   product_name: string;
   unit_price: number;
   quantity: number;
@@ -78,7 +80,7 @@ export interface Order {
   delivery_address: string;
   delivery_latitude: number;
   delivery_longitude: number;
-  distance_km: number;
+  distance_km: number | string | null;
   shipping_fee: number;
   subtotal: number;
   discount: number;

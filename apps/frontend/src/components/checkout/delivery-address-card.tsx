@@ -138,7 +138,7 @@ export function DeliveryAddressCard({
                     >
                       <span>
                         {copy.checkout.distanceEstimate} ~
-                        {distanceKm.toFixed(1)} km
+                        {Number(distanceKm || 0).toFixed(1)} km
                         {shippingStatus === "OUT_OF_RADIUS" &&
                           " (Ngoài bán kính giao hàng)"}
                       </span>
