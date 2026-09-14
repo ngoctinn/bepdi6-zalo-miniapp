@@ -22,11 +22,17 @@ export function useOrders(params?: {
   });
 }
 
-export function useOrder(id: number | string | undefined) {
+export function useOrder(
+  id: number | string | undefined,
+  options?: { initialData?: Order },
+) {
   return useQuery<Order>({
     queryKey: ["order", id],
     queryFn: () => orderService.getOrderById(id!),
     enabled: Boolean(id) && authService.isAuthenticated(),
+    initialData: options?.initialData,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 4000),
     refetchInterval: (query) => {
       const order = query.state.data;
       if (

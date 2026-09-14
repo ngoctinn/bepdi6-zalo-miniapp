@@ -19,7 +19,6 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
 import { makePhoneCall } from "@/utils/phone";
-import { calculateCartTotal } from "@/utils/cart";
 
 // Modularized Checkout Sub-components
 import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
@@ -195,18 +194,16 @@ export default function CheckoutPage() {
     );
   }, [cartItems, selectedAddress, deliveryType, appliedVoucherCode]);
 
-  // Fallback calculation directly from cart store using calculateCartTotal (H-04)
-  const cartSubtotal = useMemo(() => {
-    return calculateCartTotal(cartItems);
-  }, [cartItems]);
-
-  const displaySubtotal = previewData?.subtotal ?? cartSubtotal;
+  // Pricing calculation is strictly owned by backend preview (AGENTS.md Rule 3)
+  const displaySubtotal = previewData?.subtotal ?? 0;
   const displayShippingFee =
     deliveryType === "PICKUP" ? 0 : (previewData?.shipping_fee ?? 0);
   const displayDiscount = previewData?.discount ?? 0;
-  const displayTotal =
-    previewData?.total_amount ??
-    Math.max(0, displaySubtotal + displayShippingFee - displayDiscount);
+  const displayTotal = previewData?.total_amount ?? 0;
+  const isPricingReady =
+    !previewMutation.isPending &&
+    previewData !== null &&
+    (deliveryType === "PICKUP" || previewData?.can_checkout === true);
 
   const handleApplyVoucher = () => {
     if (!voucherCodeInput.trim()) return;
@@ -329,7 +326,7 @@ export default function CheckoutPage() {
 
       clearCart();
       showSuccess(copy.checkout.orderSuccess);
-      navigate(`/order/${order.id}`);
+      navigate(`/order/${order.id}`, { state: { order } });
     } catch (err: any) {
       isCompletingOrderRef.current = false;
       setOrderErrorModal({
@@ -482,10 +479,7 @@ export default function CheckoutPage() {
         deliveryType={deliveryType}
         distanceKm={previewData?.distance_km}
         shippingStatus={previewData?.shipping_status}
-        isUpdatingFee={previewMutation.isPending}
-        isQuoteReady={
-          deliveryType === "PICKUP" || previewData?.can_checkout === true
-        }
+        isQuoteReady={isPricingReady}
         isSubmitting={createOrderMutation.isPending}
         onPlaceOrder={handlePlaceOrder}
       />

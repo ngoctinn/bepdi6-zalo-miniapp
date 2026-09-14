@@ -1,17 +1,25 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "./components/layout";
 import { getBasePath } from "./utils/zma";
-import HomePage from "./pages/home";
-import OrderPage from "./pages/order";
-import CheckoutPage from "./pages/checkout";
-import SelectLocationPage from "./pages/select-location";
-import OrderSuccessPage from "./pages/order-success";
-import OrderDetailPage from "./pages/order-detail";
-import StaffOrdersPage from "./pages/staff-orders";
 import RouteErrorBoundary from "./components/common/route-error-boundary";
-import ProductDetailPage from "./pages/product-detail";
+import { RouteLoadingFallback } from "./components/common/route-loading-fallback";
+import { StaffRouteGuard } from "./components/staff/staff-route-guard";
 
+const HomePage = lazy(() => import("./pages/home"));
+const OrderPage = lazy(() => import("./pages/order"));
+const CheckoutPage = lazy(() => import("./pages/checkout"));
+const SelectLocationPage = lazy(() => import("./pages/select-location"));
+const OrderSuccessPage = lazy(() => import("./pages/order-success"));
+const OrderDetailPage = lazy(() => import("./pages/order-detail"));
+const StaffOrdersPage = lazy(() => import("./pages/staff-orders"));
+const ProductDetailPage = lazy(() => import("./pages/product-detail"));
+
+const withSuspense = (Component: React.ComponentType) => (
+  <Suspense fallback={<RouteLoadingFallback />}>
+    <Component />
+  </Suspense>
+);
 const router = createBrowserRouter(
   [
     {
@@ -21,24 +29,24 @@ const router = createBrowserRouter(
       children: [
         {
           path: "/",
-          element: <HomePage />,
+          element: withSuspense(HomePage),
           handle: { hideHeader: true },
         },
         {
           path: "/menu",
-          element: <HomePage />,
+          element: withSuspense(HomePage),
           handle: { hideHeader: true },
         },
         {
           path: "/order",
-          element: <OrderPage />,
+          element: withSuspense(OrderPage),
           handle: {
             hideHeader: true,
           },
         },
         {
           path: "/checkout",
-          element: <CheckoutPage />,
+          element: withSuspense(CheckoutPage),
           handle: {
             title: "Xác nhận đơn hàng",
             back: true,
@@ -48,7 +56,7 @@ const router = createBrowserRouter(
         },
         {
           path: "/select-location",
-          element: <SelectLocationPage />,
+          element: withSuspense(SelectLocationPage),
           handle: {
             title: "Địa chỉ nhận hàng",
             back: true,
@@ -58,7 +66,7 @@ const router = createBrowserRouter(
         },
         {
           path: "/order-success",
-          element: <OrderSuccessPage />,
+          element: withSuspense(OrderSuccessPage),
           handle: {
             title: "Đặt hàng thành công",
             back: false,
@@ -67,7 +75,7 @@ const router = createBrowserRouter(
         },
         {
           path: "/order/:orderId",
-          element: <OrderDetailPage />,
+          element: withSuspense(OrderDetailPage),
           handle: {
             title: "Chi tiết đơn hàng",
             back: true,
@@ -76,19 +84,24 @@ const router = createBrowserRouter(
           },
         },
         {
-          path: "/staff/orders",
-          element: <StaffOrdersPage />,
-          handle: {
-            title: "Bếp & Quản lý đơn",
-            back: false,
-            hideFooter: false,
-            headerPosition: "sticky",
-            hideHeader: true,
-          },
+          element: <StaffRouteGuard />,
+          children: [
+            {
+              path: "/staff/orders",
+              element: withSuspense(StaffOrdersPage),
+              handle: {
+                title: "Bếp & Quản lý đơn",
+                back: false,
+                hideFooter: false,
+                headerPosition: "sticky",
+                hideHeader: true,
+              },
+            },
+          ],
         },
         {
           path: "/product/:id",
-          element: <ProductDetailPage />,
+          element: withSuspense(ProductDetailPage),
           handle: {
             title: "Chi tiết món",
             back: true,

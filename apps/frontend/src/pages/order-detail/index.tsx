@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useOrder } from "@/services/order/order.queries";
 import { useShopInfo } from "@/services/shop/shop.queries";
 import { useCancelOrder } from "@/services/order/order.mutations";
@@ -70,11 +70,24 @@ const getStepIndex = (status: OrderStatus, isPickup: boolean): number => {
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showSuccess, showError } = useAppToast();
 
-  const { data: order, isLoading, error } = useOrder(orderId);
+  const initialOrder = (location.state as { order?: Order } | null | undefined)
+    ?.order;
+  const {
+    data: order,
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useOrder(orderId, {
+    initialData:
+      initialOrder && String(initialOrder.id) === String(orderId)
+        ? initialOrder
+        : undefined,
+  });
   const { data: shopInfo } = useShopInfo();
-  const { addToCart } = useCartStore();
   const cancelOrderMutation = useCancelOrder();
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -187,7 +200,7 @@ export default function OrderDetailPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !order) {
     return (
       <div className="flex h-full flex-col items-center justify-center bg-background">
         <Spinner />
@@ -198,10 +211,10 @@ export default function OrderDetailPage() {
     );
   }
 
-  if (error || !order) {
+  if ((error || !order) && !order) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
           <svg
             className="h-6 w-6"
             viewBox="0 0 24 24"
@@ -212,20 +225,35 @@ export default function OrderDetailPage() {
             strokeLinejoin="round"
           >
             <circle cx="12" cy="12" r="10" />
-            <line x1="15" y1="9" x2="9" y2="15" />
-            <line x1="9" y1="9" x2="15" y2="15" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
         </div>
         <Text size="small" className="font-medium text-neutral700">
           {copy.orderDetail.notFound}
         </Text>
-        <Button
-          size="small"
-          onClick={() => navigate("/order")}
-          className="bg-primary text-white"
-        >
-          {copy.orderDetail.viewOrdersList}
-        </Button>
+        <p className="max-w-[260px] text-xs text-neutral500">
+          Hệ thống đang đồng bộ hoặc kết nối bị gián đoạn. Bạn hãy nhấn thử tải
+          lại nhé!
+        </p>
+        <div className="mt-2 flex w-full max-w-xs items-center gap-2">
+          <Button
+            size="small"
+            variant="secondary"
+            onClick={() => navigate("/order")}
+            className="flex-1 bg-stone-100 text-neutral700"
+          >
+            {copy.orderDetail.viewOrdersList}
+          </Button>
+          <Button
+            size="small"
+            loading={isFetching}
+            onClick={() => refetch()}
+            className="flex-1 bg-primary text-white"
+          >
+            Thử tải lại
+          </Button>
+        </div>
       </div>
     );
   }

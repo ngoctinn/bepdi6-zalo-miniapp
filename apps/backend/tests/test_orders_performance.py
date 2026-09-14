@@ -155,9 +155,10 @@ class TestOrdersQueryPerformance:
         assert response.status_code == 201
         # Queries involved:
         # User auth, customer lookup, idempotency check, shop_config, batch products prefetch (3 queries),
-        # order insert, bulk order items insert (1 query), bulk order item options insert (1 query), payment insert.
-        # Total queries should be <= 14 queries (constant and bounded, no N+1 for 5 items x 2 options).
+        # order insert, bulk order items insert (1 query), bulk order item options insert (1 query), payment insert,
+        # plus prefetched OrderDetailSerializer reload queries (order+payment, items, options).
+        # Total queries is bounded and constant (no N+1 for 5 items x 2 options).
         query_count = len(connection.queries)
-        assert query_count <= 16, (
-            f"Expected <= 16 queries for order creation, got {query_count}"
+        assert query_count <= 20, (
+            f"Expected <= 20 queries for order creation, got {query_count}"
         )

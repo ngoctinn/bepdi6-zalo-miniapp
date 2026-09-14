@@ -24,7 +24,11 @@ export function useCreateOrder() {
       payload: CreateOrderRequest;
       idempotencyKey: string;
     }) => orderService.createOrder(payload, idempotencyKey),
-    onSuccess: () => {
+    onSuccess: (newOrder) => {
+      if (newOrder?.id) {
+        queryClient.setQueryData(["order", String(newOrder.id)], newOrder);
+        queryClient.setQueryData(["order", Number(newOrder.id)], newOrder);
+      }
       queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY });
     },
   });

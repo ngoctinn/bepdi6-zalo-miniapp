@@ -285,17 +285,13 @@ class OrderListCreateView(APIView):
         except OrderProcessingError as e:
             raise ValidationError({"code": e.code, "message": e.message}) from None
 
-        payment_data = None
-        if hasattr(order, "payment"):
-            payment_data = PaymentSerializer(order.payment).data
-
-        payload = {
-            "id": order.id,
-            "order_code": order.order_code,
-            "status": order.status,
-            "total_amount": order.total_amount,
-            "payment": payment_data,
-        }
+        # Reload with prefetched relationships to populate full OrderDetailSerializer
+        order = (
+            Order.objects.prefetch_related("items__options")
+            .select_related("payment")
+            .get(pk=order.pk)
+        )
+        payload = OrderDetailSerializer(order).data
         return Response(
             {"success": True, "data": payload, **payload},
             status=status.HTTP_201_CREATED,
