@@ -1,3 +1,4 @@
+import { Spinner } from "zmp-ui";
 import { Order } from "@/types/order.types";
 
 interface CancelOrderModalProps {
@@ -5,6 +6,7 @@ interface CancelOrderModalProps {
   order: Order | null;
   cancelReason: string;
   customReason: string;
+  loading?: boolean;
   onClose: () => void;
   onSelectReason: (reason: string) => void;
   onChangeCustomReason: (reason: string) => void;
@@ -24,6 +26,7 @@ export function CancelOrderModal({
   order,
   cancelReason,
   customReason,
+  loading = false,
   onClose,
   onSelectReason,
   onChangeCustomReason,
@@ -90,17 +93,26 @@ export function CancelOrderModal({
         <div className="mt-4 flex gap-2.5">
           <button
             type="button"
+            disabled={loading}
             onClick={onClose}
-            className="flex h-11 flex-1 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-xs font-bold text-stone-700 transition-all hover:bg-stone-200 active:scale-[0.98]"
+            className="flex h-11 flex-1 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-xs font-bold text-stone-700 transition-all hover:bg-stone-200 active:scale-[0.98] disabled:opacity-50"
           >
             Quay lại
           </button>
           <button
             type="button"
+            disabled={loading}
             onClick={onConfirmCancel}
-            className="flex h-11 flex-1 items-center justify-center rounded-xl bg-red-600 text-xs font-bold text-white shadow-sm transition-all hover:bg-red-700 active:scale-[0.98]"
+            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 text-xs font-bold text-white shadow-sm transition-all hover:bg-red-700 active:scale-[0.98] disabled:opacity-50"
           >
-            Xác nhận hủy
+            {loading ? (
+              <>
+                <Spinner visible logo={false} />
+                <span>Đang hủy...</span>
+              </>
+            ) : (
+              "Xác nhận hủy"
+            )}
           </button>
         </div>
       </div>

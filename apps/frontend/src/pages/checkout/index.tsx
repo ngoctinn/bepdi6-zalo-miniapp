@@ -342,8 +342,9 @@ export default function CheckoutPage() {
       });
       // Chỉ đổi Idempotency-Key khi có lỗi validation 4xx từ server (client cần sửa payload).
       // Khi gặp Network/Timeout error, giữ nguyên Idempotency-Key để retry an toàn (BP-IDEM-1)
+      const status = err?.status ?? err?.response?.status;
       const isClientValidationError =
-        err?.response?.status >= 400 && err?.response?.status < 500 && err?.response?.status !== 408;
+        status >= 400 && status < 500 && status !== 408;
       if (isClientValidationError) {
         idempotencyKeyRef.current = generateUUID();
       }

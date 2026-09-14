@@ -21,24 +21,31 @@ class CustomerSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "zalo_user_id", "role", "created_at", "updated_at"]
 
     def get_role(self, obj) -> str:
+        from django.conf import settings
+
         from apps.customers.models import User
 
-        # Tìm User theo zalo_user_id (ưu tiên role ADMIN / STAFF nếu có nhiều record)
-        users = User.objects.filter(zalo_user_id=obj.zalo_user_id).order_by("role")
+        # 1. Check Whitelist ADMIN_ZALO_IDS
+        admin_zalo_ids = getattr(settings, "ADMIN_ZALO_IDS", [])
+        if obj.zalo_user_id and str(obj.zalo_user_id) in admin_zalo_ids:
+            return User.Role.ADMIN
+
+        # 2. Tìm User theo zalo_user_id (ưu tiên Admin / staff / superuser)
+        users = User.objects.filter(zalo_user_id=obj.zalo_user_id)
         for u in users:
             if u.role in [User.Role.ADMIN, User.Role.STAFF]:
                 return u.role
-        if users.exists():
-            return users.first().role
+            if u.is_staff or u.is_superuser:
+                return User.Role.ADMIN
 
-        # Fallback theo số điện thoại nếu đã có
+        # 3. Fallback theo số điện thoại nếu đã có
         if obj.phone:
             user_by_phone = User.objects.filter(phone=obj.phone).first()
-            if user_by_phone and user_by_phone.role in [
-                User.Role.ADMIN,
-                User.Role.STAFF,
-            ]:
-                return user_by_phone.role
+            if user_by_phone:
+                if user_by_phone.role in [User.Role.ADMIN, User.Role.STAFF]:
+                    return user_by_phone.role
+                if user_by_phone.is_staff or user_by_phone.is_superuser:
+                    return User.Role.ADMIN
 
         return User.Role.CUSTOMER
 

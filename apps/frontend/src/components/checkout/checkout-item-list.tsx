@@ -127,6 +127,7 @@ export function CheckoutItemList({
                     <QuantityStepper
                       value={item.quantity}
                       minValue={0}
+                      maxValue={99}
                       size="small"
                       variant="rounded"
                       onDecrease={() => handleDecrease(item)}

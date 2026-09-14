@@ -66,6 +66,8 @@ class ProductListSerializer(serializers.ModelSerializer):
     has_promotion = serializers.SerializerMethodField()
     discount_percent = serializers.SerializerMethodField()
 
+    option_groups = OptionGroupSerializer(many=True, read_only=True)
+
     class Meta:
         model = Product
         fields = [
@@ -80,6 +82,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "has_promotion",
             "discount_percent",
             "status",
+            "option_groups",
         ]
 
     def get_effective_price(self, obj: Product):

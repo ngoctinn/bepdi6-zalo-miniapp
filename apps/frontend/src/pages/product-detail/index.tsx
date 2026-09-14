@@ -443,6 +443,7 @@ export default function ProductDetailPage() {
               onDecrease={() => setQuantity(Math.max(1, quantity - 1))}
               onIncrease={() => setQuantity(quantity + 1)}
               minValue={1}
+              maxValue={99}
               variant="rounded"
             />
             <button

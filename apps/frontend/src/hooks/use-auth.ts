@@ -52,49 +52,52 @@ export function useAuth() {
    * 1. Login Flow:
    * Xin quyền thông tin người dùng trước khi lấy access token để xác thực
    */
-  const loginWithZaloSDK = useCallback(async (force = false) => {
-    if (!force && authService.isAuthenticated()) {
-      return;
-    }
-    if (globalLoginPromise) {
-      return globalLoginPromise;
-    }
-    setIsLoggingIn(true);
-    globalLoginPromise = (async () => {
-      try {
-        let accessToken = "";
-        let name = "";
-        let avatar = "";
-
-        if (isZaloRuntime()) {
-          const credentials = await getZaloLoginCredentials();
-          accessToken = credentials.accessToken;
-          name = credentials.name;
-          avatar = credentials.avatar;
-        } else {
-          accessToken = DEV_MOCK_ZALO_TOKEN;
-        }
-
-        if (accessToken) {
-          const payload: ZaloAuthRequest = {
-            access_token: accessToken,
-            name: name,
-            avatar_url: avatar,
-          };
-          await mutateLoginAsync(payload);
-        }
-      } catch (err) {
-        setAuthError(
-          err instanceof Error ? err.message : "Không thể lấy Zalo Token",
-        );
-      } finally {
-        globalLoginPromise = null;
-        setIsLoggingIn(false);
+  const loginWithZaloSDK = useCallback(
+    async (force = false) => {
+      if (!force && authService.isAuthenticated()) {
+        return;
       }
-    })();
+      if (globalLoginPromise) {
+        return globalLoginPromise;
+      }
+      setIsLoggingIn(true);
+      globalLoginPromise = (async () => {
+        try {
+          let accessToken = "";
+          let name = "";
+          let avatar = "";
 
-    return globalLoginPromise;
-  }, [mutateLoginAsync]);
+          if (isZaloRuntime()) {
+            const credentials = await getZaloLoginCredentials();
+            accessToken = credentials.accessToken;
+            name = credentials.name;
+            avatar = credentials.avatar;
+          } else {
+            accessToken = DEV_MOCK_ZALO_TOKEN;
+          }
+
+          if (accessToken) {
+            const payload: ZaloAuthRequest = {
+              access_token: accessToken,
+              name: name,
+              avatar_url: avatar,
+            };
+            await mutateLoginAsync(payload);
+          }
+        } catch (err) {
+          setAuthError(
+            err instanceof Error ? err.message : "Không thể lấy Zalo Token",
+          );
+        } finally {
+          globalLoginPromise = null;
+          setIsLoggingIn(false);
+        }
+      })();
+
+      return globalLoginPromise;
+    },
+    [mutateLoginAsync],
+  );
 
   /**
    * 2. On-Demand Request Phone Flow:

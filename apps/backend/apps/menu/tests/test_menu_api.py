@@ -90,6 +90,9 @@ def test_get_products_api(api_client, menu_data):
     products = data["data"]
     assert len(products) == 1
     assert products[0]["name"] == "Cơm tấm sườn nướng"
+    assert "option_groups" in products[0]
+    assert len(products[0]["option_groups"]) == 1
+    assert len(products[0]["option_groups"][0]["options"]) == 2
 
     # Filter with status=OUT_OF_STOCK
     res_stock = api_client.get("/api/v1/products?status=OUT_OF_STOCK")

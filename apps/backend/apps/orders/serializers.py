@@ -3,6 +3,8 @@ from rest_framework import serializers
 from apps.orders.models import Order, OrderItem, OrderItemOption
 from apps.payments.models import Payment
 
+MAX_ITEM_QUANTITY = 99
+
 
 class OrderItemOptionInputSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -10,7 +12,9 @@ class OrderItemOptionInputSerializer(serializers.Serializer):
 
 class CartItemInputSerializer(serializers.Serializer):
     product_id = serializers.IntegerField(required=True)
-    quantity = serializers.IntegerField(required=True, min_value=1)
+    quantity = serializers.IntegerField(
+        required=True, min_value=1, max_value=MAX_ITEM_QUANTITY
+    )
     option_ids = serializers.ListField(
         child=serializers.IntegerField(), required=False, default=list
     )
@@ -19,17 +23,40 @@ class CartItemInputSerializer(serializers.Serializer):
 
     def to_internal_value(self, data):
         ret = super().to_internal_value(data)
-        if not ret.get("option_ids") and "options" in data:
-            raw_options = data.get("options", [])
-            extracted_ids = []
+        raw_options = data.get("options") or data.get("option_ids") or []
+        extracted_ids = []
+        option_quantities = {}
+        structured_options = []
+
+        if isinstance(raw_options, list):
             for opt in raw_options:
+                opt_id = None
+                qty = 1
                 if isinstance(opt, dict):
-                    opt_id = opt.get("option_id") or opt.get("id") or opt.get("option")
-                    if opt_id is not None:
-                        extracted_ids.append(int(opt_id))
+                    raw_id = opt.get("option_id") or opt.get("id") or opt.get("option")
+                    if raw_id is not None:
+                        opt_id = int(raw_id)
+                    raw_qty = opt.get("quantity") or opt.get("qty")
+                    if raw_qty is not None:
+                        qty = max(1, int(raw_qty))
                 elif isinstance(opt, (int, str)) and str(opt).isdigit():
-                    extracted_ids.append(int(opt))
+                    opt_id = int(opt)
+
+                if opt_id is not None:
+                    extracted_ids.append(opt_id)
+                    option_quantities[opt_id] = qty
+                    structured_options.append({"option_id": opt_id, "quantity": qty})
+
+        if not ret.get("option_ids"):
             ret["option_ids"] = extracted_ids
+        else:
+            for opt_id in ret["option_ids"]:
+                if opt_id not in option_quantities:
+                    option_quantities[opt_id] = 1
+                    structured_options.append({"option_id": opt_id, "quantity": 1})
+
+        ret["option_quantities"] = option_quantities
+        ret["options"] = structured_options
         return ret
 
 
@@ -101,6 +128,12 @@ class OrderCreateRequestSerializer(CheckoutPreviewRequestSerializer):
                         "Vui lòng chọn địa chỉ giao hàng hợp lệ trước khi đặt đơn."
                     )
         return attrs
+
+
+class AdminOrderConfirmRequestSerializer(serializers.Serializer):
+    items = CartItemInputSerializer(many=True, required=False, allow_empty=False)
+    note = serializers.CharField(required=False, allow_blank=True)
+    scheduled_delivery_at = serializers.DateTimeField(required=False, allow_null=True)
 
 
 class OrderItemOptionSerializer(serializers.ModelSerializer):

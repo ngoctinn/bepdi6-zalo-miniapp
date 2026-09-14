@@ -133,9 +133,24 @@ class ProductListView(APIView):
             if cached_data is not None:
                 return Response(cached_data)
 
-        queryset = with_active_promotion(
-            Product.objects.select_related("category")
-        ).order_by("category__sort_order", "id")
+        active_options_prefetch = Prefetch(
+            "options",
+            queryset=Option.objects.filter(status=Option.Status.AVAILABLE).order_by(
+                "sort_order", "id"
+            ),
+        )
+        active_groups_prefetch = Prefetch(
+            "option_groups",
+            queryset=OptionGroup.objects.prefetch_related(
+                active_options_prefetch
+            ).order_by("sort_order", "id"),
+        )
+
+        queryset = (
+            with_active_promotion(Product.objects.select_related("category"))
+            .prefetch_related(active_groups_prefetch)
+            .order_by("category__sort_order", "id")
+        )
 
         if category_id:
             queryset = queryset.filter(category_id=category_id)
@@ -269,9 +284,21 @@ class AdminProductListCreateView(APIView):
     permission_classes = [IsStaffOrAdminUser]
 
     def get(self, request):
-        products = with_active_promotion(
-            Product.objects.select_related("category")
-        ).order_by("id")
+        products = (
+            with_active_promotion(Product.objects.select_related("category"))
+            .prefetch_related(
+                Prefetch(
+                    "option_groups",
+                    queryset=OptionGroup.objects.prefetch_related(
+                        Prefetch(
+                            "options",
+                            queryset=Option.objects.order_by("sort_order", "id"),
+                        )
+                    ).order_by("sort_order", "id"),
+                )
+            )
+            .order_by("id")
+        )
         serializer = ProductListSerializer(products, many=True)
         return Response(serializer.data)
 

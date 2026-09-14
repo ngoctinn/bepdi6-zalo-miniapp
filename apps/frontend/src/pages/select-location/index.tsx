@@ -230,6 +230,11 @@ export default function SelectLocationPage() {
       setFormError(copy.selectLocation.errMissingPhone);
       return;
     }
+    const phoneRegex = /^(0|\+84)(3|5|7|8|9)[0-9]{8}$/;
+    if (!phoneRegex.test(formData.phone.trim())) {
+      setFormError("Số điện thoại không hợp lệ (gồm 10 số)");
+      return;
+    }
     if (!formData.address_text.trim()) {
       setFormError(copy.selectLocation.errMissingAddress);
       return;

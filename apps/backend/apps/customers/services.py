@@ -184,26 +184,66 @@ class AuthService:
                 if updated_fields:
                     customer.save(update_fields=updated_fields)
 
+            # Check Whitelist ADMIN_ZALO_IDS
+            admin_zalo_ids = getattr(settings, "ADMIN_ZALO_IDS", [])
+            is_admin_by_id = (
+                bool(customer.zalo_user_id)
+                and str(customer.zalo_user_id) in admin_zalo_ids
+            )
+
             # Create or link internal Django User for JWT token issuance.
-            # Ưu tiên liên kết với User có sẵn theo zalo_user_id hoặc phone (như Admin/Staff được tạo trước)
+            # Ưu tiên liên kết với User có sẵn theo zalo_user_id hoặc phone (như Admin được tạo trước)
             user = None
             if customer.zalo_user_id:
-                user = User.objects.filter(zalo_user_id=customer.zalo_user_id).first()
+                # Ưu tiên user có role ADMIN hoặc superuser/staff nếu có nhiều record
+                users_qs = User.objects.filter(zalo_user_id=customer.zalo_user_id)
+                user = (
+                    users_qs.filter(role=User.Role.ADMIN).first()
+                    or users_qs.filter(is_staff=True).first()
+                    or users_qs.first()
+                )
 
             if not user and customer.phone:
-                user = User.objects.filter(phone=customer.phone).first()
-                if user and not user.zalo_user_id:
-                    user.zalo_user_id = customer.zalo_user_id
-                    user.save(update_fields=["zalo_user_id", "updated_at"])
+                user_by_phone = User.objects.filter(phone=customer.phone).first()
+                if user_by_phone:
+                    user = user_by_phone
+                    if not user.zalo_user_id:
+                        user.zalo_user_id = customer.zalo_user_id
+                        user.save(update_fields=["zalo_user_id", "updated_at"])
+
+            target_role = (
+                User.Role.ADMIN
+                if (
+                    is_admin_by_id
+                    or (
+                        user
+                        and (
+                            user.role == User.Role.ADMIN
+                            or user.is_staff
+                            or user.is_superuser
+                        )
+                    )
+                )
+                else User.Role.CUSTOMER
+            )
+            is_admin_flag = target_role == User.Role.ADMIN
 
             if not user:
                 user, _ = User.objects.get_or_create(
                     username=f"zalo_{customer.zalo_user_id}",
                     defaults={
                         "zalo_user_id": customer.zalo_user_id,
-                        "role": User.Role.CUSTOMER,
-                        "is_staff": False,
+                        "role": target_role,
+                        "is_staff": is_admin_flag,
+                        "is_superuser": is_admin_flag,
                     },
+                )
+            elif is_admin_by_id and user.role != User.Role.ADMIN:
+                user.role = User.Role.ADMIN
+                user.is_staff = True
+                user.is_superuser = True
+                user.save(
+                    update_fields=["role", "is_staff", "is_superuser", "updated_at"]
                 )
 
         refresh = RefreshToken.for_user(user)

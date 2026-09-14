@@ -15,6 +15,7 @@ from apps.customers.views import get_current_customer
 from apps.menu.models import Product
 from apps.orders.models import Order
 from apps.orders.serializers import (
+    AdminOrderConfirmRequestSerializer,
     CheckoutPreviewRequestSerializer,
     OrderCreateRequestSerializer,
     OrderDetailSerializer,
@@ -443,9 +444,11 @@ class AdminOrderConfirmView(APIView):
         except Order.DoesNotExist:
             raise NotFound("Đơn hàng không tồn tại.") from None
 
-        edited_items = request.data.get("items")
-        note = request.data.get("note")
-        scheduled_delivery_at = request.data.get("scheduled_delivery_at")
+        serializer = AdminOrderConfirmRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        edited_items = serializer.validated_data.get("items")
+        note = serializer.validated_data.get("note")
+        scheduled_delivery_at = serializer.validated_data.get("scheduled_delivery_at")
 
         try:
             updated_order = OrderService.confirm_order(

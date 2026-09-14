@@ -143,3 +143,25 @@ def test_zalo_auth_links_existing_admin_by_phone(api_client):
 
     admin_user.refresh_from_db()
     assert admin_user.zalo_user_id == "zalo_kitchen_101"
+
+
+@pytest.mark.django_db
+def test_zalo_auth_auto_promotes_whitelist_admin(api_client, settings):
+    settings.ADMIN_ZALO_IDS = ["9999988888"]
+
+    payload = {
+        "zalo_token": "mock_9999988888",
+        "name": "VIP Owner",
+    }
+
+    response = api_client.post("/api/v1/auth/zalo", payload, format="json")
+    assert response.status_code == 200
+    data = response.json()["data"]
+
+    # Customer record role should be immediately ADMIN
+    assert data["customer"]["role"] == "ADMIN"
+
+    # API admin orders should be accessible
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {data['access_token']}")
+    admin_res = api_client.get("/api/v1/admin/orders")
+    assert admin_res.status_code == 200

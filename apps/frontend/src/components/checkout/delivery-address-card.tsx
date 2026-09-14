@@ -9,7 +9,10 @@ import { DeliveryTypeSelector } from "./delivery-type-selector";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { isZaloRuntime, getZaloLoginCredentials } from "@/utils/zalo-permissions";
+import {
+  isZaloRuntime,
+  getZaloLoginCredentials,
+} from "@/utils/zalo-permissions";
 
 interface DeliveryAddressCardProps {
   deliveryType: DeliveryType;
@@ -58,9 +61,17 @@ export function DeliveryAddressCard({
         onPickupPhoneChange(credentials.phoneNumber);
       }
     } catch {
-      showWarning(copy.checkout.getZaloProfileError || "Không thể lấy thông tin Zalo");
+      showWarning(
+        copy.checkout.getZaloProfileError || "Không thể lấy thông tin Zalo",
+      );
     }
-  }, [pickupName, pickupPhone, onPickupNameChange, onPickupPhoneChange, showWarning]);
+  }, [
+    pickupName,
+    pickupPhone,
+    onPickupNameChange,
+    onPickupPhoneChange,
+    showWarning,
+  ]);
 
   return (
     <div className="flex flex-col gap-3">

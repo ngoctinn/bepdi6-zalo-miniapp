@@ -16,10 +16,6 @@ export default function HomePage() {
   const { data: allProducts, isLoading: isLoadingProducts } = useProducts();
   const { customer: userProfile } = useAuth();
 
-  const isDev = import.meta.env.DEV;
-  const isStaffOrAdmin =
-    isDev || userProfile?.role === "ADMIN" || userProfile?.role === "STAFF";
-
   const [activeCategoryId, setActiveCategoryId] = useState<
     number | string | null
   >(null);

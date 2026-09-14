@@ -136,6 +136,65 @@ class OrderService:
         Order.Status.COMPLETED: [],
         Order.Status.CANCELLED: [],
     }
+    MAX_ITEM_QUANTITY = 99
+    MAX_MONEY_AMOUNT = Decimal("9999999999.99")
+
+    @classmethod
+    def validate_scheduled_delivery_at(cls, scheduled_delivery_at, shop_config=None):
+        """Validate a requested fulfillment time consistently across order flows."""
+        if scheduled_delivery_at is None:
+            return None
+
+        shop_config = shop_config or ShopConfig.get_solo()
+        now_dt = timezone.localtime()
+        sched_local = (
+            timezone.localtime(scheduled_delivery_at)
+            if timezone.is_aware(scheduled_delivery_at)
+            else scheduled_delivery_at
+        )
+        minimum_minutes = max(5, shop_config.prep_time_minutes // 2)
+        min_prep_dt = now_dt + timezone.timedelta(minutes=minimum_minutes)
+        if sched_local < min_prep_dt:
+            raise OrderProcessingError(
+                "INVALID_SCHEDULED_TIME",
+                f"Thời gian hẹn nhận món phải sau ít nhất {minimum_minutes} phút từ thời điểm hiện tại.",
+            )
+
+        # Chặn hẹn giờ quá 24h tới
+        if (sched_local - now_dt).total_seconds() > 86400:
+            raise OrderProcessingError(
+                "INVALID_SCHEDULED_TIME",
+                "Chỉ được hẹn giờ nhận món trong vòng 24 giờ tới.",
+            )
+
+        if shop_config.open_time and shop_config.close_time:
+            sched_time = sched_local.time()
+            if shop_config.open_time <= shop_config.close_time:
+                is_open = shop_config.open_time <= sched_time <= shop_config.close_time
+            else:
+                # Quán hoạt động ca đêm qua 00:00 (VD: 16:00 - 02:00)
+                is_open = (
+                    sched_time >= shop_config.open_time
+                    or sched_time <= shop_config.close_time
+                )
+            if not is_open:
+                raise OrderProcessingError(
+                    "INVALID_SCHEDULED_TIME",
+                    f"Thời gian hẹn phải nằm trong khung giờ mở cửa của quán ({shop_config.open_time.strftime('%H:%M')} - {shop_config.close_time.strftime('%H:%M')}).",
+                )
+        return scheduled_delivery_at
+
+    @classmethod
+    def _validate_money_amount(cls, amount: Decimal, field_name: str) -> None:
+        if not amount.is_finite() or amount < Decimal("0.00"):
+            raise OrderProcessingError(
+                "INVALID_AMOUNT", f"{field_name} phải là số tiền hợp lệ."
+            )
+        if amount > cls.MAX_MONEY_AMOUNT:
+            raise OrderProcessingError(
+                "ORDER_AMOUNT_TOO_LARGE",
+                "Giá trị đơn hàng vượt quá giới hạn cho phép.",
+            )
 
     @classmethod
     def generate_order_code(cls) -> str:
@@ -190,7 +249,14 @@ class OrderService:
 
         now_time = timezone.localtime().time()
         if shop_config.open_time and shop_config.close_time:
-            if not (shop_config.open_time <= now_time <= shop_config.close_time):
+            if shop_config.open_time <= shop_config.close_time:
+                is_open = shop_config.open_time <= now_time <= shop_config.close_time
+            else:
+                is_open = (
+                    now_time >= shop_config.open_time
+                    or now_time <= shop_config.close_time
+                )
+            if not is_open:
                 raise OrderProcessingError(
                     "SHOP_CLOSED",
                     f"Quán chỉ nhận đơn trong khung giờ {shop_config.open_time.strftime('%H:%M')} - {shop_config.close_time.strftime('%H:%M')}.",
@@ -229,6 +295,11 @@ class OrderService:
             if quantity <= 0:
                 raise OrderProcessingError(
                     "INVALID_QUANTITY", "Số lượng món phải lớn hơn 0."
+                )
+            if quantity > cls.MAX_ITEM_QUANTITY:
+                raise OrderProcessingError(
+                    "INVALID_QUANTITY",
+                    f"Số lượng mỗi món không được vượt quá {cls.MAX_ITEM_QUANTITY}.",
                 )
 
             product = products_map.get(product_id)
@@ -300,7 +371,9 @@ class OrderService:
                     )
 
             item_subtotal = item_price * quantity
+            cls._validate_money_amount(item_subtotal, "Thành tiền món")
             subtotal += item_subtotal
+            cls._validate_money_amount(subtotal, "Tạm tính đơn hàng")
 
             validated_items.append(
                 {
@@ -370,6 +443,7 @@ class OrderService:
         total_amount = subtotal + shipping_fee - discount
         if total_amount < Decimal("0.00"):
             total_amount = Decimal("0.00")
+        cls._validate_money_amount(total_amount, "Tổng tiền đơn hàng")
 
         return {
             "subtotal": subtotal,
@@ -429,33 +503,7 @@ class OrderService:
 
         shop_config = ShopConfig.get_solo()
 
-        # Validate scheduled_delivery_at if provided
-        if scheduled_delivery_at is not None:
-            now_dt = timezone.localtime()
-            sched_local = (
-                timezone.localtime(scheduled_delivery_at)
-                if timezone.is_aware(scheduled_delivery_at)
-                else scheduled_delivery_at
-            )
-
-            # Ensure scheduled time is not in past and allows minimum prep time
-            min_prep_dt = now_dt + timezone.timedelta(
-                minutes=max(5, shop_config.prep_time_minutes // 2)
-            )
-            if sched_local < min_prep_dt:
-                raise OrderProcessingError(
-                    "INVALID_SCHEDULED_TIME",
-                    f"Thời gian hẹn nhận món phải sau ít nhất {max(5, shop_config.prep_time_minutes // 2)} phút từ thời điểm hiện tại.",
-                )
-
-            # Ensure scheduled time is within shop operating hours if set
-            if shop_config.open_time and shop_config.close_time:
-                sched_time = sched_local.time()
-                if not (shop_config.open_time <= sched_time <= shop_config.close_time):
-                    raise OrderProcessingError(
-                        "INVALID_SCHEDULED_TIME",
-                        f"Thời gian hẹn phải nằm trong khung giờ mở cửa của quán ({shop_config.open_time.strftime('%H:%M')} - {shop_config.close_time.strftime('%H:%M')}).",
-                    )
+        cls.validate_scheduled_delivery_at(scheduled_delivery_at, shop_config)
         if delivery_type == Order.DeliveryType.PICKUP:
             rec_name = (
                 recipient_name
@@ -776,6 +824,11 @@ class OrderService:
                     raise OrderProcessingError(
                         "INVALID_QUANTITY", "Số lượng món phải lớn hơn 0."
                     )
+                if quantity > cls.MAX_ITEM_QUANTITY:
+                    raise OrderProcessingError(
+                        "INVALID_QUANTITY",
+                        f"Số lượng mỗi món không được vượt quá {cls.MAX_ITEM_QUANTITY}.",
+                    )
 
                 product = products_map.get(product_id)
                 if not product:
@@ -845,7 +898,9 @@ class OrderService:
                         )
 
                 item_subtotal = item_price * quantity
+                cls._validate_money_amount(item_subtotal, "Thành tiền món")
                 subtotal += item_subtotal
+                cls._validate_money_amount(subtotal, "Tạm tính đơn hàng")
                 validated_items.append(
                     {
                         "product": product,
@@ -907,6 +962,7 @@ class OrderService:
             total_amount = subtotal + order.shipping_fee - discount
             if total_amount < Decimal("0.00"):
                 total_amount = Decimal("0.00")
+            cls._validate_money_amount(total_amount, "Tổng tiền đơn hàng")
 
             old_items_data = [
                 {
@@ -987,6 +1043,7 @@ class OrderService:
         if note is not None and note.strip():
             order.note = note.strip()
         if scheduled_delivery_at is not None:
+            cls.validate_scheduled_delivery_at(scheduled_delivery_at)
             order.scheduled_delivery_at = scheduled_delivery_at
 
         order.save(

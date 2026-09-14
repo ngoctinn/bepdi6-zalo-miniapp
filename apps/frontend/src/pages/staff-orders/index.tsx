@@ -22,14 +22,12 @@ export default function StaffOrdersPage() {
   const {
     customer,
     isLoading: isAuthLoading,
-    requestPhoneNumber,
-    isRequestingPhone,
     refetchCustomer,
     login,
   } = useAuth();
 
   const isDev = import.meta.env.DEV;
-  const isStaffOrAdmin =
+  const isAdmin =
     isDev || customer?.role === "ADMIN" || customer?.role === "STAFF";
 
   const [activeTab, setActiveTab] = useState<StaffTab>("PENDING");
@@ -55,7 +53,7 @@ export default function StaffOrdersPage() {
     refetch,
     isError,
   } = useAdminOrders(undefined, {
-    enabled: isStaffOrAdmin,
+    enabled: isAdmin,
   });
 
   // Khởi tạo AudioContext khi bật chuông
@@ -241,59 +239,64 @@ export default function StaffOrdersPage() {
     }
   };
 
-  const handleLinkStaffPhone = async () => {
-    try {
-      const phone = await requestPhoneNumber();
-      if (phone) {
-        await login(true);
-        await refetchCustomer();
-        await queryClient.invalidateQueries();
-        await refetch();
-        showSuccess("Đã cập nhật số điện thoại thành công!", {
-          duration: 2500,
-        });
-      }
-    } catch {
-      showError("Không thể xác thực số điện thoại Zalo");
-    }
-  };
-
   if (isAuthLoading) {
     return (
       <div className="relative flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
         <Spinner />
-        <p className="mt-3 text-xs text-stone-500">Đang kiểm tra quyền truy cập...</p>
+        <p className="mt-3 text-xs text-stone-500">
+          Đang kiểm tra quyền truy cập...
+        </p>
       </div>
     );
   }
 
-  if (!isStaffOrAdmin) {
+  if (!isAdmin) {
     return (
       <div className="relative flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-600">
           <Icon icon="zi-lock" className="text-3xl" />
         </div>
         <h2 className="text-base font-bold text-neutral900">
-          {copy.staff.accessDeniedTitle || "Yêu cầu quyền Quản lý / Bếp"}
+          Yêu cầu quyền Quản trị / Bếp
         </h2>
         <p className="mt-2 max-w-sm text-xs leading-relaxed text-stone-500">
-          {copy.staff.accessDeniedDesc ||
-            "Tài khoản hiện tại chưa được cấp quyền Quản lý hoặc Bếp. Vui lòng liên kết Số điện thoại hoặc liên hệ Quản trị viên để được cấp quyền."}
+          Tài khoản của bạn chưa được cấp quyền Quản trị viên. Hãy thêm ID Zalo
+          của bạn vào danh sách quản trị viên trên hệ thống.
         </p>
+        {customer?.zalo_user_id && (
+          <div className="mt-4 flex flex-col items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-xs">
+            <span className="font-semibold text-neutral700">
+              Zalo User ID của bạn:
+            </span>
+            <code className="select-all rounded bg-white px-2 py-1 font-mono text-xs font-bold text-amber-800 shadow-sm">
+              {customer.zalo_user_id}
+            </code>
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(customer.zalo_user_id);
+                showToast("Đã sao chép Zalo User ID!", "default", {
+                  duration: 2000,
+                });
+              }}
+              className="text-2xs mt-1 font-bold text-primary underline"
+            >
+              Sao chép ID
+            </button>
+          </div>
+        )}
         <div className="mt-6 flex w-full max-w-xs flex-col gap-2.5">
           <button
             type="button"
-            disabled={isRequestingPhone}
-            onClick={handleLinkStaffPhone}
-            className="flex h-11 w-full items-center justify-center rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-all active:scale-95 disabled:opacity-50"
+            onClick={async () => {
+              await refetchCustomer();
+              await queryClient.invalidateQueries();
+              await refetch();
+              showSuccess("Đã làm mới dữ liệu!");
+            }}
+            className="flex h-11 w-full items-center justify-center rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-all active:scale-95"
           >
-            {isRequestingPhone ? (
-              <Spinner />
-            ) : (
-              <span>
-                {copy.staff.linkPhoneBtn || "Lấy SĐT Zalo Để Xác Thực"}
-              </span>
-            )}
+            Làm mới quyền
           </button>
         </div>
       </div>
@@ -376,6 +379,7 @@ export default function StaffOrdersPage() {
         order={selectedOrderForCancel}
         cancelReason={cancelReason}
         customReason={customReason}
+        loading={processingOrderId === selectedOrderForCancel?.id}
         onClose={() => setCancelModalVisible(false)}
         onSelectReason={setCancelReason}
         onChangeCustomReason={setCustomReason}

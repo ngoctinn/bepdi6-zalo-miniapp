@@ -53,9 +53,9 @@ export default function ProductCard({
   // Sản phẩm chỉ có thể Quick Add trực tiếp nếu hoàn toàn không có option_groups nào có options
   const hasOptionGroups = Boolean(
     product.option_groups &&
-      product.option_groups.some(
-        (group) => group.options && group.options.length > 0,
-      ),
+    product.option_groups.some(
+      (group) => group.options && group.options.length > 0,
+    ),
   );
   const canQuickAddDirectly = !hasOptionGroups;
 
@@ -107,7 +107,7 @@ export default function ProductCard({
 
     // Nếu có nhiều hơn 1 biến thể khác nhau trong giỏ: chuyển sang chi tiết hoặc giỏ hàng để người dùng tự chọn biến thể muốn giảm
     if (cartItemsForProduct.length > 1) {
-      navigate(`/cart`);
+      navigate(`/checkout`);
       return;
     }
 

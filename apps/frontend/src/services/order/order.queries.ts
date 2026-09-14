@@ -71,7 +71,8 @@ export function useAdminOrders(
   },
 ) {
   const isAuth = authService.isAuthenticated();
-  const isEnabled = (options?.enabled !== undefined ? options.enabled : true) && isAuth;
+  const isEnabled =
+    (options?.enabled !== undefined ? options.enabled : true) && isAuth;
   return useQuery<Order[]>({
     queryKey: [ADMIN_ORDERS_QUERY_KEY, params],
     queryFn: () => orderService.getAdminOrders(params),
