@@ -706,10 +706,10 @@ export default function OrderDetailPage() {
       {/* Danh sách món ăn */}
       <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
         <span className="mb-2.5 block text-xs font-bold text-neutral900">
-          {copy.orderDetail.itemsSection} ({order.items.length})
+          {copy.orderDetail.itemsSection} ({order.items?.length || 0})
         </span>
         <div className="space-y-3 divide-y divide-black/[0.05]">
-          {order.items.map((item) => (
+          {(order.items || []).map((item) => (
             <div
               key={item.id}
               className="flex items-start justify-between pt-2 first:pt-0"
