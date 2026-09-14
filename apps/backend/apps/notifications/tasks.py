@@ -30,11 +30,113 @@ def send_in_app_notification(
     return notif.id
 
 
-@shared_task(name="notifications.send_telegram_staff_order_alert")
-def send_telegram_staff_order_alert(order_id: int) -> bool:
+def format_telegram_order_message(order: Order, max_items: int = 15) -> str:
+    """
+    Formats new order notification using safe Telegram HTML tags.
+    Escapes all dynamic/user-provided fields to prevent 400 Bad Request entity parsing errors.
+    Truncates item list if greater than max_items to stay well under the 4096 character limit.
+    """
+    import html
+
+    # Build detailed order item lines
+    items = list(order.items.all())
+    displayed_items = items[:max_items]
+    item_lines = []
+
+    for idx, item in enumerate(displayed_items, 1):
+        options = item.options.all()
+        safe_pname = html.escape(str(item.product_name))
+        opt_str = ""
+        if options:
+            escaped_opts = ", ".join(
+                html.escape(str(opt.option_name)) for opt in options
+            )
+            opt_str = f" (+{escaped_opts})"
+
+        item_note = ""
+        if item.note:
+            escaped_item_note = html.escape(str(item.note))[:150]
+            item_note = f"\n   ↳ <i>Ghi chú:</i> <i>{escaped_item_note}</i>"
+
+        item_lines.append(
+            f"• <b>{idx}. {safe_pname}</b> x{item.quantity} - {item.subtotal:,.0f}đ{opt_str}{item_note}"
+        )
+
+    if len(items) > max_items:
+        remaining_count = len(items) - max_items
+        item_lines.append(f"   <i>... và còn {remaining_count} món khác</i>")
+
+    items_text = (
+        "\n".join(item_lines) if item_lines else "<i>Không có thông tin món</i>"
+    )
+
+    # Delivery & Maps information
+    delivery_type_display = (
+        "🛵 <b>Giao tận nơi</b>"
+        if order.delivery_type == Order.DeliveryType.DELIVERY
+        else "🏪 <b>Nhận tại quán</b>"
+    )
+
+    maps_link = ""
+    if order.delivery_latitude and order.delivery_longitude:
+        maps_link = (
+            f'\n📍 <a href="https://www.google.com/maps?q={order.delivery_latitude},{order.delivery_longitude}">'
+            f"Xem vị trí trên Google Maps</a>"
+        )
+
+    safe_recipient_name = html.escape(str(order.recipient_name or ""))
+    safe_phone = html.escape(str(order.phone or ""))
+    safe_address = html.escape(str(order.delivery_address or ""))[:250]
+
+    order_note = ""
+    if order.note:
+        safe_note = html.escape(str(order.note))[:300]
+        order_note = f"\n📝 <b>Lưu ý của khách:</b> <i>{safe_note}</i>"
+
+    voucher_code_str = ""
+    if order.voucher:
+        voucher_code_str = f" ({html.escape(str(order.voucher.code))})"
+
+    discount_line = (
+        f"\n🎟️ <b>Giảm giá:</b> -{order.discount:,.0f}đ{voucher_code_str}"
+        if order.discount > 0
+        else ""
+    )
+    shipping_line = (
+        f"\n🚚 <b>Phí ship:</b> {order.shipping_fee:,.0f}đ"
+        if order.shipping_fee > 0
+        else ""
+    )
+
+    telegram_text = (
+        f"🔔 <b>[BẾP DÌ 6] ĐƠN HÀNG MỚI!</b>\n"
+        f"━━━━━━━━━━━━━━━━━━\n"
+        f"🧾 <b>Mã đơn:</b> <code>#{html.escape(str(order.order_code))}</code>\n"
+        f"👤 <b>Khách hàng:</b> {safe_recipient_name} (<code>{safe_phone}</code>)\n"
+        f"🏷️ <b>Hình thức:</b> {delivery_type_display}\n"
+        f"🏠 <b>Địa chỉ:</b> {safe_address}{maps_link}{order_note}\n\n"
+        f"🍱 <b>Chi tiết món ăn:</b>\n{items_text}\n"
+        f"━━━━━━━━━━━━━━━━━━\n"
+        f"💰 <b>Tạm tính:</b> {order.subtotal:,.0f}đ"
+        f"{shipping_line}{discount_line}\n"
+        f"💵 <b>Tổng thanh toán:</b> <b>{order.total_amount:,.0f}đ</b>\n"
+        f"💳 <b>Phương thức:</b> {html.escape(str(order.get_payment_method_display()))}"
+    )
+    return telegram_text
+
+
+@shared_task(
+    bind=True,
+    name="notifications.send_telegram_staff_order_alert",
+    autoretry_for=(requests.RequestException,),
+    retry_backoff=True,
+    max_retries=3,
+    retry_jitter=True,
+)
+def send_telegram_staff_order_alert(self, order_id: int) -> bool:
     """
     Sends detailed new order alert to staff/kitchen Telegram group.
-    (Hybrid Notification Strategy: 0 VNĐ, Realtime <1s).
+    (Hybrid Notification Strategy: 0 VNĐ, Realtime <1s, Safe Telegram HTML).
     """
     enable_tele = getattr(settings, "ENABLE_TELEGRAM_NOTIFICATION", True)
     if not enable_tele:
@@ -64,61 +166,14 @@ def send_telegram_staff_order_alert(order_id: int) -> bool:
         )
         return True
 
-    # Build detailed order item lines
-    item_lines = []
-    for idx, item in enumerate(order.items.all(), 1):
-        options = item.options.all()
-        opt_str = (
-            f" (+{', '.join(opt.option_name for opt in options)})" if options else ""
-        )
-        item_note = f"\n   ↳ *Ghi chú:* _{item.note}_" if item.note else ""
-        item_lines.append(
-            f"*{idx}. {item.product_name}* x{item.quantity} - {item.subtotal:,.0f}đ{opt_str}{item_note}"
-        )
-
-    items_text = "\n".join(item_lines) if item_lines else "_Không có thông tin món_"
-
-    # Delivery & Maps information
-    delivery_type_display = (
-        "🛵 *Giao tận nơi*"
-        if order.delivery_type == Order.DeliveryType.DELIVERY
-        else "🏪 *Nhận tại quán*"
-    )
-    maps_link = ""
-    if order.delivery_latitude and order.delivery_longitude:
-        maps_link = f"\n📍 [Xem vị trí trên Google Maps](https://www.google.com/maps?q={order.delivery_latitude},{order.delivery_longitude})"
-
-    order_note = f"\n📝 *Lưu ý của khách:* _{order.note}_" if order.note else ""
-    discount_line = (
-        f"\n🎟️ *Giảm giá:* -{order.discount:,.0f}đ ({order.voucher.code if order.voucher else ''})"
-        if order.discount > 0
-        else ""
-    )
-    shipping_line = (
-        f"\n🚚 *Phí ship:* {order.shipping_fee:,.0f}đ" if order.shipping_fee > 0 else ""
-    )
-
-    telegram_text = (
-        f"🔔 *[BẾP DÌ 6] ĐƠN HÀNG MỚI!*\n"
-        f"━━━━━━━━━━━━━━━━━━\n"
-        f"🧾 *Mã đơn:* `#{order.order_code}`\n"
-        f"👤 *Khách hàng:* {order.recipient_name} (`{order.phone}`)\n"
-        f"🏷️ *Hình thức:* {delivery_type_display}\n"
-        f"🏠 *Địa chỉ:* {order.delivery_address}{maps_link}{order_note}\n\n"
-        f"🍱 *Chi tiết món ăn:*\n{items_text}\n"
-        f"━━━━━━━━━━━━━━━━━━\n"
-        f"💰 *Tạm tính:* {order.subtotal:,.0f}đ"
-        f"{shipping_line}{discount_line}\n"
-        f"💵 *Tổng thanh toán:* *{order.total_amount:,.0f}đ*\n"
-        f"💳 *Phương thức:* {order.get_payment_method_display()}"
-    )
+    telegram_text = format_telegram_order_message(order)
 
     try:
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         payload = {
             "chat_id": chat_id,
             "text": telegram_text,
-            "parse_mode": "Markdown",
+            "parse_mode": "HTML",
             "disable_web_page_preview": True,
         }
         res = requests.post(url, json=payload, timeout=5)
@@ -135,6 +190,12 @@ def send_telegram_staff_order_alert(order_id: int) -> bool:
                 res.text,
             )
             return False
+    except requests.RequestException:
+        logger.warning(
+            "Network error calling Telegram API for Order #%s, retrying...",
+            order.order_code,
+        )
+        raise
     except Exception as e:
         logger.error(
             "Error calling Telegram API for Order #%s: %s", order.order_code, e

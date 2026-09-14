@@ -7,6 +7,7 @@ from apps.customers.models import Customer, User
 from apps.menu.models import Category, Option, OptionGroup, Product
 from apps.notifications.models import Notification
 from apps.notifications.tasks import (
+    format_telegram_order_message,
     send_in_app_notification,
     send_telegram_staff_order_alert,
     send_zalo_oa_staff_alert,
@@ -157,11 +158,93 @@ def test_send_telegram_staff_order_alert_success(test_data, settings, monkeypatc
         in called_payload["url"]
     )
     assert called_payload["json"]["chat_id"] == "-1001234567890"
+    assert called_payload["json"]["parse_mode"] == "HTML"
     assert "FO2608NOTIF01" in called_payload["json"]["text"]
+    assert "<b>[BẾP DÌ 6] ĐƠN HÀNG MỚI!</b>" in called_payload["json"]["text"]
+    assert "<code>#FO2608NOTIF01</code>" in called_payload["json"]["text"]
     assert "Cơm tấm sườn bì" in called_payload["json"]["text"]
     assert "Trứng ốp la" in called_payload["json"]["text"]
     assert "Ít cơm nhiều mỡ hành" in called_payload["json"]["text"]
     assert "google.com/maps" in called_payload["json"]["text"]
+
+
+@pytest.mark.django_db
+def test_format_telegram_order_message_html_escape(test_data):
+    order = test_data["order"]
+    order.recipient_name = "Nguyễn <Văn> & 'An'"
+    order.phone = "0987_654*321"
+    order.delivery_address = "Số 12 [Hẻm 3/4] & Đường <Test>_1"
+    order.note = "Ghi chú: <Cơm> không hành & 1*muỗng [GẤP]"
+    order.save()
+
+    # Update item and option to test dangerous characters
+    item = order.items.first()
+    item.product_name = "Trà sữa <Đặc Biệt> & Trân Châu"
+    item.note = "50% đường & ít đá [note_test*]"
+    item.save()
+
+    text = format_telegram_order_message(order)
+
+    # All HTML sensitive chars MUST be escaped
+    assert "<Văn>" not in text
+    assert "&lt;Văn&gt;" in text
+    assert "&amp; &#x27;An&#x27;" in text or "&amp;" in text
+    assert "&lt;Test&gt;" in text
+    assert "&lt;Cơm&gt;" in text
+    assert "&lt;Đặc Biệt&gt;" in text
+    assert "&amp; ít đá" in text
+
+    # Markdown reserved characters like [ ], *, _ do NOT break Telegram HTML
+    assert "[BẾP DÌ 6]" in text
+    assert "[Hẻm 3/4]" in text
+    assert "[GẤP]" in text
+    assert "0987_654*321" in text
+    assert "1*muỗng" in text
+
+
+@pytest.mark.django_db
+def test_format_telegram_order_message_truncation_over_15_items(test_data):
+    order = test_data["order"]
+    product = order.items.first().product
+
+    # Clear existing items and create 18 items
+    order.items.all().delete()
+    for i in range(1, 19):
+        OrderItem.objects.create(
+            order=order,
+            product=product,
+            product_name=f"Món số {i}",
+            unit_price=Decimal("20000.00"),
+            quantity=1,
+            subtotal=Decimal("20000.00"),
+        )
+
+    text = format_telegram_order_message(order, max_items=15)
+
+    assert "• <b>1. Món số 1</b>" in text
+    assert "• <b>15. Món số 15</b>" in text
+    assert "Món số 16" not in text
+    assert "... và còn 3 món khác" in text
+
+
+@pytest.mark.django_db
+def test_send_telegram_staff_order_alert_network_retry(
+    test_data, settings, monkeypatch
+):
+    import requests
+
+    order = test_data["order"]
+    settings.TELEGRAM_BOT_TOKEN = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+    settings.TELEGRAM_CHAT_ID = "-1001234567890"
+    settings.ENABLE_TELEGRAM_NOTIFICATION = True
+
+    def mock_broken_post(url, json, timeout):
+        raise requests.ConnectionError("Telegram connection timed out")
+
+    monkeypatch.setattr("requests.post", mock_broken_post)
+
+    with pytest.raises(requests.RequestException):
+        send_telegram_staff_order_alert(order_id=order.id)
 
 
 @pytest.mark.django_db
