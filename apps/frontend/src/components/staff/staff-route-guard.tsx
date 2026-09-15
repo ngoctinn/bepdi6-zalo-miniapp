@@ -15,8 +15,7 @@ export function StaffRouteGuard() {
     );
   }
 
-  const isStaff =
-    isDev || customer?.role === "ADMIN" || customer?.role === "STAFF";
+  const isStaff = customer?.role === "ADMIN" || customer?.role === "STAFF";
 
   if (!isStaff) {
     return <Navigate to="/" replace />;

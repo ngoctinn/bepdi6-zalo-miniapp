@@ -1,6 +1,7 @@
 import { Outlet, useMatches } from "react-router-dom";
 import Header from "./header";
 import Footer from "./footer";
+import { DevAdminHelper } from "@/components/common/dev-admin-helper";
 import { cn } from "@/utils/cn";
 
 export default function Layout() {
@@ -35,6 +36,7 @@ export default function Layout() {
           <Footer />
         </div>
       )}
+      <DevAdminHelper />
     </div>
   );
 }

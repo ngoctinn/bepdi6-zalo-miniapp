@@ -26,9 +26,7 @@ export default function StaffOrdersPage() {
     login,
   } = useAuth();
 
-  const isDev = import.meta.env.DEV;
-  const isAdmin =
-    isDev || customer?.role === "ADMIN" || customer?.role === "STAFF";
+  const isAdmin = customer?.role === "ADMIN" || customer?.role === "STAFF";
 
   const [activeTab, setActiveTab] = useState<StaffTab>("PENDING");
   const [isSoundEnabled, setIsSoundEnabled] = useState(false);

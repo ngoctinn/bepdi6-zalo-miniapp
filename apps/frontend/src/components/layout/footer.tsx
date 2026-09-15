@@ -18,10 +18,9 @@ export default function Footer() {
   const { customer: userProfile } = useAuth();
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
-  // In local dev/mock or when user has STAFF/ADMIN role, show Staff KDS tab
-  const isDev = import.meta.env.DEV;
+  // Show Staff KDS tab only when user has STAFF/ADMIN role verified by backend
   const isStaffOrAdmin =
-    isDev || userProfile?.role === "ADMIN" || userProfile?.role === "STAFF";
+    userProfile?.role === "ADMIN" || userProfile?.role === "STAFF";
 
   const NAV_ITEMS = [
     {

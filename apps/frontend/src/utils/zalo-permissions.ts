@@ -41,11 +41,17 @@ export async function getZaloLoginCredentials() {
       accessToken,
       name: userInfo?.name || "",
       avatar: userInfo?.avatar || "",
+      id: userInfo?.id || "",
     };
   } catch (error) {
     console.warn("Failed to get Zalo user info locally", error);
-    return { accessToken, name: "", avatar: "" };
+    return { accessToken, name: "", avatar: "", id: "" };
   }
+}
+
+export async function fetchZaloUserInfo() {
+  const { userInfo } = await getUserInfo({ autoRequestPermission: true });
+  return userInfo;
 }
 
 export async function requestZaloUserInfo() {
