@@ -46,16 +46,7 @@ export default function Footer() {
           {
             name: "Bếp",
             path: "/staff/orders",
-            icon: ({ active }: { active: boolean }) => (
-              <StoreIcon
-                className={cn(
-                  "h-5 w-5 transition-colors",
-                  active
-                    ? "stroke-[2] text-primary"
-                    : "stroke-[1.5] text-stone-500",
-                )}
-              />
-            ),
+            icon: StoreIcon,
             badge: 0,
           },
         ]

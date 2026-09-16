@@ -161,23 +161,31 @@ export default function StaffOrdersPage() {
     prevPendingCountRef.current = pendingOrders.length;
   }, [pendingOrders.length, isSoundEnabled]);
 
-  // Bộ lọc theo Tabs
+  const [deliveryFilter, setDeliveryFilter] = useState<
+    "ALL" | "DELIVERY" | "PICKUP"
+  >("ALL");
+
+  // Bộ lọc theo Tabs & Delivery Type
   const filteredOrders = useMemo(() => {
+    let result = orders;
     if (activeTab === "PENDING") {
-      return orders.filter((o) => o.status === "PENDING_CONFIRMATION");
-    }
-    if (activeTab === "PREPARING") {
-      return orders.filter(
+      result = result.filter((o) => o.status === "PENDING_CONFIRMATION");
+    } else if (activeTab === "PREPARING") {
+      result = result.filter(
         (o) => o.status === "CONFIRMED" || o.status === "PREPARING",
       );
-    }
-    if (activeTab === "READY") {
-      return orders.filter(
+    } else if (activeTab === "READY") {
+      result = result.filter(
         (o) => o.status === "READY" || o.status === "DELIVERING",
       );
     }
-    return orders;
-  }, [orders, activeTab]);
+
+    if (deliveryFilter !== "ALL") {
+      result = result.filter((o) => o.delivery_type === deliveryFilter);
+    }
+
+    return result;
+  }, [orders, activeTab, deliveryFilter]);
 
   // Xử lý chuyển trạng thái đơn
   const handleUpdateStatus = async (orderId: number, nextStatus: string) => {
@@ -320,6 +328,45 @@ export default function StaffOrdersPage() {
             onChange={(val) => setActiveTab(val)}
             fullWidth={true}
           />
+        </div>
+
+        {/* Row 3: Quick Filter Type (Tất cả / Giao tận nơi / Tại quán) */}
+        <div className="flex items-center gap-1.5 px-3.5 pt-1.5">
+          <button
+            type="button"
+            onClick={() => setDeliveryFilter("ALL")}
+            className={`inline-flex h-6 items-center justify-center rounded-full px-2.5 text-xxxxsmall font-bold transition-all ${
+              deliveryFilter === "ALL"
+                ? "bg-neutral900 text-white"
+                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-100"
+            }`}
+          >
+            Tất cả hình thức
+          </button>
+          <button
+            type="button"
+            onClick={() => setDeliveryFilter("DELIVERY")}
+            className={`inline-flex h-6 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-all ${
+              deliveryFilter === "DELIVERY"
+                ? "bg-primary text-white"
+                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-100"
+            }`}
+          >
+            <Icon icon="zi-location-solid" className="text-xs leading-none" />
+            <span className="leading-none">Giao tận nơi</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setDeliveryFilter("PICKUP")}
+            className={`inline-flex h-6 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-all ${
+              deliveryFilter === "PICKUP"
+                ? "bg-primary text-white"
+                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-100"
+            }`}
+          >
+            <Icon icon="zi-home" className="text-xs leading-none" />
+            <span className="leading-none">Tại quán</span>
+          </button>
         </div>
       </div>
 

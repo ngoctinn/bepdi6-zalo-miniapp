@@ -124,37 +124,51 @@ export function StaffOrderCard({
   };
 
   const agingBadge = getAgingBadge(agingMinutes);
+  const [checkedItemIds, setCheckedItemIds] = useState<
+    Record<number | string, boolean>
+  >({});
+
+  const toggleItemCheck = (id: number | string) => {
+    setCheckedItemIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
-    <div className="shadow-xs overflow-hidden rounded-2xl border border-black/5 bg-white transition-all">
-      {/* Header Card: Mã đơn, Trạng thái & Order Aging SLA Timer */}
-      <div className="flex items-center justify-between border-b border-black/5 bg-stone-50/80 px-3.5 py-2.5">
+    <div className="shadow-xs overflow-hidden rounded-2xl border border-stone-200/80 bg-white transition-all">
+      {/* Header Card: Mã đơn, Trạng thái & SLA Aging Timer */}
+      <div className="flex items-center justify-between border-b border-stone-100 bg-stone-50/90 px-3.5 py-2.5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-sm font-black text-neutral900">
             #{order.order_code}
           </span>
           <span
-            className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xxxxsmall font-bold ${badge.className}`}
+            className={`inline-flex items-center rounded-lg border px-2 py-0.5 text-xs font-bold leading-none ${badge.className}`}
           >
             {badge.label}
           </span>
 
           {!isEnded && agingBadge && (
             <span
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xxxxsmall ${agingBadge.className}`}
+              className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-bold leading-none ${agingBadge.className}`}
             >
-              <span>{agingBadge.icon}</span>
-              <span>{agingBadge.text}</span>
+              <Icon
+                icon={
+                  agingMinutes != null && agingMinutes > 20
+                    ? "zi-warning-solid"
+                    : "zi-clock-1"
+                }
+                className="flex shrink-0 items-center justify-center text-xs leading-none"
+              />
+              <span className="leading-none">{agingBadge.text}</span>
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-1 text-xs font-semibold text-stone-600">
+        <div className="inline-flex items-center gap-1 text-xs font-semibold text-stone-600">
           <Icon
-            icon={isDelivery ? "zi-location" : "zi-home"}
-            className="text-sm text-primary"
+            icon={isDelivery ? "zi-location-solid" : "zi-home"}
+            className="flex shrink-0 items-center justify-center text-sm leading-none text-primary"
           />
-          <span>
+          <span className="leading-none">
             {isDelivery
               ? copy.staff.deliveryType.delivery
               : copy.staff.deliveryType.pickup}
@@ -163,10 +177,10 @@ export function StaffOrderCard({
       </div>
 
       {/* Body Card: Customer & Delivery Info */}
-      <div className="border-b border-black/5 px-3.5 py-2.5">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm font-bold text-neutral900">
+      <div className="border-b border-stone-100 px-3.5 py-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-neutral900">
               {order.recipient_name}
             </p>
             <p className="font-mono text-xs text-stone-500">{order.phone}</p>
@@ -176,29 +190,38 @@ export function StaffOrderCard({
             <button
               type="button"
               onClick={() => makePhoneCall(order.phone)}
-              className="flex h-7 items-center gap-1 rounded-full border border-primary bg-primary/10 px-2.5 text-xs font-bold text-primaryDark transition-all active:scale-95"
+              className="inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-full border border-primary/40 bg-olive50 px-3 text-xs font-bold text-olive900 transition-all active:scale-95"
             >
-              <Icon icon="zi-call" className="text-xs" />
-              <span>{copy.staff.actions.call}</span>
+              <Icon
+                icon="zi-call"
+                className="flex shrink-0 items-center justify-center text-xs leading-none"
+              />
+              <span className="leading-none">{copy.staff.actions.call}</span>
             </button>
           )}
         </div>
 
         {isDelivery && order.delivery_address && (
-          <div className="mt-1.5 flex items-start gap-1.5 text-xs text-stone-600">
-            <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
-              <Icon icon="zi-location-solid" className="text-sm" />
-            </div>
-            <span className="leading-5">{order.delivery_address}</span>
+          <div className="mt-2 flex items-start gap-1.5 text-xs text-stone-600">
+            <Icon
+              icon="zi-location"
+              className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center leading-none text-stone-400"
+            />
+            <span className="leading-relaxed text-stone-700">
+              {order.delivery_address}
+            </span>
           </div>
         )}
 
-        {/* High-Contrast Alert Box cho Ghi Chú Đơn của Khách */}
+        {/* Ghi Chú Đơn của Khách (Clean Amber Callout) */}
         {order.note && (
-          <div className="shadow-xs mt-2.5 flex items-start gap-2 rounded-xl border-2 border-amber-500/80 bg-amber-50 p-2.5 text-xs font-bold text-amber-950">
-            <span className="shrink-0 text-sm">🔔</span>
-            <div>
-              <span className="font-black uppercase tracking-wide text-amber-900">
+          <div className="mt-2.5 flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50/90 p-2.5 text-xs text-amber-950">
+            <Icon
+              icon="zi-chat"
+              className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center leading-none text-amber-600"
+            />
+            <div className="leading-snug">
+              <span className="font-extrabold uppercase tracking-wide text-amber-900">
                 {copy.staff.customerNotePrefix}{" "}
               </span>
               <span className="font-bold">{order.note}</span>
@@ -207,81 +230,111 @@ export function StaffOrderCard({
         )}
       </div>
 
-      {/* Items List (KDS Focus: Số lượng cực lớn, tên món nổi bật, alert box cho từng món) */}
+      {/* Items List (KDS Focus: Đánh dấu món đã nấu, số lượng to rõ) */}
       <div className="px-3.5 py-3">
         <div className="mb-2.5 flex items-center justify-between">
-          <p className="text-xxxxsmall font-extrabold uppercase tracking-wider text-stone-400">
+          <p className="text-xs font-bold uppercase tracking-wider text-stone-400">
             {copy.staff.itemsSection} ({order.items?.length || 0})
           </p>
+          <span className="text-xxxxsmall italic text-stone-400">
+            Chạm vào món để đánh dấu đã nấu
+          </span>
         </div>
 
-        <div className="flex flex-col gap-3">
-          {order.items?.map((item, idx) => (
-            <div
-              key={item.id || idx}
-              className="flex flex-col border-b border-dashed border-stone-100 pb-3 last:border-0 last:pb-0"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-2.5">
-                  {/* Số lượng món cỡ lớn chuẩn KDS */}
-                  <span className="shadow-xs flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral900 text-sm font-black text-white">
-                    {item.quantity}
-                  </span>
-                  <div className="flex-1">
-                    {/* Tên món nổi bật */}
-                    <p className="text-base font-extrabold leading-snug text-neutral900">
-                      {item.product_name}
-                    </p>
-                    {item.options && item.options.length > 0 && (
-                      <p className="mt-0.5 text-xs font-semibold text-neutral600">
-                        + {item.options.map((o) => o.option_name).join(", ")}
+        <div className="flex flex-col gap-2.5">
+          {order.items?.map((item, idx) => {
+            const itemId = item.id || idx;
+            const isDone = !!checkedItemIds[itemId];
+            return (
+              <div
+                key={itemId}
+                onClick={() => toggleItemCheck(itemId)}
+                className={`flex cursor-pointer flex-col rounded-xl border p-2.5 transition-all active:scale-[0.99] ${
+                  isDone
+                    ? "border-olive200 bg-olive50/40 opacity-70"
+                    : "border-stone-100 bg-stone-50/40 hover:bg-stone-50"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-start gap-2.5">
+                    {/* Checkbox / Quantity Box */}
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-black transition-colors ${
+                        isDone
+                          ? "bg-primary text-white"
+                          : "bg-neutral900 text-white"
+                      }`}
+                    >
+                      {isDone ? (
+                        <Icon icon="zi-check" className="text-base" />
+                      ) : (
+                        item.quantity
+                      )}
+                    </span>
+                    <div className="flex-1">
+                      <p
+                        className={`text-sm font-extrabold leading-snug transition-all ${
+                          isDone
+                            ? "text-stone-400 line-through"
+                            : "text-neutral900"
+                        }`}
+                      >
+                        {item.product_name}
                       </p>
-                    )}
+                      {item.options && item.options.length > 0 && (
+                        <p className="mt-0.5 text-xs font-medium text-stone-500">
+                          + {item.options.map((o) => o.option_name).join(", ")}
+                        </p>
+                      )}
+                    </div>
                   </div>
+                  <span className="shrink-0 font-mono text-xs font-semibold text-stone-500">
+                    {Number(item.subtotal || 0).toLocaleString("vi-VN")}đ
+                  </span>
                 </div>
-                <span className="shrink-0 text-xs font-semibold text-stone-500">
-                  {Number(item.subtotal || 0).toLocaleString("vi-VN")}đ
-                </span>
-              </div>
 
-              {/* High-Contrast Alert Box cho Ghi Chú Món Cần Chế Biến */}
-              {item.note && (
-                <div className="mt-2 flex items-start gap-1.5 rounded-lg border-2 border-amber-400 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-950">
-                  <span className="shrink-0">⚠️</span>
-                  <span>{item.note}</span>
-                </div>
-              )}
-            </div>
-          ))}
+                {/* Ghi Chú Món Cần Chế Biến */}
+                {item.note && (
+                  <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-950">
+                    <Icon
+                      icon="zi-warning-circle-solid"
+                      className="flex shrink-0 items-center justify-center leading-none text-amber-600"
+                    />
+                    <span className="leading-none">{item.note}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Footer Card: Payment & 1-Touch Touch Actions (Height >= 48px) */}
-      <div className="border-t border-black/5 bg-stone-50/50 p-3.5">
+      {/* Footer Card: Payment & Touch Actions */}
+      <div className="border-t border-stone-100 bg-stone-50/70 p-3.5">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <p className="text-xxxxsmall text-stone-500">
+            <p className="text-xxxxsmall uppercase tracking-wider text-stone-500">
               {isBankTransfer
                 ? copy.staff.payment.vietqr
                 : copy.staff.payment.cod}
             </p>
             <div className="flex items-center gap-1.5">
-              <span className="text-sm font-black text-neutral900">
+              <span className="text-base font-black text-neutral900">
                 {Number(order.total_amount || 0).toLocaleString("vi-VN")}đ
               </span>
               {isPaid ? (
-                <span className="rounded bg-olive100 px-1.5 py-0.5 text-xxxxsmall font-bold text-olive900">
+                <span className="inline-flex items-center rounded-md bg-olive100 px-1.5 py-0.5 text-xxxxsmall font-bold leading-none text-olive900">
                   {copy.staff.payment.paid}
                 </span>
               ) : (
-                <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xxxxsmall font-bold text-amber-800">
+                <span className="inline-flex items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-xxxxsmall font-bold leading-none text-amber-800">
                   {copy.staff.payment.unpaid}
                 </span>
               )}
             </div>
           </div>
 
-          <span className="text-xxxxsmall font-medium text-stone-400">
+          <span className="font-mono text-xs font-medium text-stone-400">
             {order.created_at
               ? new Date(order.created_at).toLocaleTimeString("vi-VN", {
                   hour: "2-digit",
@@ -291,30 +344,40 @@ export function StaffOrderCard({
           </span>
         </div>
 
-        {/* 1-Touch Action Buttons (Height >= 48px) */}
-        <div className="flex gap-2">
+        {/* Action Buttons (Touch Target >= 48px, Safe Spacing) */}
+        <div className="flex items-center gap-2.5">
           {order.status === "PENDING_CONFIRMATION" && (
             <>
               <button
                 disabled={isProcessing}
                 onClick={() => onOpenCancelModal(order)}
-                className="flex h-12 w-24 items-center justify-center gap-1 rounded-xl border border-red-100 bg-red-100/60 text-xs font-extrabold text-red-700 active:bg-red-100 disabled:opacity-50"
+                className="inline-flex h-12 w-20 shrink-0 items-center justify-center gap-1 rounded-xl border border-red-200 bg-red-50 text-xs font-bold text-red-700 active:bg-red-100 disabled:opacity-50"
               >
-                <Icon icon="zi-close-circle" className="text-base" />
-                <span>{copy.staff.actions.cancel}</span>
+                <Icon
+                  icon="zi-close-circle"
+                  className="flex shrink-0 items-center justify-center text-sm leading-none"
+                />
+                <span className="leading-none">
+                  {copy.staff.actions.cancel}
+                </span>
               </button>
 
               <button
                 disabled={isProcessing}
                 onClick={() => onUpdateStatus(order.id, "PREPARING")}
-                className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
+                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
               >
                 {isProcessing ? (
                   <Spinner visible logo={false} />
                 ) : (
                   <>
-                    <Icon icon="zi-check-circle" className="text-lg" />
-                    <span>{copy.staff.actions.confirmAndCook}</span>
+                    <Icon
+                      icon="zi-check-circle"
+                      className="flex shrink-0 items-center justify-center text-base leading-none"
+                    />
+                    <span className="leading-none">
+                      {copy.staff.actions.confirmAndCook}
+                    </span>
                   </>
                 )}
               </button>
@@ -325,14 +388,19 @@ export function StaffOrderCard({
             <button
               disabled={isProcessing}
               onClick={() => onUpdateStatus(order.id, "READY")}
-              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-amber-600 text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-amber-600 text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />
               ) : (
                 <>
-                  <Icon icon="zi-check-circle" className="text-lg" />
-                  <span>{copy.staff.actions.cookedReady}</span>
+                  <Icon
+                    icon="zi-check-circle"
+                    className="flex shrink-0 items-center justify-center text-base leading-none"
+                  />
+                  <span className="leading-none">
+                    {copy.staff.actions.cookedReady}
+                  </span>
                 </>
               )}
             </button>
@@ -347,7 +415,7 @@ export function StaffOrderCard({
                   order.delivery_type === "PICKUP" ? "COMPLETED" : "DELIVERING",
                 )
               }
-              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />
@@ -359,9 +427,9 @@ export function StaffOrderCard({
                         ? "zi-check-circle"
                         : "zi-location"
                     }
-                    className="text-lg"
+                    className="flex shrink-0 items-center justify-center text-base leading-none"
                   />
-                  <span>
+                  <span className="leading-none">
                     {order.delivery_type === "PICKUP"
                       ? copy.staff.actions.pickupHandover || "Khách Đã Nhận Món"
                       : copy.staff.actions.handoverShipper}
@@ -375,21 +443,26 @@ export function StaffOrderCard({
             <button
               disabled={isProcessing}
               onClick={() => onUpdateStatus(order.id, "COMPLETED")}
-              className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />
               ) : (
                 <>
-                  <Icon icon="zi-check-circle" className="text-lg" />
-                  <span>{copy.staff.actions.completeOrder}</span>
+                  <Icon
+                    icon="zi-check-circle"
+                    className="flex shrink-0 items-center justify-center text-base leading-none"
+                  />
+                  <span className="leading-none">
+                    {copy.staff.actions.completeOrder}
+                  </span>
                 </>
               )}
             </button>
           )}
 
           {(order.status === "COMPLETED" || order.status === "CANCELLED") && (
-            <div className="flex h-12 flex-1 items-center justify-center rounded-xl bg-stone-100 text-xs font-semibold text-stone-500">
+            <div className="inline-flex h-12 flex-1 items-center justify-center rounded-xl bg-stone-100 text-xs font-semibold leading-none text-stone-500">
               {copy.staff.actions.orderEnded}
             </div>
           )}

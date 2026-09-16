@@ -198,21 +198,35 @@ export function DevAdminHelper() {
               </div>
 
               {/* Nút hành động */}
-              <div className="flex gap-2 pt-1">
+              <div className="flex flex-col gap-2 pt-1">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleGetZaloId}
+                    disabled={isLoading}
+                    className="flex-1 rounded-xl border border-stone-300 bg-white py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 active:scale-95 disabled:opacity-50"
+                  >
+                    {isLoading ? "Đang lấy..." : "Lấy lại ID"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => refetchCustomer()}
+                    className="flex-1 rounded-xl border border-stone-300 bg-white py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 active:scale-95"
+                  >
+                    Làm mới thông tin
+                  </button>
+                </div>
                 <button
                   type="button"
-                  onClick={handleGetZaloId}
-                  disabled={isLoading}
-                  className="flex-1 rounded-xl border border-stone-300 bg-white py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 active:scale-95 disabled:opacity-50"
+                  onClick={async () => {
+                    localStorage.removeItem("bepdi6_access_token");
+                    localStorage.removeItem("bepdi6_refresh_token");
+                    showSuccess("Đang đăng nhập lại để nhận quyền ADMIN...");
+                    window.location.reload();
+                  }}
+                  className="shadow-xs w-full rounded-xl bg-slate-900 py-2 text-xs font-semibold text-white hover:bg-slate-800 active:scale-95"
                 >
-                  {isLoading ? "Đang lấy..." : "Lấy lại ID"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => refetchCustomer()}
-                  className="flex-1 rounded-xl border border-stone-300 bg-white py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 active:scale-95"
-                >
-                  Kiểm tra lại quyền
+                  ⚡ Đăng nhập lại để nhận quyền mới
                 </button>
               </div>
             </div>

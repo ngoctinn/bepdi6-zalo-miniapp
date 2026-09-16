@@ -72,13 +72,15 @@ export function Tabs<T extends string>({
             type="button"
           >
             {tab.icon && (
-              <span className="mr-1.5 flex-shrink-0">{tab.icon}</span>
+              <span className="mr-1.5 inline-flex shrink-0 items-center justify-center leading-none">
+                {tab.icon}
+              </span>
             )}
-            <span className="truncate">{tab.label}</span>
+            <span className="truncate leading-none">{tab.label}</span>
             {tab.badge !== undefined && (
               <span
                 className={cn(
-                  "ml-1.5 rounded-md px-1.5 py-0.5 text-xxxxsmall font-bold",
+                  "ml-1.5 inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-xxxxsmall font-bold leading-none",
                   isActive
                     ? "bg-olive100 text-olive900"
                     : "bg-black/[0.07] text-neutral600",
