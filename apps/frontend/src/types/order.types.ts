@@ -55,6 +55,7 @@ export interface OrderItemResponse {
 }
 
 export type DeliveryType = "DELIVERY" | "PICKUP";
+export type DeliveryProvider = "INTERNAL" | "AHAMOVE" | "GRAB" | "OTHER";
 
 export interface PaymentResponse {
   id: number;
@@ -75,6 +76,11 @@ export interface Order {
   status_display?: string;
   delivery_type?: DeliveryType;
   delivery_type_display?: string;
+  delivery_provider?: DeliveryProvider;
+  delivery_provider_display?: string;
+  shipper_name?: string;
+  shipper_phone?: string;
+  shipper_tracking_code?: string;
   recipient_name: string;
   phone: string;
   delivery_address: string;
@@ -145,4 +151,11 @@ export interface OrderListResponse {
   total: number;
   page?: number;
   page_size?: number;
+}
+
+export interface DispatchOrderPayload {
+  delivery_provider: DeliveryProvider;
+  shipper_name?: string;
+  shipper_phone?: string;
+  shipper_tracking_code?: string;
 }

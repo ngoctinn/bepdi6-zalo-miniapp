@@ -280,21 +280,40 @@ def send_zns_order_delivering(order_id: int) -> bool:
     Sends ZNS message when order status changes to DELIVERING.
     Gated by ENABLE_ZNS_NOTIFICATION feature flag (ADR-005).
     """
-    enable_zns = getattr(settings, "ENABLE_ZNS_NOTIFICATION", False)
-    if not enable_zns:
-        logger.info(
-            "ENABLE_ZNS_NOTIFICATION is False. Skipping ZNS for order #%s.", order_id
-        )
-        return False
-
     try:
         order = Order.objects.get(pk=order_id)
     except Order.DoesNotExist:
         return False
 
+    shipper_info = (
+        f"{order.shipper_name} ({order.shipper_phone})"
+        if order.shipper_phone
+        else order.shipper_name
+    )
+    provider_name = (
+        "Ahamove"
+        if order.delivery_provider == Order.DeliveryProvider.AHAMOVE
+        else "GrabExpress"
+        if order.delivery_provider == Order.DeliveryProvider.GRAB
+        else "Shipper Quán"
+    )
+
+    enable_zns = getattr(settings, "ENABLE_ZNS_NOTIFICATION", False)
+    if not enable_zns:
+        logger.info(
+            "ENABLE_ZNS_NOTIFICATION is False. Mocking ZNS delivering for order #%s (%s: %s) to phone %s.",
+            order.order_code,
+            provider_name,
+            shipper_info or "Chưa rõ",
+            order.phone,
+        )
+        return False
+
     logger.info(
-        "Sending ZNS delivering notification for order #%s to phone %s.",
+        "Sending ZNS delivering notification for order #%s (%s: %s) to phone %s.",
         order.order_code,
+        provider_name,
+        shipper_info or "Chưa rõ",
         order.phone,
     )
     # ZNS API calling logic with template parameters

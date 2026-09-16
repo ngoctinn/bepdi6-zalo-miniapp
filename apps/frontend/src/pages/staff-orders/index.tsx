@@ -8,6 +8,7 @@ import { Tabs, Tab } from "@/components/common/tabs";
 import { Spinner, Icon } from "zmp-ui";
 import { StaffOrderCard } from "@/components/staff/staff-order-card";
 import { CancelOrderModal } from "@/components/staff/cancel-order-modal";
+import { DispatchOrderModal } from "@/components/staff/dispatch-order-modal";
 import { StaffHeaderActions } from "@/components/staff/staff-header-actions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { copy } from "@/constants/copy";
@@ -40,6 +41,11 @@ export default function StaffOrdersPage() {
     useState<Order | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+
+  // Modal Dispatch state
+  const [dispatchModalVisible, setDispatchModalVisible] = useState(false);
+  const [selectedOrderForDispatch, setSelectedOrderForDispatch] =
+    useState<Order | null>(null);
 
   const prevPendingCountRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -79,7 +85,7 @@ export default function StaffOrdersPage() {
     }
   };
 
-  // Hàm phát tiếng Ting Ting chuẩn Web Audio API
+  // Hàm phát tiếng chuông Hợp âm Sine 3 nốt (C5 - E5 - G5) tăng dần êm tai
   const playBeep = (ctx?: AudioContext | null) => {
     const actx = ctx || audioContextRef.current;
     if (!actx) return;
@@ -87,21 +93,30 @@ export default function StaffOrdersPage() {
       if (actx.state === "suspended") {
         actx.resume();
       }
-      const osc = actx.createOscillator();
-      const gain = actx.createGain();
+      const now = actx.currentTime;
+      // Nốt 1: C5 (523Hz), Nốt 2: E5 (659Hz), Nốt 3: G5 (784Hz)
+      const notes = [
+        { freq: 523.25, start: now, duration: 0.25 },
+        { freq: 659.25, start: now + 0.12, duration: 0.25 },
+        { freq: 783.99, start: now + 0.24, duration: 0.45 },
+      ];
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(880, actx.currentTime); // Note A5
-      osc.frequency.exponentialRampToValueAtTime(1760, actx.currentTime + 0.15); // Note A6
+      notes.forEach(({ freq, start, duration }) => {
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
 
-      gain.gain.setValueAtTime(0.3, actx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.4);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, start);
 
-      osc.connect(gain);
-      gain.connect(actx.destination);
+        gain.gain.setValueAtTime(0.25, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
 
-      osc.start();
-      osc.stop(actx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(actx.destination);
+
+        osc.start(start);
+        osc.stop(start + duration);
+      });
     } catch {
       // Bỏ qua lỗi audio
     }
@@ -242,6 +257,44 @@ export default function StaffOrdersPage() {
     } finally {
       setProcessingOrderId(null);
       setSelectedOrderForCancel(null);
+    }
+  };
+
+  // Mở modal điều phối shipper
+  const handleOpenDispatchModal = (order: Order) => {
+    setSelectedOrderForDispatch(order);
+    setDispatchModalVisible(true);
+  };
+
+  // Xác nhận điều phối shipper
+  const handleConfirmDispatch = async (payload: {
+    delivery_provider: import("@/types/order.types").DeliveryProvider;
+    shipper_name?: string;
+    shipper_phone?: string;
+    shipper_tracking_code?: string;
+  }) => {
+    if (!selectedOrderForDispatch) return;
+    try {
+      setProcessingOrderId(selectedOrderForDispatch.id);
+      await orderService.dispatchAdminOrder(
+        selectedOrderForDispatch.id,
+        payload,
+      );
+      await queryClient.invalidateQueries({
+        queryKey: [ADMIN_ORDERS_QUERY_KEY],
+      });
+      showSuccess(`Đã điều phối đơn #${selectedOrderForDispatch.order_code}!`, {
+        duration: 2500,
+      });
+      setDispatchModalVisible(false);
+      setSelectedOrderForDispatch(null);
+    } catch (err: unknown) {
+      const errorMsg =
+        (err as { message?: string })?.message ||
+        "Không thể điều phối đơn hàng";
+      showError(errorMsg, { duration: 3000 });
+    } finally {
+      setProcessingOrderId(null);
     }
   };
 
@@ -413,6 +466,7 @@ export default function StaffOrdersPage() {
               isProcessing={processingOrderId === order.id}
               onUpdateStatus={handleUpdateStatus}
               onOpenCancelModal={handleOpenCancelModal}
+              onOpenDispatchModal={handleOpenDispatchModal}
             />
           ))
         )}
@@ -429,6 +483,18 @@ export default function StaffOrdersPage() {
         onSelectReason={setCancelReason}
         onChangeCustomReason={setCustomReason}
         onConfirmCancel={handleConfirmCancel}
+      />
+
+      {/* Modal Điều Phối Shipper / Vận Chuyển */}
+      <DispatchOrderModal
+        visible={dispatchModalVisible}
+        order={selectedOrderForDispatch}
+        loading={processingOrderId === selectedOrderForDispatch?.id}
+        onClose={() => {
+          setDispatchModalVisible(false);
+          setSelectedOrderForDispatch(null);
+        }}
+        onConfirmDispatch={handleConfirmDispatch}
       />
     </div>
   );

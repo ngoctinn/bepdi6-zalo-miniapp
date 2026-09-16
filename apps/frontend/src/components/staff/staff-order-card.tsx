@@ -1,7 +1,8 @@
 import { copy } from "@/constants/copy";
 import { Order } from "@/types/order.types";
 import { makePhoneCall } from "@/utils/phone";
-import { useEffect, useState } from "react";
+import { printOrderReceipt } from "@/utils/print-order";
+import { useEffect, useState, useRef } from "react";
 import { Icon, Spinner } from "zmp-ui";
 
 interface StaffOrderCardProps {
@@ -9,6 +10,7 @@ interface StaffOrderCardProps {
   isProcessing: boolean;
   onUpdateStatus: (orderId: number, nextStatus: string) => Promise<void>;
   onOpenCancelModal: (order: Order) => void;
+  onOpenDispatchModal?: (order: Order) => void;
 }
 
 function useOrderAging(createdAt?: string, isCompletedOrCancelled?: boolean) {
@@ -35,6 +37,7 @@ export function StaffOrderCard({
   isProcessing,
   onUpdateStatus,
   onOpenCancelModal,
+  onOpenDispatchModal,
 }: StaffOrderCardProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -127,17 +130,60 @@ export function StaffOrderCard({
   const [checkedItemIds, setCheckedItemIds] = useState<
     Record<number | string, boolean>
   >({});
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  // Debounce click phòng chống double-tap
+  const lastActionTimeRef = useRef<number>(0);
+
+  const handleDebouncedAction = (action: () => void) => {
+    const now = Date.now();
+    if (now - lastActionTimeRef.current < 500 || isProcessing) {
+      return;
+    }
+    lastActionTimeRef.current = now;
+    action();
+  };
 
   const toggleItemCheck = (id: number | string) => {
     setCheckedItemIds((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
-    <div className="shadow-xs overflow-hidden rounded-2xl border border-stone-200/80 bg-white transition-all">
-      {/* Header Card: Mã đơn, Trạng thái & SLA Aging Timer */}
+    <div
+      className={`overflow-hidden rounded-2xl border shadow-sm transition-all ${
+        order.status === "PENDING_CONFIRMATION"
+          ? "border-amber-300 ring-2 ring-amber-100"
+          : agingMinutes && agingMinutes > 20 && !isEnded
+            ? "border-red-400 ring-2 ring-red-100"
+            : "border-stone-200/80 bg-white"
+      }`}
+    >
+      {/* 1. FINANCIAL SAFETY SHIELD (Tấm Chắn Tài Chính Chống Nhầm Lẫn Thu Tiền) */}
+      <div
+        className={`flex items-center justify-between px-3.5 py-2 text-xs font-black tracking-wide ${
+          isPaid ? "bg-emerald-600 text-white" : "bg-amber-500 text-neutral900"
+        }`}
+      >
+        <div className="flex items-center gap-1.5">
+          <Icon
+            icon={isPaid ? "zi-check-circle-solid" : "zi-warning-solid"}
+            className="text-base leading-none"
+          />
+          <span className="uppercase leading-none">
+            {isPaid
+              ? "ĐÃ THANH TOÁN ONLINE 0Đ"
+              : `THU TIỀN MẶT COD: ${Number(order.total_amount || 0).toLocaleString("vi-VN")}đ`}
+          </span>
+        </div>
+        <span className="text-2xs rounded bg-black/15 px-1.5 py-0.5 font-extrabold uppercase">
+          {isPaid ? "CẤM THU THÊM" : "TÀI XẾ CẦN THU"}
+        </span>
+      </div>
+
+      {/* 2. Header Card: Mã đơn, Trạng thái & SLA Aging Timer */}
       <div className="flex items-center justify-between border-b border-stone-100 bg-stone-50/90 px-3.5 py-2.5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-sm font-black text-neutral900">
+          <span className="font-mono text-base font-black text-neutral900">
             #{order.order_code}
           </span>
           <span
@@ -163,34 +209,45 @@ export function StaffOrderCard({
           )}
         </div>
 
-        <div className="inline-flex items-center gap-1 text-xs font-semibold text-stone-600">
-          <Icon
-            icon={isDelivery ? "zi-location-solid" : "zi-home"}
-            className="flex shrink-0 items-center justify-center text-sm leading-none text-primary"
-          />
-          <span className="leading-none">
-            {isDelivery
-              ? copy.staff.deliveryType.delivery
-              : copy.staff.deliveryType.pickup}
-          </span>
+        {/* Action Nhanh: In Bill & Loại Đơn */}
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => printOrderReceipt(order, "DELIVERY_BAG")}
+            title="In phiếu dán túi"
+            className="shadow-2xs flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-700 active:scale-95"
+          >
+            <Icon icon="zi-download" className="text-sm" />
+          </button>
+          <div className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-2 py-1 text-xs font-semibold text-stone-600">
+            <Icon
+              icon={isDelivery ? "zi-location-solid" : "zi-home"}
+              className="flex shrink-0 items-center justify-center text-xs leading-none text-primary"
+            />
+            <span className="text-2xs font-bold leading-none">
+              {isDelivery ? "Giao hàng" : "Tại quán"}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Body Card: Customer & Delivery Info */}
-      <div className="border-b border-stone-100 px-3.5 py-2.5">
+      {/* 3. Body Card: Thông tin Khách hàng & Địa chỉ giao */}
+      <div className="border-b border-stone-100 bg-white px-3.5 py-2.5">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-neutral900">
+            <p className="truncate text-sm font-extrabold text-neutral900">
               {order.recipient_name}
             </p>
-            <p className="font-mono text-xs text-stone-500">{order.phone}</p>
+            <p className="font-mono text-xs font-semibold text-stone-500">
+              {order.phone}
+            </p>
           </div>
 
           {order.phone && (
             <button
               type="button"
               onClick={() => makePhoneCall(order.phone)}
-              className="inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-full border border-primary/40 bg-olive50 px-3 text-xs font-bold text-olive900 transition-all active:scale-95"
+              className="shadow-2xs inline-flex h-9 shrink-0 items-center justify-center gap-1 rounded-full border border-primary/40 bg-olive50 px-3.5 text-xs font-bold text-olive900 transition-all active:scale-95"
             >
               <Icon
                 icon="zi-call"
@@ -202,156 +259,206 @@ export function StaffOrderCard({
         </div>
 
         {isDelivery && order.delivery_address && (
-          <div className="mt-2 flex items-start gap-1.5 text-xs text-stone-600">
+          <div className="mt-2 flex items-start gap-1.5 rounded-xl bg-stone-50 p-2 text-xs text-stone-600">
             <Icon
               icon="zi-location"
-              className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center leading-none text-stone-400"
+              className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center leading-none text-primary"
             />
-            <span className="leading-relaxed text-stone-700">
+            <span className="font-medium leading-relaxed text-stone-800">
               {order.delivery_address}
             </span>
           </div>
         )}
 
-        {/* Ghi Chú Đơn của Khách (Clean Amber Callout) */}
+        {/* Ghi Chú Đơn của Khách (Cảnh báo Amber nổi bật) */}
         {order.note && (
-          <div className="mt-2.5 flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50/90 p-2.5 text-xs text-amber-950">
+          <div className="mt-2 flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50/90 p-2 text-xs text-amber-950">
             <Icon
               icon="zi-chat"
               className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center leading-none text-amber-600"
             />
             <div className="leading-snug">
-              <span className="font-extrabold uppercase tracking-wide text-amber-900">
+              <span className="font-black uppercase tracking-wide text-amber-900">
                 {copy.staff.customerNotePrefix}{" "}
               </span>
               <span className="font-bold">{order.note}</span>
             </div>
           </div>
         )}
+
+        {/* Thông tin Shipper đã điều phối */}
+        {order.shipper_name && (
+          <div className="mt-2 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 p-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-sm font-black text-white">
+                {order.delivery_provider === "AHAMOVE"
+                  ? "⚡"
+                  : order.delivery_provider === "GRAB"
+                    ? "🟢"
+                    : "🛵"}
+              </span>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-3xs font-extrabold uppercase text-primary">
+                    {order.delivery_provider === "AHAMOVE"
+                      ? "Ahamove"
+                      : order.delivery_provider === "GRAB"
+                        ? "GrabExpress"
+                        : "Shipper Quán"}
+                  </span>
+                  {order.shipper_tracking_code && (
+                    <span className="text-3xs py-0.2 rounded border border-stone-200 bg-white px-1 font-mono font-bold text-stone-600">
+                      {order.shipper_tracking_code}
+                    </span>
+                  )}
+                </div>
+                <p className="font-extrabold text-neutral900">
+                  {order.shipper_name}
+                  {order.shipper_phone && ` (${order.shipper_phone})`}
+                </p>
+              </div>
+            </div>
+
+            {order.shipper_phone && (
+              <button
+                type="button"
+                onClick={() => makePhoneCall(order.shipper_phone!)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/30 bg-white text-primary active:scale-95"
+                title="Gọi shipper"
+              >
+                <Icon icon="zi-call" className="text-xs" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Items List (KDS Focus: Đánh dấu món đã nấu, số lượng to rõ) */}
-      <div className="px-3.5 py-3">
-        <div className="mb-2.5 flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-wider text-stone-400">
-            {copy.staff.itemsSection} ({order.items?.length || 0})
-          </p>
+      {/* 4. Items List (KDS: Bấm gạch món đã nấu, collapsible cho gọn) */}
+      <div className="bg-stone-50/30 px-3.5 py-2.5">
+        <div
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mb-2 flex cursor-pointer select-none items-center justify-between py-0.5"
+        >
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-stone-700">
+              Món cần làm ({order.items?.length || 0})
+            </span>
+            <Icon
+              icon={isExpanded ? "zi-chevron-up" : "zi-chevron-down"}
+              className="text-xs text-stone-500"
+            />
+          </div>
           <span className="text-xxxxsmall italic text-stone-400">
-            Chạm vào món để đánh dấu đã nấu
+            {isExpanded ? "Thu gọn danh sách" : "Bấm để xem chi tiết món"}
           </span>
         </div>
 
-        <div className="flex flex-col gap-2.5">
-          {order.items?.map((item, idx) => {
-            const itemId = item.id || idx;
-            const isDone = !!checkedItemIds[itemId];
-            return (
-              <div
-                key={itemId}
-                onClick={() => toggleItemCheck(itemId)}
-                className={`flex cursor-pointer flex-col rounded-xl border p-2.5 transition-all active:scale-[0.99] ${
-                  isDone
-                    ? "border-olive200 bg-olive50/40 opacity-70"
-                    : "border-stone-100 bg-stone-50/40 hover:bg-stone-50"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2.5">
-                  <div className="flex items-start gap-2.5">
-                    {/* Checkbox / Quantity Box */}
-                    <span
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-black transition-colors ${
-                        isDone
-                          ? "bg-primary text-white"
-                          : "bg-neutral900 text-white"
-                      }`}
-                    >
-                      {isDone ? (
-                        <Icon icon="zi-check" className="text-base" />
-                      ) : (
-                        item.quantity
-                      )}
-                    </span>
-                    <div className="flex-1">
-                      <p
-                        className={`text-sm font-extrabold leading-snug transition-all ${
+        {isExpanded && (
+          <div className="flex flex-col gap-2">
+            {order.items?.map((item, idx) => {
+              const itemId = item.id || idx;
+              const isDone = !!checkedItemIds[itemId];
+              return (
+                <div
+                  key={itemId}
+                  onClick={() => toggleItemCheck(itemId)}
+                  className={`flex cursor-pointer flex-col rounded-xl border p-2.5 transition-all active:scale-[0.99] ${
+                    isDone
+                      ? "border-olive200 bg-olive50/50 opacity-60"
+                      : "shadow-2xs border-stone-200/90 bg-white hover:bg-stone-50"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-start gap-2.5">
+                      {/* Checkbox / Quantity Box to rõ chuẩn công thái học */}
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-black transition-colors ${
                           isDone
-                            ? "text-stone-400 line-through"
-                            : "text-neutral900"
+                            ? "bg-emerald-600 text-white"
+                            : "bg-neutral900 text-white"
                         }`}
                       >
-                        {item.product_name}
-                      </p>
-                      {item.options && item.options.length > 0 && (
-                        <p className="mt-0.5 text-xs font-medium text-stone-500">
-                          + {item.options.map((o) => o.option_name).join(", ")}
+                        {isDone ? (
+                          <Icon icon="zi-check" className="text-base" />
+                        ) : (
+                          item.quantity
+                        )}
+                      </span>
+                      <div className="flex-1">
+                        <p
+                          className={`text-sm font-extrabold leading-snug transition-all ${
+                            isDone
+                              ? "text-stone-400 line-through"
+                              : "text-neutral900"
+                          }`}
+                        >
+                          {item.product_name}
                         </p>
-                      )}
+                        {item.options && item.options.length > 0 && (
+                          <p className="mt-0.5 text-xs font-semibold text-stone-500">
+                            +{" "}
+                            {item.options.map((o) => o.option_name).join(", ")}
+                          </p>
+                        )}
+                      </div>
                     </div>
+                    <span className="shrink-0 font-mono text-xs font-bold text-stone-600">
+                      {Number(item.subtotal || 0).toLocaleString("vi-VN")}đ
+                    </span>
                   </div>
-                  <span className="shrink-0 font-mono text-xs font-semibold text-stone-500">
-                    {Number(item.subtotal || 0).toLocaleString("vi-VN")}đ
-                  </span>
-                </div>
 
-                {/* Ghi Chú Món Cần Chế Biến */}
-                {item.note && (
-                  <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-950">
-                    <Icon
-                      icon="zi-warning-circle-solid"
-                      className="flex shrink-0 items-center justify-center leading-none text-amber-600"
-                    />
-                    <span className="leading-none">{item.note}</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  {/* Ghi chú riêng cho từng món */}
+                  {item.note && (
+                    <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-bold text-red-900">
+                      <Icon
+                        icon="zi-warning-circle-solid"
+                        className="flex shrink-0 items-center justify-center leading-none text-red-600"
+                      />
+                      <span className="leading-none">{item.note}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Footer Card: Payment & Touch Actions */}
-      <div className="border-t border-stone-100 bg-stone-50/70 p-3.5">
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <p className="text-xxxxsmall uppercase tracking-wider text-stone-500">
+      {/* 5. Footer & Primary Actions (Thumb Zone: Nút bấm cao 56px, Debounce 500ms) */}
+      <div className="border-t border-stone-100 bg-stone-50/90 p-3">
+        <div className="mb-2.5 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-stone-600">
               {isBankTransfer
                 ? copy.staff.payment.vietqr
                 : copy.staff.payment.cod}
-            </p>
-            <div className="flex items-center gap-1.5">
-              <span className="text-base font-black text-neutral900">
-                {Number(order.total_amount || 0).toLocaleString("vi-VN")}đ
-              </span>
-              {isPaid ? (
-                <span className="inline-flex items-center rounded-md bg-olive100 px-1.5 py-0.5 text-xxxxsmall font-bold leading-none text-olive900">
-                  {copy.staff.payment.paid}
-                </span>
-              ) : (
-                <span className="inline-flex items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-xxxxsmall font-bold leading-none text-amber-800">
-                  {copy.staff.payment.unpaid}
-                </span>
-              )}
-            </div>
+            </span>
+            <span className="font-mono font-medium text-stone-400">
+              {order.created_at
+                ? new Date(order.created_at).toLocaleTimeString("vi-VN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : ""}
+            </span>
           </div>
 
-          <span className="font-mono text-xs font-medium text-stone-400">
-            {order.created_at
-              ? new Date(order.created_at).toLocaleTimeString("vi-VN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : ""}
+          <span className="text-base font-black text-neutral900">
+            {Number(order.total_amount || 0).toLocaleString("vi-VN")}đ
           </span>
         </div>
 
-        {/* Action Buttons (Touch Target >= 48px, Safe Spacing) */}
-        <div className="flex items-center gap-2.5">
+        {/* Primary Action Buttons (Target >= 52px, Chống Double Tap) */}
+        <div className="flex items-center gap-2">
           {order.status === "PENDING_CONFIRMATION" && (
             <>
               <button
+                type="button"
                 disabled={isProcessing}
-                onClick={() => onOpenCancelModal(order)}
-                className="inline-flex h-12 w-20 shrink-0 items-center justify-center gap-1 rounded-xl border border-red-200 bg-red-50 text-xs font-bold text-red-700 active:bg-red-100 disabled:opacity-50"
+                onClick={() =>
+                  handleDebouncedAction(() => onOpenCancelModal(order))
+                }
+                className="h-13 inline-flex w-20 shrink-0 items-center justify-center gap-1 rounded-xl border border-red-200 bg-red-50 text-xs font-bold text-red-700 active:bg-red-100 disabled:opacity-50"
               >
                 <Icon
                   icon="zi-close-circle"
@@ -363,9 +470,14 @@ export function StaffOrderCard({
               </button>
 
               <button
+                type="button"
                 disabled={isProcessing}
-                onClick={() => onUpdateStatus(order.id, "PREPARING")}
-                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
+                onClick={() =>
+                  handleDebouncedAction(() =>
+                    onUpdateStatus(order.id, "PREPARING"),
+                  )
+                }
+                className="h-13 inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-md active:opacity-90 disabled:opacity-50"
               >
                 {isProcessing ? (
                   <Spinner visible logo={false} />
@@ -373,9 +485,9 @@ export function StaffOrderCard({
                   <>
                     <Icon
                       icon="zi-check-circle"
-                      className="flex shrink-0 items-center justify-center text-base leading-none"
+                      className="flex shrink-0 items-center justify-center text-lg leading-none"
                     />
-                    <span className="leading-none">
+                    <span className="leading-none tracking-wide">
                       {copy.staff.actions.confirmAndCook}
                     </span>
                   </>
@@ -386,9 +498,12 @@ export function StaffOrderCard({
 
           {(order.status === "CONFIRMED" || order.status === "PREPARING") && (
             <button
+              type="button"
               disabled={isProcessing}
-              onClick={() => onUpdateStatus(order.id, "READY")}
-              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-amber-600 text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
+              onClick={() =>
+                handleDebouncedAction(() => onUpdateStatus(order.id, "READY"))
+              }
+              className="h-13 inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-amber-600 text-sm font-extrabold text-white shadow-md active:opacity-90 disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />
@@ -396,9 +511,9 @@ export function StaffOrderCard({
                 <>
                   <Icon
                     icon="zi-check-circle"
-                    className="flex shrink-0 items-center justify-center text-base leading-none"
+                    className="flex shrink-0 items-center justify-center text-lg leading-none"
                   />
-                  <span className="leading-none">
+                  <span className="leading-none tracking-wide">
                     {copy.staff.actions.cookedReady}
                   </span>
                 </>
@@ -407,58 +522,114 @@ export function StaffOrderCard({
           )}
 
           {order.status === "READY" && (
-            <button
-              disabled={isProcessing}
-              onClick={() =>
-                onUpdateStatus(
-                  order.id,
-                  order.delivery_type === "PICKUP" ? "COMPLETED" : "DELIVERING",
-                )
-              }
-              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
-            >
-              {isProcessing ? (
-                <Spinner visible logo={false} />
+            <>
+              {order.delivery_type === "DELIVERY" && onOpenDispatchModal ? (
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={() =>
+                    handleDebouncedAction(() => onOpenDispatchModal(order))
+                  }
+                  className="h-13 inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-md active:opacity-90 disabled:opacity-50"
+                >
+                  {isProcessing ? (
+                    <Spinner visible logo={false} />
+                  ) : (
+                    <>
+                      <Icon
+                        icon="zi-send"
+                        className="flex shrink-0 items-center justify-center text-lg leading-none"
+                      />
+                      <span className="leading-none tracking-wide">
+                        {order.shipper_name
+                          ? "Đổi Shipper / Giao Hàng"
+                          : "Điều Phối Shipper"}
+                      </span>
+                    </>
+                  )}
+                </button>
               ) : (
-                <>
-                  <Icon
-                    icon={
-                      order.delivery_type === "PICKUP"
-                        ? "zi-check-circle"
-                        : "zi-location"
-                    }
-                    className="flex shrink-0 items-center justify-center text-base leading-none"
-                  />
-                  <span className="leading-none">
-                    {order.delivery_type === "PICKUP"
-                      ? copy.staff.actions.pickupHandover || "Khách Đã Nhận Món"
-                      : copy.staff.actions.handoverShipper}
-                  </span>
-                </>
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={() =>
+                    handleDebouncedAction(() =>
+                      onUpdateStatus(
+                        order.id,
+                        order.delivery_type === "PICKUP"
+                          ? "COMPLETED"
+                          : "DELIVERING",
+                      ),
+                    )
+                  }
+                  className="h-13 inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-md active:opacity-90 disabled:opacity-50"
+                >
+                  {isProcessing ? (
+                    <Spinner visible logo={false} />
+                  ) : (
+                    <>
+                      <Icon
+                        icon={
+                          order.delivery_type === "PICKUP"
+                            ? "zi-check-circle"
+                            : "zi-location"
+                        }
+                        className="flex shrink-0 items-center justify-center text-lg leading-none"
+                      />
+                      <span className="leading-none tracking-wide">
+                        {order.delivery_type === "PICKUP"
+                          ? copy.staff.actions.pickupHandover ||
+                            "Khách Đã Nhận Món"
+                          : copy.staff.actions.handoverShipper}
+                      </span>
+                    </>
+                  )}
+                </button>
               )}
-            </button>
+            </>
           )}
 
           {order.status === "DELIVERING" && (
-            <button
-              disabled={isProcessing}
-              onClick={() => onUpdateStatus(order.id, "COMPLETED")}
-              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-extrabold text-white shadow-sm active:opacity-90 disabled:opacity-50"
-            >
-              {isProcessing ? (
-                <Spinner visible logo={false} />
-              ) : (
-                <>
-                  <Icon
-                    icon="zi-check-circle"
-                    className="flex shrink-0 items-center justify-center text-base leading-none"
-                  />
-                  <span className="leading-none">
-                    {copy.staff.actions.completeOrder}
-                  </span>
-                </>
+            <div className="flex flex-1 gap-2">
+              {order.delivery_type === "DELIVERY" && onOpenDispatchModal && (
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={() =>
+                    handleDebouncedAction(() => onOpenDispatchModal(order))
+                  }
+                  title="Cập nhật shipper"
+                  className="h-13 inline-flex w-14 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 active:bg-stone-100 disabled:opacity-50"
+                >
+                  <Icon icon="zi-edit" className="text-base" />
+                </button>
               )}
-            </button>
+
+              <button
+                type="button"
+                disabled={isProcessing}
+                onClick={() =>
+                  handleDebouncedAction(() =>
+                    onUpdateStatus(order.id, "COMPLETED"),
+                  )
+                }
+                className="h-13 inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 text-sm font-extrabold text-white shadow-md active:opacity-90 disabled:opacity-50"
+              >
+                {isProcessing ? (
+                  <Spinner visible logo={false} />
+                ) : (
+                  <>
+                    <Icon
+                      icon="zi-check-circle"
+                      className="flex shrink-0 items-center justify-center text-lg leading-none"
+                    />
+                    <span className="leading-none tracking-wide">
+                      {copy.staff.actions.completeOrder}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
           )}
 
           {(order.status === "COMPLETED" || order.status === "CANCELLED") && (

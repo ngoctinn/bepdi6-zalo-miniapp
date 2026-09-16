@@ -197,6 +197,9 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     delivery_type_display = serializers.CharField(
         source="get_delivery_type_display", read_only=True
     )
+    delivery_provider_display = serializers.CharField(
+        source="get_delivery_provider_display", read_only=True
+    )
 
     class Meta:
         model = Order
@@ -207,6 +210,11 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             "status_display",
             "delivery_type",
             "delivery_type_display",
+            "delivery_provider",
+            "delivery_provider_display",
+            "shipper_name",
+            "shipper_phone",
+            "shipper_tracking_code",
             "recipient_name",
             "phone",
             "delivery_address",
@@ -228,6 +236,22 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             "items",
             "payment",
         ]
+
+
+class AdminOrderDispatchRequestSerializer(serializers.Serializer):
+    delivery_provider = serializers.ChoiceField(
+        choices=Order.DeliveryProvider.choices,
+        default=Order.DeliveryProvider.INTERNAL,
+    )
+    shipper_name = serializers.CharField(
+        max_length=255, required=False, allow_blank=True
+    )
+    shipper_phone = serializers.CharField(
+        max_length=20, required=False, allow_blank=True
+    )
+    shipper_tracking_code = serializers.CharField(
+        max_length=100, required=False, allow_blank=True
+    )
 
 
 class OrderListSerializer(serializers.ModelSerializer):

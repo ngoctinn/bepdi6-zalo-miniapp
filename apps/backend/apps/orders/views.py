@@ -16,6 +16,7 @@ from apps.menu.models import Product
 from apps.orders.models import Order
 from apps.orders.serializers import (
     AdminOrderConfirmRequestSerializer,
+    AdminOrderDispatchRequestSerializer,
     CheckoutPreviewRequestSerializer,
     OrderCreateRequestSerializer,
     OrderDetailSerializer,
@@ -529,6 +530,50 @@ class AdminOrderStatusUpdateView(APIView):
             )
         except InvalidStateTransitionError as e:
             raise ValidationError({"code": e.code, "message": e.message}) from None
+
+        return Response(OrderDetailSerializer(updated_order).data)
+
+
+class AdminOrderDispatchView(APIView):
+    """
+    POST /api/v1/admin/orders/{id}/dispatch
+    Assigns internal shipper or 3rd-party delivery provider and marks order DELIVERING.
+    """
+
+    permission_classes = [IsStaffOrAdminUser]
+
+    def post(self, request, pk: int):
+        try:
+            order = Order.objects.get(pk=pk)
+        except Order.DoesNotExist:
+            raise NotFound("Đơn hàng không tồn tại.") from None
+
+        serializer = AdminOrderDispatchRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        with transaction.atomic():
+            order.delivery_provider = data["delivery_provider"]
+            order.shipper_name = data.get("shipper_name", "").strip()
+            order.shipper_phone = data.get("shipper_phone", "").strip()
+            order.shipper_tracking_code = data.get("shipper_tracking_code", "").strip()
+
+            # Nếu đơn chưa ở DELIVERING và đang ở READY/PREPARING/CONFIRMED -> Chuyển sang DELIVERING
+            if order.status in [
+                Order.Status.READY,
+                Order.Status.PREPARING,
+                Order.Status.CONFIRMED,
+            ]:
+                # Update status via OrderService to trigger notification & audit logs
+                updated_order = OrderService.update_order_status(
+                    order=order,
+                    new_status=Order.Status.DELIVERING,
+                    user=request.user if request.user.is_authenticated else None,
+                    reason=f"Điều phối giao hàng qua {order.get_delivery_provider_display()}",
+                )
+            else:
+                order.save()
+                updated_order = order
 
         return Response(OrderDetailSerializer(updated_order).data)
 

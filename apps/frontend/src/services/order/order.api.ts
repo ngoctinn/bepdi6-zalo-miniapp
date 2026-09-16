@@ -115,4 +115,15 @@ export const orderService = {
       reason: reason || "Nhân viên hủy đơn",
     });
   },
+
+  /**
+   * Điều phối shipper / đơn vị vận chuyển cho đơn hàng
+   * POST /api/v1/admin/orders/:id/dispatch
+   */
+  dispatchAdminOrder: async (
+    id: number | string,
+    payload: import("../../types/order.types").DispatchOrderPayload,
+  ): Promise<Order> => {
+    return api.post<Order>(`admin/orders/${id}/dispatch`, payload);
+  },
 };

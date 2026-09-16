@@ -3,6 +3,7 @@ from django.urls import path
 from apps.orders.views import (
     AdminOrderCancelView,
     AdminOrderConfirmView,
+    AdminOrderDispatchView,
     AdminOrderListView,
     AdminOrderPaymentVerifyView,
     AdminOrderStatusUpdateView,
@@ -44,6 +45,11 @@ urlpatterns = [
         "admin/orders/<int:pk>/status",
         AdminOrderStatusUpdateView.as_view(),
         name="admin-order-status",
+    ),
+    path(
+        "admin/orders/<int:pk>/dispatch",
+        AdminOrderDispatchView.as_view(),
+        name="admin-order-dispatch",
     ),
     path(
         "admin/orders/<int:pk>/payment/verify",

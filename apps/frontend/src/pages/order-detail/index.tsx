@@ -402,6 +402,92 @@ export default function OrderDetailPage() {
         )}
       </div>
 
+      {/* Live Shipper Tracking Card (Khi đang giao hàng hoặc đã có tài xế nhận đơn) */}
+      {!isPickup && !isCancelled && order.status === "DELIVERING" && (
+        <div className="shadow-xs overflow-hidden rounded-2xl border border-primary/30 bg-white">
+          <div className="flex items-center justify-between bg-primary/10 px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 animate-ping rounded-full bg-emerald-500" />
+              <span className="text-xs font-black text-primary">
+                TÀI XẾ ĐANG GIAO ĐẾN BẠN
+              </span>
+            </div>
+            {order.distance_km && Number(order.distance_km) > 0 && (
+              <span className="text-3xs shadow-2xs rounded-full bg-white px-2 py-0.5 font-bold text-stone-600">
+                Khoảng cách: ~{order.distance_km} km
+              </span>
+            )}
+          </div>
+
+          <div className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-2xl shadow-inner">
+                  {order.delivery_provider === "AHAMOVE"
+                    ? "⚡"
+                    : order.delivery_provider === "GRAB"
+                      ? "🟢"
+                      : "🛵"}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-3xs rounded bg-stone-100 px-1.5 py-0.5 font-black uppercase text-stone-700">
+                      {order.delivery_provider === "AHAMOVE"
+                        ? "Ahamove"
+                        : order.delivery_provider === "GRAB"
+                          ? "GrabExpress"
+                          : "Shipper Quán"}
+                    </span>
+                    {order.shipper_tracking_code && (
+                      <span className="text-3xs font-mono text-stone-500">
+                        #{order.shipper_tracking_code}
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="mt-0.5 text-sm font-black text-neutral900">
+                    {order.shipper_name || "Tài xế đang di chuyển"}
+                  </h4>
+                  <p className="text-xxsmall text-stone-500">
+                    Vui lòng để ý điện thoại để nhận món nhé!
+                  </p>
+                </div>
+              </div>
+
+              {order.shipper_phone && (
+                <button
+                  type="button"
+                  onClick={() => makePhoneCall(order.shipper_phone!)}
+                  className="shadow-xs flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold text-white transition-all active:scale-95"
+                >
+                  <PhoneIcon className="h-4 w-4" />
+                  <span>Gọi tài xế</span>
+                </button>
+              )}
+            </div>
+
+            {/* Cảnh báo tiền mặt nếu COD */}
+            {order.payment_method === "COD" && (
+              <div className="mt-3 flex items-center justify-between rounded-xl border border-amber-300/80 bg-amber-50 px-3 py-2 text-xs">
+                <span className="font-bold text-amber-900">
+                  Tiền mặt cần chuẩn bị:
+                </span>
+                <span className="text-sm font-black text-amber-900">
+                  {formatCurrency(order.total_amount)}đ
+                </span>
+              </div>
+            )}
+            {order.payment_method === "BANK_TRANSFER" && isPaid && (
+              <div className="mt-3 flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+                <CheckIcon className="h-4 w-4 text-emerald-600" />
+                <span>
+                  Đã thanh toán Online 0đ - Không thanh toán thêm cho tài xế
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Khối Thanh Toán VietQR Tức Thì (Nếu chọn BANK_TRANSFER) */}
       {isBankTransfer && !isCancelled && (
         <div className="shadow-xs space-y-3 rounded-2xl border border-primary/25 bg-olive50/60 p-4">

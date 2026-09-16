@@ -724,11 +724,16 @@ class OrderService:
             )
         elif new_status == Order.Status.DELIVERING:
             safe_on_commit(lambda: send_zns_order_delivering.delay(order.id))
+            delivering_msg = (
+                f"Đơn hàng #{order.order_code} đang được tài xế {order.shipper_name} giao đến bạn!"
+                if order.shipper_name
+                else f"Đơn hàng #{order.order_code} đang trên đường giao đến bạn!"
+            )
             safe_on_commit(
                 lambda: send_in_app_notification.delay(
                     customer_id=order.customer_id,
                     title="Đơn hàng đang được giao",
-                    message=f"Đơn hàng #{order.order_code} đang trên đường giao đến bạn!",
+                    message=delivering_msg,
                     order_id=order.id,
                 )
             )

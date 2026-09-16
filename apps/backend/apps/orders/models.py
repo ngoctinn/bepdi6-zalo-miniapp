@@ -96,6 +96,39 @@ class Order(models.Model):
     )
     note = models.TextField(blank=True, default="", verbose_name="Ghi chú đơn")
 
+    class DeliveryProvider(models.TextChoices):
+        INTERNAL = "INTERNAL", "Shipper của quán"
+        AHAMOVE = "AHAMOVE", "Ahamove"
+        GRAB = "GRAB", "GrabExpress"
+        OTHER = "OTHER", "Đối tác khác"
+
+    # Delivery Dispatch details
+    delivery_provider = models.CharField(
+        max_length=20,
+        choices=DeliveryProvider.choices,
+        blank=True,
+        default="",
+        verbose_name="Đơn vị giao hàng",
+    )
+    shipper_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name="Tên tài xế/Shipper",
+    )
+    shipper_phone = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        verbose_name="SĐT tài xế",
+    )
+    shipper_tracking_code = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        verbose_name="Mã vận đơn / Tracking",
+    )
+
     # Timestamps
     scheduled_delivery_at = models.DateTimeField(
         null=True, blank=True, verbose_name="Hẹn giờ giao lúc"

@@ -288,3 +288,47 @@ def test_admin_order_direct_preparing_transition():
     order.refresh_from_db()
     assert order.status == Order.Status.PREPARING
     assert order.confirmed_at is not None
+
+
+@pytest.mark.django_db
+def test_admin_order_dispatch_api(admin_setup):
+    client = admin_setup["client"]
+    customer = admin_setup["customer"]
+
+    order = Order.objects.create(
+        order_code="FODISPATCH01",
+        idempotency_key="idemp_dispatch_01",
+        customer=customer,
+        recipient_name=customer.name,
+        phone=customer.phone,
+        delivery_address="456 Le Duan, Q1",
+        delivery_latitude=Decimal("10.78"),
+        delivery_longitude=Decimal("106.70"),
+        subtotal=Decimal("80000.00"),
+        total_amount=Decimal("80000.00"),
+        payment_method=Order.PaymentMethod.COD,
+        status=Order.Status.READY,
+    )
+
+    dispatch_payload = {
+        "delivery_provider": "INTERNAL",
+        "shipper_name": "Anh Ba Giao Hàng",
+        "shipper_phone": "0908111222",
+        "shipper_tracking_code": "SHIP_INT_001",
+    }
+    res = client.post(
+        f"/api/v1/admin/orders/{order.id}/dispatch",
+        dispatch_payload,
+        format="json",
+    )
+    assert res.status_code == 200
+    data = res.json()["data"]
+    assert data["status"] == "DELIVERING"
+    assert data["delivery_provider"] == "INTERNAL"
+    assert data["shipper_name"] == "Anh Ba Giao Hàng"
+    assert data["shipper_phone"] == "0908111222"
+
+    order.refresh_from_db()
+    assert order.status == Order.Status.DELIVERING
+    assert order.delivery_provider == Order.DeliveryProvider.INTERNAL
+    assert order.shipper_name == "Anh Ba Giao Hàng"
