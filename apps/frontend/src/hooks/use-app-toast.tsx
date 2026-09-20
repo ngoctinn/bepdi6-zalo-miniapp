@@ -186,7 +186,7 @@ export const AppToastContainer: React.FC = () => {
   if (!currentToast) return null;
 
   const { visible, type, options } = currentToast;
-  const position = options.position ?? "top";
+  const position = options.position ?? "bottom";
 
   const renderIcon = () => {
     if (options.icon) return options.icon;
@@ -336,23 +336,23 @@ export const AppToastContainer: React.FC = () => {
   return (
     <div
       style={{ zIndex: options.zIndex ?? 99999 }}
-      className={`pointer-events-none fixed inset-x-0 flex justify-center px-4 transition-all duration-300 ease-out ${
+      className={`pointer-events-none fixed inset-x-0 flex justify-center px-3 transition-all duration-300 ease-out ${
         position === "top"
           ? "top-[calc(var(--zaui-safe-area-inset-top,16px)+56px)]"
-          : "bottom-[calc(var(--zaui-safe-area-inset-bottom,16px)+88px)]"
+          : "bottom-[calc(var(--app-safe-area-bottom,env(safe-area-inset-bottom,0px))+68px)]"
       } ${
         visible
-          ? "translate-y-0 scale-100 opacity-100"
+          ? "translate-y-0 opacity-100"
           : position === "top"
-            ? "-translate-y-4 scale-95 opacity-0"
-            : "translate-y-4 scale-95 opacity-0"
+            ? "-translate-y-4 opacity-0"
+            : "translate-y-4 opacity-0"
       }`}
     >
       <div
         onClick={hide}
         className={`${
           visible ? "pointer-events-auto" : "pointer-events-none"
-        } flex w-full max-w-[420px] items-center gap-2.5 rounded-2xl border p-3 shadow-lg backdrop-blur-md transition-all active:scale-[0.99] ${variant.card}`}
+        } flex w-full max-w-xl items-center gap-3 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md transition-all active:scale-[0.99] ${variant.card}`}
       >
         {/* Icon */}
         {renderIcon()}

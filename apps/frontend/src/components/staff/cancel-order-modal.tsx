@@ -29,21 +29,46 @@ export function CancelOrderModal({
 
   return (
     <div
-      className="fixed inset-0 z-[1500] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="animate-fadeIn fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[360px] rounded-2xl bg-white p-5 shadow-2xl"
+        className="animate-slideUp w-full max-w-lg rounded-t-3xl bg-white p-5 shadow-2xl transition-transform duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="mb-2 text-base font-bold text-stone-900">
-          {copy.staff.cancel.title}
-        </h3>
-        <p className="mb-3 text-xs text-stone-600">
-          {copy.staff.cancel.prompt} #{order?.order_code}:
+        <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="rounded-lg bg-red-100 p-1.5 text-red-600">
+              <Icon
+                icon="zi-warning-solid"
+                className="text-base leading-none"
+              />
+            </span>
+            <div>
+              <h3 className="text-base font-bold text-neutral900">
+                {copy.staff.cancel.title}
+              </h3>
+              {order && (
+                <p className="font-mono text-xs font-semibold text-stone-500">
+                  #{order.order_code} • {order.recipient_name}
+                </p>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 active:scale-95"
+          >
+            <Icon icon="zi-close" className="text-base" />
+          </button>
+        </div>
+
+        <p className="mt-3 text-xs font-semibold text-stone-600">
+          {copy.staff.cancel.prompt}
         </p>
 
-        <div className="flex flex-col gap-2">
+        <div className="mt-2.5 space-y-2">
           {copy.staff.cancel.reasons.map((reason) => (
             <button
               key={reason}
@@ -76,12 +101,13 @@ export function CancelOrderModal({
           />
         )}
 
-        <div className="mt-4 flex gap-2.5">
+        {/* Action Buttons: Nút 'Quay lại' ưu tiên bảo vệ đơn hàng, Nút 'Hủy' thu hẹp diện tích tránh bấm nhầm */}
+        <div className="mt-5 flex items-center gap-2.5">
           <button
             type="button"
             disabled={loading}
             onClick={onClose}
-            className="flex h-11 flex-1 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-xs font-bold text-stone-700 transition-colors active:scale-[0.98] disabled:opacity-50"
+            className="flex h-12 flex-[2] items-center justify-center rounded-xl border border-stone-300 bg-stone-100 text-xs font-bold text-stone-800 transition-colors active:scale-[0.98] disabled:opacity-50"
           >
             {copy.staff.cancel.back}
           </button>
@@ -89,7 +115,7 @@ export function CancelOrderModal({
             type="button"
             disabled={loading}
             onClick={onConfirmCancel}
-            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 text-xs font-bold text-white shadow-sm transition-colors active:scale-[0.98] disabled:opacity-50"
+            className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-600 text-xs font-bold text-white shadow-sm transition-colors hover:bg-red-700 active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? (
               <>

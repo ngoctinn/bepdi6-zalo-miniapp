@@ -27,15 +27,20 @@ export function StaffOrderDetailSheet({
 
   return (
     <div
-      className="fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+      className="animate-fadeIn fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200"
       onClick={onClose}
     >
       <div
-        className="safe-bottom flex max-h-[88vh] w-full max-w-lg flex-col rounded-t-3xl bg-white shadow-2xl"
+        className="safe-bottom animate-slideUp flex max-h-[88vh] w-full max-w-lg flex-col rounded-t-3xl bg-white shadow-2xl transition-transform duration-300"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Sheet Drag Handle */}
+        <div className="flex w-full items-center justify-center pb-1 pt-2.5">
+          <div className="h-1.5 w-12 rounded-full bg-stone-300" />
+        </div>
+
         {/* Header Sheet */}
-        <div className="flex items-center justify-between border-b border-stone-100 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-stone-100 px-4 py-2.5">
           <div className="flex items-center gap-2">
             <span className="font-mono text-base font-black text-neutral900">
               #{order.order_code}
@@ -62,28 +67,36 @@ export function StaffOrderDetailSheet({
           </button>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3">
+        {/* Scrollable Body with overscroll containment */}
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-3">
           {/* Financial Shield Banner */}
           <div
-            className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-bold ${
+            className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold ${
               isPaid
                 ? "border border-primary/20 bg-primary/10 text-primary"
-                : "border border-amber-300 bg-amber-50 text-amber-900"
+                : "border-2 border-amber-500 bg-amber-50 text-amber-900 shadow-sm"
             }`}
           >
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <Icon
                 icon={isPaid ? "zi-check-circle-solid" : "zi-warning-solid"}
-                className="text-base leading-none"
+                className={`text-lg leading-none ${isPaid ? "text-primary" : "animate-pulse text-amber-600"}`}
               />
-              <span className="leading-none">
-                {isPaid
-                  ? `${copy.staff.financialShield.paidOnline}: ${Number(order.total_amount || 0).toLocaleString("vi-VN")}${copy.common.currency}`
-                  : `${copy.staff.financialShield.collectCod} ${Number(order.total_amount || 0).toLocaleString("vi-VN")}${copy.common.currency}`}
-              </span>
+              <div>
+                <span className="block text-sm font-black leading-tight">
+                  {isPaid
+                    ? `${copy.staff.financialShield.paidOnline}: ${Number(order.total_amount || 0).toLocaleString("vi-VN")}${copy.common.currency}`
+                    : `${copy.staff.financialShield.collectCod} ${Number(order.total_amount || 0).toLocaleString("vi-VN")}${copy.common.currency}`}
+                </span>
+              </div>
             </div>
-            <span className="rounded bg-black/10 px-1.5 py-0.5 text-xxxxsmall font-bold uppercase">
+            <span
+              className={`rounded-lg px-2 py-1 text-xxxxsmall font-black uppercase tracking-wider ${
+                isPaid
+                  ? "bg-primary/20 text-primary"
+                  : "shadow-xs bg-amber-600 text-white"
+              }`}
+            >
               {isPaid
                 ? copy.staff.financialShield.neverCollect
                 : copy.staff.financialShield.driverMustCollect}

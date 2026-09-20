@@ -180,27 +180,45 @@ export default function StaffOrdersPage() {
     "ALL" | "DELIVERY" | "PICKUP"
   >("ALL");
 
-  // Bộ lọc theo Tabs & Delivery Type
-  const filteredOrders = useMemo(() => {
-    let result = orders;
+  // Đơn hàng thuộc tab hiện tại (dùng để tính count badge cho filter pills)
+  const currentTabOrders = useMemo(() => {
     if (activeTab === "PENDING") {
-      result = result.filter((o) => o.status === "PENDING_CONFIRMATION");
-    } else if (activeTab === "PREPARING") {
-      result = result.filter(
+      return orders.filter((o) => o.status === "PENDING_CONFIRMATION");
+    }
+    if (activeTab === "PREPARING") {
+      return orders.filter(
         (o) => o.status === "CONFIRMED" || o.status === "PREPARING",
       );
-    } else if (activeTab === "READY") {
-      result = result.filter(
+    }
+    if (activeTab === "READY") {
+      return orders.filter(
         (o) => o.status === "READY" || o.status === "DELIVERING",
       );
     }
+    return orders;
+  }, [orders, activeTab]);
 
-    if (deliveryFilter !== "ALL") {
-      result = result.filter((o) => o.delivery_type === deliveryFilter);
+  const deliveryCounts = useMemo(() => {
+    const delivery = currentTabOrders.filter(
+      (o) => o.delivery_type === "DELIVERY",
+    ).length;
+    const pickup = currentTabOrders.filter(
+      (o) => o.delivery_type === "PICKUP",
+    ).length;
+    return {
+      all: currentTabOrders.length,
+      delivery,
+      pickup,
+    };
+  }, [currentTabOrders]);
+
+  // Bộ lọc theo Tabs & Delivery Type
+  const filteredOrders = useMemo(() => {
+    if (deliveryFilter === "ALL") {
+      return currentTabOrders;
     }
-
-    return result;
-  }, [orders, activeTab, deliveryFilter]);
+    return currentTabOrders.filter((o) => o.delivery_type === deliveryFilter);
+  }, [currentTabOrders, deliveryFilter]);
 
   // Xử lý chuyển trạng thái đơn
   const handleUpdateStatus = async (orderId: number, nextStatus: string) => {
@@ -390,42 +408,78 @@ export default function StaffOrdersPage() {
           />
         </div>
 
-        {/* Delivery Filter */}
-        <div className="flex items-center gap-1.5 px-3 pt-1">
+        {/* Delivery Filter Pills với số lượng đơn (Count Indicators) & a11y */}
+        <div
+          className="flex items-center gap-1.5 px-3 pt-1"
+          role="group"
+          aria-label="Lọc hình thức nhận món"
+        >
           <button
             type="button"
+            aria-pressed={deliveryFilter === "ALL"}
             onClick={() => setDeliveryFilter("ALL")}
-            className={`inline-flex h-6 items-center justify-center rounded-full px-2.5 text-xxxxsmall font-bold transition-colors ${
+            className={`inline-flex h-7 items-center justify-center gap-1.5 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors active:scale-95 ${
               deliveryFilter === "ALL"
-                ? "bg-neutral900 text-white"
-                : "border border-stone-200 bg-stone-100/70 text-stone-600"
+                ? "shadow-xs bg-neutral900 text-white"
+                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-200"
             }`}
           >
-            {copy.staff.filters.allTypes}
+            <span>{copy.staff.filters.allTypes}</span>
+            <span
+              className={`py-0.2 rounded-full px-1.5 text-[9px] font-black ${
+                deliveryFilter === "ALL"
+                  ? "bg-white/20 text-white"
+                  : "bg-black/10 text-stone-700"
+              }`}
+            >
+              {deliveryCounts.all}
+            </span>
           </button>
+
           <button
             type="button"
+            aria-pressed={deliveryFilter === "DELIVERY"}
             onClick={() => setDeliveryFilter("DELIVERY")}
-            className={`inline-flex h-6 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors ${
+            className={`inline-flex h-7 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors active:scale-95 ${
               deliveryFilter === "DELIVERY"
-                ? "bg-primary text-white"
-                : "border border-stone-200 bg-stone-100/70 text-stone-600"
+                ? "shadow-xs bg-primary text-white"
+                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-200"
             }`}
           >
             <Icon icon="zi-location-solid" className="text-xs leading-none" />
-            <span className="leading-none">{copy.staff.filters.delivery}</span>
+            <span>{copy.staff.filters.delivery}</span>
+            <span
+              className={`py-0.2 rounded-full px-1.5 text-[9px] font-black ${
+                deliveryFilter === "DELIVERY"
+                  ? "bg-white/20 text-white"
+                  : "bg-black/10 text-stone-700"
+              }`}
+            >
+              {deliveryCounts.delivery}
+            </span>
           </button>
+
           <button
             type="button"
+            aria-pressed={deliveryFilter === "PICKUP"}
             onClick={() => setDeliveryFilter("PICKUP")}
-            className={`inline-flex h-6 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors ${
+            className={`inline-flex h-7 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors active:scale-95 ${
               deliveryFilter === "PICKUP"
-                ? "bg-primary text-white"
-                : "border border-stone-200 bg-stone-100/70 text-stone-600"
+                ? "shadow-xs bg-primary text-white"
+                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-200"
             }`}
           >
             <Icon icon="zi-home" className="text-xs leading-none" />
-            <span className="leading-none">{copy.staff.filters.pickup}</span>
+            <span>{copy.staff.filters.pickup}</span>
+            <span
+              className={`py-0.2 rounded-full px-1.5 text-[9px] font-black ${
+                deliveryFilter === "PICKUP"
+                  ? "bg-white/20 text-white"
+                  : "bg-black/10 text-stone-700"
+              }`}
+            >
+              {deliveryCounts.pickup}
+            </span>
           </button>
         </div>
       </div>
@@ -437,33 +491,59 @@ export default function StaffOrdersPage() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="shadow-xs flex animate-pulse flex-col rounded-2xl border border-black/5 bg-white p-3.5"
+                className="flex animate-pulse flex-col rounded-2xl bg-white p-3.5 shadow-sm"
               >
+                {/* 1. Skeleton Header */}
                 <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
-                  <div className="h-4 w-24 rounded bg-stone-200" />
-                  <div className="h-4 w-16 rounded bg-stone-200" />
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-20 rounded bg-stone-200" />
+                    <div className="h-4 w-16 rounded-full bg-stone-100" />
+                  </div>
+                  <div className="h-4 w-24 rounded-full bg-stone-100" />
                 </div>
-                <div className="space-y-2 py-3">
-                  <div className="h-4 w-32 rounded bg-stone-200" />
-                  <div className="h-3 w-48 rounded bg-stone-100" />
+                {/* 2. Skeleton Customer Info */}
+                <div className="py-2.5">
+                  <div className="h-3.5 w-44 rounded bg-stone-200" />
                 </div>
-                <div className="flex gap-2 pt-2">
-                  <div className="h-10 flex-1 rounded-xl bg-stone-200" />
+                {/* 3. Skeleton Items */}
+                <div className="space-y-2 border-t border-stone-100/80 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-6 rounded bg-stone-200" />
+                    <div className="h-4 w-36 rounded bg-stone-200" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-6 rounded bg-stone-200" />
+                    <div className="h-4 w-48 rounded bg-stone-200" />
+                  </div>
+                </div>
+                {/* 4. Skeleton Payment & Price */}
+                <div className="flex items-center justify-between border-t border-stone-100/80 py-2">
+                  <div className="h-3 w-28 rounded bg-stone-100" />
+                  <div className="h-4 w-20 rounded bg-stone-200" />
+                </div>
+                {/* 5. Skeleton Actions */}
+                <div className="flex gap-2 pt-1">
+                  <div className="h-11 w-12 rounded-xl bg-stone-100" />
+                  <div className="h-11 flex-1 rounded-xl bg-stone-200" />
                 </div>
               </div>
             ))}
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="shadow-xs flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-center">
-            <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <div className="mb-2.5 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Icon icon="zi-list-1" className="text-2xl" />
             </div>
             <p className="text-sm font-bold text-neutral900">
               {copy.staff.emptyOrdersTitle}
             </p>
-            <p className="mt-1 text-xs text-stone-500">
+            <p className="mt-1 max-w-[260px] text-xs text-stone-500">
               {copy.staff.emptyOrdersHint}
             </p>
+            <div className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-xxxxsmall font-semibold text-stone-600">
+              <span className="h-2 w-2 animate-ping rounded-full bg-olive600" />
+              <span>Hệ thống tự động cập nhật liên tục</span>
+            </div>
           </div>
         ) : (
           filteredOrders.map((order) => (

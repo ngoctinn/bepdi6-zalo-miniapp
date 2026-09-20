@@ -63,13 +63,18 @@ export function DispatchOrderModal({
 
   return (
     <div
-      className="fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+      className="animate-fadeIn fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-t-3xl bg-white p-5 shadow-2xl"
+        className="animate-slideUp w-full max-w-lg rounded-t-3xl bg-white p-5 shadow-2xl transition-transform duration-300"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Sheet Drag Handle */}
+        <div className="flex w-full items-center justify-center pb-2">
+          <div className="h-1.5 w-12 rounded-full bg-stone-300" />
+        </div>
+
         {/* Header Modal */}
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div>

@@ -60,12 +60,12 @@ export function StaffOrderCard({
       case "PREPARING":
         return {
           label: copy.staff.status.preparing,
-          className: "bg-amber-50 text-amber-800",
+          className: "bg-amber-100 text-amber-900 font-semibold",
         };
       case "READY":
         return {
           label: copy.staff.status.ready,
-          className: "bg-olive50 text-olive800",
+          className: "bg-olive100 text-olive900 font-semibold",
         };
       case "DELIVERING":
         return {
@@ -92,16 +92,16 @@ export function StaffOrderCard({
 
   const badge = getStatusBadge(order.status);
 
-  // Aging Timer chuẩn: Nhã nhặn, không in hoa gắt, không giật mắt
+  // Aging Timer đồng bộ nhẹ nhàng, sạch sẽ
   const renderAgingBadge = () => {
     if (agingMinutes === null || isEnded) return null;
 
     if (agingMinutes < 1) {
       return (
-        <span className="inline-flex items-center gap-1 text-xxsmall font-medium text-stone-500">
+        <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-xxsmall font-medium text-stone-600">
           <Icon
             icon="zi-clock-1"
-            className="flex shrink-0 items-center justify-center text-xs leading-none"
+            className="flex shrink-0 items-center justify-center text-xs leading-none text-stone-400"
           />
           <span className="leading-none">{copy.staff.aging.justNow}</span>
         </span>
@@ -110,10 +110,10 @@ export function StaffOrderCard({
 
     if (agingMinutes < 10) {
       return (
-        <span className="inline-flex items-center gap-1 text-xxsmall font-medium text-stone-500">
+        <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-xxsmall font-medium text-stone-600">
           <Icon
             icon="zi-clock-1"
-            className="flex shrink-0 items-center justify-center text-xs leading-none"
+            className="flex shrink-0 items-center justify-center text-xs leading-none text-stone-400"
           />
           <span className="leading-none">
             {agingMinutes} {copy.staff.aging.minutesAgo}
@@ -124,7 +124,7 @@ export function StaffOrderCard({
 
     if (agingMinutes <= 20) {
       return (
-        <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-xxsmall font-semibold text-amber-800">
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xxsmall font-semibold text-amber-800">
           <Icon
             icon="zi-clock-1"
             className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
@@ -137,7 +137,7 @@ export function StaffOrderCard({
     }
 
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-red-50 px-1.5 py-0.5 text-xxsmall font-bold text-red-700">
+      <span className="inline-flex animate-pulse items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xxsmall font-bold text-red-700">
         <Icon
           icon="zi-warning-solid"
           className="flex shrink-0 items-center justify-center text-xs leading-none text-red-600"
@@ -161,21 +161,10 @@ export function StaffOrderCard({
     action();
   };
 
-  // Dải màu chỉ thị mép trái (Accent Stripe) thay vì bọc viền cứng quanh thẻ
-  const getAccentStripe = () => {
-    if (order.status === "PENDING_CONFIRMATION") {
-      return "border-l-4 border-l-amber-500";
-    }
-    if (agingMinutes && agingMinutes > 20 && !isEnded) {
-      return "border-l-4 border-l-red-500";
-    }
-    return "border-l-4 border-l-transparent";
-  };
-
   return (
     <div
       onClick={() => onOpenDetail?.(order)}
-      className={`relative cursor-pointer overflow-hidden rounded-2xl bg-white p-3.5 shadow-sm transition-transform active:scale-[0.995] ${getAccentStripe()}`}
+      className="relative cursor-pointer overflow-hidden rounded-2xl bg-white p-3.5 shadow-sm transition-transform active:scale-[0.995]"
     >
       {/* 1. Header gọn gàng: Mã đơn + Loại đơn (Trái) & Thời gian + Trạng thái (Phải) */}
       <div className="flex items-center justify-between gap-2 pb-2">
@@ -328,7 +317,7 @@ export function StaffOrderCard({
               onClick={() =>
                 handleDebouncedAction(() => onOpenCancelModal(order))
               }
-              className="inline-flex h-11 w-12 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-600 transition-colors active:bg-stone-200 disabled:opacity-50"
+              className="inline-flex h-11 w-12 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-stone-600 transition-colors active:bg-stone-200 disabled:opacity-50"
               title={copy.staff.actions.cancel}
               aria-label={copy.staff.actions.cancel}
             >
@@ -346,7 +335,7 @@ export function StaffOrderCard({
                   onUpdateStatus(order.id, "PREPARING"),
                 )
               }
-              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform active:scale-[0.98] disabled:opacity-50"
+              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />
@@ -372,14 +361,14 @@ export function StaffOrderCard({
             onClick={() =>
               handleDebouncedAction(() => onUpdateStatus(order.id, "READY"))
             }
-            className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform active:scale-[0.98] disabled:opacity-50"
+            className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-600 text-xs font-bold text-white shadow-sm transition-transform hover:bg-amber-700 active:scale-[0.98] disabled:opacity-50"
           >
             {isProcessing ? (
               <Spinner visible logo={false} />
             ) : (
               <>
                 <Icon
-                  icon="zi-check-circle"
+                  icon="zi-check-circle-solid"
                   className="flex shrink-0 items-center justify-center text-base leading-none"
                 />
                 <span className="leading-none">
@@ -399,7 +388,7 @@ export function StaffOrderCard({
                 onClick={() =>
                   handleDebouncedAction(() => onOpenDispatchModal(order))
                 }
-                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform active:scale-[0.98] disabled:opacity-50"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
               >
                 {isProcessing ? (
                   <Spinner visible logo={false} />
@@ -431,7 +420,7 @@ export function StaffOrderCard({
                     ),
                   )
                 }
-                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform active:scale-[0.98] disabled:opacity-50"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
               >
                 {isProcessing ? (
                   <Spinner visible logo={false} />
@@ -468,7 +457,7 @@ export function StaffOrderCard({
                 }
                 title={copy.staff.updateShipperBtn}
                 aria-label={copy.staff.updateShipperBtn}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-600 transition-colors active:bg-stone-200 disabled:opacity-50"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-stone-600 transition-colors active:bg-stone-200 disabled:opacity-50"
               >
                 <Icon
                   icon="zi-edit"
@@ -485,15 +474,15 @@ export function StaffOrderCard({
                   onUpdateStatus(order.id, "COMPLETED"),
                 )
               }
-              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform active:scale-[0.98] disabled:opacity-50"
+              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-neutral900 text-xs font-bold text-white shadow-sm transition-transform hover:bg-black active:scale-[0.98] disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />
               ) : (
                 <>
                   <Icon
-                    icon="zi-check-circle"
-                    className="flex shrink-0 items-center justify-center text-base leading-none"
+                    icon="zi-check-circle-solid"
+                    className="text-olive400 flex shrink-0 items-center justify-center text-base leading-none"
                   />
                   <span className="leading-none">
                     {copy.staff.actions.completeOrder}
@@ -505,7 +494,7 @@ export function StaffOrderCard({
         )}
 
         {(order.status === "COMPLETED" || order.status === "CANCELLED") && (
-          <div className="inline-flex h-9 flex-1 items-center justify-center rounded-xl bg-stone-100 text-xxsmall font-medium text-stone-500">
+          <div className="inline-flex h-9 flex-1 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-xxsmall font-medium text-stone-500">
             {copy.staff.actions.orderEnded}
           </div>
         )}
