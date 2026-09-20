@@ -9,6 +9,7 @@ import { Spinner, Icon } from "zmp-ui";
 import { StaffOrderCard } from "@/components/staff/staff-order-card";
 import { CancelOrderModal } from "@/components/staff/cancel-order-modal";
 import { DispatchOrderModal } from "@/components/staff/dispatch-order-modal";
+import { StaffOrderDetailSheet } from "@/components/staff/staff-order-detail-sheet";
 import { StaffHeaderActions } from "@/components/staff/staff-header-actions";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { copy } from "@/constants/copy";
@@ -20,12 +21,7 @@ type StaffTab = "PENDING" | "PREPARING" | "READY" | "ALL";
 export default function StaffOrdersPage() {
   const queryClient = useQueryClient();
   const { showSuccess, showError, showWarning, showToast } = useAppToast();
-  const {
-    customer,
-    isLoading: isAuthLoading,
-    refetchCustomer,
-    login,
-  } = useAuth();
+  const { customer, isLoading: isAuthLoading, refetchCustomer } = useAuth();
 
   const isAdmin = customer?.role === "ADMIN" || customer?.role === "STAFF";
 
@@ -45,6 +41,10 @@ export default function StaffOrdersPage() {
   // Modal Dispatch state
   const [dispatchModalVisible, setDispatchModalVisible] = useState(false);
   const [selectedOrderForDispatch, setSelectedOrderForDispatch] =
+    useState<Order | null>(null);
+
+  // Detail Sheet state
+  const [selectedOrderForDetail, setSelectedOrderForDetail] =
     useState<Order | null>(null);
 
   const prevPendingCountRef = useRef(0);
@@ -210,12 +210,13 @@ export default function StaffOrdersPage() {
       await queryClient.invalidateQueries({
         queryKey: [ADMIN_ORDERS_QUERY_KEY],
       });
-      showSuccess("Đã cập nhật trạng thái đơn hàng thành công", {
+      showSuccess(copy.staff.toasts.statusUpdateSuccess, {
         duration: 2500,
       });
     } catch (err: unknown) {
       const errorMsg =
-        (err as { message?: string })?.message || "Không thể cập nhật đơn";
+        (err as { message?: string })?.message ||
+        copy.staff.toasts.statusUpdateError;
       showError(errorMsg, { duration: 3000 });
     } finally {
       setProcessingOrderId(null);
@@ -225,7 +226,7 @@ export default function StaffOrdersPage() {
   // Mở modal hủy đơn
   const handleOpenCancelModal = (order: Order) => {
     setSelectedOrderForCancel(order);
-    setCancelReason("Quán quá tải món");
+    setCancelReason(copy.staff.cancel.reasons[0]);
     setCustomReason("");
     setCancelModalVisible(true);
   };
@@ -235,7 +236,7 @@ export default function StaffOrdersPage() {
     if (!selectedOrderForCancel) return;
     const finalReason =
       cancelReason === "Khác"
-        ? customReason.trim() || "Nhân viên hủy đơn"
+        ? customReason.trim() || copy.staff.cancel.staffDefault
         : cancelReason;
     try {
       setProcessingOrderId(selectedOrderForCancel.id);
@@ -247,12 +248,16 @@ export default function StaffOrdersPage() {
       await queryClient.invalidateQueries({
         queryKey: [ADMIN_ORDERS_QUERY_KEY],
       });
-      showToast(`Đã hủy đơn #${selectedOrderForCancel.order_code}`, "default", {
-        duration: 2500,
-      });
+      showToast(
+        `${copy.staff.toasts.cancelSuccess} #${selectedOrderForCancel.order_code}`,
+        "default",
+        {
+          duration: 2500,
+        },
+      );
     } catch (err: unknown) {
       const errorMsg =
-        (err as { message?: string })?.message || "Không thể hủy đơn hàng";
+        (err as { message?: string })?.message || copy.staff.toasts.cancelError;
       showError(errorMsg, { duration: 3000 });
     } finally {
       setProcessingOrderId(null);
@@ -283,15 +288,18 @@ export default function StaffOrdersPage() {
       await queryClient.invalidateQueries({
         queryKey: [ADMIN_ORDERS_QUERY_KEY],
       });
-      showSuccess(`Đã điều phối đơn #${selectedOrderForDispatch.order_code}!`, {
-        duration: 2500,
-      });
+      showSuccess(
+        `${copy.staff.toasts.dispatchSuccess} #${selectedOrderForDispatch.order_code}!`,
+        {
+          duration: 2500,
+        },
+      );
       setDispatchModalVisible(false);
       setSelectedOrderForDispatch(null);
     } catch (err: unknown) {
       const errorMsg =
         (err as { message?: string })?.message ||
-        "Không thể điều phối đơn hàng";
+        copy.staff.toasts.dispatchError;
       showError(errorMsg, { duration: 3000 });
     } finally {
       setProcessingOrderId(null);
@@ -303,7 +311,7 @@ export default function StaffOrdersPage() {
       <div className="relative flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
         <Spinner />
         <p className="mt-3 text-xs text-stone-500">
-          Đang kiểm tra quyền truy cập...
+          {copy.staff.accessDenied.loading}
         </p>
       </div>
     );
@@ -316,16 +324,15 @@ export default function StaffOrdersPage() {
           <Icon icon="zi-lock" className="text-3xl" />
         </div>
         <h2 className="text-base font-bold text-neutral900">
-          Yêu cầu quyền Quản trị / Bếp
+          {copy.staff.accessDenied.title}
         </h2>
         <p className="mt-2 max-w-sm text-xs leading-relaxed text-stone-500">
-          Tài khoản của bạn chưa được cấp quyền Quản trị viên. Hãy thêm ID Zalo
-          của bạn vào danh sách quản trị viên trên hệ thống.
+          {copy.staff.accessDenied.desc}
         </p>
         {customer?.zalo_user_id && (
           <div className="mt-4 flex flex-col items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-xs">
             <span className="font-semibold text-neutral700">
-              Zalo User ID của bạn:
+              {copy.staff.accessDenied.zaloIdLabel}
             </span>
             <code className="select-all rounded bg-white px-2 py-1 font-mono text-xs font-bold text-amber-800 shadow-sm">
               {customer.zalo_user_id}
@@ -334,13 +341,13 @@ export default function StaffOrdersPage() {
               type="button"
               onClick={() => {
                 navigator.clipboard.writeText(customer.zalo_user_id);
-                showToast("Đã sao chép Zalo User ID!", "default", {
+                showToast(copy.staff.toasts.copiedId, "default", {
                   duration: 2000,
                 });
               }}
-              className="text-2xs mt-1 font-bold text-primary underline"
+              className="mt-1 text-xxsmall font-bold text-primary underline"
             >
-              Sao chép ID
+              {copy.staff.accessDenied.copyId}
             </button>
           </div>
         )}
@@ -351,11 +358,11 @@ export default function StaffOrdersPage() {
               await refetchCustomer();
               await queryClient.invalidateQueries();
               await refetch();
-              showSuccess("Đã làm mới dữ liệu!");
+              showSuccess(copy.staff.toasts.refreshSuccess);
             }}
-            className="flex h-11 w-full items-center justify-center rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-all active:scale-95"
+            className="flex h-11 w-full items-center justify-center rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
           >
-            Làm mới quyền
+            {copy.staff.accessDenied.refreshButton}
           </button>
         </div>
       </div>
@@ -363,9 +370,9 @@ export default function StaffOrdersPage() {
   }
 
   return (
-    <div className="relative flex flex-col bg-background pb-24 font-sans">
-      {/* Sticky Header Topbar chuẩn Zalo Mini App - Gọn gàng thanh lịch */}
-      <div className="sticky top-0 z-30 flex flex-col border-b border-black/5 bg-white/95 pb-2 backdrop-blur-md">
+    <div className="safe-bottom relative flex flex-col bg-background pb-6 font-sans">
+      {/* Header */}
+      <div className="sticky top-0 z-30 flex flex-col border-b border-stone-200/80 bg-white/95 pb-1.5 backdrop-blur-md">
         <StaffHeaderActions
           isSoundEnabled={isSoundEnabled}
           isRefetching={isRefetching}
@@ -373,8 +380,8 @@ export default function StaffOrdersPage() {
           onRefetch={() => refetch()}
         />
 
-        {/* Row 2: Standard Tabs (Dùng chung component Tabs của Design System) */}
-        <div className="w-full bg-transparent px-3.5 py-0.5">
+        {/* Tabs */}
+        <div className="w-full bg-transparent px-3 py-0.5">
           <Tabs
             tabs={staffTabs}
             activeTab={activeTab}
@@ -383,42 +390,42 @@ export default function StaffOrdersPage() {
           />
         </div>
 
-        {/* Row 3: Quick Filter Type (Tất cả / Giao tận nơi / Tại quán) */}
-        <div className="flex items-center gap-1.5 px-3.5 pt-1.5">
+        {/* Delivery Filter */}
+        <div className="flex items-center gap-1.5 px-3 pt-1">
           <button
             type="button"
             onClick={() => setDeliveryFilter("ALL")}
-            className={`inline-flex h-6 items-center justify-center rounded-full px-2.5 text-xxxxsmall font-bold transition-all ${
+            className={`inline-flex h-6 items-center justify-center rounded-full px-2.5 text-xxxxsmall font-bold transition-colors ${
               deliveryFilter === "ALL"
                 ? "bg-neutral900 text-white"
-                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-100"
+                : "border border-stone-200 bg-stone-100/70 text-stone-600"
             }`}
           >
-            Tất cả hình thức
+            {copy.staff.filters.allTypes}
           </button>
           <button
             type="button"
             onClick={() => setDeliveryFilter("DELIVERY")}
-            className={`inline-flex h-6 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-all ${
+            className={`inline-flex h-6 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors ${
               deliveryFilter === "DELIVERY"
                 ? "bg-primary text-white"
-                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-100"
+                : "border border-stone-200 bg-stone-100/70 text-stone-600"
             }`}
           >
             <Icon icon="zi-location-solid" className="text-xs leading-none" />
-            <span className="leading-none">Giao tận nơi</span>
+            <span className="leading-none">{copy.staff.filters.delivery}</span>
           </button>
           <button
             type="button"
             onClick={() => setDeliveryFilter("PICKUP")}
-            className={`inline-flex h-6 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-all ${
+            className={`inline-flex h-6 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors ${
               deliveryFilter === "PICKUP"
                 ? "bg-primary text-white"
-                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-100"
+                : "border border-stone-200 bg-stone-100/70 text-stone-600"
             }`}
           >
             <Icon icon="zi-home" className="text-xs leading-none" />
-            <span className="leading-none">Tại quán</span>
+            <span className="leading-none">{copy.staff.filters.pickup}</span>
           </button>
         </div>
       </div>
@@ -467,10 +474,20 @@ export default function StaffOrdersPage() {
               onUpdateStatus={handleUpdateStatus}
               onOpenCancelModal={handleOpenCancelModal}
               onOpenDispatchModal={handleOpenDispatchModal}
+              onOpenDetail={setSelectedOrderForDetail}
             />
           ))
         )}
       </div>
+
+      {/* Chi Tiết Đơn Hàng Bottom Sheet */}
+      <StaffOrderDetailSheet
+        visible={!!selectedOrderForDetail}
+        order={selectedOrderForDetail}
+        onClose={() => setSelectedOrderForDetail(null)}
+        onOpenCancelModal={handleOpenCancelModal}
+        onOpenDispatchModal={handleOpenDispatchModal}
+      />
 
       {/* Modal Hủy Đơn Hàng */}
       <CancelOrderModal

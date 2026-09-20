@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { DeliveryProvider, Order } from "@/types/order.types";
 import { Icon, Spinner } from "zmp-ui";
+import { copy } from "@/constants/copy";
 
 interface DispatchOrderModalProps {
   visible: boolean;
@@ -15,7 +16,7 @@ interface DispatchOrderModalProps {
   }) => Promise<void>;
 }
 
-// Danh sách gợi ý shipper nội bộ quán
+// TODO: Migrate to backend config or API endpoint
 const INTERNAL_SHIPPERS = [
   { name: "Anh Tuấn", phone: "0901234567" },
   { name: "Anh Hùng", phone: "0902345678" },
@@ -34,14 +35,7 @@ export function DispatchOrderModal({
   const [shipperPhone, setShipperPhone] = useState("");
   const [trackingCode, setTrackingCode] = useState("");
 
-  // Tính ước tính cước Ahamove dựa trên khoảng cách (nếu có)
   const distance = Number(order?.distance_km || 0);
-  const estimatedAhamoveFee = useMemo(() => {
-    if (!distance) return 20000;
-    // Base 4km đầu ~18.000đ - 22.000đ, mỗi km tiếp theo ~5.000đ
-    if (distance <= 4) return 22000;
-    return Math.round((22000 + (distance - 4) * 5500) / 1000) * 1000;
-  }, [distance]);
 
   if (!visible || !order) return null;
 
@@ -69,26 +63,26 @@ export function DispatchOrderModal({
 
   return (
     <div
-      className="backdrop-blur-xs fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 sm:items-center sm:p-4"
+      className="fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-t-3xl bg-white p-5 shadow-2xl transition-all sm:rounded-3xl"
+        className="w-full max-w-lg rounded-t-3xl bg-white p-5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Modal */}
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-lg bg-primary/10 px-2 py-0.5 font-mono text-xs font-black text-primary">
+              <span className="rounded-lg bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold text-primary">
                 #{order.order_code}
               </span>
-              <h3 className="text-base font-black text-neutral900">
-                Điều Phối Giao Hàng
+              <h3 className="text-base font-bold text-neutral900">
+                {copy.staff.dispatch.title}
               </h3>
             </div>
             <p className="mt-0.5 text-xs text-stone-500">
-              Giao đến:{" "}
+              {copy.staff.dispatch.deliverTo}{" "}
               <span className="font-semibold text-neutral800">
                 {order.recipient_name}
               </span>{" "}
@@ -98,7 +92,7 @@ export function DispatchOrderModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 active:scale-90"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 active:scale-95"
           >
             <Icon icon="zi-close" className="text-base" />
           </button>
@@ -115,10 +109,10 @@ export function DispatchOrderModal({
           </span>
         </div>
 
-        {/* Lựa chọn kênh vận chuyển (Segment Tabs) */}
+        {/* Lựa chọn kênh vận chuyển */}
         <div className="mt-4">
-          <label className="text-2xs font-extrabold uppercase tracking-wider text-stone-400">
-            Chọn kênh điều phối
+          <label className="text-xxsmall font-bold uppercase tracking-wider text-stone-400">
+            {copy.staff.dispatch.selectChannel}
           </label>
           <div className="mt-1.5 grid grid-cols-3 gap-2">
             <button
@@ -128,15 +122,19 @@ export function DispatchOrderModal({
                 setShipperName("");
                 setShipperPhone("");
               }}
-              className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-all ${
+              className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
                 provider === "INTERNAL"
                   ? "shadow-xs border-primary bg-primary/10 text-primary ring-2 ring-primary/20"
-                  : "border-stone-200 bg-white text-stone-600 hover:bg-stone-50"
+                  : "border-stone-200 bg-white text-stone-600"
               }`}
             >
               <span className="text-lg">🛵</span>
-              <span className="mt-1 text-xs font-black">Shipper Quán</span>
-              <span className="text-3xs text-stone-500">Nhân viên nội bộ</span>
+              <span className="mt-1 text-xs font-bold">
+                {copy.staff.dispatch.internalShipper}
+              </span>
+              <span className="text-xxxsmall text-stone-500">
+                {copy.staff.dispatch.internalDesc}
+              </span>
             </button>
 
             <button
@@ -145,16 +143,16 @@ export function DispatchOrderModal({
                 setProvider("AHAMOVE");
                 setShipperName("Tài xế Ahamove");
               }}
-              className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-all ${
+              className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
                 provider === "AHAMOVE"
                   ? "shadow-xs border-amber-500 bg-amber-50 text-amber-900 ring-2 ring-amber-400/30"
-                  : "border-stone-200 bg-white text-stone-600 hover:bg-stone-50"
+                  : "border-stone-200 bg-white text-stone-600"
               }`}
             >
               <span className="text-lg">⚡</span>
-              <span className="mt-1 text-xs font-black">Ahamove</span>
-              <span className="text-3xs font-semibold text-amber-700">
-                ~{estimatedAhamoveFee.toLocaleString("vi-VN")}đ
+              <span className="mt-1 text-xs font-bold">Ahamove</span>
+              <span className="text-xxxsmall font-semibold text-amber-700">
+                {copy.staff.dispatch.ahamoveFeeLabel}
               </span>
             </button>
 
@@ -164,15 +162,17 @@ export function DispatchOrderModal({
                 setProvider("GRAB");
                 setShipperName("Tài xế Grab");
               }}
-              className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-all ${
+              className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
                 provider === "GRAB"
-                  ? "shadow-xs border-emerald-600 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-500/30"
-                  : "border-stone-200 bg-white text-stone-600 hover:bg-stone-50"
+                  ? "shadow-xs border-primary bg-olive50 text-olive900 ring-2 ring-primary/20"
+                  : "border-stone-200 bg-white text-stone-600"
               }`}
             >
               <span className="text-lg">🟢</span>
-              <span className="mt-1 text-xs font-black">GrabExpress</span>
-              <span className="text-3xs text-stone-500">Gọi ngoài app</span>
+              <span className="mt-1 text-xs font-bold">GrabExpress</span>
+              <span className="text-xxxsmall text-stone-500">
+                {copy.staff.dispatch.grabDesc}
+              </span>
             </button>
           </div>
         </div>
@@ -182,11 +182,11 @@ export function DispatchOrderModal({
           {provider === "INTERNAL" ? (
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-2xs font-extrabold uppercase text-stone-500">
-                  Chọn nhanh nhân viên giao
+                <span className="text-xxsmall font-bold uppercase text-stone-500">
+                  {copy.staff.dispatch.quickSelectLabel}
                 </span>
-                <span className="text-3xs text-stone-400">
-                  1-tap điền thông tin
+                <span className="text-xxxsmall text-stone-400">
+                  {copy.staff.dispatch.quickSelectHint}
                 </span>
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -195,10 +195,10 @@ export function DispatchOrderModal({
                     key={s.phone}
                     type="button"
                     onClick={() => handleSelectInternal(s)}
-                    className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-all ${
+                    className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors active:scale-[0.98] ${
                       shipperPhone === s.phone
                         ? "shadow-xs border-primary bg-primary text-white"
-                        : "border-stone-200 bg-white text-stone-700 hover:bg-stone-100"
+                        : "border-stone-200 bg-white text-stone-700"
                     }`}
                   >
                     {s.name}
@@ -208,8 +208,8 @@ export function DispatchOrderModal({
 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-3xs font-bold text-stone-500">
-                    Tên người giao
+                  <label className="text-xxxsmall font-bold text-stone-500">
+                    {copy.staff.dispatch.shipperNameLabel}
                   </label>
                   <input
                     type="text"
@@ -220,8 +220,8 @@ export function DispatchOrderModal({
                   />
                 </div>
                 <div>
-                  <label className="text-3xs font-bold text-stone-500">
-                    Số điện thoại
+                  <label className="text-xxxsmall font-bold text-stone-500">
+                    {copy.staff.dispatch.shipperPhoneLabel}
                   </label>
                   <input
                     type="tel"
@@ -242,20 +242,19 @@ export function DispatchOrderModal({
                 />
                 <div className="leading-snug">
                   <p className="font-bold">
-                    Điều phối xe qua{" "}
+                    {copy.staff.dispatch.dispatchVia}{" "}
                     {provider === "AHAMOVE" ? "Ahamove" : "Grab"}
                   </p>
-                  <p className="text-3xs text-amber-700">
-                    Khách sẽ nhận được ZNS thông báo mã chuyến & trạng thái
-                    shipper đang giao.
+                  <p className="text-xxxsmall text-amber-700">
+                    {copy.staff.dispatch.dispatchingNote}
                   </p>
                 </div>
               </div>
 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-3xs font-bold text-stone-500">
-                    Tài xế / Biển số
+                  <label className="text-xxxsmall font-bold text-stone-500">
+                    {copy.staff.dispatch.driverLicenseLabel}
                   </label>
                   <input
                     type="text"
@@ -266,8 +265,8 @@ export function DispatchOrderModal({
                   />
                 </div>
                 <div>
-                  <label className="text-3xs font-bold text-stone-500">
-                    SĐT Tài xế
+                  <label className="text-xxxsmall font-bold text-stone-500">
+                    {copy.staff.dispatch.driverPhoneLabel}
                   </label>
                   <input
                     type="tel"
@@ -280,8 +279,8 @@ export function DispatchOrderModal({
               </div>
 
               <div className="mt-2">
-                <label className="text-3xs font-bold text-stone-500">
-                  Mã theo dõi chuyến (Tracking Code)
+                <label className="text-xxxsmall font-bold text-stone-500">
+                  {copy.staff.dispatch.trackingCodeLabel}
                 </label>
                 <input
                   type="text"
@@ -301,26 +300,26 @@ export function DispatchOrderModal({
             type="button"
             disabled={loading}
             onClick={onClose}
-            className="active:scale-98 flex h-12 flex-1 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-xs font-bold text-stone-700 disabled:opacity-50"
+            className="flex h-12 flex-1 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-xs font-bold text-stone-700 transition-colors active:scale-[0.98] disabled:opacity-50"
           >
-            Đóng
+            {copy.staff.dispatch.close}
           </button>
 
           <button
             type="button"
             disabled={loading}
             onClick={handleSubmit}
-            className="flex h-12 flex-[2] items-center justify-center gap-2 rounded-xl bg-primary text-xs font-extrabold text-white shadow-md active:opacity-90 disabled:opacity-50"
+            className="flex h-12 flex-[2] items-center justify-center gap-2 rounded-xl bg-primary text-xs font-bold text-white shadow-md transition-colors active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? (
               <>
                 <Spinner visible logo={false} />
-                <span>Đang điều phối...</span>
+                <span>{copy.staff.dispatch.dispatching}</span>
               </>
             ) : (
               <>
                 <Icon icon="zi-send" className="text-base" />
-                <span>Xác Nhận Xuất Đơn Giao</span>
+                <span>{copy.staff.dispatch.confirmDispatch}</span>
               </>
             )}
           </button>

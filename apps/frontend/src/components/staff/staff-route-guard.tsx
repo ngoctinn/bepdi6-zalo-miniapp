@@ -1,11 +1,9 @@
-import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { Spinner } from "zmp-ui";
 
 export function StaffRouteGuard() {
   const { customer, isLoading } = useAuth();
-  const isDev = import.meta.env.DEV;
 
   if (isLoading) {
     return (

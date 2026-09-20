@@ -83,7 +83,7 @@ const router = createBrowserRouter(
               element: <StaffOrdersPage />,
               handle: {
                 back: false,
-                hideFooter: false,
+                hideFooter: true,
                 headerPosition: "sticky",
                 hideHeader: true,
               },
