@@ -235,7 +235,7 @@ export default function StaffOrdersPage() {
   const handleConfirmCancel = async () => {
     if (!selectedOrderForCancel) return;
     const finalReason =
-      cancelReason === "Khác"
+      cancelReason === copy.staff.cancel.otherReasonKey
         ? customReason.trim() || copy.staff.cancel.staffDefault
         : cancelReason;
     try {

@@ -103,7 +103,7 @@ export function StaffOrderCard({
             icon="zi-clock-1"
             className="flex shrink-0 items-center justify-center text-xs leading-none"
           />
-          <span className="leading-none">Vừa xong</span>
+          <span className="leading-none">{copy.staff.aging.justNow}</span>
         </span>
       );
     }
@@ -115,7 +115,9 @@ export function StaffOrderCard({
             icon="zi-clock-1"
             className="flex shrink-0 items-center justify-center text-xs leading-none"
           />
-          <span className="leading-none">{agingMinutes} phút trước</span>
+          <span className="leading-none">
+            {agingMinutes} {copy.staff.aging.minutesAgo}
+          </span>
         </span>
       );
     }
@@ -127,7 +129,9 @@ export function StaffOrderCard({
             icon="zi-clock-1"
             className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
           />
-          <span className="leading-none">{agingMinutes} phút trước</span>
+          <span className="leading-none">
+            {agingMinutes} {copy.staff.aging.minutesAgo}
+          </span>
         </span>
       );
     }
@@ -138,7 +142,9 @@ export function StaffOrderCard({
           icon="zi-warning-solid"
           className="flex shrink-0 items-center justify-center text-xs leading-none text-red-600"
         />
-        <span className="leading-none">{agingMinutes} phút trước</span>
+        <span className="leading-none">
+          {agingMinutes} {copy.staff.aging.minutesAgo}
+        </span>
       </span>
     );
   };
@@ -184,7 +190,9 @@ export function StaffOrderCard({
               className="flex shrink-0 items-center justify-center text-xs leading-none text-primary"
             />
             <span className="leading-none">
-              {isDelivery ? "Giao hàng" : "Tại quán"}
+              {isDelivery
+                ? copy.staff.deliveryType.delivery
+                : copy.staff.deliveryType.pickup}
             </span>
           </span>
         </div>
@@ -203,7 +211,7 @@ export function StaffOrderCard({
       <div className="pb-2.5">
         <div className="flex items-center justify-between text-xs text-stone-600">
           <span className="truncate">
-            Khách:{" "}
+            {copy.staff.customerHeader}{" "}
             <strong className="font-semibold text-neutral900">
               {order.recipient_name}
             </strong>
@@ -218,7 +226,9 @@ export function StaffOrderCard({
               className="flex shrink-0 items-center justify-center text-xs leading-none text-stone-400"
             />
             <div className="leading-snug">
-              <span className="font-bold text-stone-900">Ghi chú: </span>
+              <span className="font-bold text-stone-900">
+                {copy.staff.orderNoteHeader}
+              </span>
               <span>{order.note}</span>
             </div>
           </div>
@@ -250,7 +260,10 @@ export function StaffOrderCard({
                         icon="zi-warning-circle-solid"
                         className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
                       />
-                      <span className="leading-none">Lưu ý: {item.note}</span>
+                      <span className="leading-none">
+                        {copy.staff.itemWarningPrefix}
+                        {item.note}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -269,7 +282,9 @@ export function StaffOrderCard({
                 icon="zi-check-circle-solid"
                 className="flex shrink-0 items-center justify-center text-xs leading-none"
               />
-              <span className="leading-none">Đã thanh toán online</span>
+              <span className="leading-none">
+                {copy.staff.payment.paidOnlineBadge}
+              </span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-xxsmall font-semibold text-amber-800">
@@ -277,7 +292,9 @@ export function StaffOrderCard({
                 icon="zi-warning-solid"
                 className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
               />
-              <span className="leading-none">Thu tiền mặt khi giao</span>
+              <span className="leading-none">
+                {copy.staff.payment.cashOnDeliveryBadge}
+              </span>
             </span>
           )}
         </div>
@@ -292,7 +309,8 @@ export function StaffOrderCard({
               : ""}
           </span>
           <span className="font-mono text-sm font-bold text-neutral900">
-            {Number(order.total_amount || 0).toLocaleString("vi-VN")}đ
+            {Number(order.total_amount || 0).toLocaleString("vi-VN")}
+            {copy.common.currency}
           </span>
         </div>
       </div>
@@ -311,8 +329,8 @@ export function StaffOrderCard({
                 handleDebouncedAction(() => onOpenCancelModal(order))
               }
               className="inline-flex h-11 w-12 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-600 transition-colors active:bg-stone-200 disabled:opacity-50"
-              title="Hủy đơn"
-              aria-label="Hủy đơn"
+              title={copy.staff.actions.cancel}
+              aria-label={copy.staff.actions.cancel}
             >
               <Icon
                 icon="zi-close-circle"
@@ -338,7 +356,9 @@ export function StaffOrderCard({
                     icon="zi-check-circle"
                     className="flex shrink-0 items-center justify-center text-base leading-none"
                   />
-                  <span className="leading-none">Xác nhận & Nấu món</span>
+                  <span className="leading-none">
+                    {copy.staff.actions.confirmAndCook}
+                  </span>
                 </>
               )}
             </button>
@@ -352,7 +372,7 @@ export function StaffOrderCard({
             onClick={() =>
               handleDebouncedAction(() => onUpdateStatus(order.id, "READY"))
             }
-            className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-600 text-xs font-bold text-white shadow-sm transition-transform active:scale-[0.98] disabled:opacity-50"
+            className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform active:scale-[0.98] disabled:opacity-50"
           >
             {isProcessing ? (
               <Spinner visible logo={false} />
@@ -362,7 +382,9 @@ export function StaffOrderCard({
                   icon="zi-check-circle"
                   className="flex shrink-0 items-center justify-center text-base leading-none"
                 />
-                <span className="leading-none">Đã nấu xong (Sẵn sàng)</span>
+                <span className="leading-none">
+                  {copy.staff.actions.cookedReady}
+                </span>
               </>
             )}
           </button>
@@ -389,8 +411,8 @@ export function StaffOrderCard({
                     />
                     <span className="leading-none">
                       {order.shipper_name
-                        ? "Đổi shipper giao hàng"
-                        : "Điều phối shipper"}
+                        ? copy.staff.dispatch.changeShipper
+                        : copy.staff.dispatch.assignShipper}
                     </span>
                   </>
                 )}
@@ -425,8 +447,8 @@ export function StaffOrderCard({
                     />
                     <span className="leading-none">
                       {order.delivery_type === "PICKUP"
-                        ? "Khách đã nhận món"
-                        : "Bàn giao shipper"}
+                        ? copy.staff.actions.pickupHandover
+                        : copy.staff.actions.handoverShipper}
                     </span>
                   </>
                 )}
@@ -444,7 +466,8 @@ export function StaffOrderCard({
                 onClick={() =>
                   handleDebouncedAction(() => onOpenDispatchModal(order))
                 }
-                title="Cập nhật shipper"
+                title={copy.staff.updateShipperBtn}
+                aria-label={copy.staff.updateShipperBtn}
                 className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-stone-100 text-stone-600 transition-colors active:bg-stone-200 disabled:opacity-50"
               >
                 <Icon
@@ -472,7 +495,9 @@ export function StaffOrderCard({
                     icon="zi-check-circle"
                     className="flex shrink-0 items-center justify-center text-base leading-none"
                   />
-                  <span className="leading-none">Hoàn tất đơn hàng</span>
+                  <span className="leading-none">
+                    {copy.staff.actions.completeOrder}
+                  </span>
                 </>
               )}
             </button>
@@ -481,7 +506,7 @@ export function StaffOrderCard({
 
         {(order.status === "COMPLETED" || order.status === "CANCELLED") && (
           <div className="inline-flex h-9 flex-1 items-center justify-center rounded-xl bg-stone-100 text-xxsmall font-medium text-stone-500">
-            Đơn hàng đã kết thúc
+            {copy.staff.actions.orderEnded}
           </div>
         )}
       </div>

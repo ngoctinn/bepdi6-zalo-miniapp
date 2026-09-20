@@ -56,7 +56,7 @@ export function StaffOrderDetailSheet({
             type="button"
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-transform active:scale-95"
-            aria-label="Đóng"
+            aria-label={copy.staff.dispatch.close}
           >
             <Icon icon="zi-close" className="text-base" />
           </button>
@@ -79,8 +79,8 @@ export function StaffOrderDetailSheet({
               />
               <span className="leading-none">
                 {isPaid
-                  ? `${copy.staff.financialShield.paidOnline}: ${Number(order.total_amount || 0).toLocaleString("vi-VN")}đ`
-                  : `${copy.staff.financialShield.collectCod} ${Number(order.total_amount || 0).toLocaleString("vi-VN")}đ`}
+                  ? `${copy.staff.financialShield.paidOnline}: ${Number(order.total_amount || 0).toLocaleString("vi-VN")}${copy.common.currency}`
+                  : `${copy.staff.financialShield.collectCod} ${Number(order.total_amount || 0).toLocaleString("vi-VN")}${copy.common.currency}`}
               </span>
             </div>
             <span className="rounded bg-black/10 px-1.5 py-0.5 text-xxxxsmall font-bold uppercase">
@@ -95,7 +95,7 @@ export function StaffOrderDetailSheet({
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-stone-500">
-                  Khách hàng
+                  {copy.staff.customerLabel}
                 </p>
                 <p className="text-sm font-bold text-neutral900">
                   {order.recipient_name}
@@ -111,7 +111,7 @@ export function StaffOrderDetailSheet({
                   className="inline-flex h-9 items-center justify-center gap-1 rounded-full border border-primary/40 bg-olive50 px-3.5 text-xs font-bold text-olive900 shadow-sm transition-transform active:scale-95"
                 >
                   <Icon icon="zi-call" className="text-sm leading-none" />
-                  <span>Gọi khách</span>
+                  <span>{copy.staff.callCustomerBtn}</span>
                 </button>
               )}
             </div>
@@ -150,12 +150,15 @@ export function StaffOrderDetailSheet({
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-sm font-bold text-white">
-                    {order.delivery_provider === "AHAMOVE"
-                      ? "⚡"
-                      : order.delivery_provider === "GRAB"
-                        ? "🟢"
-                        : "🛵"}
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white">
+                    <Icon
+                      icon={
+                        order.delivery_provider === "INTERNAL"
+                          ? "zi-home"
+                          : "zi-location-solid"
+                      }
+                      className="text-xs"
+                    />
                   </span>
                   <div>
                     <div className="flex items-center gap-1.5">
@@ -164,7 +167,7 @@ export function StaffOrderDetailSheet({
                           ? "Ahamove"
                           : order.delivery_provider === "GRAB"
                             ? "GrabExpress"
-                            : "Shipper Quán"}
+                            : copy.staff.dispatch.internalShipper}
                       </span>
                       {order.shipper_tracking_code && (
                         <span className="rounded border border-stone-200 bg-white px-1 py-0.5 font-mono text-xxxxsmall font-bold text-stone-600">
@@ -184,7 +187,7 @@ export function StaffOrderDetailSheet({
                     type="button"
                     onClick={() => makePhoneCall(order.shipper_phone!)}
                     className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/30 bg-white text-primary active:scale-95"
-                    title="Gọi shipper"
+                    title={copy.staff.actions.call}
                   >
                     <Icon icon="zi-call" className="text-xs" />
                   </button>
@@ -196,7 +199,7 @@ export function StaffOrderDetailSheet({
           {/* Items Detail */}
           <div className="rounded-xl border border-stone-200/90 bg-white p-3">
             <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-stone-500">
-              Danh sách món ({order.items?.length || 0})
+              {copy.staff.items.itemCountPrefix} ({order.items?.length || 0})
             </h4>
             <div className="divide-y divide-stone-100">
               {order.items?.map((item, idx) => (
@@ -217,14 +220,22 @@ export function StaffOrderDetailSheet({
                           </p>
                         )}
                         {item.note && (
-                          <p className="mt-1 text-xxsmall font-bold text-red-600">
-                            ⚠️ {item.note}
-                          </p>
+                          <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xxsmall font-semibold text-amber-900">
+                            <Icon
+                              icon="zi-warning-circle-solid"
+                              className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
+                            />
+                            <span className="leading-none">
+                              {copy.staff.itemWarningPrefix}
+                              {item.note}
+                            </span>
+                          </div>
                         )}
                       </div>
                     </div>
                     <span className="font-mono text-xs font-bold text-stone-700">
-                      {Number(item.subtotal || 0).toLocaleString("vi-VN")}đ
+                      {Number(item.subtotal || 0).toLocaleString("vi-VN")}
+                      {copy.common.currency}
                     </span>
                   </div>
                 </div>
@@ -233,9 +244,10 @@ export function StaffOrderDetailSheet({
 
             {/* Total summary */}
             <div className="mt-3 flex items-center justify-between border-t border-stone-200 pt-2 text-xs font-bold">
-              <span className="text-stone-600">Tổng cộng</span>
+              <span className="text-stone-600">{copy.common.total}</span>
               <span className="font-mono text-base font-black text-neutral900">
-                {Number(order.total_amount || 0).toLocaleString("vi-VN")}đ
+                {Number(order.total_amount || 0).toLocaleString("vi-VN")}
+                {copy.common.currency}
               </span>
             </div>
           </div>
@@ -249,7 +261,7 @@ export function StaffOrderDetailSheet({
             className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white text-xs font-bold text-stone-700 shadow-sm transition-transform active:scale-[0.98]"
           >
             <Icon icon="zi-download" className="text-sm" />
-            <span>In phiếu dán túi</span>
+            <span>{copy.staff.printBagReceiptBtn}</span>
           </button>
 
           {isDelivery && onOpenDispatchModal && !isEnded && (
@@ -263,7 +275,9 @@ export function StaffOrderDetailSheet({
             >
               <Icon icon="zi-send" className="text-sm" />
               <span>
-                {order.shipper_name ? "Đổi shipper" : "Điều phối shipper"}
+                {order.shipper_name
+                  ? copy.staff.dispatch.changeShipper
+                  : copy.staff.dispatch.assignShipper}
               </span>
             </button>
           )}
@@ -277,7 +291,7 @@ export function StaffOrderDetailSheet({
               }}
               className="flex h-11 w-16 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-xs font-bold text-red-700 active:bg-red-100"
             >
-              Hủy đơn
+              {copy.staff.actions.cancel}
             </button>
           )}
         </div>

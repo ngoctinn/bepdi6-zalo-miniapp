@@ -66,7 +66,7 @@ export function CancelOrderModal({
           ))}
         </div>
 
-        {cancelReason === "Khác" && (
+        {cancelReason === copy.staff.cancel.otherReasonKey && (
           <input
             type="text"
             placeholder={copy.staff.cancel.customPlaceholder}

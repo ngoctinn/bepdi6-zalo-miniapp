@@ -49,10 +49,10 @@ export function DispatchOrderModal({
       delivery_provider: provider,
       shipper_name:
         provider === "AHAMOVE"
-          ? shipperName || "Tài xế Ahamove"
+          ? shipperName || copy.staff.dispatch.driverAhamoveDefault
           : provider === "GRAB"
-            ? shipperName || "Tài xế GrabExpress"
-            : shipperName || "Shipper quán",
+            ? shipperName || copy.staff.dispatch.driverGrabExpressDefault
+            : shipperName || copy.staff.dispatch.shipperInternalDefault,
       shipper_phone: shipperPhone,
       shipper_tracking_code:
         provider === "AHAMOVE" || provider === "GRAB"
@@ -141,7 +141,7 @@ export function DispatchOrderModal({
               type="button"
               onClick={() => {
                 setProvider("AHAMOVE");
-                setShipperName("Tài xế Ahamove");
+                setShipperName(copy.staff.dispatch.driverAhamoveDefault);
               }}
               className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
                 provider === "AHAMOVE"
@@ -160,7 +160,7 @@ export function DispatchOrderModal({
               type="button"
               onClick={() => {
                 setProvider("GRAB");
-                setShipperName("Tài xế Grab");
+                setShipperName(copy.staff.dispatch.driverGrabDefault);
               }}
               className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
                 provider === "GRAB"
@@ -213,7 +213,7 @@ export function DispatchOrderModal({
                   </label>
                   <input
                     type="text"
-                    placeholder="Tên shipper..."
+                    placeholder={copy.staff.dispatch.shipperNamePlaceholder}
                     value={shipperName}
                     onChange={(e) => setShipperName(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-neutral900 outline-none focus:border-primary"
@@ -225,7 +225,7 @@ export function DispatchOrderModal({
                   </label>
                   <input
                     type="tel"
-                    placeholder="090..."
+                    placeholder={copy.staff.dispatch.shipperPhonePlaceholder}
                     value={shipperPhone}
                     onChange={(e) => setShipperPhone(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-neutral900 outline-none focus:border-primary"
@@ -258,7 +258,9 @@ export function DispatchOrderModal({
                   </label>
                   <input
                     type="text"
-                    placeholder="VD: Tuấn - 59F1-12345"
+                    placeholder={
+                      copy.staff.dispatch.driverAhaLicensePlaceholder
+                    }
                     value={shipperName}
                     onChange={(e) => setShipperName(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-neutral900 outline-none focus:border-primary"
@@ -270,7 +272,7 @@ export function DispatchOrderModal({
                   </label>
                   <input
                     type="tel"
-                    placeholder="SĐT tài xế..."
+                    placeholder={copy.staff.dispatch.driverPhonePlaceholder}
                     value={shipperPhone}
                     onChange={(e) => setShipperPhone(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-neutral900 outline-none focus:border-primary"
@@ -284,7 +286,7 @@ export function DispatchOrderModal({
                 </label>
                 <input
                   type="text"
-                  placeholder="VD: AHA-982341..."
+                  placeholder={copy.staff.dispatch.trackingCodePlaceholder}
                   value={trackingCode}
                   onChange={(e) => setTrackingCode(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 font-mono text-xs font-semibold text-neutral900 outline-none focus:border-primary"
