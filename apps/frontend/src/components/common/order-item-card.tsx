@@ -5,6 +5,7 @@ import { Badge } from "@/components/common/badge";
 import { Icon } from "zmp-ui";
 import { useCartStore } from "@/stores/cart.store";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { copy } from "@/constants/copy";
 import {
   getOrderStatusLabel,
   getOrderStatusVariant,
@@ -21,7 +22,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
   const { showSuccess } = useAppToast();
 
   const totalQuantity = (order.items || []).reduce(
-    (sum, item) => sum + item.quantity,
+    (sum, item) => sum + (item.quantity || 0),
     0,
   );
 
@@ -29,6 +30,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
   const isCompleted = order.status === "COMPLETED";
   const isCancelled = order.status === "CANCELLED";
   const isActive = !isCompleted && !isCancelled;
+  const canReorder = isCompleted || isCancelled;
 
   // Tính nấc tiến độ cho đơn hàng đang xử lý (Active Order Stepper)
   const getStepIndex = () => {
@@ -51,27 +53,36 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
   const currentStepIndex = getStepIndex();
 
   const steps = isPickup
-    ? [{ label: "Đã đặt" }, { label: "Đang nấu" }, { label: "Chờ lấy món" }]
-    : [{ label: "Đã đặt" }, { label: "Đang nấu" }, { label: "Đang giao" }];
-
-  // Tính % đường line màu xanh tiến độ
-  const progressPercent =
-    currentStepIndex === 0 ? "0%" : currentStepIndex === 1 ? "50%" : "100%";
+    ? [
+        { label: copy.order.stepper?.placed || "Đã đặt" },
+        { label: copy.order.stepper?.cooking || "Đang nấu" },
+        { label: copy.order.stepper?.waitingPickup || "Chờ lấy món" },
+      ]
+    : [
+        { label: copy.order.stepper?.placed || "Đã đặt" },
+        { label: copy.order.stepper?.cooking || "Đang nấu" },
+        { label: copy.order.stepper?.delivering || "Đang giao" },
+      ];
 
   // Xử lý Đặt lại món 1-chạm vào giỏ hàng
   const handleReorder = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!order.items || order.items.length === 0) return;
 
+    let addedCount = 0;
     order.items.forEach((item) => {
+      const productId = item.product_id ?? item.product;
+      if (!productId) return;
+
+      addedCount++;
       addToCart({
-        product_id: item.product_id,
+        product_id: productId,
         product_name: item.product_name,
         unit_price: Number(item.unit_price || 0),
-        quantity: item.quantity,
+        quantity: item.quantity || 1,
         note: item.note,
         options: item.options?.map((o) => ({
-          option_id: o.option_id,
+          option_id: (o.option_id ?? o.option) as number,
           option_name: o.option_name,
           price: Number(o.price || 0),
           quantity: o.quantity || 1,
@@ -79,8 +90,35 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
       });
     });
 
-    showSuccess("Đã thêm các món vào giỏ hàng!");
-    navigate("/checkout");
+    if (addedCount > 0) {
+      showSuccess(copy.order.reorderSuccess || "Đã thêm các món vào giỏ hàng!");
+      navigate("/checkout");
+    }
+  };
+
+  const getStatusMessage = () => {
+    if (order.status === "PENDING_CONFIRMATION") {
+      return (
+        copy.order.statusMessages?.pending ||
+        "Quán đã nhận đơn và đang kiểm tra..."
+      );
+    }
+    if (order.status === "CONFIRMED" || order.status === "PREPARING") {
+      return (
+        copy.order.statusMessages?.preparing ||
+        "Bếp Dì 6 đang chuẩn bị món thơm ngon cho bạn..."
+      );
+    }
+    if (isPickup) {
+      return (
+        copy.order.statusMessages?.readyPickup ||
+        "Món đã nấu xong, mời bạn đến quầy nhận nhé!"
+      );
+    }
+    return (
+      copy.order.statusMessages?.delivering ||
+      "Shipper đang trên đường giao đồ ăn đến bạn..."
+    );
   };
 
   return (
@@ -135,13 +173,18 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
                 )}
               </span>
               <span className="shrink-0 font-mono text-stone-600">
-                {formatCurrency(item.subtotal)}đ
+                {formatCurrency(item.subtotal || 0)}đ
               </span>
             </div>
           ))}
           {(order.items?.length || 0) > 3 && (
             <p className="text-xxsmall italic text-stone-400">
-              và {(order.items?.length || 0) - 3} món khác...
+              {copy.order.andOtherItems
+                ? copy.order.andOtherItems.replace(
+                    "{count}",
+                    String((order.items?.length || 0) - 3),
+                  )
+                : `và ${(order.items?.length || 0) - 3} món khác...`}
             </p>
           )}
         </div>
@@ -210,13 +253,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
           <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-olive50/60 px-2.5 py-1.5 text-xxsmall text-olive900">
             <span className="inline-block h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-primary" />
             <span className="font-medium leading-snug">
-              {order.status === "PENDING_CONFIRMATION"
-                ? "Quán đã nhận đơn và đang kiểm tra..."
-                : order.status === "CONFIRMED" || order.status === "PREPARING"
-                  ? "Bếp Dì 6 đang chuẩn bị món thơm ngon cho bạn..."
-                  : isPickup
-                    ? "Món đã nấu xong, mời bạn đến quầy nhận nhé!"
-                    : "Shipper đang trên đường giao đồ ăn đến bạn..."}
+              {getStatusMessage()}
             </span>
           </div>
         </div>
@@ -236,25 +273,30 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
         <div className="flex items-center gap-2">
           <div className="flex items-baseline gap-1">
             <span className="text-xxsmall text-stone-500">
-              Tổng ({totalQuantity} món):
+              {copy.order.totalItemsLabel
+                ? copy.order.totalItemsLabel.replace(
+                    "{count}",
+                    String(totalQuantity),
+                  )
+                : `Tổng (${totalQuantity} món):`}
             </span>
             <span className="font-mono text-sm font-bold text-neutral900">
-              {formatCurrency(order.total_amount)}đ
+              {formatCurrency(order.total_amount || 0)}đ
             </span>
           </div>
 
-          {isCompleted && (
+          {canReorder && (
             <button
               type="button"
               onClick={handleReorder}
               className="ml-1 inline-flex h-7 items-center justify-center gap-1 rounded-full bg-primary/10 px-2.5 text-xxsmall font-bold text-primary transition-transform active:scale-95"
-              title="Đặt lại các món trong đơn này"
+              title={copy.order.reorder}
             >
               <Icon
                 icon="zi-retry"
                 className="flex shrink-0 items-center justify-center text-xs leading-none"
               />
-              <span className="leading-none">Đặt lại</span>
+              <span className="leading-none">{copy.order.reorder}</span>
             </button>
           )}
 

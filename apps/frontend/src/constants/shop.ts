@@ -11,10 +11,10 @@ export const DEFAULT_SHOP_ADDRESS =
   "123 Đường Ẩm Thực, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh";
 
 export const DEFAULT_BANK_CONFIG = {
-  bankCode: "TCB",
-  bankName: "Techcombank",
+  bankCode: "MB",
+  bankName: "MB Bank",
   accountNumber: "2907200329",
-  accountHolderName: "NGUYEN NGOC TIN",
+  accountHolderName: "NGUYEN THI TUYET THU",
 } as const;
 
 export interface VietQrOptions {

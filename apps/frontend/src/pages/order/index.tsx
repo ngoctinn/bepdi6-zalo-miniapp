@@ -14,10 +14,16 @@ export default function OrderPage() {
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
 
   const tabs: Tab<OrderTab>[] = [
-    { value: "all", label: copy.common.all },
-    { value: "processing", label: copy.order.status.preparing },
-    { value: "completed", label: copy.order.status.completed },
-    { value: "cancelled", label: copy.order.status.cancelled },
+    { value: "all", label: copy.order.tabs?.all || copy.common.all },
+    { value: "processing", label: copy.order.tabs?.processing || "Đang xử lý" },
+    {
+      value: "completed",
+      label: copy.order.tabs?.completed || copy.order.status.completed,
+    },
+    {
+      value: "cancelled",
+      label: copy.order.tabs?.cancelled || copy.order.status.cancelled,
+    },
   ];
 
   const { data: orderData, isLoading } = useOrders();

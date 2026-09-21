@@ -117,7 +117,7 @@ export default function OrderDetailPage() {
         })),
       });
     }
-    showSuccess("Đã thêm món vào giỏ hàng");
+    showSuccess(copy.orderDetail.reorderSuccess || "Đã thêm món vào giỏ hàng");
     navigate("/checkout");
   };
 
@@ -216,7 +216,7 @@ export default function OrderDetailPage() {
     );
   }
 
-  if ((error || !order) && !order) {
+  if (!order) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
@@ -238,8 +238,8 @@ export default function OrderDetailPage() {
           {copy.orderDetail.notFound}
         </Text>
         <p className="max-w-[260px] text-xs text-neutral500">
-          Hệ thống đang đồng bộ hoặc kết nối bị gián đoạn. Bạn hãy nhấn thử tải
-          lại nhé!
+          {copy.orderDetail.syncErrorHint ||
+            "Hệ thống đang đồng bộ hoặc kết nối bị gián đoạn. Bạn hãy nhấn thử tải lại nhé!"}
         </p>
         <div className="mt-2 flex w-full max-w-xs items-center gap-2">
           <Button
@@ -256,7 +256,7 @@ export default function OrderDetailPage() {
             onClick={() => refetch()}
             className="flex-1 bg-primary text-white"
           >
-            Thử tải lại
+            {copy.orderDetail.retryButton || "Thử tải lại"}
           </Button>
         </div>
       </div>
@@ -273,9 +273,14 @@ export default function OrderDetailPage() {
   const bankAccountNo =
     shopInfo?.vietqr_account_no || DEFAULT_BANK_CONFIG.accountNumber;
   const bankAccountHolder =
-    shopInfo?.vietqr_account_name || copy.orderDetail.accountHolderName;
+    shopInfo?.vietqr_account_name ||
+    DEFAULT_BANK_CONFIG.accountHolderName ||
+    copy.orderDetail.accountHolderName;
   const bankCode = shopInfo?.vietqr_bank_id || DEFAULT_BANK_CONFIG.bankCode;
-  const bankDisplayName = shopInfo?.vietqr_bank_id || copy.orderDetail.bankName;
+  const bankDisplayName =
+    shopInfo?.vietqr_bank_id ||
+    DEFAULT_BANK_CONFIG.bankName ||
+    copy.orderDetail.bankName;
 
   const qrUrl =
     order.payment?.qr_code_url ||
@@ -287,10 +292,8 @@ export default function OrderDetailPage() {
       accountHolderName: bankAccountHolder,
     });
 
-  const shopLat = shopInfo?.latitude ?? DEFAULT_SHOP_COORDINATES.latitude;
-  const shopLng = shopInfo?.longitude ?? DEFAULT_SHOP_COORDINATES.longitude;
   const shopAddress = shopInfo?.address_text || DEFAULT_SHOP_ADDRESS;
-  const shopHotline = shopInfo?.hotline || "0987654321";
+  const shopHotline = shopInfo?.hotline || "";
   const shopName = shopInfo?.shop_name || copy.brand.name || "Bếp Dì 6";
 
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
@@ -409,12 +412,15 @@ export default function OrderDetailPage() {
             <div className="flex items-center gap-2">
               <span className="flex h-2.5 w-2.5 animate-ping rounded-full bg-emerald-500" />
               <span className="text-xs font-black text-primary">
-                TÀI XẾ ĐANG GIAO ĐẾN BẠN
+                {copy.orderDetail.driverDeliveringTitle ||
+                  "TÀI XẾ ĐANG GIAO ĐẾN BẠN"}
               </span>
             </div>
             {order.distance_km && Number(order.distance_km) > 0 && (
               <span className="text-3xs shadow-2xs rounded-full bg-white px-2 py-0.5 font-bold text-stone-600">
-                Khoảng cách: ~{order.distance_km} km
+                {(copy.orderDetail.distancePrefix || "Khoảng cách: ~") +
+                  order.distance_km +
+                  " km"}
               </span>
             )}
           </div>
@@ -445,10 +451,13 @@ export default function OrderDetailPage() {
                     )}
                   </div>
                   <h4 className="mt-0.5 text-sm font-black text-neutral900">
-                    {order.shipper_name || "Tài xế đang di chuyển"}
+                    {order.shipper_name ||
+                      copy.orderDetail.driverMovingDefault ||
+                      "Tài xế đang di chuyển"}
                   </h4>
                   <p className="text-xxsmall text-stone-500">
-                    Vui lòng để ý điện thoại để nhận món nhé!
+                    {copy.orderDetail.driverMovingHint ||
+                      "Vui lòng để ý điện thoại để nhận món nhé!"}
                   </p>
                 </div>
               </div>
@@ -460,7 +469,7 @@ export default function OrderDetailPage() {
                   className="shadow-xs flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold text-white transition-all active:scale-95"
                 >
                   <PhoneIcon className="h-4 w-4" />
-                  <span>Gọi tài xế</span>
+                  <span>{copy.orderDetail.callDriver || "Gọi tài xế"}</span>
                 </button>
               )}
             </div>
@@ -469,10 +478,11 @@ export default function OrderDetailPage() {
             {order.payment_method === "COD" && (
               <div className="mt-3 flex items-center justify-between rounded-xl border border-amber-300/80 bg-amber-50 px-3 py-2 text-xs">
                 <span className="font-bold text-amber-900">
-                  Tiền mặt cần chuẩn bị:
+                  {copy.orderDetail.cashPreparedLabel ||
+                    "Tiền mặt cần chuẩn bị:"}
                 </span>
                 <span className="text-sm font-black text-amber-900">
-                  {formatCurrency(order.total_amount)}đ
+                  {formatCurrency(order.total_amount || 0)}đ
                 </span>
               </div>
             )}
@@ -480,7 +490,8 @@ export default function OrderDetailPage() {
               <div className="mt-3 flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
                 <CheckIcon className="h-4 w-4 text-emerald-600" />
                 <span>
-                  Đã thanh toán Online 0đ - Không thanh toán thêm cho tài xế
+                  {copy.orderDetail.paidOnlineNotice ||
+                    "Đã thanh toán Online 0đ - Không thanh toán thêm cho tài xế"}
                 </span>
               </div>
             )}
@@ -715,14 +726,16 @@ export default function OrderDetailPage() {
                     </>
                   )}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => makePhoneCall(shopHotline)}
-                  className="shadow-2xs flex items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-2 text-xs font-semibold text-primary transition-all active:scale-[0.98] active:bg-olive50"
-                >
-                  <PhoneIcon className="h-3.5 w-3.5" />
-                  <span>{shopHotline}</span>
-                </button>
+                {shopHotline && (
+                  <button
+                    type="button"
+                    onClick={() => makePhoneCall(shopHotline)}
+                    className="shadow-2xs flex items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-2 text-xs font-semibold text-primary transition-all active:scale-[0.98] active:bg-olive50"
+                  >
+                    <PhoneIcon className="h-3.5 w-3.5" />
+                    <span>{shopHotline}</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -824,7 +837,7 @@ export default function OrderDetailPage() {
                 )}
               </div>
               <span className="whitespace-nowrap text-xs font-bold text-neutral900">
-                {formatCurrency(item.subtotal)}đ
+                {formatCurrency(item.subtotal || 0)}đ
               </span>
             </div>
           ))}
@@ -839,19 +852,19 @@ export default function OrderDetailPage() {
         <div className="flex justify-between text-neutral600">
           <span>{copy.checkout.subtotal}</span>
           <span className="font-medium text-neutral900">
-            {formatCurrency(order.subtotal)}đ
+            {formatCurrency(order.subtotal || 0)}đ
           </span>
         </div>
         <div className="flex justify-between text-neutral600">
           <span>
             {isPickup
-              ? "Hình thức"
+              ? copy.checkout.deliveryMethod || "Hình thức"
               : `${copy.checkout.shippingFee} (${Number(order.distance_km ?? 0).toFixed(1)} km)`}
           </span>
           <span className="font-medium text-neutral900">
             {isPickup
-              ? "Tự đến lấy (0đ)"
-              : `${formatCurrency(order.shipping_fee)}đ`}
+              ? copy.checkout.selfPickupFree || "Tự đến lấy (0đ)"
+              : `${formatCurrency(order.shipping_fee || 0)}đ`}
           </span>
         </div>
         {order.discount > 0 && (
@@ -865,7 +878,7 @@ export default function OrderDetailPage() {
             {copy.checkout.total}
           </span>
           <span className="text-base font-extrabold text-neutral900">
-            {formatCurrency(order.total_amount)}đ
+            {formatCurrency(order.total_amount || 0)}đ
           </span>
         </div>
       </div>
@@ -899,7 +912,9 @@ export default function OrderDetailPage() {
             onClick={handleReorder}
             className="shadow-2xs flex h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-bold text-white transition-all hover:bg-primaryDark active:scale-[0.98]"
           >
-            Đặt lại đơn này
+            {copy.orderDetail.reorderButton ||
+              copy.order.reorder ||
+              "Đặt lại đơn này"}
           </button>
         </div>
       )}
