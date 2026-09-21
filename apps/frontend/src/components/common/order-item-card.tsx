@@ -32,38 +32,6 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
   const isActive = !isCompleted && !isCancelled;
   const canReorder = isCompleted || isCancelled;
 
-  // Tính nấc tiến độ cho đơn hàng đang xử lý (Active Order Stepper)
-  const getStepIndex = () => {
-    switch (order.status) {
-      case "PENDING_CONFIRMATION":
-        return 0; // Đã đặt
-      case "CONFIRMED":
-      case "PREPARING":
-        return 1; // Đang nấu
-      case "READY":
-      case "DELIVERING":
-        return 2; // Đang giao / Chờ lấy
-      case "COMPLETED":
-        return 3;
-      default:
-        return 0;
-    }
-  };
-
-  const currentStepIndex = getStepIndex();
-
-  const steps = isPickup
-    ? [
-        { label: copy.order.stepper?.placed || "Đã đặt" },
-        { label: copy.order.stepper?.cooking || "Đang nấu" },
-        { label: copy.order.stepper?.waitingPickup || "Chờ lấy món" },
-      ]
-    : [
-        { label: copy.order.stepper?.placed || "Đã đặt" },
-        { label: copy.order.stepper?.cooking || "Đang nấu" },
-        { label: copy.order.stepper?.delivering || "Đang giao" },
-      ];
-
   // Xử lý Đặt lại món 1-chạm vào giỏ hàng
   const handleReorder = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -94,31 +62,6 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
       showSuccess(copy.order.reorderSuccess || "Đã thêm các món vào giỏ hàng!");
       navigate("/checkout");
     }
-  };
-
-  const getStatusMessage = () => {
-    if (order.status === "PENDING_CONFIRMATION") {
-      return (
-        copy.order.statusMessages?.pending ||
-        "Quán đã nhận đơn và đang kiểm tra..."
-      );
-    }
-    if (order.status === "CONFIRMED" || order.status === "PREPARING") {
-      return (
-        copy.order.statusMessages?.preparing ||
-        "Bếp Dì 6 đang chuẩn bị món thơm ngon cho bạn..."
-      );
-    }
-    if (isPickup) {
-      return (
-        copy.order.statusMessages?.readyPickup ||
-        "Món đã nấu xong, mời bạn đến quầy nhận nhé!"
-      );
-    }
-    return (
-      copy.order.statusMessages?.delivering ||
-      "Shipper đang trên đường giao đồ ăn đến bạn..."
-    );
   };
 
   return (
@@ -190,76 +133,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
         </div>
       </div>
 
-      {/* 3. Thanh Tiến Độ Có Màu Thực Thụ (Chỉ hiển thị cho đơn Đang xử lý) */}
-      {isActive && (
-        <div className="my-1 border-t border-stone-100 py-3">
-          <div className="relative flex items-center justify-between px-6">
-            {/* Background Track Line (Xám nhạt) */}
-            <div className="absolute left-8 right-8 top-2.5 h-0.5 rounded-full bg-stone-200" />
-
-            {/* Colored Progress Line (Tô màu Xanh rêu thương hiệu) */}
-            <div
-              className="absolute left-8 top-2.5 h-0.5 rounded-full bg-primary transition-all duration-500"
-              style={{
-                width:
-                  currentStepIndex === 0
-                    ? "0%"
-                    : currentStepIndex === 1
-                      ? "50%"
-                      : "calc(100% - 64px)",
-              }}
-            />
-
-            {/* Các điểm nấc tiến độ */}
-            {steps.map((step, idx) => {
-              const isPassed = idx <= currentStepIndex;
-              const isCurrent = idx === currentStepIndex;
-
-              return (
-                <div
-                  key={step.label}
-                  className="relative z-10 flex flex-col items-center"
-                >
-                  <div
-                    className={`flex h-5 w-5 items-center justify-center rounded-full transition-all ${
-                      isPassed
-                        ? "shadow-xs bg-primary text-white"
-                        : "bg-stone-200 text-stone-400"
-                    } ${isCurrent ? "scale-110 ring-4 ring-primary/20" : ""}`}
-                  >
-                    {isPassed ? (
-                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                    ) : (
-                      <span className="h-1 w-1 rounded-full bg-stone-400" />
-                    )}
-                  </div>
-                  <span
-                    className={`mt-1.5 whitespace-nowrap text-xxxxsmall leading-none ${
-                      isCurrent
-                        ? "font-bold text-primary"
-                        : isPassed
-                          ? "font-medium text-neutral800"
-                          : "text-stone-400"
-                    }`}
-                  >
-                    {step.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Dòng thông điệp trấn an thời gian thực */}
-          <div className="mt-3 flex items-center gap-1.5 rounded-lg bg-olive50/60 px-2.5 py-1.5 text-xxsmall text-olive900">
-            <span className="inline-block h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-primary" />
-            <span className="font-medium leading-snug">
-              {getStatusMessage()}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* 4. Footer: Ngày giờ + Tổng tiền & Nút Đặt lại / Theo dõi */}
+      {/* 3. Footer: Ngày giờ + Tổng tiền & Nút Đặt lại / Xem chi tiết */}
       <div className="flex items-center justify-between border-t border-stone-100 pt-2.5 text-xs">
         <span className="font-mono text-xxsmall text-stone-400">
           {new Date(order.created_at).toLocaleString("vi-VN", {

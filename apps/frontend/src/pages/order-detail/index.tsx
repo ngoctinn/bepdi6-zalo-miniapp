@@ -38,33 +38,65 @@ import {
 } from "@/utils/order-display";
 
 const DELIVERY_STATUS_STEPS: Array<{
-  key: OrderStatus;
+  id: string;
   label: string;
+  matches: (status: OrderStatus) => boolean;
 }> = [
-  { key: "PENDING_CONFIRMATION", label: copy.order.status.pending },
-  { key: "CONFIRMED", label: copy.order.status.confirmed },
-  { key: "PREPARING", label: copy.order.status.preparing },
-  { key: "READY", label: copy.order.status.ready },
-  { key: "DELIVERING", label: copy.order.status.delivering || "Đang giao" },
-  { key: "COMPLETED", label: copy.order.status.completed },
+  {
+    id: "PLACED",
+    label: copy.order.stepper?.placed || "Đã nhận đơn",
+    matches: (s) => s === "PENDING_CONFIRMATION" || s === "CONFIRMED",
+  },
+  {
+    id: "PREPARING",
+    label: copy.order.stepper?.cooking || "Đang chuẩn bị",
+    matches: (s) => s === "PREPARING",
+  },
+  {
+    id: "DELIVERING",
+    label: copy.order.stepper?.delivering || "Đang giao hàng",
+    matches: (s) => s === "READY" || s === "DELIVERING",
+  },
+  {
+    id: "COMPLETED",
+    label: copy.order.status.completed || "Hoàn tất",
+    matches: (s) => s === "COMPLETED",
+  },
 ];
 
 const PICKUP_STATUS_STEPS: Array<{
-  key: OrderStatus;
+  id: string;
   label: string;
+  matches: (status: OrderStatus) => boolean;
 }> = [
-  { key: "PENDING_CONFIRMATION", label: copy.order.status.pending },
-  { key: "CONFIRMED", label: copy.order.status.confirmed },
-  { key: "PREPARING", label: copy.order.status.preparing },
-  { key: "READY", label: copy.order.status.readyForPickup || "Mời đến lấy" },
-  { key: "COMPLETED", label: copy.order.status.pickedUp || "Đã nhận món" },
+  {
+    id: "PLACED",
+    label: copy.order.stepper?.placed || "Đã nhận đơn",
+    matches: (s) => s === "PENDING_CONFIRMATION" || s === "CONFIRMED",
+  },
+  {
+    id: "PREPARING",
+    label: copy.order.stepper?.cooking || "Đang chuẩn bị",
+    matches: (s) => s === "PREPARING",
+  },
+  {
+    id: "READY_PICKUP",
+    label: copy.order.status.readyForPickup || "Mời đến lấy",
+    matches: (s) => s === "READY" || s === "DELIVERING",
+  },
+  {
+    id: "COMPLETED",
+    label: copy.order.status.pickedUp || "Đã nhận món",
+    matches: (s) => s === "COMPLETED",
+  },
 ];
 
 const getStepIndex = (status: OrderStatus, isPickup: boolean): number => {
   const steps = isPickup ? PICKUP_STATUS_STEPS : DELIVERY_STATUS_STEPS;
-  const index = steps.findIndex((s) => s.key === status);
-  if (index > -1) return index;
-  if (isPickup && status === "DELIVERING") return 3; // Mời đến lấy (READY)
+  if (status === "PENDING_CONFIRMATION" || status === "CONFIRMED") return 0;
+  if (status === "PREPARING") return 1;
+  if (status === "READY" || status === "DELIVERING") return 2;
+  if (status === "COMPLETED") return 3;
   return 0;
 };
 
@@ -353,13 +385,13 @@ export default function OrderDetailPage() {
             )}
           </div>
         ) : (
-          <div className="relative flex items-start justify-between pt-2">
+          <div className="relative flex items-start justify-between px-2 pt-2">
             {/* Progress Line */}
-            <div className="absolute left-6 right-6 top-5 -z-0 h-0.5 bg-stone-200" />
+            <div className="absolute left-8 right-8 top-5 -z-0 h-0.5 bg-stone-200" />
             <div
-              className="absolute left-6 top-5 -z-0 h-0.5 bg-primary transition-all duration-500"
+              className="absolute left-8 top-5 -z-0 h-0.5 bg-primary transition-all duration-500"
               style={{
-                width: `${(currentStep / Math.max(1, steps.length - 1)) * 88}%`,
+                width: `calc(${(currentStep / Math.max(1, steps.length - 1)) * 100}% - 16px)`,
               }}
             />
 
@@ -369,8 +401,8 @@ export default function OrderDetailPage() {
 
               return (
                 <div
-                  key={step.key}
-                  className="z-10 flex w-14 flex-col items-center text-center"
+                  key={step.id}
+                  className="z-10 flex w-16 flex-col items-center text-center"
                 >
                   <div
                     className={`flex h-6 w-6 items-center justify-center rounded-full text-xs transition-all ${
@@ -380,15 +412,13 @@ export default function OrderDetailPage() {
                     } ${isCurrent ? "scale-110 ring-4 ring-primary/20" : ""}`}
                   >
                     {isPassed && idx < currentStep ? (
-                      <CheckIcon className="h-3 w-3 text-white" />
+                      <CheckIcon className="h-3.5 w-3.5 text-white" />
                     ) : (
-                      <span className="text-xxxxsmall font-bold">
-                        {idx + 1}
-                      </span>
+                      <span className="text-xxsmall font-bold">{idx + 1}</span>
                     )}
                   </div>
                   <span
-                    className={`mt-2 text-xxxxsmall leading-tight ${
+                    className={`mt-2 text-xxsmall leading-tight ${
                       isCurrent
                         ? "font-bold text-olive900"
                         : isPassed
