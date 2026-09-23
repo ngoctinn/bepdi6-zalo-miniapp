@@ -166,7 +166,7 @@ class CheckoutPreviewView(APIView):
                     "fee_reason": e.code,
                     "can_checkout": False,
                 }
-                return Response({"success": True, "data": err_payload, **err_payload})
+                return Response({"success": True, "data": err_payload})
             raise ValidationError({"code": e.code, "message": e.message}) from None
 
 
@@ -294,7 +294,7 @@ class OrderListCreateView(APIView):
         )
         payload = OrderDetailSerializer(order).data
         return Response(
-            {"success": True, "data": payload, **payload},
+            {"success": True, "data": payload},
             status=status.HTTP_201_CREATED,
         )
 
@@ -321,7 +321,7 @@ class OrderDetailView(APIView):
             raise NotFound("Đơn hàng không tồn tại.") from None
 
         serializer = OrderDetailSerializer(order)
-        return Response({"success": True, "data": serializer.data, **serializer.data})
+        return Response({"success": True, "data": serializer.data})
 
 
 class OrderPaymentDetailView(APIView):
@@ -344,7 +344,7 @@ class OrderPaymentDetailView(APIView):
             raise NotFound("Đơn hàng không tồn tại.") from None
 
         serializer = PaymentSerializer(order.payment)
-        return Response({"success": True, "data": serializer.data, **serializer.data})
+        return Response({"success": True, "data": serializer.data})
 
 
 class CustomerOrderCancelView(APIView):
@@ -376,7 +376,7 @@ class CustomerOrderCancelView(APIView):
             raise ValidationError({"code": e.code, "message": e.message}) from None
 
         data = OrderDetailSerializer(cancelled_order).data
-        return Response({"success": True, "data": data, **data})
+        return Response({"success": True, "data": data})
 
 
 # ----------------------------------------------------------------------
@@ -587,35 +587,64 @@ class AdminOrderPaymentVerifyView(APIView):
     permission_classes = [IsStaffOrAdminUser]
 
     def post(self, request, pk: int):
-        try:
-            order = Order.objects.select_related("payment").get(pk=pk)
-        except Order.DoesNotExist:
-            raise NotFound("Đơn hàng không tồn tại.") from None
-
-        payment = getattr(order, "payment", None)
-        if not payment:
+        idempotency_key = request.headers.get("Idempotency-Key")
+        if not idempotency_key:
             raise ValidationError(
                 {
-                    "code": "PAYMENT_NOT_FOUND",
-                    "message": "Đơn hàng chưa có thông tin thanh toán.",
-                }
-            )
-
-        actual_paid = request.data.get("actual_paid_amount")
-        if actual_paid is None:
-            actual_paid = order.total_amount
-        actual_paid = Decimal(str(actual_paid))
-
-        note = str(request.data.get("note", "")).strip()
-        if actual_paid != order.total_amount and not note:
-            raise ValidationError(
-                {
-                    "code": "PAYMENT_AMOUNT_MISMATCH",
-                    "message": "Số tiền thực nhận bị lệch so với tổng đơn. Bắt buộc phải nhập ghi chú (note) lý do (BR-PAY-004).",
+                    "code": "MISSING_IDEMPOTENCY_KEY",
+                    "message": "Header 'Idempotency-Key' là bắt buộc.",
                 }
             )
 
         with transaction.atomic():
+            try:
+                order = (
+                    Order.objects.select_for_update()
+                    .select_related("payment")
+                    .get(pk=pk)
+                )
+            except Order.DoesNotExist:
+                raise NotFound("Đơn hàng không tồn tại.") from None
+
+            payment = getattr(order, "payment", None)
+            if not payment:
+                raise ValidationError(
+                    {
+                        "code": "PAYMENT_NOT_FOUND",
+                        "message": "Đơn hàng chưa có thông tin thanh toán.",
+                    }
+                )
+
+            if order.status in [Order.Status.CANCELLED]:
+                raise ValidationError(
+                    {
+                        "code": "INVALID_ORDER_STATUS",
+                        "message": f"Không thể xác nhận thanh toán cho đơn hàng đã bị hủy ({order.status}).",
+                    }
+                )
+
+            if payment.status == Payment.Status.PAID:
+                raise ValidationError(
+                    {
+                        "code": "PAYMENT_ALREADY_VERIFIED",
+                        "message": "Đơn hàng này đã được xác nhận thanh toán trước đó.",
+                    }
+                )
+
+            actual_paid = request.data.get("actual_paid_amount")
+            if actual_paid is None:
+                actual_paid = order.total_amount
+            actual_paid = Decimal(str(actual_paid))
+
+            note = str(request.data.get("note", "")).strip()
+            if actual_paid != order.total_amount and not note:
+                raise ValidationError(
+                    {
+                        "code": "PAYMENT_AMOUNT_MISMATCH",
+                        "message": "Số tiền thực nhận bị lệch so với tổng đơn. Bắt buộc phải nhập ghi chú (note) lý do (BR-PAY-004).",
+                    }
+                )
+
             payment.status = Payment.Status.PAID
             payment.paid_at = timezone.now()
             payment.actual_paid_amount = actual_paid

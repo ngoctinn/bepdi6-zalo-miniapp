@@ -105,6 +105,7 @@ def test_admin_order_status_update_and_vietqr_verify(admin_setup):
         f"/api/v1/admin/orders/{order.id}/payment/verify",
         {"actual_paid_amount": "90000.00"},
         format="json",
+        HTTP_IDEMPOTENCY_KEY="idemp_verify_bad_pay",
     )
     assert res_bad_pay.status_code == 400
     assert res_bad_pay.json()["error"]["code"] == "PAYMENT_AMOUNT_MISMATCH"
@@ -117,6 +118,7 @@ def test_admin_order_status_update_and_vietqr_verify(admin_setup):
             "note": "Khách thiếu 10k, bù tiền mặt khi nhận hàng",
         },
         format="json",
+        HTTP_IDEMPOTENCY_KEY="idemp_verify_good_pay",
     )
     assert res_verify.status_code == 200
     payment.refresh_from_db()

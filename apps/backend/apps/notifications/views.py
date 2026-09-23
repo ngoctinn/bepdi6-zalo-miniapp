@@ -1,3 +1,5 @@
+import logging
+
 from django.utils import timezone
 from rest_framework.exceptions import NotFound
 from rest_framework.pagination import PageNumberPagination
@@ -8,6 +10,8 @@ from apps.customers.permissions import IsAuthenticatedCustomer
 from apps.customers.views import get_current_customer
 from apps.notifications.models import Notification
 from apps.notifications.serializers import NotificationSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class NotificationPagination(PageNumberPagination):
@@ -129,11 +133,15 @@ class ZaloOAuthCallbackView(APIView):
                     },
                 }
             )
-        except Exception as e:
+        except Exception:
+            logger.exception("Failed to exchange Zalo OA authorization code")
             return Response(
                 {
                     "success": False,
-                    "error": {"code": "EXCHANGE_FAILED", "message": str(e)},
+                    "error": {
+                        "code": "EXCHANGE_FAILED",
+                        "message": "Đã xảy ra lỗi khi xác thực Zalo OA.",
+                    },
                 },
                 status=500,
             )

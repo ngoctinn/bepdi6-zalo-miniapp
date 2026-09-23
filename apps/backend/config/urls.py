@@ -6,8 +6,45 @@ from django.urls import include, path
 
 
 def health_check(request):
-    return JsonResponse({"status": "ok", "app": "bepdi6-backend"})
+    return JsonResponse(
+        {
+            "success": True,
+            "data": {
+                "status": "ok",
+                "app": "bepdi6-backend",
+            },
+        }
+    )
 
+
+def custom_404_handler(request, exception=None):
+    return JsonResponse(
+        {
+            "success": False,
+            "error": {
+                "code": "NOT_FOUND",
+                "message": "Đường dẫn không tồn tại.",
+            },
+        },
+        status=404,
+    )
+
+
+def custom_500_handler(request):
+    return JsonResponse(
+        {
+            "success": False,
+            "error": {
+                "code": "INTERNAL_SERVER_ERROR",
+                "message": "Đã xảy ra lỗi máy chủ nội bộ.",
+            },
+        },
+        status=500,
+    )
+
+
+handler404 = "config.urls.custom_404_handler"
+handler500 = "config.urls.custom_500_handler"
 
 urlpatterns = [
     path("healthz", health_check, name="healthz-no-slash"),

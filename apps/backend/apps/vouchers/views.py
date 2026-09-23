@@ -1,4 +1,5 @@
 from rest_framework import permissions, status
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -86,20 +87,14 @@ class AdminVoucherDetailView(APIView):
         try:
             voucher = Voucher.objects.get(pk=pk)
         except Voucher.DoesNotExist:
-            return Response(
-                {"code": "NOT_FOUND", "message": "Voucher không tồn tại."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            raise NotFound("Voucher không tồn tại.") from None
         return Response(VoucherSerializer(voucher).data)
 
     def patch(self, request, pk: int):
         try:
             voucher = Voucher.objects.get(pk=pk)
         except Voucher.DoesNotExist:
-            return Response(
-                {"code": "NOT_FOUND", "message": "Voucher không tồn tại."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            raise NotFound("Voucher không tồn tại.") from None
         serializer = VoucherSerializer(voucher, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -109,9 +104,6 @@ class AdminVoucherDetailView(APIView):
         try:
             voucher = Voucher.objects.get(pk=pk)
         except Voucher.DoesNotExist:
-            return Response(
-                {"code": "NOT_FOUND", "message": "Voucher không tồn tại."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            raise NotFound("Voucher không tồn tại.") from None
         voucher.delete()
         return Response({"success": True}, status=status.HTTP_200_OK)

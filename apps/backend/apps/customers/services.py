@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import logging
+import sys
 import time
 
 import requests
@@ -60,12 +61,15 @@ class AuthService:
         zalo_app_id = getattr(settings, "ZALO_APP_ID", "")
         zalo_app_secret = getattr(settings, "ZALO_APP_SECRET", "")
 
-        # Default fallback for testing & local development
+        is_testing = "pytest" in sys.modules or getattr(settings, "IS_TESTING", False)
+        # Default fallback for testing & local development without credentials
         if (
             not zalo_app_id
             or not zalo_app_secret
-            or zalo_token.startswith("mock_")
-            or zalo_token.startswith("test_")
+            or (
+                is_testing
+                and (zalo_token.startswith("mock_") or zalo_token.startswith("test_"))
+            )
         ):
             clean_token = zalo_token.replace("mock_", "").replace("test_", "")
             zalo_user_id = (
@@ -871,15 +875,8 @@ def get_current_customer(request) -> Customer | None:
                 or "Khách Zalo"
             },
         )
-    elif getattr(settings, "DEBUG", False):
-        cust_id = request.headers.get("X-Customer-ID") or request.query_params.get(
-            "customer_id"
-        )
-        if cust_id:
-            try:
-                customer = Customer.objects.get(pk=cust_id)
-            except (Customer.DoesNotExist, ValueError):
-                pass
+        if customer:
+            customer._user = request.user
 
     request._cached_customer = customer
     return customer

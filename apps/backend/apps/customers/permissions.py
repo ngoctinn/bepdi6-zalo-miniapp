@@ -6,20 +6,12 @@ from apps.customers.models import User
 
 class IsAuthenticatedCustomer(permissions.BasePermission):
     """
-    Ensures request has an authenticated user.
-    In production (DEBUG=False), strictly requires request.user.is_authenticated.
-    In development/testing (DEBUG=True), allows dev fallback via X-Customer-ID.
+    Ensures request has an authenticated user (customer or staff/admin).
+    Strictly requires request.user.is_authenticated without header spoofing.
     """
 
     def has_permission(self, request, view):
-        if request.user and request.user.is_authenticated:
-            return True
-        if getattr(settings, "DEBUG", False) and (
-            request.headers.get("X-Customer-ID")
-            or request.query_params.get("customer_id")
-        ):
-            return True
-        return False
+        return bool(request.user and request.user.is_authenticated)
 
 
 class IsStaffOrAdminUser(permissions.BasePermission):

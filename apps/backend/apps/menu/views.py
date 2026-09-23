@@ -15,9 +15,25 @@ from apps.menu.serializers import (
 )
 
 MENU_CACHE_TIMEOUT = 600  # 10 minutes
+MENU_CACHE_VERSION_KEY = "menu_cache_version"
 CACHE_KEY_CATEGORIES = "menu:categories:list"
 CACHE_KEY_PRODUCTS_PREFIX = "menu:products:list"
 CACHE_KEY_PRODUCT_DETAIL_PREFIX = "menu:product:detail"
+
+
+def get_menu_cache_version() -> int:
+    """
+    Get current menu cache version.
+    Initializes to 1 if not set or expired.
+    """
+    try:
+        version = cache.get(MENU_CACHE_VERSION_KEY)
+        if version is None:
+            cache.set(MENU_CACHE_VERSION_KEY, 1, timeout=None)
+            return 1
+        return int(version)
+    except Exception:
+        return 1
 
 
 def active_promotion_queryset():
@@ -45,43 +61,22 @@ def with_active_promotion(queryset):
 
 def invalidate_menu_cache(product_id: int | None = None) -> None:
     """
-    Invalidates menu-related caches.
-    Clears category list, product list queries, and specific/all product details.
+    Invalidates menu-related caches using Cache Key Versioning.
+    Incrementing menu_cache_version provides instant O(1) non-blocking invalidation
+    across all categories, product lists, and product detail caches without Redis keys() scan.
     """
-    keys_to_delete = [
-        CACHE_KEY_CATEGORIES,
-        f"{CACHE_KEY_PRODUCTS_PREFIX}:all:available",
-        f"{CACHE_KEY_PRODUCTS_PREFIX}:all:OUT_OF_STOCK",
-        f"{CACHE_KEY_PRODUCTS_PREFIX}:all:INACTIVE",
-    ]
-    if product_id is not None:
-        keys_to_delete.append(f"{CACHE_KEY_PRODUCT_DETAIL_PREFIX}:{product_id}")
-
     try:
-        category_ids = list(Category.objects.values_list("id", flat=True))
-        for cat_id in category_ids:
-            keys_to_delete.extend(
-                [
-                    f"{CACHE_KEY_PRODUCTS_PREFIX}:{cat_id}:available",
-                    f"{CACHE_KEY_PRODUCTS_PREFIX}:{cat_id}:OUT_OF_STOCK",
-                    f"{CACHE_KEY_PRODUCTS_PREFIX}:{cat_id}:INACTIVE",
-                ]
-            )
-    except Exception:
-        pass
-
-    # Delete known static & per-category cache keys
-    cache.delete_many(keys_to_delete)
-
-    # Invalidate pattern-based keys on Redis backend
-    try:
-        if hasattr(cache, "delete_pattern"):
-            cache.delete_pattern("menu:*")
-        elif hasattr(cache, "_cache") and hasattr(cache._cache, "get_client"):
-            r = cache._cache.get_client()
-            keys = r.keys("*menu:*")
-            if keys:
-                r.delete(*keys)
+        try:
+            cache.incr(MENU_CACHE_VERSION_KEY)
+        except Exception:
+            current = cache.get(MENU_CACHE_VERSION_KEY)
+            if current is None:
+                cache.set(MENU_CACHE_VERSION_KEY, 2, timeout=None)
+            else:
+                try:
+                    cache.set(MENU_CACHE_VERSION_KEY, int(current) + 1, timeout=None)
+                except Exception:
+                    cache.set(MENU_CACHE_VERSION_KEY, 1, timeout=None)
     except Exception:
         pass
 
@@ -96,7 +91,9 @@ class CategoryListView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        cached_data = cache.get(CACHE_KEY_CATEGORIES)
+        version = get_menu_cache_version()
+        cache_key = f"menu_v{version}:categories:list"
+        cached_data = cache.get(cache_key)
         if cached_data is not None:
             return Response(cached_data)
 
@@ -105,7 +102,7 @@ class CategoryListView(APIView):
         )
         serializer = CategorySerializer(categories, many=True)
         data = serializer.data
-        cache.set(CACHE_KEY_CATEGORIES, data, timeout=MENU_CACHE_TIMEOUT)
+        cache.set(cache_key, data, timeout=MENU_CACHE_TIMEOUT)
         return Response(data)
 
 
@@ -128,7 +125,8 @@ class ProductListView(APIView):
         # Cache standard default query (no search param)
         cache_key = None
         if not search_query:
-            cache_key = f"{CACHE_KEY_PRODUCTS_PREFIX}:{category_id or 'all'}:{status_param or 'available'}"
+            version = get_menu_cache_version()
+            cache_key = f"menu_v{version}:products:list:{category_id or 'all'}:{status_param or 'available'}"
             cached_data = cache.get(cache_key)
             if cached_data is not None:
                 return Response(cached_data)
@@ -182,7 +180,8 @@ class ProductDetailView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk):
-        cache_key = f"{CACHE_KEY_PRODUCT_DETAIL_PREFIX}:{pk}"
+        version = get_menu_cache_version()
+        cache_key = f"menu_v{version}:product:detail:{pk}"
         cached_data = cache.get(cache_key)
         if cached_data is not None:
             return Response(cached_data)
