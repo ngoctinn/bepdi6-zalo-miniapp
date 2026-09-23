@@ -7,12 +7,13 @@ import {
   UpdateAddressRequest,
 } from "../../types/customer.types";
 import { authService } from "../auth/auth.api";
+import { queryKeys } from "../query-keys";
 
-export const ADDRESSES_QUERY_KEY = ["addresses"] as const;
+export const ADDRESSES_QUERY_KEY = queryKeys.addresses.all;
 
 export function useAddresses() {
   return useQuery<Address[]>({
-    queryKey: ADDRESSES_QUERY_KEY,
+    queryKey: queryKeys.addresses.all,
     queryFn: addressService.getAddresses,
     enabled: authService.isAuthenticated(),
     staleTime: 2 * 60 * 1000,
@@ -45,7 +46,7 @@ export function useSearchPlaces(
 ) {
   const cleanQuery = query.trim();
   return useQuery({
-    queryKey: ["places-search", cleanQuery, latitude, longitude],
+    queryKey: queryKeys.addresses.search(cleanQuery, latitude, longitude),
     queryFn: () => addressService.searchPlaces(cleanQuery, latitude, longitude),
     enabled: cleanQuery.length >= 2,
     staleTime: 5 * 60 * 1000,

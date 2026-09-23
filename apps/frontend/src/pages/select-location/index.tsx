@@ -188,7 +188,11 @@ export default function SelectLocationPage() {
         ? await getZaloLocationCredentials()
         : DEV_MOCK_LOCATION_CREDENTIALS;
 
-      let decoded: any = null;
+      let decoded: {
+        latitude?: number | string;
+        longitude?: number | string;
+        address_text?: string;
+      } | null = null;
 
       if (credentials.token) {
         decoded = await decodeLocationMutation.mutateAsync({
@@ -369,8 +373,17 @@ export default function SelectLocationPage() {
                   searchResults.map((item, idx) => (
                     <div
                       key={idx}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Chọn địa điểm: ${item.name}`}
                       onClick={() => handleSelectSuggestion(item)}
-                      className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSelectSuggestion(item);
+                        }
+                      }}
+                      className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2 text-left transition-colors hover:bg-neutral-50 focus-visible:bg-neutral-100 focus-visible:outline-none active:bg-neutral-100"
                     >
                       <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
                         <MapPinIcon className="h-4 w-4" />
@@ -426,6 +439,10 @@ export default function SelectLocationPage() {
             </div>
             <input
               type="text"
+              aria-label={
+                copy.selectLocation.houseNumberPlaceholder ||
+                "Số nhà, tên tòa nhà"
+              }
               value={houseNumber}
               onChange={(e) => setHouseNumber(e.target.value)}
               placeholder={copy.selectLocation.houseNumberPlaceholder}

@@ -13,26 +13,37 @@ interface RequestOptions extends RequestInit {
 export const TOKEN_STORAGE_KEY = "bepdi6_access_token";
 export const REFRESH_TOKEN_STORAGE_KEY = "bepdi6_refresh_token";
 
+let inMemoryAccessToken: string | null = null;
+let inMemoryRefreshToken: string | null = null;
+
 export const getStoredToken = (): string | null => {
   try {
-    return localStorage.getItem(TOKEN_STORAGE_KEY);
+    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (token) return token;
   } catch {
-    return null;
+    // localStorage unavailable, fallback to in-memory
   }
+  return inMemoryAccessToken;
 };
 
 export const setStoredTokens = (access: string, refresh?: string): void => {
+  inMemoryAccessToken = access;
+  if (refresh) {
+    inMemoryRefreshToken = refresh;
+  }
   try {
     localStorage.setItem(TOKEN_STORAGE_KEY, access);
     if (refresh) {
       localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refresh);
     }
   } catch {
-    // Ignore localStorage errors
+    // Ignore localStorage errors - memory token will be used
   }
 };
 
 export const clearStoredTokens = (): void => {
+  inMemoryAccessToken = null;
+  inMemoryRefreshToken = null;
   try {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);

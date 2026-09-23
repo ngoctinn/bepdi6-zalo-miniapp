@@ -23,7 +23,7 @@ export function StaffHeaderActions({
       <div className="flex min-w-0 items-center gap-2">
         <button
           onClick={() => navigate("/")}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stone-100 text-neutral-800 transition-transform active:scale-95"
+          className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stone-100 text-neutral-800 transition-transform after:absolute after:-inset-1.5 after:z-10 after:content-[''] active:scale-95"
           aria-label={copy.staff.backToMenu}
         >
           <BackIcon className="h-4 w-4" />
@@ -40,7 +40,7 @@ export function StaffHeaderActions({
         {/* Toggle Sound */}
         <button
           onClick={onToggleSound}
-          className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-transform active:scale-95 ${
+          className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-transform after:absolute after:-inset-1.5 after:z-10 after:content-[''] active:scale-95 ${
             isSoundEnabled
               ? "border-primary/40 bg-olive100 text-primary"
               : "border-stone-200 bg-stone-100/80 text-stone-400"
@@ -68,7 +68,7 @@ export function StaffHeaderActions({
         {/* Refresh Button */}
         <button
           onClick={onRefetch}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-stone-200 bg-stone-100/80 text-stone-700 transition-transform active:scale-95"
+          className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-stone-200 bg-stone-100/80 text-stone-700 transition-transform after:absolute after:-inset-1.5 after:z-10 after:content-[''] active:scale-95"
           aria-label={copy.staff.refreshLabel}
         >
           <Icon

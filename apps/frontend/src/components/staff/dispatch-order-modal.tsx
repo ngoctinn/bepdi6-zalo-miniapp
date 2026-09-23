@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DeliveryProvider, Order } from "@/types/order.types";
 import { Icon, Spinner } from "zmp-ui";
 import { copy } from "@/constants/copy";
@@ -16,7 +16,7 @@ interface DispatchOrderModalProps {
   }) => Promise<void>;
 }
 
-// TODO: Migrate to backend config or API endpoint
+// Fallback internal shippers list when no dynamic staff list is configured
 const INTERNAL_SHIPPERS = [
   { name: "Anh Tuấn", phone: "0901234567" },
   { name: "Anh Hùng", phone: "0902345678" },
@@ -34,6 +34,15 @@ export function DispatchOrderModal({
   const [shipperName, setShipperName] = useState("");
   const [shipperPhone, setShipperPhone] = useState("");
   const [trackingCode, setTrackingCode] = useState("");
+
+  useEffect(() => {
+    if (!visible) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [visible, onClose]);
 
   const distance = Number(order?.distance_km || 0);
 

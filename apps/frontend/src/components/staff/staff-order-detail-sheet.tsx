@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { copy } from "@/constants/copy";
 import { Order } from "@/types/order.types";
 import { makePhoneCall } from "@/utils/phone";
@@ -19,6 +20,15 @@ export function StaffOrderDetailSheet({
   onOpenCancelModal,
   onOpenDispatchModal,
 }: StaffOrderDetailSheetProps) {
+  useEffect(() => {
+    if (!visible) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [visible, onClose]);
+
   if (!visible || !order) return null;
 
   const isDelivery = order.delivery_type === "DELIVERY";

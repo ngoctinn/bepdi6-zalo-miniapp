@@ -2,12 +2,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { productService } from "./product.api";
 import { Product, ProductListParams } from "../../types/product.types";
 import { useCallback } from "react";
+import { queryKeys } from "../query-keys";
 
-export const PRODUCTS_QUERY_KEY = ["products"] as const;
+export const PRODUCTS_QUERY_KEY = queryKeys.products.all;
 
 export function useProducts(params?: ProductListParams) {
   return useQuery<Product[]>({
-    queryKey: [PRODUCTS_QUERY_KEY, params],
+    queryKey: queryKeys.products.list(params as Record<string, unknown>),
     queryFn: () => productService.getProducts(params),
     staleTime: 3 * 60 * 1000,
   });
@@ -17,7 +18,7 @@ export function useProduct(id: number | string | undefined) {
   const queryClient = useQueryClient();
 
   return useQuery<Product>({
-    queryKey: ["product", id],
+    queryKey: queryKeys.products.detail(id),
     queryFn: () => productService.getProductById(id!),
     enabled: Boolean(id),
     staleTime: 3 * 60 * 1000,
@@ -46,7 +47,7 @@ export function usePrefetchProduct() {
     (id: number | string | undefined) => {
       if (!id) return;
       queryClient.prefetchQuery({
-        queryKey: ["product", String(id)],
+        queryKey: queryKeys.products.detail(id),
         queryFn: () => productService.getProductById(id),
         staleTime: 3 * 60 * 1000,
       });

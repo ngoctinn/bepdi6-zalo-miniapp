@@ -106,8 +106,17 @@ export function DeliveryAddressCard({
             </div>
           ) : selectedAddress ? (
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="Thay đổi địa chỉ giao hàng"
               onClick={() => navigate("/select-location")}
-              className="shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border border-black/[0.06] bg-white p-4 text-sm text-neutral700 transition-all active:scale-[0.99]"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigate("/select-location");
+                }
+              }}
+              className="shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border border-black/[0.06] bg-white p-4 text-left text-sm text-neutral700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]"
             >
               <div className="flex items-start gap-3">
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
@@ -153,8 +162,19 @@ export function DeliveryAddressCard({
           ) : (
             <div>
               <div
+                role="button"
+                tabIndex={0}
+                aria-label={
+                  copy.checkout.selectAddressHint || "Chọn địa chỉ nhận hàng"
+                }
                 onClick={() => navigate("/select-location")}
-                className={`shadow-xs flex cursor-pointer items-center justify-between rounded-2xl border p-4 text-sm transition-all active:scale-[0.99] ${
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    navigate("/select-location");
+                  }
+                }}
+                className={`shadow-xs flex cursor-pointer items-center justify-between rounded-2xl border p-4 text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99] ${
                   hasAddressError
                     ? "border-red-500 bg-red-50/50 text-red-600 ring-1 ring-red-500"
                     : "border-black/[0.06] bg-white text-neutral900"
@@ -226,6 +246,9 @@ export function DeliveryAddressCard({
               <div>
                 <input
                   type="text"
+                  aria-label={
+                    copy.checkout.pickupNamePlaceholder || "Tên người nhận"
+                  }
                   placeholder={copy.checkout.pickupNamePlaceholder}
                   value={pickupName}
                   onChange={(e) => onPickupNameChange(e.target.value)}
@@ -244,6 +267,10 @@ export function DeliveryAddressCard({
               <div>
                 <input
                   type="tel"
+                  aria-label={
+                    copy.checkout.pickupPhonePlaceholder ||
+                    "Số điện thoại liên hệ"
+                  }
                   placeholder={
                     copy.checkout.pickupPhonePlaceholder ||
                     "Số điện thoại liên hệ"

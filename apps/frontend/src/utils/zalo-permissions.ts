@@ -43,8 +43,7 @@ export async function getZaloLoginCredentials() {
       avatar: userInfo?.avatar || "",
       id: userInfo?.id || "",
     };
-  } catch (error) {
-    console.warn("Failed to get Zalo user info locally", error);
+  } catch {
     return { accessToken, name: "", avatar: "", id: "" };
   }
 }
@@ -66,7 +65,13 @@ export async function requestZaloUserInfo() {
 export async function getZaloLocationCredentials() {
   await ensureZaloPermission("scope.userLocation");
   const accessToken = await getRequiredAccessToken();
-  const location: any = await getLocation({});
+  const location = (await getLocation({})) as
+    | {
+        token?: string;
+        latitude?: string | number;
+        longitude?: string | number;
+      }
+    | undefined;
 
   // ZMP SDK Location can return a token (server-to-server) OR raw coordinates depending on the app/SDK context
   if (location?.token) {

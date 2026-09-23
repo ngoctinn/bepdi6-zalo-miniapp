@@ -4,24 +4,33 @@ import Footer from "./footer";
 import { DevAdminHelper } from "@/components/common/dev-admin-helper";
 import { cn } from "@/utils/cn";
 
+interface RouteHandle {
+  title?: string;
+  back?: boolean;
+  hideFooter?: boolean;
+  hideHeader?: boolean;
+  headerPosition?: "fixed" | "sticky" | "static";
+}
+
 export default function Layout() {
   const matches = useMatches();
 
   const current = matches[matches.length - 1];
-  const hideFooter = (current.handle as any)?.hideFooter;
-  const hideHeader = (current.handle as any)?.hideHeader;
-  const headerPosition = (current.handle as any)?.headerPosition;
+  const handle = current?.handle as RouteHandle | undefined;
+  const hideFooter = handle?.hideFooter;
+  const hideHeader = handle?.hideHeader;
+  const headerPosition = handle?.headerPosition;
 
   return (
     <div
       className={cn(
-        "relative flex h-screen w-full max-w-full flex-col overflow-x-hidden bg-background",
+        "relative flex h-dvh min-h-dvh w-full max-w-full flex-col overflow-x-hidden bg-background",
       )}
     >
       {!hideHeader && (
         <Header
-          title={(current.handle as any)?.title}
-          back={(current.handle as any)?.back}
+          title={handle?.title}
+          back={handle?.back}
           position={headerPosition}
         />
       )}

@@ -6,8 +6,9 @@ import {
   PaymentResponse,
 } from "../../types/order.types";
 import { authService } from "../auth/auth.api";
+import { queryKeys } from "../query-keys";
 
-export const ORDERS_QUERY_KEY = ["orders"] as const;
+export const ORDERS_QUERY_KEY = queryKeys.orders.all;
 
 export function useOrders(params?: {
   status?: string;
@@ -15,7 +16,7 @@ export function useOrders(params?: {
   page_size?: number;
 }) {
   return useQuery<OrderListResponse | Order[]>({
-    queryKey: [...ORDERS_QUERY_KEY, params],
+    queryKey: queryKeys.orders.list(params),
     queryFn: () => orderService.getOrders(params),
     enabled: authService.isAuthenticated(),
     staleTime: 30 * 1000,
@@ -27,7 +28,7 @@ export function useOrder(
   options?: { initialData?: Order },
 ) {
   return useQuery<Order>({
-    queryKey: ["order", id],
+    queryKey: queryKeys.orders.detail(id),
     queryFn: () => orderService.getOrderById(id!),
     enabled: Boolean(id) && authService.isAuthenticated(),
     initialData: options?.initialData,
@@ -51,7 +52,7 @@ export const useOrderById = useOrder;
 
 export function useOrderPayment(id: number | string | undefined) {
   return useQuery<PaymentResponse>({
-    queryKey: ["order", id, "payment"],
+    queryKey: queryKeys.orders.payment(id),
     queryFn: () => orderService.getOrderPayment(id!),
     enabled: Boolean(id) && authService.isAuthenticated(),
     refetchInterval: 4000,
@@ -64,7 +65,7 @@ export function useOrderPayment(id: number | string | undefined) {
  * ==========================================
  */
 
-export const ADMIN_ORDERS_QUERY_KEY = ["admin", "orders"] as const;
+export const ADMIN_ORDERS_QUERY_KEY = queryKeys.adminOrders.all;
 
 export function useAdminOrders(
   params?: {
@@ -80,7 +81,7 @@ export function useAdminOrders(
   const isEnabled =
     (options?.enabled !== undefined ? options.enabled : true) && isAuth;
   return useQuery<Order[]>({
-    queryKey: [ADMIN_ORDERS_QUERY_KEY, params],
+    queryKey: queryKeys.adminOrders.list(params),
     queryFn: () => orderService.getAdminOrders(params),
     enabled: isEnabled,
     refetchInterval: isEnabled ? 5000 : false, // Polling realtime 5 giây cho Màn hình Bếp khi enabled

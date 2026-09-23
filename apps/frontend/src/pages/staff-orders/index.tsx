@@ -226,7 +226,7 @@ export default function StaffOrdersPage() {
       setProcessingOrderId(orderId);
       await orderService.updateAdminOrderStatus(orderId, nextStatus);
       await queryClient.invalidateQueries({
-        queryKey: [ADMIN_ORDERS_QUERY_KEY],
+        queryKey: ADMIN_ORDERS_QUERY_KEY,
       });
       showSuccess(copy.staff.toasts.statusUpdateSuccess, {
         duration: 2500,
@@ -264,7 +264,7 @@ export default function StaffOrdersPage() {
         finalReason,
       );
       await queryClient.invalidateQueries({
-        queryKey: [ADMIN_ORDERS_QUERY_KEY],
+        queryKey: ADMIN_ORDERS_QUERY_KEY,
       });
       showToast(
         `${copy.staff.toasts.cancelSuccess} #${selectedOrderForCancel.order_code}`,
@@ -304,7 +304,7 @@ export default function StaffOrdersPage() {
         payload,
       );
       await queryClient.invalidateQueries({
-        queryKey: [ADMIN_ORDERS_QUERY_KEY],
+        queryKey: ADMIN_ORDERS_QUERY_KEY,
       });
       showSuccess(
         `${copy.staff.toasts.dispatchSuccess} #${selectedOrderForDispatch.order_code}!`,

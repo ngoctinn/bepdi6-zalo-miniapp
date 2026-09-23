@@ -103,11 +103,17 @@ select:focus {
 
 button,
 button:focus,
-button:focus-visible,
 button:active,
 button:focus-within {
-  outline: none !important;
+  outline: none;
   -webkit-tap-highlight-color: transparent !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--zaui-primary-color, #4d7c0f) !important;
+  outline-offset: 2px !important;
 }
 
 * {

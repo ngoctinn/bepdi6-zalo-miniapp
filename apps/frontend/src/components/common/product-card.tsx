@@ -121,11 +121,20 @@ export default function ProductCard({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Xem chi tiết ${product.name}`}
       className={cn(
-        "group flex w-full cursor-pointer flex-col transition-all active:opacity-90",
+        "group flex w-full cursor-pointer flex-col text-left transition-all focus-visible:rounded-2xl active:opacity-90",
         isOutOfStock && "opacity-60",
       )}
       onClick={handleCardClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
       onMouseEnter={handlePrefetch}
       onTouchStart={handlePrefetch}
     >

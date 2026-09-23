@@ -66,8 +66,17 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Xem chi tiết đơn hàng #${order.order_code || order.id}`}
       onClick={() => navigate(`/order/${order.id}`)}
-      className="w-full cursor-pointer rounded-2xl bg-white p-4 shadow-sm transition-all active:scale-[0.995]"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          navigate(`/order/${order.id}`);
+        }
+      }}
+      className="w-full cursor-pointer rounded-2xl bg-white p-4 text-left shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.995]"
     >
       {/* 1. Header: Loại nhận hàng & Mã đơn + Badge trạng thái */}
       <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">

@@ -24,7 +24,7 @@ export default function OrderSuccessPage() {
   };
 
   return (
-    <div className="flex h-full min-h-screen flex-col items-center justify-center bg-background px-6 pb-28 text-center">
+    <div className="flex h-full min-h-dvh flex-col items-center justify-center bg-background px-6 pb-28 text-center">
       <img
         draggable={false}
         src={checkoutSuccessImg}

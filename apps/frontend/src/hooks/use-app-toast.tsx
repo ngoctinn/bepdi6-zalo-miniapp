@@ -194,7 +194,7 @@ export const AppToastContainer: React.FC = () => {
     switch (type) {
       case "success":
         return (
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#4D7C0F]/15 text-[#4D7C0F]">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-olive100 text-olive700">
             <svg
               className="h-3.5 w-3.5"
               viewBox="0 0 24 24"
@@ -210,7 +210,7 @@ export const AppToastContainer: React.FC = () => {
         );
       case "warning":
         return (
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#D97706]/15 text-[#D97706]">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber100 text-amber600">
             <svg
               className="h-3.5 w-3.5"
               viewBox="0 0 24 24"
@@ -228,7 +228,7 @@ export const AppToastContainer: React.FC = () => {
         );
       case "error":
         return (
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#DC2626]/15 text-[#DC2626]">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
             <svg
               className="h-3.5 w-3.5"
               viewBox="0 0 24 24"
@@ -271,7 +271,7 @@ export const AppToastContainer: React.FC = () => {
       case "info":
       default:
         return (
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-900/10 text-neutral-800">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral900/10 text-neutral800">
             <svg
               className="h-3.5 w-3.5"
               viewBox="0 0 24 24"
@@ -294,38 +294,38 @@ export const AppToastContainer: React.FC = () => {
     switch (type) {
       case "success":
         return {
-          card: "bg-[#F7FEE7]/95 border-[#4D7C0F]/25 text-[#365314] shadow-lime-900/10",
-          title: "text-[#365314]",
-          desc: "text-[#4D7C0F]",
-          action: "text-[#4D7C0F] hover:text-[#3F6212]",
+          card: "bg-olive50/95 border-olive700/25 text-olive900 shadow-lime-900/10",
+          title: "text-olive900",
+          desc: "text-olive700",
+          action: "text-olive700 hover:text-olive800",
         };
       case "warning":
         return {
-          card: "bg-[#FFFBEB]/95 border-[#D97706]/25 text-[#78350F] shadow-amber-900/10",
-          title: "text-[#78350F]",
-          desc: "text-[#B45309]",
-          action: "text-[#D97706] hover:text-[#B45309]",
+          card: "bg-amber50/95 border-amber600/25 text-amber900 shadow-amber-900/10",
+          title: "text-amber900",
+          desc: "text-amber700",
+          action: "text-amber600 hover:text-amber700",
         };
       case "error":
         return {
-          card: "bg-[#FEF2F2]/95 border-[#DC2626]/25 text-[#991B1B] shadow-red-900/10",
-          title: "text-[#991B1B]",
-          desc: "text-[#DC2626]",
-          action: "text-[#DC2626] hover:text-[#B91C1C]",
+          card: "bg-red-50/95 border-red-500/25 text-red-900 shadow-red-900/10",
+          title: "text-red-900",
+          desc: "text-red-600",
+          action: "text-red-600 hover:text-red-700",
         };
       case "loading":
         return {
-          card: "bg-[#FAFAF9]/95 border-[#4D7C0F]/25 text-[#0F172A] shadow-black/10",
-          title: "text-[#0F172A]",
-          desc: "text-neutral-500",
+          card: "bg-stone50/95 border-olive700/25 text-neutral900 shadow-black/10",
+          title: "text-neutral900",
+          desc: "text-neutral500",
           action: "text-primary",
         };
       case "info":
       default:
         return {
-          card: "bg-[#FAFAF9]/95 border-black/10 text-[#1C1917] shadow-black/10",
-          title: "text-[#1C1917]",
-          desc: "text-neutral-600",
+          card: "bg-stone50/95 border-black/10 text-stone900 shadow-black/10",
+          title: "text-stone900",
+          desc: "text-neutral600",
           action: "text-primary",
         };
     }
@@ -335,6 +335,8 @@ export const AppToastContainer: React.FC = () => {
 
   return (
     <div
+      role="status"
+      aria-live="polite"
       style={{ zIndex: options.zIndex ?? 99999 }}
       className={`pointer-events-none fixed inset-x-0 flex justify-center px-3 transition-all duration-300 ease-out ${
         position === "top"

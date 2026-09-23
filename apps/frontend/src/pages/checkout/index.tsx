@@ -177,7 +177,7 @@ export default function CheckoutPage() {
           if (requestId !== previewRequestIdRef.current) return;
           setPreviewData(data);
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
           if (requestId !== previewRequestIdRef.current) return;
           setPreviewData(null);
           // H-05: Rollback applied voucher nếu server báo lỗi voucher
@@ -185,8 +185,9 @@ export default function CheckoutPage() {
             setAppliedVoucherCode("");
           }
           const errorMsg =
-            err?.response?.data?.error?.message ||
-            err?.message ||
+            (err as { response?: { data?: { error?: { message?: string } } } })
+              ?.response?.data?.error?.message ||
+            (err instanceof Error ? err.message : "") ||
             "Không thể tính phí giao hàng. Vui lòng kiểm tra lại địa chỉ.";
           showError(errorMsg);
         },
@@ -327,7 +328,7 @@ export default function CheckoutPage() {
       clearCart();
       showSuccess(copy.checkout.orderSuccess);
       navigate(`/order/${order.id}`, { replace: true, state: { order } });
-    } catch (err: any) {
+    } catch (err: unknown) {
       isCompletingOrderRef.current = false;
       setOrderErrorModal({
         visible: true,
@@ -339,9 +340,14 @@ export default function CheckoutPage() {
       });
       // Chỉ đổi Idempotency-Key khi có lỗi validation 4xx từ server (client cần sửa payload).
       // Khi gặp Network/Timeout error, giữ nguyên Idempotency-Key để retry an toàn (BP-IDEM-1)
-      const status = err?.status ?? err?.response?.status;
+      const status =
+        (err as { status?: number; response?: { status?: number } })?.status ??
+        (err as { response?: { status?: number } })?.response?.status;
       const isClientValidationError =
-        status >= 400 && status < 500 && status !== 408;
+        typeof status === "number" &&
+        status >= 400 &&
+        status < 500 &&
+        status !== 408;
       if (isClientValidationError) {
         idempotencyKeyRef.current = generateUUID();
       }
