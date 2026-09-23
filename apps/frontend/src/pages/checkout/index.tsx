@@ -57,7 +57,8 @@ export default function CheckoutPage() {
   const [note, setNote] = useState("");
   const [voucherCodeInput, setVoucherCodeInput] = useState("");
   const [appliedVoucherCode, setAppliedVoucherCode] = useState<string>("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("COD");
+  const [paymentMethod, setPaymentMethod] =
+    useState<PaymentMethod>("BANK_TRANSFER");
   const [scheduledDeliveryAt, setScheduledDeliveryAt] = useState<
     string | undefined
   >(undefined);

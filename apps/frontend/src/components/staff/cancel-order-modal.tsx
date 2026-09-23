@@ -33,9 +33,14 @@ export function CancelOrderModal({
       onClick={onClose}
     >
       <div
-        className="animate-slideUp w-full max-w-lg rounded-t-3xl bg-white p-5 shadow-2xl transition-transform duration-300"
+        className="safe-bottom animate-slideUp flex max-h-[88vh] w-full max-w-lg flex-col overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl transition-transform duration-300"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Sheet Drag Handle */}
+        <div className="flex w-full items-center justify-center pb-2">
+          <div className="h-1.5 w-12 rounded-full bg-stone-300" />
+        </div>
+
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div className="flex items-center gap-2">
             <span className="rounded-lg bg-red-100 p-1.5 text-red-600">

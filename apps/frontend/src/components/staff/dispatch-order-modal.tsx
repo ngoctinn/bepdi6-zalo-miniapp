@@ -76,7 +76,7 @@ export function DispatchOrderModal({
       onClick={onClose}
     >
       <div
-        className="animate-slideUp w-full max-w-lg rounded-t-3xl bg-white p-5 shadow-2xl transition-transform duration-300"
+        className="safe-bottom animate-slideUp flex max-h-[88vh] w-full max-w-lg flex-col overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl transition-transform duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile Sheet Drag Handle */}

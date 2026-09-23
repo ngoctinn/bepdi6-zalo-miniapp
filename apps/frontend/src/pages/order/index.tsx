@@ -69,7 +69,7 @@ export default function OrderPage() {
         </div>
       </div>
 
-      <div className="flex-1 px-3.5 py-3 pb-24">
+      <div className="flex-1 px-3.5 py-3 pb-6">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Spinner />

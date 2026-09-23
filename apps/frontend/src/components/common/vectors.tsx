@@ -5,7 +5,7 @@ export type SvgProps = React.SVGProps<SVGSVGElement>;
 
 const iconColors = {
   active: theme.colors.primary, // #4D7C0F — xanh rêu rustic olive khi active
-  inactive: "#A8A29E", // stone-400 — trung tính khi inactive
+  inactive: "#78716C", // stone-500 — đồng bộ với text-stone-500 của nhãn footer
   accent: theme.colors.primary,
   white: theme.colors.white,
   black: theme.colors.black,
@@ -37,8 +37,8 @@ export function HomeIcon({ active }: { active: boolean }) {
   if (active)
     return (
       <svg
-        width="22"
-        height="22"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -65,8 +65,8 @@ export function HomeIcon({ active }: { active: boolean }) {
 
   return (
     <svg
-      width="22"
-      height="22"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -173,8 +173,8 @@ export function OrderIcon({ active }: { active: boolean }) {
   if (active)
     return (
       <svg
-        width="22"
-        height="22"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -206,8 +206,8 @@ export function OrderIcon({ active }: { active: boolean }) {
 
   return (
     <svg
-      width="22"
-      height="22"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -240,8 +240,8 @@ export function CartNavIcon({ active }: { active: boolean }) {
   if (active)
     return (
       <svg
-        width="22"
-        height="22"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -269,8 +269,8 @@ export function CartNavIcon({ active }: { active: boolean }) {
 
   return (
     <svg
-      width="22"
-      height="22"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -646,8 +646,8 @@ export function StoreIcon({
   if (active) {
     return (
       <svg
-        width="22"
-        height="22"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -677,8 +677,8 @@ export function StoreIcon({
 
   return (
     <svg
-      width="22"
-      height="22"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

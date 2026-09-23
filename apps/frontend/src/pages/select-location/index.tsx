@@ -53,6 +53,7 @@ export default function SelectLocationPage() {
   const { selectedAddress, setSelectedAddress } = useLocationStore();
 
   const [isCreating, setIsCreating] = useState(false);
+  const hasAutoLocatedRef = useRef(false);
   const [deleteAddressId, setDeleteAddressId] = useState<number | null>(null);
   const [formData, setFormData] = useState<CreateAddressRequest>({
     recipient_name: "",
@@ -224,6 +225,19 @@ export default function SelectLocationPage() {
       setIsGettingLocation(false);
     }
   };
+
+  // Tự động yêu cầu quyền vị trí và map tọa độ GPS khi người dùng mở form thêm địa chỉ mới
+  useEffect(() => {
+    if (isCreating) {
+      if (!hasAutoLocatedRef.current) {
+        hasAutoLocatedRef.current = true;
+        handleGetCurrentLocation();
+      }
+    } else {
+      hasAutoLocatedRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreating]);
 
   const handleCreateAddress = async () => {
     if (!formData.recipient_name.trim()) {

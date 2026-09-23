@@ -1,9 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { copy } from "@/constants/copy";
-import { Order } from "@/types/order.types";
+import { Order, OrderStatus } from "@/types/order.types";
 import { makePhoneCall } from "@/utils/phone";
 import { printOrderReceipt } from "@/utils/print-order";
-import { Icon } from "zmp-ui";
+import { formatCurrency } from "@/utils/format";
+import {
+  getOrderStatusLabel,
+  getOrderStatusVariant,
+  getDeliveryTypeLabel,
+} from "@/utils/order-display";
+import { Badge } from "@/components/common/badge";
+import { Spinner, Icon } from "zmp-ui";
 
 interface StaffOrderDetailSheetProps {
   visible: boolean;
@@ -11,6 +18,8 @@ interface StaffOrderDetailSheetProps {
   onClose: () => void;
   onOpenCancelModal?: (order: Order) => void;
   onOpenDispatchModal?: (order: Order) => void;
+  onUpdateStatus?: (orderId: number, nextStatus: OrderStatus) => void;
+  isProcessing?: boolean;
 }
 
 export function StaffOrderDetailSheet({
@@ -19,7 +28,11 @@ export function StaffOrderDetailSheet({
   onClose,
   onOpenCancelModal,
   onOpenDispatchModal,
+  onUpdateStatus,
+  isProcessing = false,
 }: StaffOrderDetailSheetProps) {
+  const [debouncing, setDebouncing] = useState(false);
+
   useEffect(() => {
     if (!visible) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -35,6 +48,13 @@ export function StaffOrderDetailSheet({
   const isPaid = order.payment?.status === "PAID";
   const isEnded = order.status === "COMPLETED" || order.status === "CANCELLED";
 
+  const handleAction = (callback: () => void) => {
+    if (debouncing || isProcessing) return;
+    setDebouncing(true);
+    callback();
+    setTimeout(() => setDebouncing(false), 500);
+  };
+
   return (
     <div
       className="animate-fadeIn fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200"
@@ -49,23 +69,26 @@ export function StaffOrderDetailSheet({
           <div className="h-1.5 w-12 rounded-full bg-stone-300" />
         </div>
 
-        {/* Header Sheet */}
+        {/* Header Sheet: Order code, delivery type, and unified status badge */}
         <div className="flex items-center justify-between border-b border-stone-100 px-4 py-2.5">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-mono text-base font-black text-neutral900">
               #{order.order_code}
             </span>
-            <span className="inline-flex items-center gap-1 rounded-md bg-stone-100 px-2 py-0.5 text-xxsmall font-bold text-stone-700">
+            <Badge variant="neutral" size="small" className="gap-1">
               <Icon
                 icon={isDelivery ? "zi-location-solid" : "zi-home"}
                 className="text-xs leading-none text-primary"
               />
-              <span>
-                {isDelivery
-                  ? copy.staff.deliveryType.delivery
-                  : copy.staff.deliveryType.pickup}
-              </span>
-            </span>
+              <span>{getDeliveryTypeLabel(order.delivery_type)}</span>
+            </Badge>
+            <Badge
+              variant={getOrderStatusVariant(order.status)}
+              size="small"
+              shape="pill"
+            >
+              {getOrderStatusLabel(order.status, order.delivery_type)}
+            </Badge>
           </div>
           <button
             type="button"
@@ -95,22 +118,21 @@ export function StaffOrderDetailSheet({
               <div>
                 <span className="block text-sm font-black leading-tight">
                   {isPaid
-                    ? `${copy.staff.financialShield.paidOnline}: ${Number(order.total_amount || 0).toLocaleString("vi-VN")}${copy.common.currency}`
-                    : `${copy.staff.financialShield.collectCod} ${Number(order.total_amount || 0).toLocaleString("vi-VN")}${copy.common.currency}`}
+                    ? `${copy.staff.financialShield.paidOnline}: ${formatCurrency(order.total_amount || 0)}`
+                    : `${copy.staff.financialShield.collectCod} ${formatCurrency(order.total_amount || 0)}`}
                 </span>
               </div>
             </div>
-            <span
-              className={`rounded-lg px-2 py-1 text-xxxxsmall font-black uppercase tracking-wider ${
-                isPaid
-                  ? "bg-primary/20 text-primary"
-                  : "shadow-xs bg-amber-600 text-white"
-              }`}
+            <Badge
+              variant={isPaid ? "primary" : "recommended"}
+              size="small"
+              shape="rounded"
+              className="uppercase tracking-wider"
             >
               {isPaid
                 ? copy.staff.financialShield.neverCollect
                 : copy.staff.financialShield.driverMustCollect}
-            </span>
+            </Badge>
           </div>
 
           {/* Customer Info Card */}
@@ -219,7 +241,7 @@ export function StaffOrderDetailSheet({
             </div>
           )}
 
-          {/* Items Detail */}
+          {/* Items Detail — Flat Clean List, không dùng ô đen */}
           <div className="rounded-xl border border-stone-200/90 bg-white p-3">
             <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-stone-500">
               {copy.staff.items.itemCountPrefix} ({order.items?.length || 0})
@@ -229,16 +251,16 @@ export function StaffOrderDetailSheet({
                 <div key={item.id || idx} className="py-2 first:pt-0 last:pb-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2">
-                      <span className="flex h-6 min-w-[24px] items-center justify-center rounded bg-neutral900 px-1 text-xs font-bold text-white">
+                      <span className="font-mono text-sm font-black text-primary">
                         {item.quantity}x
                       </span>
                       <div>
-                        <p className="text-xs font-bold text-neutral900">
+                        <p className="text-sm font-bold text-neutral900">
                           {item.product_name}
                         </p>
                         {item.options && item.options.length > 0 && (
-                          <p className="mt-0.5 text-xxsmall font-semibold text-stone-500">
-                            +{" "}
+                          <p className="mt-0.5 text-xs text-stone-500">
+                            ↳{" "}
                             {item.options.map((o) => o.option_name).join(", ")}
                           </p>
                         )}
@@ -257,8 +279,7 @@ export function StaffOrderDetailSheet({
                       </div>
                     </div>
                     <span className="font-mono text-xs font-bold text-stone-700">
-                      {Number(item.subtotal || 0).toLocaleString("vi-VN")}
-                      {copy.common.currency}
+                      {formatCurrency(item.subtotal || 0)}
                     </span>
                   </div>
                 </div>
@@ -269,52 +290,152 @@ export function StaffOrderDetailSheet({
             <div className="mt-3 flex items-center justify-between border-t border-stone-200 pt-2 text-xs font-bold">
               <span className="text-stone-600">{copy.common.total}</span>
               <span className="font-mono text-base font-black text-neutral900">
-                {Number(order.total_amount || 0).toLocaleString("vi-VN")}
-                {copy.common.currency}
+                {formatCurrency(order.total_amount || 0)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer Actions: Đầy đủ nút chuyển trạng thái quy trình đơn hàng */}
         <div className="flex items-center gap-2 border-t border-stone-100 bg-stone-50/90 p-3">
+          {/* Nút in phiếu in túi (Auxiliary) */}
           <button
             type="button"
             onClick={() => printOrderReceipt(order, "DELIVERY_BAG")}
-            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white text-xs font-bold text-stone-700 shadow-sm transition-transform active:scale-[0.98]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 shadow-sm transition-transform active:scale-[0.98]"
+            title={copy.staff.printBagReceiptBtn}
+            aria-label={copy.staff.printBagReceiptBtn}
           >
-            <Icon icon="zi-download" className="text-sm" />
-            <span>{copy.staff.printBagReceiptBtn}</span>
+            <Icon icon="zi-download" className="text-base" />
           </button>
 
-          {isDelivery && onOpenDispatchModal && !isEnded && (
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onOpenDispatchModal(order);
-              }}
-              className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform active:scale-[0.98]"
-            >
-              <Icon icon="zi-send" className="text-sm" />
-              <span>
-                {order.shipper_name
-                  ? copy.staff.dispatch.changeShipper
-                  : copy.staff.dispatch.assignShipper}
-              </span>
-            </button>
+          {/* Workflow Action Buttons */}
+          {order.status === "PENDING_CONFIRMATION" && (
+            <>
+              {onOpenCancelModal && (
+                <button
+                  type="button"
+                  disabled={isProcessing || debouncing}
+                  onClick={() =>
+                    handleAction(() => {
+                      onClose();
+                      onOpenCancelModal(order);
+                    })
+                  }
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-stone-600 transition-colors active:bg-stone-200 disabled:opacity-50"
+                  title={copy.staff.actions.cancel}
+                  aria-label={copy.staff.actions.cancel}
+                >
+                  <Icon icon="zi-close-circle" className="text-base" />
+                </button>
+              )}
+              {onUpdateStatus && (
+                <button
+                  type="button"
+                  disabled={isProcessing || debouncing}
+                  onClick={() =>
+                    handleAction(() => onUpdateStatus(order.id, "PREPARING"))
+                  }
+                  className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                >
+                  {isProcessing ? (
+                    <Spinner visible logo={false} />
+                  ) : (
+                    <>
+                      <Icon icon="zi-check-circle" className="text-base" />
+                      <span>{copy.staff.actions.confirmAndCook}</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </>
           )}
 
-          {order.status === "PENDING_CONFIRMATION" && onOpenCancelModal && (
+          {(order.status === "CONFIRMED" || order.status === "PREPARING") &&
+            onUpdateStatus && (
+              <button
+                type="button"
+                disabled={isProcessing || debouncing}
+                onClick={() =>
+                  handleAction(() => onUpdateStatus(order.id, "READY"))
+                }
+                className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-600 text-xs font-bold text-white shadow-sm transition-transform hover:bg-amber-700 active:scale-[0.98] disabled:opacity-50"
+              >
+                {isProcessing ? (
+                  <Spinner visible logo={false} />
+                ) : (
+                  <>
+                    <Icon icon="zi-check-circle-solid" className="text-base" />
+                    <span>{copy.staff.actions.cookedReady}</span>
+                  </>
+                )}
+              </button>
+            )}
+
+          {order.status === "READY" && (
+            <>
+              {isDelivery && onOpenDispatchModal && (
+                <button
+                  type="button"
+                  disabled={isProcessing || debouncing}
+                  onClick={() =>
+                    handleAction(() => {
+                      onClose();
+                      onOpenDispatchModal(order);
+                    })
+                  }
+                  className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                >
+                  <Icon icon="zi-send" className="text-base" />
+                  <span>
+                    {order.shipper_name
+                      ? copy.staff.dispatch.changeShipper
+                      : copy.staff.dispatch.assignShipper}
+                  </span>
+                </button>
+              )}
+              {!isDelivery && onUpdateStatus && (
+                <button
+                  type="button"
+                  disabled={isProcessing || debouncing}
+                  onClick={() =>
+                    handleAction(() => onUpdateStatus(order.id, "COMPLETED"))
+                  }
+                  className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                >
+                  {isProcessing ? (
+                    <Spinner visible logo={false} />
+                  ) : (
+                    <>
+                      <Icon
+                        icon="zi-check-circle-solid"
+                        className="text-base"
+                      />
+                      <span>{copy.staff.actions.customerPickedUp}</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </>
+          )}
+
+          {order.status === "DELIVERING" && onUpdateStatus && (
             <button
               type="button"
-              onClick={() => {
-                onClose();
-                onOpenCancelModal(order);
-              }}
-              className="flex h-11 w-16 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-xs font-bold text-red-700 active:bg-red-100"
+              disabled={isProcessing || debouncing}
+              onClick={() =>
+                handleAction(() => onUpdateStatus(order.id, "COMPLETED"))
+              }
+              className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-neutral900 text-xs font-bold text-white shadow-sm transition-transform hover:bg-black active:scale-[0.98] disabled:opacity-50"
             >
-              {copy.staff.actions.cancel}
+              {isProcessing ? (
+                <Spinner visible logo={false} />
+              ) : (
+                <>
+                  <Icon icon="zi-check-circle-solid" className="text-base" />
+                  <span>{copy.staff.actions.completeOrder}</span>
+                </>
+              )}
             </button>
           )}
         </div>

@@ -391,12 +391,7 @@ export default function StaffOrdersPage() {
     <div className="safe-bottom relative flex flex-col bg-background pb-6 font-sans">
       {/* Header */}
       <div className="sticky top-0 z-30 flex flex-col border-b border-stone-200/80 bg-white/95 pb-1.5 backdrop-blur-md">
-        <StaffHeaderActions
-          isSoundEnabled={isSoundEnabled}
-          isRefetching={isRefetching}
-          onToggleSound={toggleSound}
-          onRefetch={() => refetch()}
-        />
+        <StaffHeaderActions />
 
         {/* Tabs */}
         <div className="w-full bg-transparent px-3 py-0.5">
@@ -408,79 +403,124 @@ export default function StaffOrdersPage() {
           />
         </div>
 
-        {/* Delivery Filter Pills với số lượng đơn (Count Indicators) & a11y */}
+        {/* Delivery Filter Pills & Action Buttons */}
         <div
-          className="flex items-center gap-1.5 px-3 pt-1"
+          className="flex items-center justify-between px-3 pt-1"
           role="group"
           aria-label="Lọc hình thức nhận món"
         >
-          <button
-            type="button"
-            aria-pressed={deliveryFilter === "ALL"}
-            onClick={() => setDeliveryFilter("ALL")}
-            className={`inline-flex h-7 items-center justify-center gap-1.5 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors active:scale-95 ${
-              deliveryFilter === "ALL"
-                ? "shadow-xs bg-neutral900 text-white"
-                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-200"
-            }`}
-          >
-            <span>{copy.staff.filters.allTypes}</span>
-            <span
-              className={`py-0.2 rounded-full px-1.5 text-[9px] font-black ${
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              aria-pressed={deliveryFilter === "ALL"}
+              onClick={() => setDeliveryFilter("ALL")}
+              className={`inline-flex h-7 items-center justify-center gap-1.5 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors active:scale-95 ${
                 deliveryFilter === "ALL"
-                  ? "bg-white/20 text-white"
-                  : "bg-black/10 text-stone-700"
+                  ? "shadow-xs bg-neutral900 text-white"
+                  : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-200"
               }`}
             >
-              {deliveryCounts.all}
-            </span>
-          </button>
+              <span>{copy.staff.filters.allTypes}</span>
+              <span
+                className={`py-0.2 rounded-full px-1.5 text-[9px] font-black ${
+                  deliveryFilter === "ALL"
+                    ? "bg-white/20 text-white"
+                    : "bg-black/10 text-stone-700"
+                }`}
+              >
+                {deliveryCounts.all}
+              </span>
+            </button>
 
-          <button
-            type="button"
-            aria-pressed={deliveryFilter === "DELIVERY"}
-            onClick={() => setDeliveryFilter("DELIVERY")}
-            className={`inline-flex h-7 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors active:scale-95 ${
-              deliveryFilter === "DELIVERY"
-                ? "shadow-xs bg-primary text-white"
-                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-200"
-            }`}
-          >
-            <Icon icon="zi-location-solid" className="text-xs leading-none" />
-            <span>{copy.staff.filters.delivery}</span>
-            <span
-              className={`py-0.2 rounded-full px-1.5 text-[9px] font-black ${
+            <button
+              type="button"
+              aria-pressed={deliveryFilter === "DELIVERY"}
+              onClick={() => setDeliveryFilter("DELIVERY")}
+              className={`inline-flex h-7 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors active:scale-95 ${
                 deliveryFilter === "DELIVERY"
-                  ? "bg-white/20 text-white"
-                  : "bg-black/10 text-stone-700"
+                  ? "shadow-xs bg-primary text-white"
+                  : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-200"
               }`}
             >
-              {deliveryCounts.delivery}
-            </span>
-          </button>
+              <Icon icon="zi-location-solid" className="text-xs leading-none" />
+              <span>{copy.staff.filters.delivery}</span>
+              <span
+                className={`py-0.2 rounded-full px-1.5 text-[9px] font-black ${
+                  deliveryFilter === "DELIVERY"
+                    ? "bg-white/20 text-white"
+                    : "bg-black/10 text-stone-700"
+                }`}
+              >
+                {deliveryCounts.delivery}
+              </span>
+            </button>
 
-          <button
-            type="button"
-            aria-pressed={deliveryFilter === "PICKUP"}
-            onClick={() => setDeliveryFilter("PICKUP")}
-            className={`inline-flex h-7 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors active:scale-95 ${
-              deliveryFilter === "PICKUP"
-                ? "shadow-xs bg-primary text-white"
-                : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-200"
-            }`}
-          >
-            <Icon icon="zi-home" className="text-xs leading-none" />
-            <span>{copy.staff.filters.pickup}</span>
-            <span
-              className={`py-0.2 rounded-full px-1.5 text-[9px] font-black ${
+            <button
+              type="button"
+              aria-pressed={deliveryFilter === "PICKUP"}
+              onClick={() => setDeliveryFilter("PICKUP")}
+              className={`inline-flex h-7 items-center justify-center gap-1 rounded-full px-2.5 text-xxxxsmall font-bold transition-colors active:scale-95 ${
                 deliveryFilter === "PICKUP"
-                  ? "bg-white/20 text-white"
-                  : "bg-black/10 text-stone-700"
+                  ? "shadow-xs bg-primary text-white"
+                  : "border border-stone-200 bg-stone-100/70 text-stone-600 hover:bg-stone-200"
               }`}
             >
-              {deliveryCounts.pickup}
-            </span>
-          </button>
+              <Icon icon="zi-home" className="text-xs leading-none" />
+              <span>{copy.staff.filters.pickup}</span>
+              <span
+                className={`py-0.2 rounded-full px-1.5 text-[9px] font-black ${
+                  deliveryFilter === "PICKUP"
+                    ? "bg-white/20 text-white"
+                    : "bg-black/10 text-stone-700"
+                }`}
+              >
+                {deliveryCounts.pickup}
+              </span>
+            </button>
+          </div>
+
+          {/* Quick Action Tools: Sound & Reload (Hoàn toàn an toàn dưới capsule Zalo) */}
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={toggleSound}
+              className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-transform active:scale-95 ${
+                isSoundEnabled
+                  ? "border border-primary/30 bg-olive100 font-bold text-primary"
+                  : "border border-stone-200 bg-stone-100/80 text-stone-400 hover:text-stone-600"
+              }`}
+              title={
+                isSoundEnabled
+                  ? copy.staff.soundBtnTitleOn
+                  : copy.staff.soundBtnTitleOff
+              }
+              aria-label={
+                isSoundEnabled
+                  ? copy.staff.soundBtnTitleOn
+                  : copy.staff.soundBtnTitleOff
+              }
+            >
+              <Icon
+                icon={isSoundEnabled ? "zi-notif-ring" : "zi-notif"}
+                className="flex items-center justify-center text-xs leading-none"
+              />
+              {isSoundEnabled && (
+                <span className="absolute right-0.5 top-0.5 h-1.5 w-1.5 rounded-full bg-primary ring-1 ring-white" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-stone-200 bg-stone-100/80 text-stone-700 transition-transform hover:bg-stone-200 active:scale-95"
+              aria-label={copy.staff.refreshLabel}
+            >
+              <Icon
+                icon="zi-retry"
+                className={`flex items-center justify-center text-xs leading-none ${isRefetching ? "animate-spin" : ""}`}
+              />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -567,6 +607,15 @@ export default function StaffOrdersPage() {
         onClose={() => setSelectedOrderForDetail(null)}
         onOpenCancelModal={handleOpenCancelModal}
         onOpenDispatchModal={handleOpenDispatchModal}
+        onUpdateStatus={async (orderId, nextStatus) => {
+          await handleUpdateStatus(orderId, nextStatus);
+          setSelectedOrderForDetail((prev) =>
+            prev && prev.id === orderId
+              ? { ...prev, status: nextStatus as OrderStatus }
+              : null,
+          );
+        }}
+        isProcessing={processingOrderId === selectedOrderForDetail?.id}
       />
 
       {/* Modal Hủy Đơn Hàng */}

@@ -7,13 +7,16 @@ export type BadgeVariant =
   | "warning"
   | "error"
   | "neutral"
-  | "accent";
+  | "accent"
+  | "recommended";
 
 export type BadgeSize = "small" | "medium";
+export type BadgeShape = "rounded" | "pill";
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
   size?: BadgeSize;
+  shape?: BadgeShape;
   children: React.ReactNode;
 }
 
@@ -24,6 +27,13 @@ const variantStyles: Record<BadgeVariant, string> = {
   error: "bg-red-50 text-red-700 border border-red-200/60",
   neutral: "bg-neutral100 text-neutral700 border border-neutral200/60",
   accent: "bg-amber-100 text-amber-800 border border-amber-300/50",
+  recommended:
+    "bg-amber-50 text-amber-900 border border-amber-400/50 font-bold",
+};
+
+const shapeStyles: Record<BadgeShape, string> = {
+  rounded: "rounded-md",
+  pill: "rounded-full",
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
@@ -34,6 +44,7 @@ const sizeStyles: Record<BadgeSize, string> = {
 export const Badge: React.FC<BadgeProps> = ({
   variant = "primary",
   size = "small",
+  shape = "rounded",
   className,
   children,
   ...props
@@ -41,7 +52,8 @@ export const Badge: React.FC<BadgeProps> = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-md tracking-tight",
+        "inline-flex items-center justify-center tracking-tight",
+        shapeStyles[shape],
         variantStyles[variant],
         sizeStyles[size],
         className,

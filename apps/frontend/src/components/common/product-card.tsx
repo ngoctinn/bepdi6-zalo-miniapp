@@ -5,6 +5,7 @@ import { useCartStore } from "@/stores/cart.store";
 import { usePrefetchProduct } from "@/services/product/product.queries";
 import { copy } from "@/constants/copy";
 import { cn } from "@/utils/cn";
+import { Badge } from "@/components/common/badge";
 import defaultProductImg from "@/static/logo.png";
 
 interface ProductCardProps {
@@ -151,11 +152,13 @@ export default function ProductCard({
 
         {/* Sale badge — Soft Amber Discount Tag */}
         {hasPromo && discountPct != null && discountPct > 0 && (
-          <div className="shadow-xs backdrop-blur-xs absolute left-2 top-2 z-10 flex items-center rounded-md border border-amber-300/60 bg-amber-100/95 px-1.5 py-0.5">
-            <span className="text-[10px] font-bold leading-none tracking-tight text-amber-900">
-              -{discountPct}%
-            </span>
-          </div>
+          <Badge
+            variant="recommended"
+            size="small"
+            className="shadow-xs backdrop-blur-xs absolute left-2 top-2 z-10 px-1.5 py-0.5 text-[10px]"
+          >
+            -{discountPct}%
+          </Badge>
         )}
 
         <img

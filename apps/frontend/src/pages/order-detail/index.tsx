@@ -447,7 +447,7 @@ export default function OrderDetailPage() {
               </span>
             </div>
             {order.distance_km && Number(order.distance_km) > 0 && (
-              <span className="text-3xs shadow-2xs rounded-full bg-white px-2 py-0.5 font-bold text-stone-600">
+              <span className="shadow-2xs rounded-full bg-white px-2 py-0.5 text-xxxxsmall font-bold text-stone-600">
                 {(copy.orderDetail.distancePrefix || "Khoảng cách: ~") +
                   order.distance_km +
                   " km"}
@@ -467,7 +467,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-3xs rounded bg-stone-100 px-1.5 py-0.5 font-black uppercase text-stone-700">
+                    <span className="rounded bg-stone-100 px-1.5 py-0.5 text-xxxxsmall font-black uppercase text-stone-700">
                       {order.delivery_provider === "AHAMOVE"
                         ? "Ahamove"
                         : order.delivery_provider === "GRAB"
@@ -475,7 +475,7 @@ export default function OrderDetailPage() {
                           : "Shipper Quán"}
                     </span>
                     {order.shipper_tracking_code && (
-                      <span className="text-3xs font-mono text-stone-500">
+                      <span className="font-mono text-xxxxsmall text-stone-500">
                         #{order.shipper_tracking_code}
                       </span>
                     )}
@@ -536,17 +536,15 @@ export default function OrderDetailPage() {
             <span className="text-xs font-bold text-neutral900">
               {copy.orderDetail.vietqrTitle}
             </span>
-            <span
-              className={`rounded-md px-2 py-0.5 text-xxsmall font-bold ${
-                isPaid
-                  ? "border border-primary/30 bg-olive100 text-olive900"
-                  : "animate-pulse border border-amber-300/50 bg-amber-100 text-amber-800"
-              }`}
+            <Badge
+              variant={isPaid ? "primary" : "warning"}
+              size="small"
+              className={isPaid ? "" : "animate-pulse"}
             >
               {isPaid
                 ? copy.orderDetail.paidStatus
                 : copy.orderDetail.pendingPayStatus}
-            </span>
+            </Badge>
           </div>
 
           {!isPaid ? (

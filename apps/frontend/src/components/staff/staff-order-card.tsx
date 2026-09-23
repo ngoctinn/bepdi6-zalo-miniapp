@@ -2,6 +2,12 @@ import { copy } from "@/constants/copy";
 import { Order } from "@/types/order.types";
 import { useEffect, useState, useRef } from "react";
 import { Icon, Spinner } from "zmp-ui";
+import { Badge } from "@/components/common/badge";
+import {
+  getOrderStatusLabel,
+  getOrderStatusVariant,
+  getDeliveryTypeLabel,
+} from "@/utils/order-display";
 
 interface StaffOrderCardProps {
   order: Order;
@@ -45,72 +51,25 @@ export function StaffOrderCard({
 
   const agingMinutes = useOrderAging(order.created_at, isEnded);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "PENDING_CONFIRMATION":
-        return {
-          label: copy.staff.status.pending,
-          className: "bg-amber-50 text-amber-800",
-        };
-      case "CONFIRMED":
-        return {
-          label: copy.staff.status.confirmed,
-          className: "bg-olive50 text-olive800",
-        };
-      case "PREPARING":
-        return {
-          label: copy.staff.status.preparing,
-          className: "bg-amber-100 text-amber-900 font-semibold",
-        };
-      case "READY":
-        return {
-          label: copy.staff.status.ready,
-          className: "bg-olive100 text-olive900 font-semibold",
-        };
-      case "DELIVERING":
-        return {
-          label: copy.staff.status.delivering,
-          className: "bg-stone-100 text-stone-700",
-        };
-      case "COMPLETED":
-        return {
-          label: copy.staff.status.completed,
-          className: "bg-stone-100 text-stone-600",
-        };
-      case "CANCELLED":
-        return {
-          label: copy.staff.status.cancelled,
-          className: "bg-red-50 text-red-600",
-        };
-      default:
-        return {
-          label: status,
-          className: "bg-stone-100 text-stone-700",
-        };
-    }
-  };
-
-  const badge = getStatusBadge(order.status);
-
   // Aging Timer đồng bộ nhẹ nhàng, sạch sẽ
   const renderAgingBadge = () => {
     if (agingMinutes === null || isEnded) return null;
 
     if (agingMinutes < 1) {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-xxsmall font-medium text-stone-600">
+        <Badge variant="neutral" size="small" shape="pill" className="gap-1">
           <Icon
             icon="zi-clock-1"
             className="flex shrink-0 items-center justify-center text-xs leading-none text-stone-400"
           />
           <span className="leading-none">{copy.staff.aging.justNow}</span>
-        </span>
+        </Badge>
       );
     }
 
     if (agingMinutes < 10) {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2 py-0.5 text-xxsmall font-medium text-stone-600">
+        <Badge variant="neutral" size="small" shape="pill" className="gap-1">
           <Icon
             icon="zi-clock-1"
             className="flex shrink-0 items-center justify-center text-xs leading-none text-stone-400"
@@ -118,13 +77,13 @@ export function StaffOrderCard({
           <span className="leading-none">
             {agingMinutes} {copy.staff.aging.minutesAgo}
           </span>
-        </span>
+        </Badge>
       );
     }
 
     if (agingMinutes <= 20) {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xxsmall font-semibold text-amber-800">
+        <Badge variant="warning" size="small" shape="pill" className="gap-1">
           <Icon
             icon="zi-clock-1"
             className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
@@ -132,12 +91,17 @@ export function StaffOrderCard({
           <span className="leading-none">
             {agingMinutes} {copy.staff.aging.minutesAgo}
           </span>
-        </span>
+        </Badge>
       );
     }
 
     return (
-      <span className="inline-flex animate-pulse items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xxsmall font-bold text-red-700">
+      <Badge
+        variant="error"
+        size="small"
+        shape="pill"
+        className="animate-pulse gap-1"
+      >
         <Icon
           icon="zi-warning-solid"
           className="flex shrink-0 items-center justify-center text-xs leading-none text-red-600"
@@ -145,7 +109,7 @@ export function StaffOrderCard({
         <span className="leading-none">
           {agingMinutes} {copy.staff.aging.minutesAgo}
         </span>
-      </span>
+      </Badge>
     );
   };
 
@@ -179,20 +143,20 @@ export function StaffOrderCard({
               className="flex shrink-0 items-center justify-center text-xs leading-none text-primary"
             />
             <span className="leading-none">
-              {isDelivery
-                ? copy.staff.deliveryType.delivery
-                : copy.staff.deliveryType.pickup}
+              {getDeliveryTypeLabel(order.delivery_type)}
             </span>
           </span>
         </div>
 
         <div className="flex items-center gap-1.5">
           {renderAgingBadge()}
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xxsmall font-semibold leading-none ${badge.className}`}
+          <Badge
+            variant={getOrderStatusVariant(order.status)}
+            size="small"
+            shape="pill"
           >
-            {badge.label}
-          </span>
+            {getOrderStatusLabel(order.status, order.delivery_type)}
+          </Badge>
         </div>
       </div>
 

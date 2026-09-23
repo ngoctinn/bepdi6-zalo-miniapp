@@ -246,11 +246,13 @@ export default function ProductDetailPage() {
               {product.has_promotion &&
                 product.discount_percent != null &&
                 product.discount_percent > 0 && (
-                  <div className="shadow-xs backdrop-blur-xs absolute left-3 top-3 z-10 flex items-center rounded-md border border-amber-300/60 bg-amber-100/95 px-2 py-0.5">
-                    <span className="text-xs font-bold leading-none tracking-tight text-amber-900">
-                      -{product.discount_percent}%
-                    </span>
-                  </div>
+                  <Badge
+                    variant="recommended"
+                    size="small"
+                    className="shadow-xs backdrop-blur-xs absolute left-3 top-3 z-10 px-2 py-0.5 text-xs"
+                  >
+                    -{product.discount_percent}%
+                  </Badge>
                 )}
             </div>
 
