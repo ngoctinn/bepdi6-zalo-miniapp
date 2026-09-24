@@ -7,6 +7,8 @@ import { useProducts } from "@/services/product/product.queries";
 import { useAuth } from "@/hooks/use-auth";
 import { Category } from "@/types/category.types";
 import { Icon } from "zmp-ui";
+import { useCartStore } from "@/stores/cart.store";
+import { cn } from "@/utils/cn";
 
 import { copy } from "@/constants/copy";
 
@@ -15,6 +17,8 @@ export default function HomePage() {
   const { data: categories, isLoading: isLoadingCategories } = useCategories();
   const { data: allProducts, isLoading: isLoadingProducts } = useProducts();
   const { customer: userProfile } = useAuth();
+  const items = useCartStore((state) => state.items);
+  const hasCartItems = items.length > 0;
 
   const [activeCategoryId, setActiveCategoryId] = useState<
     number | string | null
@@ -161,7 +165,12 @@ export default function HomePage() {
       </div>
 
       {/* Danh sách món ăn phân theo từng Danh Mục (Có ngăn cách & Scroll-spy) */}
-      <div className="flex flex-col gap-6 px-3.5 pb-6 pt-2">
+      <div
+        className={cn(
+          "flex flex-col gap-6 px-3.5 pt-2",
+          hasCartItems ? "pb-24" : "pb-6",
+        )}
+      >
         {isLoadingProducts ? (
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (

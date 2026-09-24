@@ -43,6 +43,7 @@ const router = createBrowserRouter(
           element: withSuspense(OrderPage),
           handle: {
             hideHeader: true,
+            hideCart: true,
           },
         },
         {

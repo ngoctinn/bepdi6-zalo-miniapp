@@ -1,6 +1,7 @@
 import { Outlet, useMatches } from "react-router-dom";
 import Header from "./header";
 import Footer from "./footer";
+import CartFloatBar from "@/components/common/cart-float-bar";
 import { DevAdminHelper } from "@/components/common/dev-admin-helper";
 import { cn } from "@/utils/cn";
 
@@ -9,6 +10,7 @@ interface RouteHandle {
   back?: boolean;
   hideFooter?: boolean;
   hideHeader?: boolean;
+  hideCart?: boolean;
   headerPosition?: "fixed" | "sticky" | "static";
 }
 
@@ -19,6 +21,7 @@ export default function Layout() {
   const handle = current?.handle as RouteHandle | undefined;
   const hideFooter = handle?.hideFooter;
   const hideHeader = handle?.hideHeader;
+  const hideCart = handle?.hideCart;
   const headerPosition = handle?.headerPosition;
 
   return (
@@ -42,6 +45,7 @@ export default function Layout() {
       </div>
       {!hideFooter && (
         <div className="relative shrink-0">
+          {!hideCart && <CartFloatBar />}
           <Footer />
         </div>
       )}
