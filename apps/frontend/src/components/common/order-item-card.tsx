@@ -9,7 +9,6 @@ import { copy } from "@/constants/copy";
 import {
   getOrderStatusLabel,
   getOrderStatusVariant,
-  getDeliveryTypeLabel,
 } from "@/utils/order-display";
 
 interface OrderItemCardProps {
@@ -64,33 +63,60 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
     }
   };
 
+  const getActiveStatusMessage = () => {
+    if (order.status === "PENDING_CONFIRMATION") {
+      return (
+        copy.order.statusMessages?.pending ||
+        "Quán đã nhận đơn và đang kiểm tra..."
+      );
+    }
+    if (order.status === "CONFIRMED" || order.status === "PREPARING") {
+      return (
+        copy.order.statusMessages?.preparing ||
+        "Bếp Dì 6 đang chuẩn bị món thơm ngon cho bạn..."
+      );
+    }
+    if (isPickup) {
+      return (
+        copy.order.statusMessages?.readyPickup ||
+        "Món đã nấu xong, mời bạn đến quầy nhận nhé!"
+      );
+    }
+    return (
+      copy.order.statusMessages?.delivering ||
+      "Shipper đang trên đường giao đồ ăn đến bạn..."
+    );
+  };
+
+  const goToDetail = () => {
+    navigate(`/order/${order.id}`);
+  };
+
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Xem chi tiết đơn hàng #${order.order_code || order.id}`}
-      onClick={() => navigate(`/order/${order.id}`)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          navigate(`/order/${order.id}`);
-        }
-      }}
-      className="w-full cursor-pointer rounded-2xl bg-white p-4 text-left shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.995]"
-    >
-      {/* 1. Header: Loại nhận hàng & Mã đơn + Badge trạng thái */}
-      <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
-        <div className="flex items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-stone-700">
-            <Icon
-              icon={isPickup ? "zi-home" : "zi-location-solid"}
-              className="flex shrink-0 items-center justify-center text-xs leading-none text-primary"
-            />
-            <span className="leading-none">
-              {getDeliveryTypeLabel(order.delivery_type)}
+    <div className="w-full overflow-hidden rounded-2xl border border-stone-200/90 bg-white p-3.5 shadow-sm transition-all">
+      {/* 1. Header: Loại nhận hàng & Mã đơn (Trái) + Badge trạng thái (Phải) */}
+      <div
+        onClick={goToDetail}
+        className="flex cursor-pointer items-center justify-between border-b border-stone-100 pb-2.5"
+      >
+        <div className="flex items-center gap-2">
+          {isPickup ? (
+            <span className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-xxsmall font-bold text-amber-800">
+              <Icon
+                icon="zi-home"
+                className="text-xs leading-none text-amber-700"
+              />
+              <span className="leading-none">TỰ ĐẾN LẤY</span>
             </span>
-          </span>
-          <span className="text-stone-300">•</span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xxsmall font-bold text-blue-700">
+              <Icon
+                icon="zi-location-solid"
+                className="text-xs leading-none text-blue-600"
+              />
+              <span className="leading-none">GIAO TẬN NƠI</span>
+            </span>
+          )}
           <span className="font-mono text-xs font-bold text-neutral900">
             #{order.order_code}
           </span>
@@ -99,63 +125,84 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
         <Badge
           variant={getOrderStatusVariant(order.status)}
           size="small"
-          className="text-xxsmall font-bold"
+          shape="pill"
         >
           {getOrderStatusLabel(order.status, order.delivery_type)}
         </Badge>
       </div>
 
-      {/* 2. Danh sách món tóm tắt (Flat Clean Layout — Không hộp xám) */}
-      <div className="py-2.5 text-xs">
-        <div className="space-y-1">
-          {order.items?.slice(0, 3).map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between text-neutral800"
-            >
-              <span className="truncate pr-2">
-                <strong className="font-bold text-neutral900">
-                  {item.quantity}x
-                </strong>{" "}
-                <span>{item.product_name}</span>
-                {item.options && item.options.length > 0 && (
-                  <span className="ml-1 text-xxsmall text-stone-500">
-                    ({item.options.map((o) => o.option_name).join(", ")})
-                  </span>
-                )}
+      {/* 2. Danh sách món tóm tắt tinh gọn (Không in giá lẻ từng dòng gây rối mắt) */}
+      <div
+        onClick={goToDetail}
+        className="cursor-pointer space-y-1.5 py-2.5 text-xs text-neutral800"
+      >
+        {order.items?.slice(0, 3).map((item, idx) => (
+          <div key={item.id || idx} className="flex items-start gap-1.5">
+            <span className="min-w-[22px] font-mono text-xs font-black text-primary">
+              {item.quantity}x
+            </span>
+            <div className="min-w-0 flex-1">
+              <span className="font-semibold text-neutral900">
+                {item.product_name}
               </span>
-              <span className="shrink-0 font-mono text-stone-600">
-                {formatCurrency(item.subtotal || 0)}đ
-              </span>
+              {item.options && item.options.length > 0 && (
+                <p className="mt-0.5 text-xxsmall text-stone-500">
+                  ↳ {item.options.map((o) => o.option_name).join(", ")}
+                </p>
+              )}
             </div>
-          ))}
-          {(order.items?.length || 0) > 3 && (
-            <p className="text-xxsmall italic text-stone-400">
-              {copy.order.andOtherItems
-                ? copy.order.andOtherItems.replace(
-                    "{count}",
-                    String((order.items?.length || 0) - 3),
-                  )
-                : `và ${(order.items?.length || 0) - 3} món khác...`}
-            </p>
-          )}
-        </div>
+          </div>
+        ))}
+        {(order.items?.length || 0) > 3 && (
+          <p className="pl-6 text-xxsmall font-medium italic text-stone-500">
+            {copy.order.andOtherItems
+              ? copy.order.andOtherItems.replace(
+                  "{count}",
+                  String((order.items?.length || 0) - 3),
+                )
+              : `và ${(order.items?.length || 0) - 3} món khác...`}
+          </p>
+        )}
       </div>
 
-      {/* 3. Footer: Ngày giờ + Tổng tiền & Nút Đặt lại / Xem chi tiết */}
-      <div className="flex items-center justify-between border-t border-stone-100 pt-2.5 text-xs">
-        <span className="font-mono text-xxsmall text-stone-400">
-          {new Date(order.created_at).toLocaleString("vi-VN", {
-            hour: "2-digit",
-            minute: "2-digit",
-            day: "2-digit",
-            month: "2-digit",
-          })}
-        </span>
+      {/* 3. Thanh trạng thái thời gian thực (Dành riêng cho đơn đang xử lý) */}
+      {isActive && (
+        <div
+          onClick={goToDetail}
+          className="mb-2.5 flex cursor-pointer items-center justify-between rounded-xl border border-primary/20 bg-olive50/80 px-3 py-2 text-xs text-olive900 transition-colors hover:bg-olive100/80 active:scale-[0.99]"
+        >
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+            </span>
+            <span className="truncate text-xs font-medium">
+              {getActiveStatusMessage()}
+            </span>
+          </div>
+          <Icon
+            icon="zi-chevron-right"
+            className="shrink-0 text-sm text-primary"
+          />
+        </div>
+      )}
 
-        <div className="flex items-center gap-2">
+      {/* 4. Footer 2 hàng tách bạch: Chống tràn tuyệt đối & Chuẩn ngón tay */}
+      <div className="border-t border-stone-100 pt-2.5 text-xs">
+        {/* Hàng 4A: Thời gian đặt & Tổng tiền to rõ */}
+        <div className="flex items-center justify-between pb-2.5">
+          <span className="font-mono text-xxsmall text-stone-500">
+            {order.created_at
+              ? new Date(order.created_at).toLocaleString("vi-VN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  day: "2-digit",
+                  month: "2-digit",
+                })
+              : ""}
+          </span>
           <div className="flex items-baseline gap-1">
-            <span className="text-xxsmall text-stone-500">
+            <span className="text-xxsmall font-medium text-stone-500">
               {copy.order.totalItemsLabel
                 ? copy.order.totalItemsLabel.replace(
                     "{count}",
@@ -163,30 +210,37 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
                   )
                 : `Tổng (${totalQuantity} món):`}
             </span>
-            <span className="font-mono text-sm font-bold text-neutral900">
-              {formatCurrency(order.total_amount || 0)}đ
+            <span className="font-mono text-sm font-black text-neutral900">
+              {formatCurrency(order.total_amount || 0)}
+              {copy.common.currency}
             </span>
           </div>
+        </div>
+
+        {/* Hàng 4B: Nút hành động chuẩn touch target >= 36px */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={goToDetail}
+            className="inline-flex h-9 flex-1 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-xs font-bold text-stone-700 transition-colors hover:bg-stone-200 active:scale-[0.98]"
+          >
+            {copy.order.detail || "Xem chi tiết"}
+          </button>
 
           {canReorder && (
             <button
               type="button"
               onClick={handleReorder}
-              className="ml-1 inline-flex h-7 items-center justify-center gap-1 rounded-full bg-primary/10 px-2.5 text-xxsmall font-bold text-primary transition-transform active:scale-95"
-              title={copy.order.reorder}
+              className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98]"
             >
               <Icon
                 icon="zi-retry"
-                className="flex shrink-0 items-center justify-center text-xs leading-none"
+                className="inline-flex shrink-0 items-center justify-center text-sm leading-none"
               />
-              <span className="leading-none">{copy.order.reorder}</span>
+              <span className="leading-none">
+                {copy.order.reorder || "Đặt lại"}
+              </span>
             </button>
-          )}
-
-          {isActive && (
-            <span className="ml-1 flex items-center text-stone-400">
-              <Icon icon="zi-chevron-right" className="text-xs" />
-            </span>
           )}
         </div>
       </div>

@@ -71,17 +71,27 @@ export function StaffOrderDetailSheet({
 
         {/* Header Sheet: Order code, delivery type, and unified status badge */}
         <div className="flex items-center justify-between border-b border-stone-100 px-4 py-2.5">
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-base font-black text-neutral900">
               #{order.order_code}
             </span>
-            <Badge variant="neutral" size="small" className="gap-1">
-              <Icon
-                icon={isDelivery ? "zi-location-solid" : "zi-home"}
-                className="text-xs leading-none text-primary"
-              />
-              <span>{getDeliveryTypeLabel(order.delivery_type)}</span>
-            </Badge>
+            {isDelivery ? (
+              <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xxsmall font-bold text-blue-700">
+                <Icon
+                  icon="zi-location-solid"
+                  className="text-xs leading-none text-blue-600"
+                />
+                <span className="leading-none">GIAO TẬN NƠI</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-xxsmall font-bold text-amber-800">
+                <Icon
+                  icon="zi-home"
+                  className="text-xs leading-none text-amber-700"
+                />
+                <span className="leading-none">TẠI QUÁN</span>
+              </span>
+            )}
             <Badge
               variant={getOrderStatusVariant(order.status)}
               size="small"
@@ -162,10 +172,10 @@ export function StaffOrderDetailSheet({
             </div>
 
             {isDelivery && order.delivery_address && (
-              <div className="mt-2.5 flex items-start gap-1.5 rounded-lg border border-stone-200 bg-white p-2 text-xs">
+              <div className="mt-2.5 flex items-start gap-2 rounded-lg border border-stone-200 bg-white p-2.5 text-xs">
                 <Icon
                   icon="zi-location"
-                  className="mt-0.5 shrink-0 text-sm leading-none text-primary"
+                  className="inline-flex shrink-0 items-center justify-center text-sm leading-none text-primary"
                 />
                 <span className="font-medium leading-relaxed text-stone-800">
                   {order.delivery_address}
@@ -175,10 +185,10 @@ export function StaffOrderDetailSheet({
             )}
 
             {order.note && (
-              <div className="mt-2.5 flex items-start gap-1.5 rounded-lg border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900">
+              <div className="mt-2.5 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900">
                 <Icon
                   icon="zi-chat"
-                  className="mt-0.5 shrink-0 text-sm leading-none text-amber-600"
+                  className="inline-flex shrink-0 items-center justify-center text-sm leading-none text-amber-600"
                 />
                 <div className="leading-snug">
                   <span className="font-bold uppercase tracking-wide">
@@ -202,7 +212,7 @@ export function StaffOrderDetailSheet({
                           ? "zi-home"
                           : "zi-location-solid"
                       }
-                      className="text-xs"
+                      className="inline-flex shrink-0 items-center justify-center text-xs leading-none"
                     />
                   </span>
                   <div>
@@ -231,10 +241,13 @@ export function StaffOrderDetailSheet({
                   <button
                     type="button"
                     onClick={() => makePhoneCall(order.shipper_phone!)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/30 bg-white text-primary active:scale-95"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-primary/30 bg-white text-primary active:scale-95"
                     title={copy.staff.actions.call}
                   >
-                    <Icon icon="zi-call" className="text-xs" />
+                    <Icon
+                      icon="zi-call"
+                      className="inline-flex shrink-0 items-center justify-center text-xs leading-none"
+                    />
                   </button>
                 )}
               </div>
@@ -268,7 +281,7 @@ export function StaffOrderDetailSheet({
                           <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xxsmall font-semibold text-amber-900">
                             <Icon
                               icon="zi-warning-circle-solid"
-                              className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
+                              className="inline-flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
                             />
                             <span className="leading-none">
                               {copy.staff.itemWarningPrefix}
@@ -302,11 +315,14 @@ export function StaffOrderDetailSheet({
           <button
             type="button"
             onClick={() => printOrderReceipt(order, "DELIVERY_BAG")}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 shadow-sm transition-transform active:scale-[0.98]"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 shadow-sm transition-transform active:scale-[0.98]"
             title={copy.staff.printBagReceiptBtn}
             aria-label={copy.staff.printBagReceiptBtn}
           >
-            <Icon icon="zi-download" className="text-base" />
+            <Icon
+              icon="zi-download"
+              className="inline-flex shrink-0 items-center justify-center text-base leading-none"
+            />
           </button>
 
           {/* Workflow Action Buttons */}
@@ -322,11 +338,17 @@ export function StaffOrderDetailSheet({
                       onOpenCancelModal(order);
                     })
                   }
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-stone-600 transition-colors active:bg-stone-200 disabled:opacity-50"
+                  className="inline-flex h-11 shrink-0 items-center justify-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-600 transition-colors hover:bg-rose-100 active:scale-[0.98] disabled:opacity-50"
                   title={copy.staff.actions.cancel}
                   aria-label={copy.staff.actions.cancel}
                 >
-                  <Icon icon="zi-close-circle" className="text-base" />
+                  <Icon
+                    icon="zi-close-circle"
+                    className="inline-flex shrink-0 items-center justify-center text-sm leading-none"
+                  />
+                  <span className="leading-none">
+                    {copy.staff.actions.cancel}
+                  </span>
                 </button>
               )}
               {onUpdateStatus && (
@@ -336,14 +358,19 @@ export function StaffOrderDetailSheet({
                   onClick={() =>
                     handleAction(() => onUpdateStatus(order.id, "PREPARING"))
                   }
-                  className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
                 >
                   {isProcessing ? (
                     <Spinner visible logo={false} />
                   ) : (
                     <>
-                      <Icon icon="zi-check-circle" className="text-base" />
-                      <span>{copy.staff.actions.confirmAndCook}</span>
+                      <Icon
+                        icon="zi-check-circle"
+                        className="inline-flex shrink-0 items-center justify-center text-base leading-none"
+                      />
+                      <span className="leading-none">
+                        {copy.staff.actions.confirmAndCook}
+                      </span>
                     </>
                   )}
                 </button>
@@ -359,14 +386,19 @@ export function StaffOrderDetailSheet({
                 onClick={() =>
                   handleAction(() => onUpdateStatus(order.id, "READY"))
                 }
-                className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-600 text-xs font-bold text-white shadow-sm transition-transform hover:bg-amber-700 active:scale-[0.98] disabled:opacity-50"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-600 text-xs font-bold text-white shadow-sm transition-transform hover:bg-amber-700 active:scale-[0.98] disabled:opacity-50"
               >
                 {isProcessing ? (
                   <Spinner visible logo={false} />
                 ) : (
                   <>
-                    <Icon icon="zi-check-circle-solid" className="text-base" />
-                    <span>{copy.staff.actions.cookedReady}</span>
+                    <Icon
+                      icon="zi-check-circle-solid"
+                      className="inline-flex shrink-0 items-center justify-center text-base leading-none"
+                    />
+                    <span className="leading-none">
+                      {copy.staff.actions.cookedReady}
+                    </span>
                   </>
                 )}
               </button>
@@ -384,10 +416,13 @@ export function StaffOrderDetailSheet({
                       onOpenDispatchModal(order);
                     })
                   }
-                  className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
                 >
-                  <Icon icon="zi-send" className="text-base" />
-                  <span>
+                  <Icon
+                    icon="zi-send"
+                    className="inline-flex shrink-0 items-center justify-center text-base leading-none"
+                  />
+                  <span className="leading-none">
                     {order.shipper_name
                       ? copy.staff.dispatch.changeShipper
                       : copy.staff.dispatch.assignShipper}
@@ -401,7 +436,7 @@ export function StaffOrderDetailSheet({
                   onClick={() =>
                     handleAction(() => onUpdateStatus(order.id, "COMPLETED"))
                   }
-                  className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
                 >
                   {isProcessing ? (
                     <Spinner visible logo={false} />
@@ -409,9 +444,11 @@ export function StaffOrderDetailSheet({
                     <>
                       <Icon
                         icon="zi-check-circle-solid"
-                        className="text-base"
+                        className="inline-flex shrink-0 items-center justify-center text-base leading-none"
                       />
-                      <span>{copy.staff.actions.customerPickedUp}</span>
+                      <span className="leading-none">
+                        {copy.staff.actions.customerPickedUp}
+                      </span>
                     </>
                   )}
                 </button>
@@ -426,14 +463,19 @@ export function StaffOrderDetailSheet({
               onClick={() =>
                 handleAction(() => onUpdateStatus(order.id, "COMPLETED"))
               }
-              className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-neutral900 text-xs font-bold text-white shadow-sm transition-transform hover:bg-black active:scale-[0.98] disabled:opacity-50"
+              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-neutral900 text-xs font-bold text-white shadow-sm transition-transform hover:bg-black active:scale-[0.98] disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />
               ) : (
                 <>
-                  <Icon icon="zi-check-circle-solid" className="text-base" />
-                  <span>{copy.staff.actions.completeOrder}</span>
+                  <Icon
+                    icon="zi-check-circle-solid"
+                    className="inline-flex shrink-0 items-center justify-center text-base leading-none"
+                  />
+                  <span className="leading-none">
+                    {copy.staff.actions.completeOrder}
+                  </span>
                 </>
               )}
             </button>

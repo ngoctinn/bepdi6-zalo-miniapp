@@ -128,24 +128,31 @@ export function StaffOrderCard({
   return (
     <div
       onClick={() => onOpenDetail?.(order)}
-      className="relative cursor-pointer overflow-hidden rounded-2xl bg-white p-3.5 shadow-sm transition-transform active:scale-[0.995]"
+      className="relative cursor-pointer overflow-hidden rounded-2xl border border-stone-100/90 bg-white p-3.5 shadow-sm transition-transform active:scale-[0.995]"
     >
-      {/* 1. Header gọn gàng: Mã đơn + Loại đơn (Trái) & Thời gian + Trạng thái (Phải) */}
+      {/* 1. Header: Mã đơn + Badge Loại đơn nổi bật (Trái) & Thời gian + Trạng thái (Phải) */}
       <div className="flex items-center justify-between gap-2 pb-2">
         <div className="flex items-center gap-2">
           <span className="font-mono text-sm font-bold text-neutral900">
             #{order.order_code}
           </span>
-          <span className="text-stone-300">•</span>
-          <span className="inline-flex items-center gap-1 text-xs text-stone-600">
-            <Icon
-              icon={isDelivery ? "zi-location-solid" : "zi-home"}
-              className="flex shrink-0 items-center justify-center text-xs leading-none text-primary"
-            />
-            <span className="leading-none">
-              {getDeliveryTypeLabel(order.delivery_type)}
+          {isDelivery ? (
+            <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xxsmall font-bold text-blue-700">
+              <Icon
+                icon="zi-location-solid"
+                className="flex shrink-0 items-center justify-center text-xs leading-none text-blue-600"
+              />
+              <span className="leading-none">GIAO TẬN NƠI</span>
             </span>
-          </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-xxsmall font-bold text-amber-800">
+              <Icon
+                icon="zi-home"
+                className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-700"
+              />
+              <span className="leading-none">TẠI QUÁN</span>
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -171,6 +178,19 @@ export function StaffOrderCard({
             {order.phone ? ` • ${order.phone}` : ""}
           </span>
         </div>
+
+        {isDelivery && order.delivery_address && (
+          <div className="mt-1.5 flex items-start gap-1.5 text-xs text-stone-500">
+            <Icon
+              icon="zi-location"
+              className="flex shrink-0 items-center justify-center text-xs leading-none text-stone-400"
+            />
+            <span className="truncate leading-snug">
+              {order.delivery_address}
+              {order.distance_km ? ` (${order.distance_km}km)` : ""}
+            </span>
+          </div>
+        )}
 
         {order.note && (
           <div className="mt-1.5 flex items-start gap-1.5 rounded-lg bg-stone-50 p-2 text-xs text-stone-700">
@@ -281,14 +301,15 @@ export function StaffOrderCard({
               onClick={() =>
                 handleDebouncedAction(() => onOpenCancelModal(order))
               }
-              className="inline-flex h-11 w-12 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-stone-600 transition-colors active:bg-stone-200 disabled:opacity-50"
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 text-xs font-bold text-rose-600 transition-colors hover:bg-rose-100 active:scale-[0.98] disabled:opacity-50"
               title={copy.staff.actions.cancel}
               aria-label={copy.staff.actions.cancel}
             >
               <Icon
                 icon="zi-close-circle"
-                className="flex shrink-0 items-center justify-center text-base leading-none"
+                className="flex shrink-0 items-center justify-center text-sm leading-none"
               />
+              <span className="leading-none">{copy.staff.actions.cancel}</span>
             </button>
 
             <button

@@ -13,19 +13,6 @@ export default function OrderPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<OrderTab>("all");
 
-  const tabs: Tab<OrderTab>[] = [
-    { value: "all", label: copy.order.tabs?.all || copy.common.all },
-    { value: "processing", label: copy.order.tabs?.processing || "Đang xử lý" },
-    {
-      value: "completed",
-      label: copy.order.tabs?.completed || copy.order.status.completed,
-    },
-    {
-      value: "cancelled",
-      label: copy.order.tabs?.cancelled || copy.order.status.cancelled,
-    },
-  ];
-
   const { data: orderData, isLoading } = useOrders();
 
   const orders: Order[] = useMemo(() => {
@@ -33,6 +20,46 @@ export default function OrderPage() {
     if (Array.isArray(orderData)) return orderData;
     return (orderData as OrderListResponse).orders || [];
   }, [orderData]);
+
+  const counts = useMemo(() => {
+    const processing = orders.filter(
+      (o) => o.status !== "COMPLETED" && o.status !== "CANCELLED",
+    ).length;
+    const completed = orders.filter((o) => o.status === "COMPLETED").length;
+    const cancelled = orders.filter((o) => o.status === "CANCELLED").length;
+    return {
+      all: orders.length,
+      processing,
+      completed,
+      cancelled,
+    };
+  }, [orders]);
+
+  const tabs: Tab<OrderTab>[] = useMemo(
+    () => [
+      {
+        value: "all",
+        label: copy.order.tabs?.all || copy.common.all,
+        badge: counts.all > 0 ? counts.all : undefined,
+      },
+      {
+        value: "processing",
+        label: copy.order.tabs?.processing || "Đang xử lý",
+        badge: counts.processing > 0 ? counts.processing : undefined,
+      },
+      {
+        value: "completed",
+        label: copy.order.tabs?.completed || copy.order.status.completed,
+        badge: counts.completed > 0 ? counts.completed : undefined,
+      },
+      {
+        value: "cancelled",
+        label: copy.order.tabs?.cancelled || copy.order.status.cancelled,
+        badge: counts.cancelled > 0 ? counts.cancelled : undefined,
+      },
+    ],
+    [counts],
+  );
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
