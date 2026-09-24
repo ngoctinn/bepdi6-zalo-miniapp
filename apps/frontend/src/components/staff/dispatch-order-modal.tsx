@@ -88,7 +88,7 @@ export function DispatchOrderModal({
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-lg bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold text-primary">
+              <span className="bg-primary/10 rounded-lg px-2 py-0.5 font-mono text-xs font-bold text-primary">
                 #{order.order_code}
               </span>
               <h3 className="text-base font-bold text-neutral900">
@@ -138,7 +138,7 @@ export function DispatchOrderModal({
               }}
               className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
                 provider === "INTERNAL"
-                  ? "shadow-xs border-primary bg-primary/10 text-primary ring-2 ring-primary/20"
+                  ? "shadow-xs bg-primary/10 ring-primary/20 border-primary text-primary ring-2"
                   : "border-stone-200 bg-white text-stone-600"
               }`}
             >
@@ -178,7 +178,7 @@ export function DispatchOrderModal({
               }}
               className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
                 provider === "GRAB"
-                  ? "shadow-xs border-primary bg-olive50 text-olive900 ring-2 ring-primary/20"
+                  ? "shadow-xs ring-primary/20 border-primary bg-primarySurface text-primaryDark ring-2"
                   : "border-stone-200 bg-white text-stone-600"
               }`}
             >

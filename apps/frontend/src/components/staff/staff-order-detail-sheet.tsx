@@ -116,7 +116,7 @@ export function StaffOrderDetailSheet({
           <div
             className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold ${
               isPaid
-                ? "border border-primary/20 bg-primary/10 text-primary"
+                ? "border-primary/20 bg-primary/10 border text-primary"
                 : "border-2 border-amber-500 bg-amber-50 text-amber-900 shadow-sm"
             }`}
           >
@@ -163,7 +163,7 @@ export function StaffOrderDetailSheet({
                 <button
                   type="button"
                   onClick={() => makePhoneCall(order.phone)}
-                  className="inline-flex h-9 items-center justify-center gap-1 rounded-full border border-primary/40 bg-olive50 px-3.5 text-xs font-bold text-olive900 shadow-sm transition-transform active:scale-95"
+                  className="border-primary/40 inline-flex h-9 items-center justify-center gap-1 rounded-full border bg-primarySurface px-3.5 text-xs font-bold text-primaryDark shadow-sm transition-transform active:scale-95"
                 >
                   <Icon icon="zi-call" className="text-sm leading-none" />
                   <span>{copy.staff.callCustomerBtn}</span>
@@ -202,7 +202,7 @@ export function StaffOrderDetailSheet({
 
           {/* Shipper Info (if assigned) */}
           {order.shipper_name && (
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs">
+            <div className="border-primary/20 bg-primary/5 rounded-xl border p-3 text-xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white">
@@ -241,7 +241,7 @@ export function StaffOrderDetailSheet({
                   <button
                     type="button"
                     onClick={() => makePhoneCall(order.shipper_phone!)}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-primary/30 bg-white text-primary active:scale-95"
+                    className="border-primary/30 inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-primary active:scale-95"
                     title={copy.staff.actions.call}
                   >
                     <Icon
@@ -358,7 +358,7 @@ export function StaffOrderDetailSheet({
                   onClick={() =>
                     handleAction(() => onUpdateStatus(order.id, "PREPARING"))
                   }
-                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
                 >
                   {isProcessing ? (
                     <Spinner visible logo={false} />
@@ -386,7 +386,7 @@ export function StaffOrderDetailSheet({
                 onClick={() =>
                   handleAction(() => onUpdateStatus(order.id, "READY"))
                 }
-                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-600 text-xs font-bold text-white shadow-sm transition-transform hover:bg-amber-700 active:scale-[0.98] disabled:opacity-50"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
               >
                 {isProcessing ? (
                   <Spinner visible logo={false} />
@@ -416,7 +416,7 @@ export function StaffOrderDetailSheet({
                       onOpenDispatchModal(order);
                     })
                   }
-                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
                 >
                   <Icon
                     icon="zi-send"
@@ -436,7 +436,7 @@ export function StaffOrderDetailSheet({
                   onClick={() =>
                     handleAction(() => onUpdateStatus(order.id, "COMPLETED"))
                   }
-                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
                 >
                   {isProcessing ? (
                     <Spinner visible logo={false} />

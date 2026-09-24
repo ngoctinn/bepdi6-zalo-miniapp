@@ -125,10 +125,12 @@ const base = {
 
 const semantic = {
   colors: {
-    primary: base.colors.olive700, // #4D7C0F — Xanh rêu mộc mạc (Rustic Olive)
-    primaryDark: base.colors.olive800, // #3F6212
-    primaryLight: base.colors.olive100, // #ECFCCB
-    brandAccent: base.colors.amber600, // #D97706 — Vàng gừng mật ong
+    primary: "var(--theme-primary, #4D7C0F)", // Dynamic theme variable
+    primaryDark: "var(--theme-primary-dark, #3F6212)",
+    primaryLight: "var(--theme-primary-light, #ECFCCB)",
+    primarySurface: "var(--theme-primary-surface, #F7FEE7)",
+    primaryBorder: "var(--theme-primary-border, rgba(77, 124, 15, 0.2))",
+    brandAccent: "var(--theme-primary, #D97706)", // Đồng bộ màu thương hiệu
     background: base.colors.stone50, // #FCFCFB — Nền sáng dịu sạch sẽ
     surface: "#FFFFFF",
     surfaceSubtle: "rgba(0,0,0,0.02)",

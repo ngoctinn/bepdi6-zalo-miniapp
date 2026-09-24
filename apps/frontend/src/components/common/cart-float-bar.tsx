@@ -36,7 +36,7 @@ export default function CartFloatBar() {
         }
       }}
       aria-label={`Xem giỏ hàng: ${totalItems} món, tạm tính ${formatCurrency(subtotal)} đồng`}
-      className="absolute bottom-full left-3.5 right-3.5 z-40 mb-2.5 flex h-[54px] cursor-pointer touch-manipulation select-none items-center justify-between rounded-2xl border border-white/20 bg-primary/95 px-3.5 py-2 text-white shadow-lg shadow-black/15 backdrop-blur-md transition-all active:scale-[0.98]"
+      className="bg-primary/95 absolute bottom-full left-3.5 right-3.5 z-40 mb-2.5 flex h-[54px] cursor-pointer touch-manipulation select-none items-center justify-between rounded-2xl border border-white/20 px-3.5 py-2 text-white shadow-lg shadow-black/15 backdrop-blur-md transition-all active:scale-[0.98]"
     >
       {/* Left: Icon Giỏ hàng + Badge số lượng + Tạm tính */}
       <div className="flex items-center gap-2.5">

@@ -44,4 +44,26 @@ export const queryKeys = {
   vouchers: {
     all: ["vouchers"] as const,
   },
+  adminCategories: {
+    all: ["admin", "categories"] as const,
+    detail: (id: number | string | undefined) =>
+      [...queryKeys.adminCategories.all, "detail", String(id)] as const,
+  },
+  adminProducts: {
+    all: ["admin", "products"] as const,
+    list: (params?: Record<string, unknown>) =>
+      [...queryKeys.adminProducts.all, "list", params] as const,
+    detail: (id: number | string | undefined) =>
+      [...queryKeys.adminProducts.all, "detail", String(id)] as const,
+  },
+  adminVouchers: {
+    all: ["admin", "vouchers"] as const,
+    list: (params?: Record<string, unknown>) =>
+      [...queryKeys.adminVouchers.all, "list", params] as const,
+    detail: (id: number | string | undefined) =>
+      [...queryKeys.adminVouchers.all, "detail", String(id)] as const,
+  },
+  adminShopConfig: {
+    all: ["admin", "shopConfig"] as const,
+  },
 } as const;

@@ -9,43 +9,60 @@
     env(safe-area-inset-bottom, 0px)
   );
 
-  /* ZaUI Primary Theme Overrides — Rustic Olive & Warm Ginger System */
-  --zaui-light-color-primary: #4d7c0f;
-  --zaui-dark-color-primary: #4d7c0f;
-  --zaui-primary-color: #4d7c0f;
+  /* Dynamic Theme Colors — Default: Rustic Olive (Customer Mode) */
+  --theme-primary: #4d7c0f;
+  --theme-primary-dark: #3f6212;
+  --theme-primary-light: #ecfccb;
+  --theme-primary-surface: #f7fee7;
+  --theme-primary-border: rgba(77, 124, 15, 0.2);
+
+  /* ZaUI Primary Theme Overrides */
+  --zaui-light-color-primary: var(--theme-primary);
+  --zaui-dark-color-primary: var(--theme-primary);
+  --zaui-primary-color: var(--theme-primary);
   --zaui-light-color-on-primary: #ffffff;
   --zaui-dark-color-on-primary: #ffffff;
 
   /* Button Overrides */
-  --zaui-light-button-primary-background: #4d7c0f;
-  --zaui-light-button-primary-background-pressed: #3f6212;
-  --zaui-light-button-secondary-background: #ecfccb;
-  --zaui-light-button-secondary-background-pressed: #d9f99d;
-  --zaui-light-button-secondary-text: #3f6212;
-  --zaui-light-button-secondary-icon: #3f6212;
-  --zaui-light-button-tertiary-text: #4d7c0f;
-  --zaui-light-button-tertiary-icon: #4d7c0f;
-  --zaui-light-button-tertiary-background-pressed: #f7fee7;
+  --zaui-light-button-primary-background: var(--theme-primary);
+  --zaui-light-button-primary-background-pressed: var(--theme-primary-dark);
+  --zaui-light-button-secondary-background: var(--theme-primary-light);
+  --zaui-light-button-secondary-background-pressed: var(--theme-primary-light);
+  --zaui-light-button-secondary-text: var(--theme-primary-dark);
+  --zaui-light-button-secondary-icon: var(--theme-primary-dark);
+  --zaui-light-button-tertiary-text: var(--theme-primary);
+  --zaui-light-button-tertiary-icon: var(--theme-primary);
+  --zaui-light-button-tertiary-background-pressed: var(--theme-primary-surface);
 
   /* Input & Textbox Focus Overrides */
-  --zaui-light-input-hover-border-color: #4d7c0f;
-  --zaui-dark-input-hover-border-color: #4d7c0f;
+  --zaui-light-input-hover-border-color: var(--theme-primary);
+  --zaui-dark-input-hover-border-color: var(--theme-primary);
   --zaui-light-input-border-color: rgba(0, 0, 0, 0.08);
 
   /* Checkbox & Radio Overrides */
-  --zaui-light-checkbox-checked-background: #4d7c0f;
-  --zaui-light-radio-checked-background: #4d7c0f;
+  --zaui-light-checkbox-checked-background: var(--theme-primary);
+  --zaui-light-radio-checked-background: var(--theme-primary);
 
   /* Tabbar Overrides */
-  --zaui-light-tabbar-active-line: #4d7c0f;
+  --zaui-light-tabbar-active-line: var(--theme-primary);
   --zaui-light-bottom-navigation-divider-color: rgba(0, 0, 0, 0.05);
 
   /* Spinner & Misc Overrides */
-  --zaui-light-spinner-dot-color: #4d7c0f;
-  --zaui-light-progress-completed: #4d7c0f;
-  --zaui-light-switch-bg-color: #4d7c0f;
-  --zaui-light-picker-option-selected-color: #4d7c0f;
-  --zaui-light-option-selected-color: #4d7c0f;
+  --zaui-light-spinner-dot-color: var(--theme-primary);
+  --zaui-light-progress-completed: var(--theme-primary);
+  --zaui-light-switch-bg-color: var(--theme-primary);
+  --zaui-light-picker-option-selected-color: var(--theme-primary);
+  --zaui-light-option-selected-color: var(--theme-primary);
+}
+
+/* Admin Theme Overrides — Warm Orange / Amber System */
+.admin-theme,
+[data-theme="admin"] {
+  --theme-primary: #ea580c; /* Orange 600 */
+  --theme-primary-dark: #c2410c; /* Orange 700 */
+  --theme-primary-light: #ffedd5; /* Orange 100 */
+  --theme-primary-surface: #fff7ed; /* Orange 50 */
+  --theme-primary-border: rgba(234, 88, 12, 0.25);
 }
 
 /* Global viewport overflow-x prevention */

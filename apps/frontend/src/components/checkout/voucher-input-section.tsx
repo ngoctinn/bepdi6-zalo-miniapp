@@ -31,7 +31,7 @@ export function VoucherInputSection({
           value={voucherCodeInput}
           onChange={(e) => onInputChange(e.target.value)}
           placeholder={copy.checkout.voucherPlaceholder}
-          className="shadow-xs flex-1 rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs uppercase text-neutral900 transition-colors placeholder:normal-case placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+          className="shadow-xs focus:ring-primary/30 flex-1 rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs uppercase text-neutral900 transition-colors placeholder:normal-case placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
         />
         {appliedVoucherCode ? (
           <button
@@ -53,7 +53,7 @@ export function VoucherInputSection({
         )}
       </div>
       {appliedVoucherCode && (
-        <div className="flex items-center justify-between rounded-xl border border-primary/25 bg-olive50/90 px-3.5 py-2.5 text-xs text-primaryDark">
+        <div className="border-primary/25 flex items-center justify-between rounded-xl border bg-olive50/90 px-3.5 py-2.5 text-xs text-primaryDark">
           <span className="font-medium">
             {copy.checkout.appliedVoucherPrefix} <b>{appliedVoucherCode}</b>
           </span>

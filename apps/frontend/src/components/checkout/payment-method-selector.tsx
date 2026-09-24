@@ -63,7 +63,7 @@ export function PaymentMethodSelector({
             className={cn(
               "ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150",
               isBankTransfer
-                ? "shadow-xs border border-primary/40 bg-primary text-white"
+                ? "shadow-xs border-primary/40 border bg-primary text-white"
                 : "border border-stone-300 bg-transparent",
             )}
           >
@@ -98,7 +98,7 @@ export function PaymentMethodSelector({
             className={cn(
               "flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150",
               isCod
-                ? "shadow-xs border border-primary/40 bg-primary text-white"
+                ? "shadow-xs border-primary/40 border bg-primary text-white"
                 : "border border-stone-300 bg-transparent",
             )}
           >

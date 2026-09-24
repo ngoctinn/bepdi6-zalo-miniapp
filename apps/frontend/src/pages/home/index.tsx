@@ -150,7 +150,7 @@ export default function HomePage() {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-7 w-20 shrink-0 animate-pulse rounded-full bg-primary/15"
+                  className="bg-primary/15 h-7 w-20 shrink-0 animate-pulse rounded-full"
                 />
               ))}
             </div>

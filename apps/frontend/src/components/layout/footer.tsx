@@ -44,8 +44,8 @@ export default function Footer() {
     ...(isStaffOrAdmin
       ? [
           {
-            name: "Bếp",
-            path: "/staff/orders",
+            name: "Admin",
+            path: "/admin",
             icon: StoreIcon,
             badge: 0,
           },

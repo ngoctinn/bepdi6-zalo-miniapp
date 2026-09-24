@@ -1,5 +1,5 @@
 import { BackIcon, StoreIcon } from "@/components/common/vectors";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { copy } from "@/constants/copy";
 import { Icon } from "zmp-ui";
 
@@ -17,13 +17,23 @@ export function StaffHeaderActions({
   onRefetch,
 }: StaffHeaderActionsProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isInAdminMode = location.pathname.startsWith("/admin");
+
+  const handleBack = () => {
+    if (isInAdminMode) {
+      navigate("/admin");
+    } else {
+      navigate("/");
+    }
+  };
 
   return (
     <div className="header-margin flex items-center justify-between px-3.5 pb-2 pr-24 pt-2">
       {/* 1. Left: Nút Back + Title */}
       <div className="flex min-w-0 items-center gap-2">
         <button
-          onClick={() => navigate("/")}
+          onClick={handleBack}
           className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stone-100 text-neutral800 transition-transform active:scale-95"
           aria-label={copy.staff.backToMenu}
         >
@@ -46,7 +56,7 @@ export function StaffHeaderActions({
               onClick={onToggleSound}
               className={`relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all active:scale-95 ${
                 isSoundEnabled
-                  ? "shadow-xs border-primary/40 bg-olive100 font-bold text-primary"
+                  ? "shadow-xs border-primary/40 bg-primaryLight font-bold text-primary"
                   : "border-stone-200 bg-stone-100/90 text-stone-500 hover:text-stone-700"
               }`}
               title={

@@ -351,7 +351,7 @@ export default function ProductDetailPage() {
                               className={cn(
                                 "flex min-h-[44px] w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150 active:scale-[0.99]",
                                 isSelected
-                                  ? "shadow-xs border border-primary/30 bg-olive50/80 font-semibold text-primaryDark"
+                                  ? "shadow-xs border-primary/30 border bg-olive50/80 font-semibold text-primaryDark"
                                   : "border border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10 active:bg-black/[0.02]",
                                 isUnavailable &&
                                   "cursor-not-allowed opacity-40",
@@ -385,7 +385,7 @@ export default function ProductDetailPage() {
                                 className={cn(
                                   "ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150",
                                   isSelected
-                                    ? "shadow-xs border border-primary/40 bg-primary text-white"
+                                    ? "shadow-xs border-primary/40 border bg-primary text-white"
                                     : "border border-stone-300 bg-transparent",
                                 )}
                               >

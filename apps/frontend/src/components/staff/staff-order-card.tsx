@@ -320,7 +320,7 @@ export function StaffOrderCard({
                   onUpdateStatus(order.id, "PREPARING"),
                 )
               }
-              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
             >
               {isProcessing ? (
                 <Spinner visible logo={false} />
@@ -346,7 +346,7 @@ export function StaffOrderCard({
             onClick={() =>
               handleDebouncedAction(() => onUpdateStatus(order.id, "READY"))
             }
-            className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-amber-600 text-xs font-bold text-white shadow-sm transition-transform hover:bg-amber-700 active:scale-[0.98] disabled:opacity-50"
+            className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
           >
             {isProcessing ? (
               <Spinner visible logo={false} />
@@ -373,7 +373,7 @@ export function StaffOrderCard({
                 onClick={() =>
                   handleDebouncedAction(() => onOpenDispatchModal(order))
                 }
-                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
               >
                 {isProcessing ? (
                   <Spinner visible logo={false} />
@@ -405,7 +405,7 @@ export function StaffOrderCard({
                     ),
                   )
                 }
-                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-olive700 text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
+                className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
               >
                 {isProcessing ? (
                   <Spinner visible logo={false} />
@@ -467,7 +467,7 @@ export function StaffOrderCard({
                 <>
                   <Icon
                     icon="zi-check-circle-solid"
-                    className="text-olive400 flex shrink-0 items-center justify-center text-base leading-none"
+                    className="flex shrink-0 items-center justify-center text-base leading-none text-primary"
                   />
                   <span className="leading-none">
                     {copy.staff.actions.completeOrder}

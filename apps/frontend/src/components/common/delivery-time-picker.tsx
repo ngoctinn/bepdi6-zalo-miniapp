@@ -109,7 +109,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
           <span
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150 ${
               isAsap
-                ? "shadow-xs border border-primary/40 bg-primary text-white"
+                ? "shadow-xs border-primary/40 border bg-primary text-white"
                 : "border border-stone-300 bg-transparent"
             }`}
           >
@@ -157,7 +157,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
             <span
               className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150 ${
                 !isAsap
-                  ? "shadow-xs border border-primary/40 bg-primary text-white"
+                  ? "shadow-xs border-primary/40 border bg-primary text-white"
                   : "border border-stone-300 bg-transparent"
               }`}
             >
@@ -189,7 +189,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
                         onClick={() => onChange(slot.value)}
                         className={`rounded-lg py-2 text-center text-xs transition-all duration-150 active:scale-95 ${
                           isSelected
-                            ? "shadow-xs border border-primary/40 bg-primary font-bold text-white"
+                            ? "shadow-xs border-primary/40 border bg-primary font-bold text-white"
                             : "border border-black/[0.06] bg-stone-50/70 font-medium text-neutral700 hover:border-black/10"
                         }`}
                       >

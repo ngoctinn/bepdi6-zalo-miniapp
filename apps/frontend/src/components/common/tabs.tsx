@@ -66,8 +66,8 @@ export function Tabs<T extends string>({
               "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
               "select-none whitespace-nowrap",
               isActive
-                ? "border-primary/30 bg-olive50/80 text-olive900"
-                : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50 hover:text-olive900",
+                ? "border-primary/40 bg-primarySurface text-primaryDark"
+                : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50 hover:text-primary",
             )}
             type="button"
           >
@@ -82,7 +82,7 @@ export function Tabs<T extends string>({
                 className={cn(
                   "ml-1.5 inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-xxxxsmall font-bold leading-none",
                   isActive
-                    ? "bg-olive100 text-olive900"
+                    ? "bg-primaryLight text-primaryDark"
                     : "bg-black/[0.07] text-neutral600",
                 )}
               >

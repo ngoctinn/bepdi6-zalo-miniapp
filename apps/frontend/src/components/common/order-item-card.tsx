@@ -169,7 +169,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
       {isActive && (
         <div
           onClick={goToDetail}
-          className="mb-2.5 flex cursor-pointer items-center justify-between rounded-xl border border-primary/20 bg-olive50/80 px-3 py-2 text-xs text-olive900 transition-colors hover:bg-olive100/80 active:scale-[0.99]"
+          className="border-primary/20 mb-2.5 flex cursor-pointer items-center justify-between rounded-xl border bg-olive50/80 px-3 py-2 text-xs text-olive900 transition-colors hover:bg-olive100/80 active:scale-[0.99]"
         >
           <div className="flex min-w-0 items-center gap-2">
             <span className="relative flex h-2 w-2 shrink-0">

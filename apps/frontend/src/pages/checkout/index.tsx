@@ -473,7 +473,7 @@ export default function CheckoutPage() {
           onChange={(e) => setNote(e.target.value)}
           placeholder={copy.checkout.notePlaceholder}
           rows={2}
-          className="shadow-xs w-full rounded-2xl border border-black/[0.08] bg-white p-3 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
+          className="shadow-xs focus:ring-primary/30 w-full rounded-2xl border border-black/[0.08] bg-white p-3 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
         />
       </div>
 
