@@ -5,6 +5,7 @@ import {
   useAdminProducts,
   useAdminVouchers,
 } from "@/services/admin/admin.queries";
+import { Icon } from "zmp-ui";
 
 export default function AdminManageHubPage() {
   const navigate = useNavigate();
@@ -17,13 +18,29 @@ export default function AdminManageHubPage() {
   const prodCount = Array.isArray(products) ? products.length : 0;
   const voucherCount = Array.isArray(vouchers) ? vouchers.length : 0;
 
-  const MENU_SECTIONS = [
+  type IconName = React.ComponentProps<typeof Icon>["icon"];
+
+  interface MenuItem {
+    id: string;
+    icon: IconName;
+    title: string;
+    description: string;
+    badge: string;
+    path: string;
+  }
+
+  interface MenuSection {
+    title: string;
+    items: MenuItem[];
+  }
+
+  const MENU_SECTIONS: MenuSection[] = [
     {
       title: "Thực Đơn & Danh Mục",
       items: [
         {
           id: "categories",
-          icon: "📑",
+          icon: "zi-list-1",
           title: "Danh mục món",
           description: "Quản lý các danh mục món ăn và thứ tự hiển thị",
           badge: `${catCount} mục`,
@@ -31,7 +48,7 @@ export default function AdminManageHubPage() {
         },
         {
           id: "products",
-          icon: "🍜",
+          icon: "zi-more-grid",
           title: "Danh sách món ăn",
           description: "Bật/tắt hết hàng, giá bán, mô tả, ảnh món",
           badge: `${prodCount} món`,
@@ -44,7 +61,7 @@ export default function AdminManageHubPage() {
       items: [
         {
           id: "vouchers",
-          icon: "🎟️",
+          icon: "zi-star-solid",
           title: "Mã giảm giá (Voucher)",
           description: "Chiến dịch voucher giảm tiền hoặc phần trăm",
           badge: `${voucherCount} mã`,
@@ -57,7 +74,7 @@ export default function AdminManageHubPage() {
       items: [
         {
           id: "customers",
-          icon: "👥",
+          icon: "zi-user-circle",
           title: "Khách hàng & Thành viên",
           description: "Tra cứu lịch sử mua hàng và địa chỉ khách",
           badge: "Sắp ra mắt",
@@ -69,14 +86,6 @@ export default function AdminManageHubPage() {
 
   return (
     <div className="flex min-h-full flex-col bg-stone-50 pb-20">
-      {/* Top Banner */}
-      <div className="border-b border-stone-200/70 bg-white px-4 py-4">
-        <h1 className="text-lg font-bold text-stone-900">Trung Tâm Quản Lý</h1>
-        <p className="mt-0.5 text-xs text-stone-500">
-          Quản lý toàn bộ danh mục, món ăn, giá bán và khuyến mãi của quán
-        </p>
-      </div>
-
       <div className="space-y-5 p-4">
         {MENU_SECTIONS.map((section) => (
           <div key={section.title} className="space-y-2">
@@ -91,8 +100,8 @@ export default function AdminManageHubPage() {
                   className="flex cursor-pointer items-center justify-between p-3.5 transition-colors active:bg-stone-50"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl text-primary">
-                      {item.icon}
+                    <span className="bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-primary">
+                      <Icon icon={item.icon} className="text-xl leading-none" />
                     </span>
                     <div>
                       <div className="text-sm font-bold text-stone-900">
@@ -107,7 +116,10 @@ export default function AdminManageHubPage() {
                     <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
                       {item.badge}
                     </span>
-                    <span className="text-stone-400">›</span>
+                    <Icon
+                      icon="zi-chevron-right"
+                      className="shrink-0 text-sm text-stone-400"
+                    />
                   </div>
                 </div>
               ))}

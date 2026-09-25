@@ -1,6 +1,7 @@
 import { DeliveryType } from "@/types/order.types";
 import { copy } from "@/constants/copy";
 import { cn } from "@/utils/cn";
+import { TruckIcon } from "@/components/common/vectors";
 
 interface DeliveryTypeSelectorProps {
   deliveryType: DeliveryType;
@@ -27,21 +28,12 @@ export function DeliveryTypeSelector({
             : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50",
         )}
       >
-        <svg
+        <TruckIcon
           className={cn(
             "h-4 w-4 shrink-0 transition-colors",
             isDelivery ? "text-primary" : "text-neutral500",
           )}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <rect x="1" y="3" width="15" height="13" rx="2" />
-          <polygon points="16 8 20 8 23 11 23 16 16 16 8" />
-          <circle cx="5.5" cy="18.5" r="2.5" />
-          <circle cx="18.5" cy="18.5" r="2.5" />
-        </svg>
+        />
         <span className="truncate">{copy.checkout.delivery}</span>
       </button>
 

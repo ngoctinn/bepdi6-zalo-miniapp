@@ -6,6 +6,7 @@ import { useOrders } from "@/services/order/order.queries";
 import { Spinner, Text } from "zmp-ui";
 import { Order, OrderListResponse } from "@/types/order.types";
 import { copy } from "@/constants/copy";
+import { ChevronRightIcon } from "@/components/common/vectors";
 
 type OrderTab = "all" | "processing" | "completed" | "cancelled";
 
@@ -134,17 +135,7 @@ export default function OrderPage() {
               className="shadow-xs mt-1 flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white transition-all active:scale-95"
             >
               <span>{copy.order.exploreMenu}</span>
-              <svg
-                className="h-3.5 w-3.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
+              <ChevronRightIcon className="h-3.5 w-3.5 shrink-0" />
             </button>
           </div>
         ) : (

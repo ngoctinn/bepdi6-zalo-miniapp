@@ -11,7 +11,7 @@ import {
 } from "@/services/admin/admin.mutations";
 import { AdminProduct } from "@/types/admin.types";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { Sheet, Spinner, Switch } from "zmp-ui";
+import { Icon, Sheet, Spinner, Switch } from "zmp-ui";
 
 export default function AdminProductManagementPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,7 +19,7 @@ export default function AdminProductManagementPage() {
     ? Number(searchParams.get("category_id"))
     : undefined;
 
-  const { showToast } = useAppToast();
+  const { showSuccess, showError } = useAppToast();
   const { data: categoriesData } = useAdminCategories();
   const { data: productsData, isLoading } = useAdminProducts(
     selectedCatId ? { category_id: selectedCatId } : undefined,
@@ -47,11 +47,15 @@ export default function AdminProductManagementPage() {
   const categories = Array.isArray(categoriesData) ? categoriesData : [];
   const products = Array.isArray(productsData) ? productsData : [];
 
-  const filteredProducts = products.filter((p) =>
-    searchQuery
+  const filteredProducts = products.filter((p) => {
+    const matchesCategory = selectedCatId
+      ? p.category_id === selectedCatId || p.category === selectedCatId
+      : true;
+    const matchesSearch = searchQuery
       ? p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      : true,
-  );
+      : true;
+    return matchesCategory && matchesSearch;
+  });
 
   const handleOpenCreate = () => {
     setEditingProduct(null);
@@ -67,7 +71,9 @@ export default function AdminProductManagementPage() {
   const handleOpenEdit = (prod: AdminProduct) => {
     setEditingProduct(prod);
     setFormName(prod.name);
-    setFormCategoryId(prod.category_id || (categories[0]?.id ?? 0));
+    setFormCategoryId(
+      prod.category_id || prod.category || (categories[0]?.id ?? 0),
+    );
     setFormPrice(Number(prod.price || 0));
     setFormDescription(prod.description || "");
     setFormImageUrl(prod.image_url || "");
@@ -79,31 +85,29 @@ export default function AdminProductManagementPage() {
 
   const handleToggleStatus = async (
     prod: AdminProduct,
-    e: React.MouseEvent,
+    e?: React.SyntheticEvent,
   ) => {
-    e.stopPropagation();
+    e?.stopPropagation?.();
     try {
       await toggleStatus.mutateAsync(prod.id);
-      showToast({
-        message:
-          prod.status === "AVAILABLE"
-            ? "Đã chuyển sang hết món"
-            : "Đã bật món sẵn sàng",
-        type: "success",
-      });
+      showSuccess(
+        prod.status === "AVAILABLE"
+          ? "Đã chuyển sang hết món"
+          : "Đã bật món sẵn sàng",
+      );
     } catch {
-      showToast({ message: "Không thể đổi trạng thái món", type: "error" });
+      showError("Không thể đổi trạng thái món");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
-      showToast({ message: "Vui lòng nhập tên món ăn", type: "error" });
+      showError("Vui lòng nhập tên món ăn");
       return;
     }
     if (!formCategoryId) {
-      showToast({ message: "Vui lòng chọn danh mục món", type: "error" });
+      showError("Vui lòng chọn danh mục món");
       return;
     }
 
@@ -113,62 +117,62 @@ export default function AdminProductManagementPage() {
           id: editingProduct.id,
           data: {
             name: formName.trim(),
-            category: formCategoryId,
+            category_id: formCategoryId,
             price: Number(formPrice),
             description: formDescription.trim(),
             image_url: formImageUrl.trim(),
             status: formStatus,
           },
         });
-        showToast({ message: "Cập nhật món ăn thành công", type: "success" });
+        showSuccess("Cập nhật món ăn thành công");
       } else {
         await createProduct.mutateAsync({
           name: formName.trim(),
-          category: formCategoryId,
+          category_id: formCategoryId,
           price: Number(formPrice),
           description: formDescription.trim(),
           image_url: formImageUrl.trim(),
           status: formStatus,
         });
-        showToast({ message: "Thêm món mới thành công", type: "success" });
+        showSuccess("Thêm món mới thành công");
       }
       setSheetVisible(false);
     } catch {
-      showToast({ message: "Lỗi lưu thông tin món ăn", type: "error" });
+      showError("Lỗi lưu thông tin món ăn");
     }
   };
 
   return (
     <div className="flex min-h-full flex-col bg-stone-50 pb-24">
-      {/* Top Header */}
-      <div className="border-b border-stone-200/70 bg-white px-4 py-4">
+      {/* Action Toolbar */}
+      <div className="border-b border-stone-200/70 bg-white px-4 py-3">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-stone-900">
-              Danh Sách Món Ăn
-            </h1>
-            <p className="mt-0.5 text-xs text-stone-500">
-              Bật/tắt trạng thái hết món và chỉnh sửa giá ({products.length}{" "}
-              món)
-            </p>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-600">
+              {filteredProducts.length} / {products.length} món
+            </span>
           </div>
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
+            className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
           >
-            <span>+ Thêm món</span>
+            <Icon icon="zi-plus" className="text-sm" />
+            <span>Thêm món</span>
           </button>
         </div>
 
         {/* Search bar */}
-        <div className="mt-3">
+        <div className="relative mt-2.5">
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-stone-400">
+            <Icon icon="zi-search" className="text-sm" />
+          </span>
           <input
             type="text"
-            placeholder="🔍 Tìm nhanh tên món..."
+            placeholder="Tìm nhanh tên món..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs focus:border-primary focus:outline-none"
+            className="w-full rounded-xl border border-stone-200 bg-stone-50 py-2 pl-9 pr-3 text-xs focus:border-primary focus:outline-none"
           />
         </div>
 
@@ -209,14 +213,19 @@ export default function AdminProductManagementPage() {
             <Spinner logo />
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="rounded-2xl border border-stone-100 bg-white p-8 text-center text-stone-400">
-            <span className="text-3xl">🍜</span>
-            <p className="mt-2 text-sm">Không tìm thấy món ăn nào</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-stone-100 bg-white p-8 text-center text-stone-400">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100 text-stone-400">
+              <Icon icon="zi-inbox" className="text-2xl" />
+            </div>
+            <p className="mt-2 text-sm font-medium text-stone-600">
+              Không tìm thấy món ăn nào
+            </p>
             <button
               onClick={handleOpenCreate}
-              className="bg-primary/10 mt-3 inline-block rounded-xl px-4 py-2 text-xs font-bold text-primary"
+              className="bg-primary/10 mt-3 inline-flex items-center gap-1 rounded-xl px-4 py-2 text-xs font-bold text-primary"
             >
-              + Tạo món ăn đầu tiên
+              <Icon icon="zi-plus" className="text-xs" />
+              <span>Tạo món ăn đầu tiên</span>
             </button>
           </div>
         ) : (
@@ -236,8 +245,8 @@ export default function AdminProductManagementPage() {
                       className="h-14 w-14 shrink-0 rounded-xl border border-stone-100 object-cover"
                     />
                   ) : (
-                    <div className="bg-primary/10 flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-2xl text-primary">
-                      🍽️
+                    <div className="bg-primary/10 flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-primary">
+                      <Icon icon="zi-more-grid" className="text-2xl" />
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
@@ -249,9 +258,17 @@ export default function AdminProductManagementPage() {
                     <div className="mt-0.5 text-xs font-extrabold text-primary">
                       {Number(p.price || 0).toLocaleString("vi-VN")}₫
                     </div>
-                    <div className="mt-0.5 truncate text-[10px] text-stone-400">
-                      {p.category_name || "Món quán"} •{" "}
-                      {isAvailable ? "🟢 Còn món" : "🔴 Tạm hết"}
+                    <div className="mt-0.5 flex items-center gap-1 truncate text-[10px] text-stone-400">
+                      <span>{p.category_name || "Món quán"}</span>
+                      <span>•</span>
+                      <span className="inline-flex items-center">
+                        <span
+                          className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
+                            isAvailable ? "bg-emerald-500" : "bg-stone-400"
+                          }`}
+                        />
+                        {isAvailable ? "Còn món" : "Tạm hết"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -263,7 +280,7 @@ export default function AdminProductManagementPage() {
                 >
                   <Switch
                     checked={isAvailable}
-                    onChange={() => handleToggleStatus(p, {} as any)}
+                    onChange={() => handleToggleStatus(p)}
                   />
                   <span className="text-[10px] font-medium text-stone-400">
                     {isAvailable ? "Còn hàng" : "Hết hàng"}

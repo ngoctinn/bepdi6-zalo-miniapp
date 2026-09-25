@@ -1,4 +1,4 @@
-import { Input, Text } from "zmp-ui";
+import { Text } from "zmp-ui";
 import { copy } from "@/constants/copy";
 import { cn } from "@/utils/cn";
 

@@ -1,7 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/utils/cn";
-import { StoreIcon } from "@/components/common/vectors";
 
 interface AdminFooterProps {
   className?: string;

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { DeliveryType } from "@/types/order.types";
 import { ShopInfo } from "@/types/shop.types";
+import { CheckIcon } from "@/components/common/vectors";
 
 interface DeliveryTimePickerProps {
   deliveryType: DeliveryType;
@@ -113,18 +114,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
                 : "border border-stone-300 bg-transparent"
             }`}
           >
-            {isAsap && (
-              <svg
-                className="h-3 w-3 fill-current text-white"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            )}
+            {isAsap && <CheckIcon className="h-3 w-3 shrink-0 text-white" />}
           </span>
         </button>
 
@@ -161,18 +151,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
                   : "border border-stone-300 bg-transparent"
               }`}
             >
-              {!isAsap && (
-                <svg
-                  className="h-3 w-3 fill-current text-white"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
+              {!isAsap && <CheckIcon className="h-3 w-3 shrink-0 text-white" />}
             </span>
           </button>
 

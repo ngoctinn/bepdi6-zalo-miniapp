@@ -5,7 +5,7 @@ import { useAdminOrders } from "@/services/order/order.queries";
 import { useAdminProducts } from "@/services/admin/admin.queries";
 import { useAdminVouchers } from "@/services/admin/admin.queries";
 import { useAdminShopConfig } from "@/services/admin/admin.queries";
-import { Spinner } from "zmp-ui";
+import { Spinner, Icon } from "zmp-ui";
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -25,7 +25,11 @@ export default function AdminDashboardPage() {
   );
   const completedOrders = orders.filter((o) => o.status === "COMPLETED");
 
-  const todayRevenue = completedOrders.reduce(
+  const todayStr = new Date().toISOString().split("T")[0];
+  const todayCompletedOrders = completedOrders.filter(
+    (o) => o.created_at && o.created_at.startsWith(todayStr),
+  );
+  const todayRevenue = todayCompletedOrders.reduce(
     (sum, o) => sum + Number(o.total_amount || 0),
     0,
   );
@@ -45,20 +49,28 @@ export default function AdminDashboardPage() {
               {customer?.role === "ADMIN" ? "Quản Trị Viên" : "Nhân Viên Quán"}
             </span>
             <h1 className="mt-1 text-xl font-bold">
-              Xin chào, {customer?.name || "Admin"} 👋
+              Xin chào, {customer?.name || "Admin"}
             </h1>
-            <p className="mt-0.5 text-xs text-white/80">
-              {shopConfig?.shop_name || "Bếp Dì 6"} •{" "}
-              {shopConfig?.is_open ? "🟢 Đang mở cửa" : "🔴 Đang tạm đóng"}
-            </p>
+            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-white/80">
+              <span>{shopConfig?.shop_name || "Bếp Dì 6"}</span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1 font-semibold">
+                <span
+                  className={`inline-block h-2 w-2 rounded-full ${
+                    shopConfig?.is_open ? "bg-emerald-400" : "bg-rose-400"
+                  }`}
+                />
+                {shopConfig?.is_open ? "Đang mở cửa" : "Đang tạm đóng"}
+              </span>
+            </div>
           </div>
           <button
             type="button"
             onClick={() => navigate("/admin/kitchen")}
             className="flex flex-col items-center justify-center rounded-xl bg-white/20 p-2.5 text-white backdrop-blur-sm transition-transform active:scale-95"
           >
-            <span className="text-lg">🍳</span>
-            <span className="mt-0.5 text-[11px] font-bold">Vào Bếp</span>
+            <Icon icon="zi-list-1" className="text-xl leading-none" />
+            <span className="mt-1 text-[11px] font-bold">Vào Bếp</span>
           </button>
         </div>
       </div>
@@ -75,8 +87,8 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-medium text-stone-500">
                 Đơn chờ xử lý
               </span>
-              <span className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-full text-sm text-primary">
-                ⏳
+              <span className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-full text-primary">
+                <Icon icon="zi-clock-1" className="text-base leading-none" />
               </span>
             </div>
             <div className="mt-2 text-2xl font-extrabold text-stone-900">
@@ -97,8 +109,8 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-medium text-stone-500">
                 Doanh thu HT
               </span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-sm text-emerald-600">
-                💰
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <Icon icon="zi-poll" className="text-base leading-none" />
               </span>
             </div>
             <div className="mt-2 truncate text-xl font-extrabold text-stone-900">
@@ -109,7 +121,7 @@ export default function AdminDashboardPage() {
               )}
             </div>
             <p className="mt-1 text-[11px] font-medium text-emerald-600">
-              {completedOrders.length} đơn hoàn thành
+              {todayCompletedOrders.length} đơn hoàn tất hôm nay
             </p>
           </div>
 
@@ -122,15 +134,19 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-medium text-stone-500">
                 Món trong menu
               </span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-sm text-blue-600">
-                🍽️
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <Icon icon="zi-more-grid" className="text-base leading-none" />
               </span>
             </div>
             <div className="mt-2 text-2xl font-extrabold text-stone-900">
               {productsLoading ? <Spinner visible={true} /> : products.length}
             </div>
-            <p className="mt-1 text-[11px] font-medium text-blue-600">
-              Xem danh sách món →
+            <p className="mt-1 flex items-center text-[11px] font-medium text-blue-600">
+              <span>Xem danh sách món</span>
+              <Icon
+                icon="zi-chevron-right"
+                className="ml-0.5 shrink-0 text-xs"
+              />
             </p>
           </div>
 
@@ -143,8 +159,8 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-medium text-stone-500">
                 Khuyến mãi
               </span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-50 text-sm text-purple-600">
-                🎫
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-50 text-purple-600">
+                <Icon icon="zi-star-solid" className="text-base leading-none" />
               </span>
             </div>
             <div className="mt-2 text-2xl font-extrabold text-stone-900">
@@ -154,8 +170,12 @@ export default function AdminDashboardPage() {
                 activeVouchers.length
               )}
             </div>
-            <p className="mt-1 text-[11px] font-medium text-purple-600">
-              Đang hoạt động →
+            <p className="mt-1 flex items-center text-[11px] font-medium text-purple-600">
+              <span>Đang hoạt động</span>
+              <Icon
+                icon="zi-chevron-right"
+                className="ml-0.5 shrink-0 text-xs"
+              />
             </p>
           </div>
         </div>
@@ -171,7 +191,9 @@ export default function AdminDashboardPage() {
               onClick={() => navigate("/admin/manage/menu")}
               className="flex items-center gap-2.5 rounded-xl border border-stone-200/80 bg-stone-50/50 p-3 text-left transition-colors active:bg-stone-100"
             >
-              <span className="text-xl">📋</span>
+              <span className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg text-primary">
+                <Icon icon="zi-list-2" className="text-lg leading-none" />
+              </span>
               <div>
                 <div className="text-xs font-bold text-stone-800">
                   Danh mục món
@@ -187,7 +209,9 @@ export default function AdminDashboardPage() {
               onClick={() => navigate("/admin/settings")}
               className="flex items-center gap-2.5 rounded-xl border border-stone-200/80 bg-stone-50/50 p-3 text-left transition-colors active:bg-stone-100"
             >
-              <span className="text-xl">⚙️</span>
+              <span className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg text-primary">
+                <Icon icon="zi-setting" className="text-lg leading-none" />
+              </span>
               <div>
                 <div className="text-xs font-bold text-stone-800">
                   Cài đặt quán

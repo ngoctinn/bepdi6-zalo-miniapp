@@ -380,7 +380,7 @@ export function StaffOrderCard({
                 ) : (
                   <>
                     <Icon
-                      icon="zi-send"
+                      icon="zi-send-solid"
                       className="flex shrink-0 items-center justify-center text-base leading-none"
                     />
                     <span className="leading-none">

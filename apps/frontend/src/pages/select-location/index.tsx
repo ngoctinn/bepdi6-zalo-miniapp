@@ -2,9 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Spinner, Text } from "zmp-ui";
 import {
+  AlertCircleIcon,
+  CloseIcon,
   MapPinIcon,
   PlusIcon,
   RadioIcon,
+  SearchIcon,
   TrashIcon,
 } from "@/components/common/vectors";
 import {
@@ -301,17 +304,7 @@ export default function SelectLocationPage() {
 
           {formError && (
             <div className="flex items-center gap-2 rounded-xl border border-red-200/60 bg-red-50 p-2.5 text-xs font-medium text-red-600">
-              <svg
-                className="h-4 w-4 shrink-0 text-red-500"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
+              <AlertCircleIcon className="h-4 w-4 shrink-0 text-red-500" />
               <span>{formError}</span>
             </div>
           )}
@@ -325,16 +318,7 @@ export default function SelectLocationPage() {
             </div>
             <div className="relative flex items-center">
               <div className="pointer-events-none absolute left-3 flex items-center text-neutral400">
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
+                <SearchIcon className="h-4 w-4 shrink-0" />
               </div>
               <input
                 type="text"
@@ -361,16 +345,7 @@ export default function SelectLocationPage() {
                   }}
                   className="absolute right-2.5 rounded-full p-1 text-neutral400 hover:text-neutral600"
                 >
-                  <svg
-                    className="h-3.5 w-3.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
+                  <CloseIcon className="h-3.5 w-3.5 shrink-0" />
                 </button>
               )}
             </div>

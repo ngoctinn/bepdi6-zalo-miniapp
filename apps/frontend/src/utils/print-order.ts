@@ -124,8 +124,8 @@ export function printOrderReceipt(
           <div class="alert-box ${isPaid ? "paid" : "unpaid"}" style="font-size: ${isPaid ? "15px" : "17px"};">
             ${
               isPaid
-                ? `🔴 ĐÃ THANH TOÁN ONLINE<br/><span style="font-size: 12px; font-weight: bold;">>>> TUYỆT ĐỐI KHÔNG THU TIỀN <<<</span>`
-                : `🟢 THU TIỀN MẶT COD<br/><span style="font-size: 18px; font-weight: 900;">${Number(order.total_amount || 0).toLocaleString("vi-VN")} VNĐ</span>`
+                ? `[ ĐÃ THANH TOÁN ONLINE ]<br/><span style="font-size: 12px; font-weight: bold;">>>> TUYỆT ĐỐI KHÔNG THU TIỀN <<<</span>`
+                : `[ THU TIỀN MẶT COD ]<br/><span style="font-size: 18px; font-weight: 900;">${Number(order.total_amount || 0).toLocaleString("vi-VN")} VNĐ</span>`
             }
           </div>
         `

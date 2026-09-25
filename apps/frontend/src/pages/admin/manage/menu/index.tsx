@@ -8,11 +8,12 @@ import {
 } from "@/services/admin/admin.mutations";
 import { AdminCategory } from "@/types/admin.types";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { Sheet, Spinner, Switch } from "zmp-ui";
+import { Icon, Sheet, Spinner } from "zmp-ui";
+import { ConfirmModal } from "@/components/common/confirm-modal";
 
 export default function AdminCategoryManagementPage() {
   const navigate = useNavigate();
-  const { showToast } = useAppToast();
+  const { showSuccess, showError } = useAppToast();
   const { data: categoriesData, isLoading } = useAdminCategories();
 
   const createCategory = useCreateCategory();
@@ -23,6 +24,8 @@ export default function AdminCategoryManagementPage() {
   const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(
     null,
   );
+  const [deletingCategory, setDeletingCategory] =
+    useState<AdminCategory | null>(null);
 
   const [formName, setFormName] = useState("");
   const [formDescription, setFormDescription] = useState("");
@@ -55,7 +58,7 @@ export default function AdminCategoryManagementPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
-      showToast({ message: "Vui lòng nhập tên danh mục", type: "error" });
+      showError("Vui lòng nhập tên danh mục");
       return;
     }
 
@@ -71,7 +74,7 @@ export default function AdminCategoryManagementPage() {
             status: formStatus,
           },
         });
-        showToast({ message: "Cập nhật danh mục thành công", type: "success" });
+        showSuccess("Cập nhật danh mục thành công");
       } else {
         await createCategory.mutateAsync({
           name: formName.trim(),
@@ -80,43 +83,39 @@ export default function AdminCategoryManagementPage() {
           sort_order: Number(formSortOrder),
           status: formStatus,
         });
-        showToast({ message: "Tạo danh mục mới thành công", type: "success" });
+        showSuccess("Tạo danh mục mới thành công");
       }
       setSheetVisible(false);
     } catch {
-      showToast({
-        message: "Lỗi lưu danh mục, vui lòng thử lại",
-        type: "error",
-      });
+      showError("Lỗi lưu danh mục, vui lòng thử lại");
     }
   };
 
-  const handleDelete = async (cat: AdminCategory) => {
-    if (!window.confirm(`Bạn có chắc muốn xoá danh mục "${cat.name}"?`)) return;
+  const handleConfirmDelete = async () => {
+    if (!deletingCategory) return;
     try {
-      await deleteCategory.mutateAsync(cat.id);
-      showToast({ message: "Đã xoá danh mục", type: "success" });
+      await deleteCategory.mutateAsync(deletingCategory.id);
+      showSuccess("Đã xoá danh mục");
+      setDeletingCategory(null);
     } catch {
-      showToast({ message: "Không thể xoá danh mục này", type: "error" });
+      showError("Không thể xoá danh mục này");
     }
   };
 
   return (
     <div className="flex min-h-full flex-col bg-stone-50 pb-24">
-      {/* Header bar */}
-      <div className="flex items-center justify-between border-b border-stone-200/70 bg-white px-4 py-4">
-        <div>
-          <h1 className="text-lg font-bold text-stone-900">Quản Lý Danh Mục</h1>
-          <p className="mt-0.5 text-xs text-stone-500">
-            Sắp xếp và phân loại thực đơn cho quán ({categories.length} mục)
-          </p>
-        </div>
+      {/* Action Toolbar */}
+      <div className="flex items-center justify-between border-b border-stone-200/70 bg-white px-4 py-3">
+        <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-600">
+          {categories.length} danh mục
+        </span>
         <button
           type="button"
           onClick={handleOpenCreate}
-          className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
+          className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
         >
-          <span>+ Thêm</span>
+          <Icon icon="zi-plus" className="text-sm" />
+          <span>Thêm danh mục</span>
         </button>
       </div>
 
@@ -127,14 +126,19 @@ export default function AdminCategoryManagementPage() {
             <Spinner logo />
           </div>
         ) : categories.length === 0 ? (
-          <div className="rounded-2xl border border-stone-100 bg-white p-8 text-center text-stone-400">
-            <span className="text-3xl">📂</span>
-            <p className="mt-2 text-sm">Chưa có danh mục món nào</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-stone-100 bg-white p-8 text-center text-stone-400">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100 text-stone-400">
+              <Icon icon="zi-inbox" className="text-2xl" />
+            </div>
+            <p className="mt-2 text-sm font-medium text-stone-600">
+              Chưa có danh mục món nào
+            </p>
             <button
               onClick={handleOpenCreate}
-              className="bg-primary/10 mt-3 inline-block rounded-xl px-4 py-2 text-xs font-bold text-primary"
+              className="bg-primary/10 mt-3 inline-flex items-center gap-1 rounded-xl px-4 py-2 text-xs font-bold text-primary"
             >
-              + Tạo danh mục đầu tiên
+              <Icon icon="zi-plus" className="text-xs" />
+              <span>Tạo danh mục đầu tiên</span>
             </button>
           </div>
         ) : (
@@ -154,8 +158,8 @@ export default function AdminCategoryManagementPage() {
                     className="h-12 w-12 rounded-xl border border-stone-100 object-cover"
                   />
                 ) : (
-                  <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl text-xl text-primary">
-                    🍲
+                  <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-xl text-primary">
+                    <Icon icon="zi-list-1" className="text-xl" />
                   </div>
                 )}
                 <div>
@@ -164,12 +168,19 @@ export default function AdminCategoryManagementPage() {
                       {cat.name}
                     </span>
                     <span
-                      className={`py-0.2 rounded-full px-2 text-[10px] font-bold ${
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
                         cat.status === "ACTIVE"
                           ? "bg-emerald-50 text-emerald-600"
                           : "bg-stone-100 text-stone-400"
                       }`}
                     >
+                      <span
+                        className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
+                          cat.status === "ACTIVE"
+                            ? "bg-emerald-500"
+                            : "bg-stone-400"
+                        }`}
+                      />
                       {cat.status === "ACTIVE" ? "Hiển thị" : "Đang ẩn"}
                     </span>
                   </div>
@@ -188,18 +199,22 @@ export default function AdminCategoryManagementPage() {
                       `/admin/manage/menu/products?category_id=${cat.id}`,
                     )
                   }
-                  className="rounded-lg border border-stone-200/60 bg-stone-50 p-2 text-xs font-medium text-stone-600 active:scale-95"
+                  className="flex items-center gap-1 rounded-lg border border-stone-200/60 bg-stone-50 px-2.5 py-1.5 text-xs font-medium text-stone-700 active:scale-95"
                   title="Xem món trong mục"
                 >
-                  🍜 Món
+                  <Icon
+                    icon="zi-more-grid"
+                    className="shrink-0 text-xs text-stone-500"
+                  />
+                  <span>Món</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDelete(cat)}
-                  className="rounded-lg border border-red-100 bg-red-50 p-2 text-xs font-medium text-red-600 active:scale-95"
+                  onClick={() => setDeletingCategory(cat)}
+                  className="flex items-center justify-center rounded-lg border border-red-100 bg-red-50 p-1.5 text-red-600 active:scale-95"
                   title="Xoá danh mục"
                 >
-                  🗑️
+                  <Icon icon="zi-delete" className="text-sm" />
                 </button>
               </div>
             </div>
@@ -299,6 +314,25 @@ export default function AdminCategoryManagementPage() {
           </div>
         </form>
       </Sheet>
+
+      {/* Modal xác nhận xoá danh mục */}
+      <ConfirmModal
+        visible={!!deletingCategory}
+        title="Xoá danh mục?"
+        description={
+          <span>
+            Bạn có chắc muốn xoá danh mục{" "}
+            <strong>"{deletingCategory?.name}"</strong>? Các món ăn trong danh
+            mục có thể bị ảnh hưởng.
+          </span>
+        }
+        confirmText="Xoá danh mục"
+        cancelText="Giữ lại"
+        type="danger"
+        loading={deleteCategory.isPending}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeletingCategory(null)}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useAdminOrders } from "@/services/order/order.queries";
 import { orderService } from "@/services/order/order.api";
-import { Order } from "@/types/order.types";
+import { Order, OrderStatus } from "@/types/order.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { ADMIN_ORDERS_QUERY_KEY } from "@/services/order/order.queries";
 import { Tabs, Tab } from "@/components/common/tabs";

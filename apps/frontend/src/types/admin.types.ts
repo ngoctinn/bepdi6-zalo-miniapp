@@ -1,6 +1,5 @@
 import { Category } from "./category.types";
 import { Product } from "./product.types";
-import { Voucher } from "./cart.types";
 import { ShippingTier, ShopInfo } from "./shop.types";
 
 export interface AdminCategory extends Category {
@@ -25,7 +24,8 @@ export interface AdminProduct extends Product {
 }
 
 export interface CreateProductRequest {
-  category: number;
+  category_id: number;
+  category?: number;
   name: string;
   description?: string;
   price: number;
@@ -35,7 +35,14 @@ export interface CreateProductRequest {
 
 export type UpdateProductRequest = Partial<CreateProductRequest>;
 
-export interface AdminVoucher extends Voucher {
+export interface AdminVoucher {
+  id: number;
+  code: string;
+  name: string;
+  discount_type: "FIXED" | "PERCENTAGE";
+  discount_value: number | string;
+  minimum_order_value?: number | string;
+  maximum_discount?: number | string | null;
   usage_limit: number;
   usage_per_customer: number;
   start_at: string;

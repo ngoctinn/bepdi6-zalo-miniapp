@@ -10,6 +10,7 @@ import {
   getDeliveryTypeLabel,
 } from "@/utils/order-display";
 import { Badge } from "@/components/common/badge";
+import { PrinterIcon } from "@/components/common/vectors";
 import { Spinner, Icon } from "zmp-ui";
 
 interface StaffOrderDetailSheetProps {
@@ -319,10 +320,7 @@ export function StaffOrderDetailSheet({
             title={copy.staff.printBagReceiptBtn}
             aria-label={copy.staff.printBagReceiptBtn}
           >
-            <Icon
-              icon="zi-download"
-              className="inline-flex shrink-0 items-center justify-center text-base leading-none"
-            />
+            <PrinterIcon className="h-5 w-5 shrink-0 text-stone-700" />
           </button>
 
           {/* Workflow Action Buttons */}
@@ -419,7 +417,7 @@ export function StaffOrderDetailSheet({
                   className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
                 >
                   <Icon
-                    icon="zi-send"
+                    icon="zi-send-solid"
                     className="inline-flex shrink-0 items-center justify-center text-base leading-none"
                   />
                   <span className="leading-none">

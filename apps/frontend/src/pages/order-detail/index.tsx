@@ -10,9 +10,11 @@ import { openWebview, saveImageToGallery } from "zmp-sdk/apis";
 import { formatCurrency } from "@/utils/format";
 import { makePhoneCall } from "@/utils/phone";
 import {
+  AlertCircleIcon,
   CheckIcon,
   CopyIcon,
   DownloadIcon,
+  MotorbikeIcon,
   NavigationIcon,
   PhoneIcon,
   StoreIcon,
@@ -252,19 +254,7 @@ export default function OrderDetailPage() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-          <svg
-            className="h-6 w-6"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
+          <AlertCircleIcon className="h-6 w-6 shrink-0" />
         </div>
         <Text size="small" className="font-medium text-neutral700">
           {copy.orderDetail.notFound}
@@ -458,12 +448,21 @@ export default function OrderDetailPage() {
           <div className="p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="bg-primary/10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-inner">
-                  {order.delivery_provider === "AHAMOVE"
-                    ? "⚡"
-                    : order.delivery_provider === "GRAB"
-                      ? "🟢"
-                      : "🛵"}
+                <div
+                  className={cn(
+                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-inner",
+                    order.delivery_provider === "AHAMOVE"
+                      ? "bg-amber-500/10 text-amber-600"
+                      : order.delivery_provider === "GRAB"
+                        ? "bg-emerald-500/10 text-emerald-600"
+                        : "bg-primary/10 text-primary",
+                  )}
+                >
+                  {order.delivery_provider === "AHAMOVE" ? (
+                    <TruckIcon className="h-6 w-6 shrink-0" />
+                  ) : (
+                    <MotorbikeIcon className="h-6 w-6 shrink-0" />
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">

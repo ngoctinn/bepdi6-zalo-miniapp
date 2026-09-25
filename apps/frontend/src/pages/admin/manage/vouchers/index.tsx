@@ -7,10 +7,11 @@ import {
 } from "@/services/admin/admin.mutations";
 import { AdminVoucher } from "@/types/admin.types";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { Sheet, Spinner } from "zmp-ui";
+import { Icon, Sheet, Spinner } from "zmp-ui";
+import { ConfirmModal } from "@/components/common/confirm-modal";
 
 export default function AdminVoucherManagementPage() {
-  const { showToast } = useAppToast();
+  const { showSuccess, showError } = useAppToast();
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
 
   const { data: vouchersData, isLoading } = useAdminVouchers(
@@ -23,6 +24,9 @@ export default function AdminVoucherManagementPage() {
 
   const [sheetVisible, setSheetVisible] = useState(false);
   const [editingVoucher, setEditingVoucher] = useState<AdminVoucher | null>(
+    null,
+  );
+  const [deletingVoucher, setDeletingVoucher] = useState<AdminVoucher | null>(
     null,
   );
 
@@ -43,6 +47,10 @@ export default function AdminVoucherManagementPage() {
   const [formStatus, setFormStatus] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
 
   const vouchers = Array.isArray(vouchersData) ? vouchersData : [];
+
+  const filteredVouchers = vouchers.filter((v) =>
+    filterStatus === "ALL" ? true : v.status === filterStatus,
+  );
 
   const handleOpenCreate = () => {
     setEditingVoucher(null);
@@ -84,18 +92,15 @@ export default function AdminVoucherManagementPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formCode.trim()) {
-      showToast({ message: "Vui lòng nhập mã voucher", type: "error" });
+      showError("Vui lòng nhập mã voucher");
       return;
     }
     if (!formName.trim()) {
-      showToast({
-        message: "Vui lòng nhập tên chương trình voucher",
-        type: "error",
-      });
+      showError("Vui lòng nhập tên chương trình voucher");
       return;
     }
     if (formDiscountValue <= 0) {
-      showToast({ message: "Giá trị giảm phải lớn hơn 0", type: "error" });
+      showError("Giá trị giảm phải lớn hơn 0");
       return;
     }
 
@@ -124,54 +129,48 @@ export default function AdminVoucherManagementPage() {
           id: editingVoucher.id,
           data: payload,
         });
-        showToast({ message: "Cập nhật voucher thành công", type: "success" });
+        showSuccess("Cập nhật voucher thành công");
       } else {
         await createVoucher.mutateAsync(payload);
-        showToast({ message: "Tạo voucher mới thành công", type: "success" });
+        showSuccess("Tạo voucher mới thành công");
       }
       setSheetVisible(false);
     } catch {
-      showToast({
-        message: "Lỗi lưu voucher, vui lòng thử lại",
-        type: "error",
-      });
+      showError("Lỗi lưu voucher, vui lòng thử lại");
     }
   };
 
-  const handleDelete = async (v: AdminVoucher) => {
-    if (!window.confirm(`Bạn có chắc muốn xoá voucher "${v.code}"?`)) return;
+  const handleConfirmDelete = async () => {
+    if (!deletingVoucher) return;
     try {
-      await deleteVoucher.mutateAsync(v.id);
-      showToast({ message: "Đã xoá voucher", type: "success" });
+      await deleteVoucher.mutateAsync(deletingVoucher.id);
+      showSuccess("Đã xoá voucher");
+      setDeletingVoucher(null);
     } catch {
-      showToast({ message: "Không thể xoá voucher này", type: "error" });
+      showError("Không thể xoá voucher này");
     }
   };
 
   return (
     <div className="flex min-h-full flex-col bg-stone-50 pb-24">
-      {/* Top Header */}
-      <div className="border-b border-stone-200/70 bg-white px-4 py-4">
+      {/* Action Toolbar */}
+      <div className="border-b border-stone-200/70 bg-white px-4 py-3">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-stone-900">
-              Quản Lý Voucher
-            </h1>
-            <p className="mt-0.5 text-xs text-stone-500">
-              Tạo và phát hành mã giảm giá cho khách đặt hàng
-            </p>
-          </div>
+          <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-600">
+            {filteredVouchers.length} / {vouchers.length} mã
+          </span>
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
+            className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
           >
-            <span>+ Tạo mã</span>
+            <Icon icon="zi-plus" className="text-sm" />
+            <span>Tạo mã</span>
           </button>
         </div>
 
         {/* Filter Tabs */}
-        <div className="mt-3 flex gap-2">
+        <div className="mt-2.5 flex gap-2">
           {["ALL", "ACTIVE", "INACTIVE"].map((st) => (
             <button
               type="button"
@@ -199,19 +198,28 @@ export default function AdminVoucherManagementPage() {
           <div className="flex h-48 w-full items-center justify-center">
             <Spinner logo />
           </div>
-        ) : vouchers.length === 0 ? (
-          <div className="rounded-2xl border border-stone-100 bg-white p-8 text-center text-stone-400">
-            <span className="text-3xl">🎟️</span>
-            <p className="mt-2 text-sm">Chưa có mã giảm giá nào</p>
-            <button
-              onClick={handleOpenCreate}
-              className="bg-primary/10 mt-3 inline-block rounded-xl px-4 py-2 text-xs font-bold text-primary"
-            >
-              + Tạo voucher đầu tiên
-            </button>
+        ) : filteredVouchers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-stone-100 bg-white p-8 text-center text-stone-400">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100 text-stone-400">
+              <Icon icon="zi-inbox" className="text-2xl" />
+            </div>
+            <p className="mt-2 text-sm font-medium text-stone-600">
+              {vouchers.length === 0
+                ? "Chưa có mã giảm giá nào"
+                : "Không có mã nào phù hợp bộ lọc"}
+            </p>
+            {vouchers.length === 0 && (
+              <button
+                onClick={handleOpenCreate}
+                className="bg-primary/10 mt-3 inline-flex items-center gap-1 rounded-xl px-4 py-2 text-xs font-bold text-primary"
+              >
+                <Icon icon="zi-plus" className="text-xs" />
+                <span>Tạo voucher đầu tiên</span>
+              </button>
+            )}
           </div>
         ) : (
-          vouchers.map((v) => {
+          filteredVouchers.map((v) => {
             const isActive = v.status === "ACTIVE";
             const isPercent = v.discount_type === "PERCENTAGE";
             return (
@@ -234,12 +242,17 @@ export default function AdminVoucherManagementPage() {
                         {v.code}
                       </span>
                       <span
-                        className={`py-0.2 rounded-full px-2 text-[10px] font-bold ${
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
                           isActive
                             ? "bg-emerald-50 text-emerald-600"
                             : "bg-stone-100 text-stone-400"
                         }`}
                       >
+                        <span
+                          className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
+                            isActive ? "bg-emerald-500" : "bg-stone-400"
+                          }`}
+                        />
                         {isActive ? "Hoạt động" : "Tạm dừng"}
                       </span>
                     </div>
@@ -252,12 +265,12 @@ export default function AdminVoucherManagementPage() {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDelete(v);
+                      setDeletingVoucher(v);
                     }}
-                    className="p-1 text-stone-400 hover:text-red-500 active:scale-95"
+                    className="flex items-center justify-center rounded-lg p-1.5 text-stone-400 hover:bg-red-50 hover:text-red-500 active:scale-95"
                     title="Xoá voucher"
                   >
-                    🗑️
+                    <Icon icon="zi-delete" className="text-sm" />
                   </button>
                 </div>
 
@@ -479,6 +492,25 @@ export default function AdminVoucherManagementPage() {
           </div>
         </form>
       </Sheet>
+
+      {/* Modal xác nhận xoá voucher */}
+      <ConfirmModal
+        visible={!!deletingVoucher}
+        title="Xoá voucher?"
+        description={
+          <span>
+            Bạn có chắc muốn xoá mã voucher{" "}
+            <strong>"{deletingVoucher?.code}"</strong>? Khách hàng sẽ không thể
+            áp dụng mã này được nữa.
+          </span>
+        }
+        confirmText="Xoá voucher"
+        cancelText="Giữ lại"
+        type="danger"
+        loading={deleteVoucher.isPending}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeletingVoucher(null)}
+      />
     </div>
   );
 }

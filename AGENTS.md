@@ -38,6 +38,7 @@
 - **Async**: Route all external network requests (ZNS, Zalo OpenAPI) through Celery tasks.
 - **Envelope**: Return API responses as `{success: true, data: ...}` or `{success: false, error: {code, message}}`.
 - **UI Spam**: Always disable order submit buttons on initial click in Frontend components.
+- **UI & Icons**: Never use raw Unicode emojis (e.g. 🔴, 🟢, 🛵, ⚡, 🍜, 🛒, 👥) for UI icons, status indicators, or thermal print templates (`print-order.ts`). Use official Zalo Mini App icons (`zmp-ui` `<Icon icon="zi-..." />`), vectors from `src/components/common/vectors.tsx`, or CSS dot badges. Always add `shrink-0` to icons in flex containers to prevent responsive squishing on small mobile viewports (360px).
 
 ---
 

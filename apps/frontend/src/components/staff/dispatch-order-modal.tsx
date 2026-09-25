@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { DeliveryProvider, Order } from "@/types/order.types";
 import { Icon, Spinner } from "zmp-ui";
+import { MotorbikeIcon, TruckIcon } from "@/components/common/vectors";
 import { copy } from "@/constants/copy";
 
 interface DispatchOrderModalProps {
@@ -142,7 +143,7 @@ export function DispatchOrderModal({
                   : "border-stone-200 bg-white text-stone-600"
               }`}
             >
-              <span className="text-lg">🛵</span>
+              <MotorbikeIcon className="h-6 w-6 shrink-0" />
               <span className="mt-1 text-xs font-bold">
                 {copy.staff.dispatch.internalShipper}
               </span>
@@ -163,7 +164,7 @@ export function DispatchOrderModal({
                   : "border-stone-200 bg-white text-stone-600"
               }`}
             >
-              <span className="text-lg">⚡</span>
+              <TruckIcon className="h-6 w-6 shrink-0 text-amber-600" />
               <span className="mt-1 text-xs font-bold">Ahamove</span>
               <span className="text-xxxsmall font-semibold text-amber-700">
                 {copy.staff.dispatch.ahamoveFeeLabel}
@@ -178,11 +179,11 @@ export function DispatchOrderModal({
               }}
               className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
                 provider === "GRAB"
-                  ? "shadow-xs ring-primary/20 border-primary bg-primarySurface text-primaryDark ring-2"
+                  ? "shadow-xs border-emerald-500 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-500/20"
                   : "border-stone-200 bg-white text-stone-600"
               }`}
             >
-              <span className="text-lg">🟢</span>
+              <MotorbikeIcon className="h-6 w-6 shrink-0 text-emerald-600" />
               <span className="mt-1 text-xs font-bold">GrabExpress</span>
               <span className="text-xxxsmall text-stone-500">
                 {copy.staff.dispatch.grabDesc}
@@ -334,7 +335,7 @@ export function DispatchOrderModal({
               </>
             ) : (
               <>
-                <Icon icon="zi-send" className="text-base" />
+                <Icon icon="zi-send-solid" className="text-base" />
                 <span>{copy.staff.dispatch.confirmDispatch}</span>
               </>
             )}

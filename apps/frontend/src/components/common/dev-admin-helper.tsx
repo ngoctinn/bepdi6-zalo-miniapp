@@ -3,6 +3,7 @@ import { isDevelopmentRuntime } from "@/utils/zma";
 import { fetchZaloUserInfo, isZaloRuntime } from "@/utils/zalo-permissions";
 import { useAuth } from "@/hooks/use-auth";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { Icon } from "zmp-ui";
 
 /**
  * DevAdminHelper:
@@ -114,9 +115,9 @@ export function DevAdminHelper() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-full p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+                className="flex h-7 w-7 items-center justify-center rounded-full p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
               >
-                ✕
+                <Icon icon="zi-close" className="text-sm" />
               </button>
             </div>
 
@@ -147,13 +148,20 @@ export function DevAdminHelper() {
                       <button
                         type="button"
                         onClick={handleCopy}
-                        className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold transition-all active:scale-95 ${
+                        className={`inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all active:scale-95 ${
                           copied
                             ? "bg-emerald-600 text-white"
                             : "bg-primary text-white hover:opacity-90"
                         }`}
                       >
-                        {copied ? "Đã chép ✓" : "Copy"}
+                        {copied ? (
+                          <>
+                            <Icon icon="zi-check" className="text-xs" />
+                            <span>Đã chép</span>
+                          </>
+                        ) : (
+                          "Copy"
+                        )}
                       </button>
                     )}
                   </div>
@@ -188,7 +196,10 @@ export function DevAdminHelper() {
                 </div>
                 {customer?.role !== "ADMIN" && (
                   <p className="mt-2 text-[11px] leading-normal text-stone-500">
-                    👉 Copy ID trên, dán vào biến môi trường{" "}
+                    <span className="font-semibold text-stone-700">
+                      Hướng dẫn:
+                    </span>{" "}
+                    Copy ID trên, dán vào biến môi trường{" "}
                     <code className="rounded bg-stone-200 px-1 py-0.5 font-mono text-[10px] text-stone-800">
                       ADMIN_ZALO_IDS
                     </code>{" "}
@@ -226,7 +237,7 @@ export function DevAdminHelper() {
                   }}
                   className="shadow-xs w-full rounded-xl bg-slate-900 py-2 text-xs font-semibold text-white hover:bg-slate-800 active:scale-95"
                 >
-                  ⚡ Đăng nhập lại để nhận quyền mới
+                  Đăng nhập lại để nhận quyền mới
                 </button>
               </div>
             </div>

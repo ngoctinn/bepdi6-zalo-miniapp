@@ -486,6 +486,7 @@ export default function CheckoutPage() {
         deliveryType={deliveryType}
         distanceKm={previewData?.distance_km}
         shippingStatus={previewData?.shipping_status}
+        isUpdatingFee={previewMutation.isPending}
         isQuoteReady={isPricingReady}
         isSubmitting={createOrderMutation.isPending}
         onPlaceOrder={handlePlaceOrder}

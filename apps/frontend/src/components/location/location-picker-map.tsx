@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { NavigationIcon } from "@/components/common/vectors";
 
 // Tọa độ trung tâm TP. Hồ Chí Minh mặc định nếu chưa có GPS
 const DEFAULT_CENTER: [number, number] = [10.7769, 106.7009];
@@ -160,17 +161,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
           {isLocating ? (
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           ) : (
-            <svg
-              className="h-5 w-5 text-primary"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polygon points="3 11 22 2 13 21 11 13 3 11" />
-            </svg>
+            <NavigationIcon className="h-5 w-5 shrink-0 text-primary" />
           )}
         </button>
       )}

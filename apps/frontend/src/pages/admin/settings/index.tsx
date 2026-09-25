@@ -2,10 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useAdminShopConfig } from "@/services/admin/admin.queries";
 import { useUpdateShopConfig } from "@/services/admin/admin.mutations";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { Spinner, Input, Switch } from "zmp-ui";
+import { useAuth } from "@/hooks/use-auth";
+import { Icon, Spinner, Switch } from "zmp-ui";
 
 export default function AdminSettingsPage() {
-  const { showToast } = useAppToast();
+  const { showSuccess, showError } = useAppToast();
+  const { customer } = useAuth();
+  const isAdmin = customer?.role === "ADMIN";
+
   const { data: config, isLoading } = useAdminShopConfig();
   const updateConfig = useUpdateShopConfig();
 
@@ -48,29 +52,32 @@ export default function AdminSettingsPage() {
   }, [config]);
 
   const handleToggleIsOpen = async (checked: boolean) => {
+    if (!isAdmin) {
+      showError("Chỉ Quản trị viên (Admin) mới có quyền đổi trạng thái mở cửa");
+      return;
+    }
     setFormData((prev) => ({ ...prev, is_open: checked }));
     try {
       await updateConfig.mutateAsync({ is_open: checked });
-      showToast({
-        message: checked ? "Đã mở cửa nhận đơn" : "Đã tạm đóng cửa quán",
-        type: "success",
-      });
+      showSuccess(checked ? "Đã mở cửa nhận đơn" : "Đã tạm đóng cửa quán");
     } catch {
-      showToast({
-        message: "Không thể cập nhật trạng thái mở cửa",
-        type: "error",
-      });
+      showError("Không thể cập nhật trạng thái mở cửa");
     }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) {
+      showError("Chỉ Quản trị viên (Admin) mới có quyền lưu cấu hình");
+      return;
+    }
     try {
       await updateConfig.mutateAsync({
         shop_name: formData.shop_name,
         hotline: formData.hotline,
         address_text: formData.address_text,
         announcement_banner: formData.announcement_banner,
+        is_open: formData.is_open,
         open_time: formData.open_time,
         close_time: formData.close_time,
         prep_time_minutes: Number(formData.prep_time_minutes),
@@ -81,12 +88,9 @@ export default function AdminSettingsPage() {
         vietqr_account_no: formData.vietqr_account_no,
         vietqr_account_name: formData.vietqr_account_name,
       });
-      showToast({ message: "Lưu cấu hình quán thành công!", type: "success" });
+      showSuccess("Lưu cấu hình quán thành công!");
     } catch {
-      showToast({
-        message: "Lưu cấu hình thất bại, vui lòng thử lại",
-        type: "error",
-      });
+      showError("Lưu cấu hình thất bại, vui lòng thử lại");
     }
   };
 
@@ -100,16 +104,15 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="flex min-h-full flex-col bg-stone-50 pb-24">
-      {/* Top Banner */}
-      <div className="border-b border-stone-200/70 bg-white px-4 py-4">
-        <h1 className="text-lg font-bold text-stone-900">
-          Cài Đặt Vận Hành Quán
-        </h1>
-        <p className="mt-0.5 text-xs text-stone-500">
-          Cấu hình giờ đóng/mở cửa, phạm vi giao hàng, phí ship và thông tin
-          VietQR
-        </p>
-      </div>
+      {!isAdmin && (
+        <div className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
+          <Icon icon="zi-info-circle" className="shrink-0 text-sm" />
+          <span>
+            <strong>Chế độ xem cho Nhân viên:</strong> Chỉ tài khoản Quản trị
+            viên (Admin) mới có quyền chỉnh sửa cấu hình quán.
+          </span>
+        </div>
+      )}
 
       <form onSubmit={handleSave} className="space-y-4 p-4">
         {/* Toggle Trạng Thái Mở Cửa */}
@@ -118,14 +121,22 @@ export default function AdminSettingsPage() {
             <div className="text-sm font-bold text-stone-900">
               Trạng thái nhận đơn
             </div>
-            <div className="text-xs text-stone-500">
-              {formData.is_open
-                ? "🟢 Đang mở cửa đón khách"
-                : "🔴 Tạm ngưng nhận đơn mới"}
+            <div className="mt-0.5 flex items-center text-xs text-stone-500">
+              <span
+                className={`mr-1.5 inline-block h-2 w-2 rounded-full ${
+                  formData.is_open ? "bg-emerald-500" : "bg-rose-500"
+                }`}
+              />
+              <span>
+                {formData.is_open
+                  ? "Đang mở cửa đón khách"
+                  : "Tạm ngưng nhận đơn mới"}
+              </span>
             </div>
           </div>
           <Switch
             checked={formData.is_open}
+            disabled={!isAdmin}
             onChange={(e) => handleToggleIsOpen(e.target.checked)}
           />
         </div>
@@ -366,10 +377,14 @@ export default function AdminSettingsPage() {
         <div className="pt-2">
           <button
             type="submit"
-            disabled={updateConfig.isPending}
+            disabled={!isAdmin || updateConfig.isPending}
             className="w-full rounded-xl bg-primary py-3.5 text-center text-sm font-bold text-white shadow-md transition-all active:scale-[0.99] disabled:opacity-50"
           >
-            {updateConfig.isPending ? "Đang lưu..." : "Lưu thay đổi cấu hình"}
+            {!isAdmin
+              ? "Chỉ Quản trị viên mới có quyền sửa"
+              : updateConfig.isPending
+                ? "Đang lưu..."
+                : "Lưu thay đổi cấu hình"}
           </button>
         </div>
       </form>

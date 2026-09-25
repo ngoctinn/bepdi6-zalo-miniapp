@@ -54,11 +54,14 @@ export function DeliveryAddressCard({
   const handleGetZaloProfile = useCallback(async () => {
     try {
       const credentials = await getZaloLoginCredentials();
-      if (credentials?.userInfo?.name && !pickupName) {
-        onPickupNameChange(credentials.userInfo.name);
+      if (credentials?.name && !pickupName) {
+        onPickupNameChange(credentials.name);
       }
-      if (credentials?.phoneNumber && !pickupPhone) {
-        onPickupPhoneChange(credentials.phoneNumber);
+      if (!pickupPhone) {
+        const phone = await requestPhoneNumber();
+        if (phone) {
+          onPickupPhoneChange(phone);
+        }
       }
     } catch {
       showWarning(
@@ -70,6 +73,7 @@ export function DeliveryAddressCard({
     pickupPhone,
     onPickupNameChange,
     onPickupPhoneChange,
+    requestPhoneNumber,
     showWarning,
   ]);
 

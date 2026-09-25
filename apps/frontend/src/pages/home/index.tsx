@@ -6,7 +6,6 @@ import { useCategories } from "@/services/category/category.queries";
 import { useProducts } from "@/services/product/product.queries";
 import { useAuth } from "@/hooks/use-auth";
 import { Category } from "@/types/category.types";
-import { Icon } from "zmp-ui";
 import { useCartStore } from "@/stores/cart.store";
 import { cn } from "@/utils/cn";
 
