@@ -37,6 +37,7 @@ export default function ProductDetailPage() {
   );
   const [note, setNote] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [invalidGroupId, setInvalidGroupId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!product) return;
@@ -65,6 +66,7 @@ export default function ProductDetailPage() {
     setQuantity(1);
     setNote("");
     setValidationError(null);
+    setInvalidGroupId(null);
 
     const initialSelections: SelectedOptionsState = {};
     if (product.option_groups) {
@@ -118,6 +120,9 @@ export default function ProductDetailPage() {
       }
     });
     setValidationError(null);
+    if (invalidGroupId === group.id) {
+      setInvalidGroupId(null);
+    }
   };
 
   const { optionsTotal, selectedOptionsList } = useMemo(() => {
@@ -166,6 +171,7 @@ export default function ProductDetailPage() {
       for (const group of product.option_groups) {
         const count = (selectedOptions[group.id] || []).length;
         if (group.is_required && count === 0) {
+          setInvalidGroupId(group.id);
           setValidationError(
             `${copy.product.chooseOptionPrefix || "Vui lòng chọn tùy chọn trong"} "${group.name}"`,
           );
@@ -176,6 +182,7 @@ export default function ProductDetailPage() {
           return;
         }
         if (group.min_select > 0 && count < group.min_select) {
+          setInvalidGroupId(group.id);
           setValidationError(
             `${copy.product.minOptionPrefix || "Vui lòng chọn tối thiểu"} ${group.min_select} tùy chọn trong "${group.name}"`,
           );
@@ -303,11 +310,16 @@ export default function ProductDetailPage() {
                 {product.option_groups.map((group) => {
                   const currentGroupSelections =
                     selectedOptions[group.id] || [];
+                  const isInvalid = invalidGroupId === group.id;
                   return (
                     <div
                       key={group.id}
                       id={`option-group-${group.id}`}
-                      className="scroll-mt-4 space-y-2.5"
+                      className={cn(
+                        "scroll-mt-6 space-y-2.5 rounded-2xl transition-all duration-300",
+                        isInvalid &&
+                          "-m-2.5 rounded-2xl bg-red-50/30 p-2.5 ring-2 ring-red-400/80",
+                      )}
                     >
                       <div className="flex items-baseline justify-between gap-2">
                         <div className="flex items-center gap-1.5">

@@ -291,8 +291,19 @@ export default function SelectLocationPage() {
     }
   };
 
+  const handleInputFocus = (
+    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const target = e.target;
+    setTimeout(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 280);
+  };
+
   return (
-    <div className="flex flex-col gap-3 p-3.5 pb-28">
+    <div
+      className={`flex flex-col gap-3 p-3.5 ${isCreating ? "pb-40" : "pb-28"}`}
+    >
       {isCreating ? (
         /* Form Thêm Địa Chỉ Trực Tiếp Trên Trang */
         <div className="flex flex-col gap-3">
@@ -428,12 +439,14 @@ export default function SelectLocationPage() {
             </div>
             <input
               type="text"
+              inputMode="text"
               aria-label={
                 copy.selectLocation.houseNumberPlaceholder ||
                 "Số nhà, tên tòa nhà"
               }
               value={houseNumber}
               onChange={(e) => setHouseNumber(e.target.value)}
+              onFocus={handleInputFocus}
               placeholder={copy.selectLocation.houseNumberPlaceholder}
               className="shadow-xs focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-white p-3 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
             />
@@ -477,6 +490,7 @@ export default function SelectLocationPage() {
                     address_text: e.target.value,
                   }))
                 }
+                onFocus={handleInputFocus}
                 placeholder={copy.selectLocation.streetPlaceholder}
                 className="shadow-xs focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-white p-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
               />
@@ -532,6 +546,7 @@ export default function SelectLocationPage() {
             </div>
             <input
               type="text"
+              inputMode="text"
               value={formData.recipient_name}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -539,6 +554,7 @@ export default function SelectLocationPage() {
                   recipient_name: e.target.value,
                 }))
               }
+              onFocus={handleInputFocus}
               placeholder={copy.selectLocation.namePlaceholder}
               className="shadow-xs focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
             />
@@ -574,10 +590,12 @@ export default function SelectLocationPage() {
             </div>
             <input
               type="tel"
+              inputMode="tel"
               value={formData.phone}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, phone: e.target.value }))
               }
+              onFocus={handleInputFocus}
               placeholder={copy.selectLocation.phonePlaceholder}
               className="shadow-xs focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
             />

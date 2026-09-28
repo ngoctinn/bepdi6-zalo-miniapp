@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CategoryList from "@/components/common/category-list";
 import ProductCard from "@/components/common/product-card";
+import { SearchIcon, CloseIcon } from "@/components/common/vectors";
 import { useCategories } from "@/services/category/category.queries";
 import { useProducts } from "@/services/product/product.queries";
 import { useAuth } from "@/hooks/use-auth";
@@ -10,6 +11,16 @@ import { useCartStore } from "@/stores/cart.store";
 import { cn } from "@/utils/cn";
 
 import { copy } from "@/constants/copy";
+
+function removeVietnameseTones(str: string): string {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
+}
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -22,6 +33,7 @@ export default function HomePage() {
   const [activeCategoryId, setActiveCategoryId] = useState<
     number | string | null
   >(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const isManualScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -31,6 +43,18 @@ export default function HomePage() {
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
   }, []);
+
+  // Filter products by search query
+  const searchResults = useMemo(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed || !allProducts) return [];
+    const normalized = removeVietnameseTones(trimmed);
+    return allProducts.filter((product) => {
+      const nameNorm = removeVietnameseTones(product.name || "");
+      const descNorm = removeVietnameseTones(product.description || "");
+      return nameNorm.includes(normalized) || descNorm.includes(normalized);
+    });
+  }, [searchQuery, allProducts]);
 
   // Group products by category
   const categorizedProducts = useMemo(() => {
@@ -148,35 +172,117 @@ export default function HomePage() {
           </h1>
         </div>
 
-        {/* Thanh tab danh mục món (nền trong suốt, dùng chung mẫu Tabs) */}
-        <div className="w-full bg-transparent px-3.5 py-1">
-          {isLoadingCategories ? (
-            <div className="horizontal-scroll w-full gap-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="bg-primary/15 h-7 w-20 shrink-0 animate-pulse rounded-full"
-                />
-              ))}
+        {/* Thanh tìm kiếm món ăn nhanh */}
+        <div className="px-3.5 pb-1 pt-1">
+          <div className="relative flex items-center">
+            <div className="pointer-events-none absolute left-3 flex items-center text-neutral400">
+              <SearchIcon className="h-4 w-4 shrink-0 text-stone-400" />
             </div>
-          ) : (
-            <CategoryList
-              selectedId={activeCategoryId ?? undefined}
-              categories={categories || []}
-              onCategorySelect={handleCategorySelect}
+            <input
+              type="text"
+              inputMode="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm món ngon trong thực đơn..."
+              aria-label="Tìm kiếm món ăn trong thực đơn"
+              className="focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-stone-50/90 py-2 pl-9 pr-9 text-xs text-neutral900 transition-colors placeholder:text-stone-400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
             />
-          )}
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                aria-label="Xóa từ khóa tìm kiếm"
+                className="absolute right-2.5 flex h-6 w-6 touch-manipulation items-center justify-center rounded-full text-stone-400 hover:text-stone-600 active:scale-90"
+              >
+                <CloseIcon className="h-3.5 w-3.5 shrink-0" />
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Thanh tab danh mục món hoặc tóm tắt tìm kiếm */}
+        {searchQuery.trim() ? (
+          <div className="flex items-center justify-between px-3.5 pt-1 text-xs text-stone-500">
+            <span>
+              Tìm thấy{" "}
+              <strong className="font-bold text-neutral900">
+                {searchResults.length}
+              </strong>{" "}
+              món phù hợp
+            </span>
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="text-xs font-semibold text-primary underline active:opacity-80"
+            >
+              Hủy tìm
+            </button>
+          </div>
+        ) : (
+          <div className="w-full bg-transparent px-3.5 py-1">
+            {isLoadingCategories ? (
+              <div className="horizontal-scroll w-full gap-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-primary/15 h-7 w-20 shrink-0 animate-pulse rounded-full"
+                  />
+                ))}
+              </div>
+            ) : (
+              <CategoryList
+                selectedId={activeCategoryId ?? undefined}
+                categories={categories || []}
+                onCategorySelect={handleCategorySelect}
+              />
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Danh sách món ăn phân theo từng Danh Mục (Có ngăn cách & Scroll-spy) */}
+      {/* Danh sách món ăn phân theo từng Danh Mục hoặc Kết quả tìm kiếm */}
       <div
         className={cn(
           "flex flex-col gap-6 px-3.5 pt-2",
           hasCartItems ? "pb-24" : "pb-6",
         )}
       >
-        {isLoadingProducts ? (
+        {searchQuery.trim() ? (
+          /* Danh sách món theo kết quả tìm kiếm */
+          <div className="flex flex-col gap-3">
+            {searchResults.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                {searchResults.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onClick={() => navigate(`/product/${product.id}`)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-stone-100 text-stone-400">
+                  <SearchIcon className="h-6 w-6 shrink-0" />
+                </div>
+                <p className="text-sm font-bold text-neutral800">
+                  Không tìm thấy món ăn nào
+                </p>
+                <p className="mt-1 max-w-xs text-xs leading-relaxed text-stone-400">
+                  Không có món nào khớp với &quot;{searchQuery}&quot;. Vui lòng
+                  thử từ khóa khác.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="mt-4 touch-manipulation rounded-xl bg-stone-100 px-4 py-2 text-xs font-bold text-neutral700 hover:bg-stone-200 active:scale-95"
+                >
+                  Xem toàn bộ thực đơn
+                </button>
+              </div>
+            )}
+          </div>
+        ) : isLoadingProducts ? (
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="flex flex-col space-y-2">

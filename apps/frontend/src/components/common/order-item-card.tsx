@@ -217,12 +217,12 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
           </div>
         </div>
 
-        {/* Hàng 4B: Nút hành động chuẩn touch target >= 36px */}
+        {/* Hàng 4B: Nút hành động chuẩn touch target ngón cái >= 40px */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={goToDetail}
-            className="inline-flex h-9 flex-1 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-xs font-bold text-stone-700 transition-colors hover:bg-stone-200 active:scale-[0.98]"
+            className="inline-flex h-10 min-h-[40px] flex-1 touch-manipulation items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-xs font-bold text-stone-700 transition-colors hover:bg-stone-200 active:scale-[0.98]"
           >
             {copy.order.detail || "Xem chi tiết"}
           </button>
@@ -231,7 +231,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
             <button
               type="button"
               onClick={handleReorder}
-              className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98]"
+              className="inline-flex h-10 min-h-[40px] flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98]"
             >
               <Icon
                 icon="zi-retry"

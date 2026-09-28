@@ -41,7 +41,7 @@ export default function CartFloatBar() {
     >
       {/* Left: Icon Giỏ hàng + Badge số lượng + Tạm tính */}
       <div className="flex items-center gap-2.5">
-        <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 text-white">
+        <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white">
           <svg
             width="17"
             height="17"
@@ -51,6 +51,7 @@ export default function CartFloatBar() {
             strokeWidth="2.3"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="shrink-0"
             aria-hidden="true"
           >
             <circle cx="9" cy="21" r="1" />
@@ -76,7 +77,7 @@ export default function CartFloatBar() {
       </div>
 
       {/* Right: Nút CTA Xem giỏ hàng */}
-      <div className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/20 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-white/25 active:bg-white/30">
+      <div className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/20 bg-white/20 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-white/25 active:bg-white/30">
         <span>Xem giỏ hàng</span>
         <ChevronRightIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       </div>

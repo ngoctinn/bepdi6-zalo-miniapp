@@ -41,6 +41,8 @@ export default function CategoryList({
   return (
     <div
       ref={containerRef}
+      role="tablist"
+      aria-label="Danh mục món ăn"
       className={cn(
         "horizontal-scroll w-full min-w-0 select-none items-center gap-2 scroll-smooth py-1 pr-2",
         props.className,
@@ -52,14 +54,16 @@ export default function CategoryList({
         return (
           <button
             type="button"
+            role="tab"
+            aria-selected={isSelected}
             key={category.id}
             data-category-id={category.id}
             className={cn(
-              "flex min-h-[36px] shrink-0 items-center justify-center rounded-xl border px-4 py-2 text-xs font-semibold transition-colors duration-150 active:scale-[0.98]",
+              "flex min-h-[40px] shrink-0 touch-manipulation items-center justify-center rounded-xl border px-4 py-2 text-xs font-semibold transition-colors duration-150 active:scale-[0.98]",
               "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
               "select-none whitespace-nowrap",
               isSelected
-                ? "border-primary/30 bg-olive50/80 text-olive900"
+                ? "border-primary/30 shadow-xs bg-olive50/80 font-bold text-olive900"
                 : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50 hover:text-olive900",
             )}
             onClick={() => onCategorySelect?.(category)}

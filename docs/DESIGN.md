@@ -1,78 +1,160 @@
-# Bếp Dì 6 Design System & Guidelines
+# Bếp Dì 6 — Official Design System & UI/UX Standards (Benchmark 2025–2026)
 
-> Tự động trích xuất từ `/cf-design scan` cho `@apps/frontend` kết hợp tài liệu quy chuẩn Zalo Mini App Best Practices (`docs/research/2026-08-27-zalo-miniapp-ui-ux-design-guidelines/01-zalo-miniapp-design-guidelines.md`).
-
----
-
-## 1. Phong Cách Thiết Kế Tổng Thể (Overall Style)
-- **Style Archetype:** **Rustic Olive & Warm Ginger Bistro** kết hợp **Light & Airy Mobile-First** (Độ tin cậy: Cao).
-- **Cảm hứng & Ngữ cảnh:** Ẩm thực miền Tây mộc mạc, gần gũi, ấm áp (lá chuối hấp, vàng mật ong, thớt gỗ), tối ưu hoá trải nghiệm 1 tay (Thumb-Zone) trên Zalo Mini App.
+> **Single Source of Truth (SSOT)** cho toàn bộ giao diện khách hàng và vận hành của **Bếp Dì 6 Zalo Mini App** (`@apps/frontend`).  
+> Tích hợp chuẩn **Zalo Platform Guidelines**, **Apple Human Interface Guidelines (HIG)**, **Material Design 3**, **WCAG 2.1/2.2 AA**, và **F&B Fast Ordering UX**.
 
 ---
 
-## 2. Bảng Màu Chuẩn (Color System)
+## 1. Triết Lý Thiết Kế & Phong Cách Thương Hiệu (Brand & Philosophy)
 
-### 2.1. Primary & Brand Accents
-- **Primary / Brand:** `#4D7C0F` (`olive700` - Xanh rêu lá chuối mộc mạc)
-- **Primary Pressed / Dark:** `#3F6212` (`olive800`)
-- **Primary Light / Background:** `#ECFCCB` (`olive100`), `#F7FEE7` (`olive50`)
-- **Secondary / Warm Amber:** `#D97706` (`amber600`), `#F59E0B` (`amber500`), `#FEF3C7` (`amber100`)
-
-### 2.2. Neutrals & Surfaces
-- **Background App:** `#FAFAF9` (`stone50` / `stone100`)
-- **Card / Surface Background:** `#FFFFFF`
-- **Text Primary (Tiêu đề, Giá, Tên món):** `#0F172A` (`neutral900` / `NG100`)
-- **Text Secondary (Mô tả, Thời gian, Placeholder):** `#78716C` (`neutral500` / `NG60`)
-- **Border / Divider:** `rgba(0, 0, 0, 0.05)` đến `#E7E5E4` (`neutral200`)
-
-### 2.3. Semantic Colors
-- **Success / Completed:** `#16A34A` / `#00A950`
-- **Warning / Pending:** `#E57B00` / `#F59E0B`
-- **Danger / Cancelled / Error:** `#DC2626` / `#EF4444`
+- **Style Archetype:** **Rustic Olive & Warm Ginger Bistro** kết hợp **Light & Airy Mobile-First**.
+- **Cảm hứng:** Ẩm thực miền Tây mộc mạc, tươi ngon, ấm cúng (sắc xanh lá chuối hấp, vàng ấm mật ong & gừng tươi, bề mặt sáng mịn sạch sẽ).
+- **Trải nghiệm cốt lõi:**
+  1. **Tốc độ (Instant & Frictionless):** ≤ 3–4 chạm từ khi mở Menu đến hoàn tất Checkout.
+  2. **Tiện dụng 1 tay (Thumb-Zone Friendly):** 90% thao tác tương tác chính (Quick-add, Stepper, Thanh giỏ hàng, Nút Đặt hàng) nằm trong vùng quét thuận tiện của ngón cái ở nửa dưới màn hình.
+  3. **Minh bạch & An tâm:** Giá món, phí giao hàng, trạng thái chế biến và tài khoản chuyển khoản VietQR luôn rõ ràng, chính xác từng số liệu.
 
 ---
 
-## 3. Typography & Kiểu Chữ
+## 2. Hệ Thống Token Màu Sắc (Color System - Source of Truth)
 
-- **Font Family:** `-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Roboto", "Segoe UI", sans-serif`
-- **Hierarchy Scale:**
-  - **H1 / Page Title:** `16px - 20px` (font-extrabold / font-bold), tracking-tight
-  - **H2 / Section Title:** `15px - 16px` (font-bold)
-  - **Card Title / Food Item:** `14px` (font-semibold, line-clamp-2)
-  - **Body / Main Text:** `13px - 14px` (font-normal / font-medium, leading-normal)
-  - **Caption / Metadata / Badges:** `10px - 12px` (font-medium / font-bold)
+Toàn bộ mã màu trong tài liệu này đồng bộ 100% với `apps/frontend/src/tokens.js` và biến CSS `:root` tại `apps/frontend/src/css/app.scss`.
+
+### 2.1. Primary & Brand Colors (Khách hàng)
+| Token Key | Giá trị HEX | Tên gọi & Ứng dụng |
+| :--- | :--- | :--- |
+| `olive700` (`--theme-primary`) | `#4D7C0F` | **Primary Brand**: Nút CTA chính, Tab đang active, icon nổi bật, viền nhấn |
+| `olive800` (`--theme-primary-dark`) | `#3F6212` | **Primary Pressed / Hover**: Trạng thái nhấn giữ của nút chính |
+| `olive100` (`--theme-primary-light`) | `#ECFCCB` | Nền phụ, chip lựa chọn, highlight nhẹ |
+| `olive50` (`--theme-primary-surface`) | `#F7FEE7` | Nền block tóm tắt, banner trạng thái đơn đang xử lý, badge active |
+| `amber600` (`brandAccent`) | `#D97706` | **Warm Amber**: Điểm nhấn ẩm thực, badge giảm giá, hình thức "Tự đến lấy" |
+| `amber500` / `amber100` | `#F59E0B` / `#FEF3C7` | Nền nhạt và viền của cảnh báo hoặc badge chuẩn bị món |
+
+### 2.2. Admin & Staff Theme (Vận hành Bếp & Quản trị)
+| Token Key | Giá trị HEX | Tên gọi & Ứng dụng |
+| :--- | :--- | :--- |
+| `orange600` (`--theme-primary`) | `#EA580C` | Màu chủ đạo cho module Quản trị Bếp & Nhân viên |
+| `orange700` / `orange100` | `#C2410C` / `#FFEDD5` | Trạng thái nhấn & bề mặt phụ giao diện Admin |
+
+### 2.3. Neutrals & Surfaces (Nền & Bề mặt)
+| Token Key | Giá trị HEX | Ứng dụng |
+| :--- | :--- | :--- |
+| `stone50` (`background`) | `#FCFCFB` / `#FAFAF9` | **Page Background**: Nền dịu mắt, chống mỏi mắt trên màn hình OLED mobile |
+| `white` (`surface`) | `#FFFFFF` | Nền thẻ Card, Modal, Bottom Sheet, Header |
+| `neutral900` (`text-primary`) | `#0F172A` | Tiêu đề H1/H2, tên món, giá tiền chính (độ tương phản sắc nét) |
+| `neutral700` / `neutral600` | `#44403C` / `#57534E` | Text nội dung mô tả món, tên người nhận, nhãn trường nhập |
+| `neutral500` (`text-tertiary`) | `#78716C` | Thời gian, ghi chú phụ, placeholder text (tối thiểu WCAG 4.5:1) |
+| `neutral200` / `border-black/5` | `#E7E5E4` / `rgba(0,0,0,0.05)` | Đường kẻ phân cách (Divider), viền thẻ nhẹ |
+
+### 2.4. Semantic Colors (Trạng thái nghiệp vụ)
+| Trạng thái | Mã màu chính | Nền dịu | Ứng dụng |
+| :--- | :--- | :--- | :--- |
+| **Success** | `#16A34A` / `#00A950` | `bg-emerald-50` | Đơn hoàn tất, Đã chép STK, Lưu mã QR thành công, Áp voucher |
+| **Warning** | `#D97706` / `#F59E0B` | `bg-amber-50` | Đơn chờ xác nhận, Đang nấu, Nhắc chuẩn bị tiền mặt COD |
+| **Danger / Destructive** | `#DC2626` / `#EF4444` | `bg-red-50` | Báo lỗi hệ thống, Đơn bị hủy, Nút Hủy đơn, Món hết hàng |
+| **Info / Delivery** | `#2563EB` | `bg-blue-50` | Badge "GIAO TẬN NƠI", vị trí giao hàng |
 
 ---
 
-## 4. Spacing, Shapes & Layout Tokens
+## 3. Quy Chuẩn Bắt Buộc Zalo Mini App (Platform Constraints)
 
-- **Grid Base:** Bội số 4px/8px (`gap-1.5` = 6px, `gap-2` = 8px, `gap-3` = 12px, `gap-4` = 16px).
-- **Gutter Lề 2 bên:** `12px - 16px` (`px-3.5` hoặc `px-4`).
-- **Bo góc (Border Radius):**
-  - Card & Image: `rounded-2xl` (16px) hoặc `rounded-xl` (12px).
-  - Button & Input: `rounded-xl` (12px) hoặc Pill `rounded-full` (cho stepper, floating cart).
-  - Badge & Tag: `rounded-md` (6px) hoặc `rounded-full`.
-- **Shadows:** Tinh giản, mềm mại (`shadow-xs`, `shadow-sm`, `shadow-md`), hạn chế shadow gắt.
+### 3.1. Top Safe Area & Menu Bar Capsule `[•••] [X]`
+- **Ràng buộc:** Góc trên bên phải của Mini App luôn bị chiếm dụng bởi cụm nút cố định hệ sinh thái Zalo: Menu `[•••]` và Nút Đóng `[X]`.
+- **Quy tắc bắt buộc:**
+  - Mọi Header (cả Home lẫn trang con) phải có padding phải tối thiểu `pr-20` (80px) để không che khuất cụm nút hệ thống này.
+  - Sử dụng class `.header-margin` (`margin-top: var(--app-safe-area-top)`) để tránh bị tai thỏ (Notch) hoặc Dynamic Island đè lên tiêu đề.
+  - Trong `app-config.json`, đặt `"actionBarHidden": true` khi dùng Custom Header để tránh hiển thị trùng 2 thanh tiêu đề.
+
+### 3.2. Bottom Safe Area & Home Indicator (iOS & Android Gestures)
+- **Ràng buộc:** Trong `app-config.json`, `"hideIOSSafeAreaBottom": true` đồng nghĩa với việc WebView Zalo không tự chèn padding đáy.
+- **Quy tắc bắt buộc:**
+  - Tất cả thành phần dính đáy (`position: fixed` hoặc `sticky bottom-0`) như `CartFloatBar`, `Footer`, nút CTA thanh toán bắt buộc phải áp dụng class `.safe-bottom`:
+    ```css
+    .safe-bottom {
+      padding-bottom: max(16px, calc(var(--app-safe-area-bottom, env(safe-area-inset-bottom, 0px)) + 12px)) !important;
+    }
+    ```
+  - Khung nội dung chính cuộn phải có khoảng đệm đệm đáy dự phòng (`pb-28` đến `pb-32`) để thanh cố định không che khuất dòng tổng tiền hoặc nút cuối cùng.
+
+### 3.3. Quy Tắc Xin Quyền Đúng Lúc (Just-in-Time Permissions)
+- **Tuyệt đối cấm:** Xin quyền GPS (`getLocation`) hoặc Số điện thoại (`getPhoneNumber`) ngay khi vừa mở ứng dụng hoặc khi render trang chủ.
+- **Chỉ xin Just-in-Time:**
+  - Quyền GPS: Chỉ kích hoạt khi khách bấm "Lấy vị trí hiện tại" hoặc "Chọn trên bản đồ" tại trang chọn địa chỉ.
+  - Quyền Số điện thoại: Chỉ kích hoạt khi khách bấm "Điền nhanh SĐT" hoặc khi bấm nút "Đặt hàng" mà tài khoản chưa có SĐT liên hệ.
+  - Luôn hiển thị Dialog giải thích lý do trước khi gọi SDK Zalo (`consentText`).
 
 ---
 
-## 5. Các Thành Phần Giao Diện (Core Component Patterns)
+## 4. Chuẩn Mobile Ergonomics & Accessibility (Apple HIG & WCAG 2.1 AA)
 
-### 5.1. Header & Zalo Top Safe Area
-- Header tuỳ biến `sticky top-0`, `z-30`, nền `bg-white/95 backdrop-blur-md`.
-- `pr-20` (padding right 80px) để không che cụm nút `[•••] [X]` mặc định của Zalo.
-- Có nút quay lại (`BackIcon`) trên tất cả subpages.
+### 4.1. Vùng Chạm Ngón Cái (Touch Target Size ≥ 44×44px)
+- **Chuẩn kích thước tương tác:**
+  - Nút bấm chính (CTA): Chiều cao tối thiểu `44px - 52px` (`min-h-[44px]`).
+  - Nút quay lại (Back button) trên Header: Vùng chạm tối thiểu `44×44px` (visual icon 20px, container `w-11 h-11` hoặc padding đệm).
+  - Stepper (`QuantityStepper` & Stepper trên thẻ món): Nút cộng `(+)` và trừ `(−)` phải có diện tích chạm ngón tay tối thiểu `44×44px` (hoặc tối thiểu `36px` kèm vùng `after:absolute after:-inset-2.5` đạt 48px hit area).
+  - Category Tabs: Chiều cao tối thiểu `min-h-[40px] - 44px`.
+  - Nút sao chép STK / Lưu ảnh QR: Tối thiểu `min-h-[36px] - 44px` để tránh bấm trượt.
+- **Khoảng cách đệm giữa các nút kề nhau:** Tối thiểu `8px` để triệt tiêu hiện tượng chạm nhầm (fat-finger errors).
 
-### 5.2. Bottom Navigation & Bottom Action Bar
-- Sticky/Fixed đáy màn hình luôn kèm class `safe-bottom` (`padding-bottom: max(16px, calc(var(--app-safe-area-bottom) + 12px))`).
-- Giới hạn 3-4 tabs chính (`Thực đơn`, `Giỏ hàng`, `Đơn hàng`, `Bếp/POS` cho Staff).
-- Nút CTA chính (Đặt hàng, Thêm giỏ, Xác nhận) cao `44px - 52px` đạt chuẩn Touch Target.
+### 4.2. Chống Lồng Phần Tử Tương Tác (No Interactive Nesting)
+- **Quy tắc nghiêm ngặt W3C §4.10.19:** Tuyệt đối **KHÔNG lồng `<button>` hoặc `<a>` bên trong thẻ cha có `role="button"` hoặc `onClick`**.
+- **Giải pháp cho Thẻ món ăn (`ProductCard`) và Thẻ đơn hàng (`OrderItemCard`):**
+  - Tách thẻ thành các vùng tương tác độc lập:
+    - Vùng hình ảnh & thông tin món: Nhận `onClick` mở trang chi tiết.
+    - Cụm Stepper / Nút Quick-Add: Nằm trong container độc lập, có `e.stopPropagation()` và không nằm trong thẻ cha `role="button"`.
+  - Triệt tiêu hoàn toàn lỗi "Ghost Click" và "Click Jacking" trên Android WebView.
 
-### 5.3. Product Card & Quantity Stepper
-- Ảnh tỉ lệ vuông `aspect-square`, bo góc `rounded-2xl`.
-- Quick-add & Stepper: Touch target tối thiểu 32px - 44px, có phản hồi haptic/active scale.
-- Trạng thái `Hết món` có lớp phủ tối `backdrop-blur-[2px]` và badge rõ ràng.
+### 4.3. Typography & Khả Năng Tiếp Cận (Accessibility)
+- **Cấm Micro-typography (< 11px):**
+  - Tuyệt đối hạn chế `text-xxxxsmall` (9px). Cỡ chữ nhỏ nhất cho metadata, nhãn thời gian, số lượng phải từ `11px` (`text-[11px]`) đến `12px` (`text-xs`).
+- **Phản hồi Screen Reader (`aria-live`):**
+  - Mọi khu vực cập nhật số lượng giỏ hàng hoặc số lượng trong stepper phải có thuộc tính `aria-live="polite"` để phần mềm đọc màn hình tự động thông báo thay đổi cho người khiếm thị.
+- **Quy tắc Icon & Trợ năng:**
+  - Tuyệt đối không dùng Icon chay không có `aria-label` trên các nút icon-only (Nút Back, Nút Tăng/Giảm, Nút Xóa, Nút Đóng).
+  - Mọi icon hình ảnh mang tính trang trí phải có `aria-hidden="true"`.
 
-### 5.4. Bottom Sheet & Modal
-- `ProductDetailSheet`, `CartSheet` có nút CTA dính đáy và padding safe area bottom.
-- Hỗ trợ vuốt đóng mượt mà.
+### 4.4. Quy Tắc Biểu Tượng & Icon (Icon Guidelines - AGENTS.md Compliance)
+- **TUYỆT ĐỐI KHÔNG dùng ký tự Emoji Unicode trực tiếp** (ví dụ: 🔴, 🟢, 🛵, ⚡, 🍜, 🛒, 👥, 🏠, 🥡) làm icon giao diện, chỉ số trạng thái hay mẫu in nhiệt.
+- **Chỉ sử dụng:**
+  1. Icon chính thức của Zalo Mini App: `zmp-ui <Icon icon="zi-..." />`.
+  2. Bộ SVG Vectors đồng bộ tại `apps/frontend/src/components/common/vectors.tsx`.
+  3. CSS Dot Badges (ví dụ: `w-2 h-2 rounded-full bg-primary`).
+- **Luôn thêm `shrink-0`** vào tất cả các component icon trong flex container để tránh bị bẹp méo trên màn hình di động 360px.
+
+---
+
+## 5. Chuẩn Trải Nghiệm Ứng Dụng F&B Đặt Món Nhanh (Fast Food Ordering UX)
+
+### 5.1. Phân Biệt Quick-Add Trực Tiếp vs Món Có Biến Thể
+- **Món đơn giản (Không có Option Groups bắt buộc hoặc tùy chọn):**
+  - Bấm nút `(+)` trên thẻ món → **Thêm ngay 1 món vào giỏ hàng (1-Tap Quick Add)** kèm hiệu ứng phản hồi tức thì.
+  - Hiển thị Stepper `[-] [Số lượng] [+]` ngay trên thẻ món để khách tăng giảm số lượng nhanh chóng mà không cần rời màn hình menu.
+- **Món có biến thể / Topping (Có Option Groups):**
+  - Bấm nút `(+)` hoặc bấm vào thẻ món → **Mở trang / Sheet Chi tiết món (`ProductDetailPage`)** để khách chọn size, lượng đường, đá, topping bắt buộc trước khi thêm vào giỏ.
+
+### 5.2. Chống Trùng Đơn & Idempotency (Anti-Spam Submit)
+- Khi khách hàng nhấn nút "Đặt hàng" hoặc "Thanh toán":
+  1. **Lập tức disable nút** và hiển thị Spinner/Loading state (`isSubmitting: true`).
+  2. Gắn cố định header `Idempotency-Key: <UUID-v4>` cho toàn bộ phiên gửi request tạo đơn.
+  3. Nếu gặp lỗi mạng / timeout: Giữ nguyên Idempotency-Key để khi khách bấm thử lại (Retry) không bị tạo 2 đơn trùng nhau tại backend.
+  4. Chỉ sinh Idempotency-Key mới khi backend phản hồi lỗi xác thực dữ liệu (4xx client error).
+
+### 5.3. Zero-Flash State & Điều Hướng Mượt Mà
+- **Không nhấp nháy giỏ hàng rỗng:** Khi hoàn tất tạo đơn và thực hiện `clearCart()`, giao diện Checkout không được chớp màn hình "Giỏ hàng trống" trước khi redirect sang trang Order Detail (`isCompletingOrderRef` check).
+- **Trạng thái tải dữ liệu:** Mọi danh mục món, thông tin giỏ, và chi tiết đơn hàng đều phải có **Skeleton Shimmer** tương ứng với khung layout thật, triệt tiêu cảm giác giật cục (layout shift).
+
+### 5.4. Xử Lý Form & Bàn Phím Ảo (Virtual Keyboard Accommodation)
+- Tại trang nhập địa chỉ (`SelectLocationPage`), khi focus vào ô "Số nhà" hoặc "Ghi chú", input phải tự động căn chỉnh khoảng cách hoặc cuộn lên trên bàn phím ảo (`scrollIntoView({ behavior: 'smooth', block: 'center' })`), tránh bị bàn phím Android/iOS che lấp nút xác nhận.
+
+---
+
+## 6. Ma Trận Đối Chiếu Chuẩn Thành Phần (Component Benchmark Matrix)
+
+| Thành phần | Hiện trạng Code | Chuẩn Tiêu Chuẩn 2025–2026 | Mức Độ Khắc Phục |
+| :--- | :--- | :--- | :--- |
+| **Category Tabs** (`CategoryList`) | `min-h-[36px]`, thiếu `role="tab"` | Nâng lên `min-h-[40px]`, thêm `role="tablist"` & `aria-selected` | ⚠️ IMPORTANT |
+| **ProductCard Stepper** | Visual `28px - 36px`, nested trong `role="button"` | Tách rời click container, tăng hit-target `≥ 44px`, thêm `aria-live` | 🚨 CRITICAL |
+| **Header Back Button** | `h-8 w-8` (32px), thiếu `aria-label` | Nâng vùng chạm lên `min-w-[44px] min-h-[44px]`, `aria-label="Quay lại"` | ⚠️ IMPORTANT |
+| **VietQR Copy Buttons** | `min-h-[28px]` nhỏ khó bấm | Tăng vùng chạm `min-h-[38px] - 44px`, feedback rõ ràng | ⚠️ IMPORTANT |
+| **OrderDetailPage** | Monolithic file 964 dòng | Tách 4 module độc lập: VietQR, Timeline, ShipperCard, OrderItems | 📋 REFACTOR PLAN |
+| **Home Search** | Chưa có thanh tìm kiếm món | Bổ sung thanh Search món ăn hỗ trợ tìm kiếm nhanh | 💡 SUGGESTION |

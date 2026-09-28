@@ -30,18 +30,18 @@ export default function QuantityStepper({
   const sizeClasses = {
     small: {
       button:
-        "w-7 h-7 text-sm min-w-[28px] min-h-[28px] p-1 touch-manipulation",
-      display: "min-w-[20px] px-1 text-center text-xs font-bold",
+        "w-8 h-8 text-sm min-w-[32px] min-h-[32px] p-1 touch-manipulation",
+      display: "min-w-[24px] px-1 text-center text-xs font-bold",
     },
     medium: {
       button:
-        "w-8 h-8 text-base min-w-[32px] min-h-[32px] p-1.5 touch-manipulation",
-      display: "min-w-[24px] text-center text-sm font-semibold",
+        "w-9 h-9 text-base min-w-[36px] min-h-[36px] p-1.5 touch-manipulation",
+      display: "min-w-[28px] text-center text-sm font-semibold",
     },
     large: {
       button:
-        "w-9 h-9 text-xl min-w-[36px] min-h-[36px] p-1.5 touch-manipulation",
-      display: "w-9 text-center text-base font-semibold",
+        "w-10 h-10 text-xl min-w-[40px] min-h-[40px] p-1.5 touch-manipulation",
+      display: "w-10 text-center text-base font-semibold",
     },
   };
 
@@ -69,6 +69,7 @@ export default function QuantityStepper({
         <span>−</span>
       </button>
       <span
+        aria-live="polite"
         className={`${sizeClasses[size].display} text-xs font-semibold text-neutral900`}
       >
         {value}

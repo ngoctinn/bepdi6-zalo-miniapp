@@ -166,7 +166,8 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
                         key={slot.value}
                         type="button"
                         onClick={() => onChange(slot.value)}
-                        className={`rounded-lg py-2 text-center text-xs transition-all duration-150 active:scale-95 ${
+                        aria-pressed={isSelected}
+                        className={`flex min-h-[40px] touch-manipulation items-center justify-center rounded-lg px-2 py-2 text-center text-xs transition-all duration-150 active:scale-95 ${
                           isSelected
                             ? "shadow-xs border-primary/40 border bg-primary font-bold text-white"
                             : "border border-black/[0.06] bg-stone-50/70 font-medium text-neutral700 hover:border-black/10"

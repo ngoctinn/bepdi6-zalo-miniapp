@@ -122,71 +122,79 @@ export default function ProductCard({
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Xem chi tiết ${product.name}`}
       className={cn(
-        "group flex w-full cursor-pointer flex-col text-left transition-all focus-visible:rounded-2xl active:opacity-90",
+        "group flex w-full flex-col text-left transition-all",
         isOutOfStock && "opacity-60",
       )}
-      onClick={handleCardClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          handleCardClick();
-        }
-      }}
       onMouseEnter={handlePrefetch}
       onTouchStart={handlePrefetch}
     >
-      {/* Product Image with Overlays */}
-      <div className="shadow-xs relative aspect-square w-full overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-black/5">
-        {/* Out of Stock overlay */}
-        {isOutOfStock && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-            <span className="rounded-md bg-black/80 px-2 py-0.5 text-xxxsmall font-semibold tracking-wide text-white">
-              {copy.product.outOfStock}
-            </span>
-          </div>
-        )}
+      {/* Vùng click mở chi tiết món: Ảnh + Tên + Mô tả (Tách độc lập, không lồng button con) */}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={`Xem chi tiết ${product.name}`}
+        onClick={handleCardClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleCardClick();
+          }
+        }}
+        className="focus-visible:ring-primary/40 cursor-pointer focus-visible:rounded-2xl focus-visible:outline-none focus-visible:ring-2 active:opacity-90"
+      >
+        {/* Product Image with Overlays */}
+        <div className="shadow-xs relative aspect-square w-full overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-black/5">
+          {/* Out of Stock overlay */}
+          {isOutOfStock && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+              <span className="rounded-md bg-black/80 px-2 py-0.5 text-xxxsmall font-semibold tracking-wide text-white">
+                {copy.product.outOfStock}
+              </span>
+            </div>
+          )}
 
-        {/* Sale badge — Soft Amber Discount Tag */}
-        {hasPromo && discountPct != null && discountPct > 0 && (
-          <Badge
-            variant="recommended"
-            size="small"
-            className="shadow-xs backdrop-blur-xs absolute left-2 top-2 z-10 px-1.5 py-0.5 text-[10px]"
-          >
-            -{discountPct}%
-          </Badge>
-        )}
+          {/* Sale badge — Soft Amber Discount Tag */}
+          {hasPromo && discountPct != null && discountPct > 0 && (
+            <Badge
+              variant="recommended"
+              size="small"
+              className="shadow-xs backdrop-blur-xs absolute left-2 top-2 z-10 px-1.5 py-0.5 text-[10px]"
+            >
+              -{discountPct}%
+            </Badge>
+          )}
 
-        <img
-          draggable={false}
-          src={imageUrl}
-          alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-          decoding="async"
-        />
-      </div>
-
-      {/* Product Info */}
-      <div className="mt-2 flex flex-col">
-        <div className="line-clamp-2 min-h-[38px] text-sm font-semibold leading-snug text-neutral900">
-          {product.name}
+          <img
+            draggable={false}
+            src={imageUrl}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
-        {product.description && (
-          <div className="mt-0.5 line-clamp-1 text-xs leading-normal text-neutral500">
-            {product.description}
+
+        {/* Product Info */}
+        <div className="mt-2 flex flex-col">
+          <div className="line-clamp-2 min-h-[38px] text-sm font-semibold leading-snug text-neutral900">
+            {product.name}
           </div>
-        )}
+          {product.description && (
+            <div className="mt-0.5 line-clamp-1 text-xs leading-normal text-neutral500">
+              {product.description}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Price row + Quick-add stepper */}
+      {/* Price row + Quick-add stepper (Độc lập, không bị bao bọc trong role="button") */}
       <div className="mt-1.5 flex items-end justify-between gap-1 pt-0.5">
         {/* Price block */}
-        <div className="flex min-h-[34px] flex-col justify-end">
+        <div
+          className="flex min-h-[34px] cursor-pointer flex-col justify-end"
+          onClick={handleCardClick}
+        >
           <div
             className={cn(
               "text-sm font-extrabold leading-tight tracking-tight",
@@ -212,53 +220,55 @@ export default function ProductCard({
           )}
         </div>
 
-        {/* Stepper / Quick-add */}
+        {/* Stepper / Quick-add container */}
         {!isOutOfStock && (
           <div className="shrink-0">
             {totalQuantityInCart > 0 ? (
-              <div
-                className="flex items-center gap-1.5"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={handleQuickDecrease}
-                  className="shadow-xs border-primary/25 flex h-9 min-h-[36px] w-9 min-w-[36px] touch-manipulation items-center justify-center rounded-full border bg-olive50/80 text-olive900 transition-transform active:scale-90"
+                  className="shadow-xs border-primary/25 flex h-10 min-h-[40px] w-10 min-w-[40px] touch-manipulation items-center justify-center rounded-full border bg-olive50/80 text-olive900 transition-transform active:scale-90"
                   aria-label="Giảm số lượng"
                 >
                   <svg
-                    width="13"
-                    height="13"
+                    width="14"
+                    height="14"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="3"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    aria-hidden="true"
                   >
                     <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
                 </button>
 
-                <span className="min-w-[20px] text-center text-xs font-bold text-neutral900">
+                <span
+                  className="min-w-[20px] text-center text-xs font-bold text-neutral900"
+                  aria-live="polite"
+                >
                   {totalQuantityInCart}
                 </span>
 
                 <button
                   type="button"
                   onClick={handleQuickAdd}
-                  className="flex h-9 min-h-[36px] w-9 min-w-[36px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90"
+                  className="flex h-10 min-h-[40px] w-10 min-w-[40px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90"
                   aria-label="Tăng số lượng"
                 >
                   <svg
-                    width="13"
-                    height="13"
+                    width="14"
+                    height="14"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="3"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    aria-hidden="true"
                   >
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
@@ -269,18 +279,19 @@ export default function ProductCard({
               <button
                 type="button"
                 onClick={handleQuickAdd}
-                className="flex h-10 min-h-[40px] w-10 min-w-[40px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-all active:scale-90 active:shadow-none"
-                aria-label="Thêm vào giỏ"
+                className="flex h-11 min-h-[44px] w-11 min-w-[44px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-all active:scale-90 active:shadow-none"
+                aria-label={`Thêm ${product.name} vào giỏ`}
               >
                 <svg
-                  width="16"
-                  height="16"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  aria-hidden="true"
                 >
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />

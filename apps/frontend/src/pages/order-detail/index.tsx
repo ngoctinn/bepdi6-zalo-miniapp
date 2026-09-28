@@ -6,101 +6,27 @@ import { useCancelOrder } from "@/services/order/order.mutations";
 import { useCartStore } from "@/stores/cart.store";
 import { useAuth } from "@/hooks/use-auth";
 import { Button, Spinner, Text } from "zmp-ui";
-import { openWebview, saveImageToGallery } from "zmp-sdk/apis";
-import { formatCurrency } from "@/utils/format";
-import { makePhoneCall } from "@/utils/phone";
 import {
   AlertCircleIcon,
-  CheckIcon,
-  CopyIcon,
-  DownloadIcon,
-  MotorbikeIcon,
-  NavigationIcon,
-  PhoneIcon,
   StoreIcon,
-  MapPinIcon,
   TruckIcon,
 } from "@/components/common/vectors";
-import { Order, OrderStatus } from "@/types/order.types";
+import { Order } from "@/types/order.types";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ConfirmModal } from "@/components/common/confirm-modal";
 import { Badge } from "@/components/common/badge";
 import { copy } from "@/constants/copy";
-import { cn } from "@/utils/cn";
-import {
-  DEFAULT_BANK_CONFIG,
-  DEFAULT_SHOP_ADDRESS,
-  DEFAULT_SHOP_COORDINATES,
-  getVietQrUrl,
-} from "@/constants/shop";
 import {
   getOrderStatusLabel,
   getOrderStatusVariant,
   getDeliveryTypeLabel,
 } from "@/utils/order-display";
 
-const DELIVERY_STATUS_STEPS: Array<{
-  id: string;
-  label: string;
-  matches: (status: OrderStatus) => boolean;
-}> = [
-  {
-    id: "PLACED",
-    label: copy.order.stepper?.placed || "Đã nhận đơn",
-    matches: (s) => s === "PENDING_CONFIRMATION" || s === "CONFIRMED",
-  },
-  {
-    id: "PREPARING",
-    label: copy.order.stepper?.cooking || "Đang chuẩn bị",
-    matches: (s) => s === "PREPARING",
-  },
-  {
-    id: "DELIVERING",
-    label: copy.order.stepper?.delivering || "Đang giao hàng",
-    matches: (s) => s === "READY" || s === "DELIVERING",
-  },
-  {
-    id: "COMPLETED",
-    label: copy.order.status.completed || "Hoàn tất",
-    matches: (s) => s === "COMPLETED",
-  },
-];
-
-const PICKUP_STATUS_STEPS: Array<{
-  id: string;
-  label: string;
-  matches: (status: OrderStatus) => boolean;
-}> = [
-  {
-    id: "PLACED",
-    label: copy.order.stepper?.placed || "Đã nhận đơn",
-    matches: (s) => s === "PENDING_CONFIRMATION" || s === "CONFIRMED",
-  },
-  {
-    id: "PREPARING",
-    label: copy.order.stepper?.cooking || "Đang chuẩn bị",
-    matches: (s) => s === "PREPARING",
-  },
-  {
-    id: "READY_PICKUP",
-    label: copy.order.status.readyForPickup || "Mời đến lấy",
-    matches: (s) => s === "READY" || s === "DELIVERING",
-  },
-  {
-    id: "COMPLETED",
-    label: copy.order.status.pickedUp || "Đã nhận món",
-    matches: (s) => s === "COMPLETED",
-  },
-];
-
-const getStepIndex = (status: OrderStatus, isPickup: boolean): number => {
-  const steps = isPickup ? PICKUP_STATUS_STEPS : DELIVERY_STATUS_STEPS;
-  if (status === "PENDING_CONFIRMATION" || status === "CONFIRMED") return 0;
-  if (status === "PREPARING") return 1;
-  if (status === "READY" || status === "DELIVERING") return 2;
-  if (status === "COMPLETED") return 3;
-  return 0;
-};
+// Modularized Order Sub-components
+import { OrderTimelineStepper } from "@/components/order/order-timeline-stepper";
+import { OrderShipperCard } from "@/components/order/order-shipper-card";
+import { OrderVietQrCard } from "@/components/order/order-vietqr-card";
+import { OrderDetailItems } from "@/components/order/order-detail-items";
 
 export default function OrderDetailPage() {
   useAuth();
@@ -128,9 +54,6 @@ export default function OrderDetailPage() {
   const cancelOrderMutation = useCancelOrder();
   const [isCancelling, setIsCancelling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [isSavingQr, setIsSavingQr] = useState(false);
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [isSavedQrSuccess, setIsSavedQrSuccess] = useState(false);
 
   const handleReorder = () => {
     if (!order?.items || order.items.length === 0) return;
@@ -151,85 +74,22 @@ export default function OrderDetailPage() {
         })),
       });
     }
-    showSuccess(copy.orderDetail.reorderSuccess || "Đã thêm món vào giỏ hàng");
+    showSuccess(copy.order.reorderSuccess || "Đã thêm các món vào giỏ hàng!");
     navigate("/checkout");
   };
 
-  const handleCopy = async (text: string, key: string, _label?: string) => {
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-9999px";
-        textArea.style.top = "0";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        const successful = document.execCommand("copy");
-        document.body.removeChild(textArea);
-        if (!successful) {
-          throw new Error("Copy command failed");
-        }
-      }
-      setCopiedKey(key);
-      setTimeout(() => {
-        setCopiedKey((prev) => (prev === key ? null : prev));
-      }, 1500);
-    } catch (err) {
-      console.warn("[Clipboard] copy failed:", err);
-      showError(
-        copy.orderDetail.copyFailedFallback ||
-          "Không thể tự động sao chép. Vui lòng sao chép thủ công.",
-      );
-    }
-  };
-
-  const handleOpenDirections = () => {
-    try {
-      openWebview({
-        url: googleMapsUrl,
-        config: {
-          style: "bottomSheet",
-          leftButton: "back",
-        },
-      });
-    } catch (e) {
-      console.warn("[Map] openWebview error, falling back to window.open:", e);
-      window.open(googleMapsUrl, "_blank");
-    }
-  };
-
-  const handleSaveQr = async () => {
-    if (!qrUrl || isSavingQr) return;
-    setIsSavingQr(true);
-    try {
-      await saveImageToGallery({
-        imageUrl: qrUrl,
-      });
-      setIsSavedQrSuccess(true);
-      setTimeout(() => setIsSavedQrSuccess(false), 2000);
-    } catch (err) {
-      console.warn("[VietQR] saveImageToGallery error:", err);
-      showError(copy.orderDetail.savedQrFailed);
-    } finally {
-      setIsSavingQr(false);
-    }
-  };
-
   const handleConfirmCancel = async () => {
-    if (!orderId) return;
-
+    if (!order) return;
     setIsCancelling(true);
     try {
       await cancelOrderMutation.mutateAsync({
-        id: orderId,
-        reason: copy.orderDetail.cancelReasonUser,
+        orderId: order.id,
+        reason:
+          copy.orderDetail.cancelDefaultReason || "Khách hàng yêu cầu hủy",
       });
       showSuccess(copy.orderDetail.cancelSuccess);
       setShowCancelModal(false);
+      refetch();
     } catch (err) {
       showError(
         err instanceof Error ? err.message : copy.orderDetail.cancelFailed,
@@ -241,11 +101,45 @@ export default function OrderDetailPage() {
 
   if (isLoading && !order) {
     return (
-      <div className="flex h-full flex-col items-center justify-center bg-background">
+      <div className="flex h-full min-h-[60vh] flex-col items-center justify-center gap-3 bg-background p-6">
         <Spinner />
-        <Text size="xSmall" className="mt-2 text-neutral500">
+        <Text size="small" className="text-neutral500">
           {copy.orderDetail.loading}
         </Text>
+      </div>
+    );
+  }
+
+  if (error && !order) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+          <AlertCircleIcon className="h-6 w-6 shrink-0" />
+        </div>
+        <Text size="small" className="font-semibold text-neutral800">
+          {copy.orderDetail.loadError}
+        </Text>
+        <p className="max-w-[260px] text-xs text-neutral500">
+          {error instanceof Error ? error.message : "Vui lòng thử lại sau"}
+        </p>
+        <div className="mt-2 flex w-full max-w-xs items-center gap-2">
+          <Button
+            size="small"
+            variant="secondary"
+            onClick={() => navigate("/order")}
+            className="flex-1 bg-stone-100 text-neutral700"
+          >
+            {copy.orderDetail.viewOrdersList}
+          </Button>
+          <Button
+            size="small"
+            loading={isFetching}
+            onClick={() => refetch()}
+            className="flex-1 bg-primary text-white"
+          >
+            {copy.orderDetail.retryButton || "Thử lại"}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -286,45 +180,12 @@ export default function OrderDetailPage() {
   }
 
   const isPickup = order.delivery_type === "PICKUP";
-  const steps = isPickup ? PICKUP_STATUS_STEPS : DELIVERY_STATUS_STEPS;
   const isCancelled = order.status === "CANCELLED";
-  const currentStep = getStepIndex(order.status, isPickup);
-  const isBankTransfer = order.payment_method === "BANK_TRANSFER";
   const isPaid = order.payment?.status === "PAID";
-
-  const bankAccountNo =
-    shopInfo?.vietqr_account_no || DEFAULT_BANK_CONFIG.accountNumber;
-  const bankAccountHolder =
-    shopInfo?.vietqr_account_name ||
-    DEFAULT_BANK_CONFIG.accountHolderName ||
-    copy.orderDetail.accountHolderName;
-  const bankCode = shopInfo?.vietqr_bank_id || DEFAULT_BANK_CONFIG.bankCode;
-  const bankDisplayName =
-    shopInfo?.vietqr_bank_id ||
-    DEFAULT_BANK_CONFIG.bankName ||
-    copy.orderDetail.bankName;
-
-  const qrUrl =
-    order.payment?.qr_code_url ||
-    getVietQrUrl({
-      amount: order.total_amount,
-      orderCode: order.order_code,
-      bankCode: bankCode,
-      accountNumber: bankAccountNo,
-      accountHolderName: bankAccountHolder,
-    });
-
-  const shopAddress = shopInfo?.address_text || DEFAULT_SHOP_ADDRESS;
-  const shopHotline = shopInfo?.hotline || "";
-  const shopName = shopInfo?.shop_name || copy.brand.name || "Bếp Dì 6";
-
-  const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
-    shopAddress,
-  )}`;
 
   return (
     <div className="flex flex-col gap-3 p-3.5 pb-28">
-      {/* Order Info */}
+      {/* 1. Header Order Info */}
       <div className="shadow-xs flex items-center justify-between rounded-2xl border border-black/[0.06] bg-white p-4">
         <div>
           <div className="flex items-center gap-2">
@@ -338,9 +199,9 @@ export default function OrderDetailPage() {
               className="gap-1 border-stone-200 bg-stone-100 text-stone-700"
             >
               {isPickup ? (
-                <StoreIcon className="h-3 w-3 text-stone-600" />
+                <StoreIcon className="h-3 w-3 shrink-0 text-stone-600" />
               ) : (
-                <TruckIcon className="h-3 w-3 text-stone-600" />
+                <TruckIcon className="h-3 w-3 shrink-0 text-stone-600" />
               )}
               <span>{getDeliveryTypeLabel(order.delivery_type)}</span>
             </Badge>
@@ -358,566 +219,31 @@ export default function OrderDetailPage() {
         </Badge>
       </div>
 
-      {/* Timeline Trạng Thái Đơn Hàng */}
-      <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
-        <span className="mb-3 block text-xs font-bold text-neutral900">
-          {copy.orderDetail.timelineSection}
-        </span>
+      {/* 2. Timeline Tiến Trình Trạng Thái */}
+      <OrderTimelineStepper order={order} />
 
-        {isCancelled ? (
-          <div className="rounded-xl border border-red-200/70 bg-red-50 p-3 text-xs text-red-700">
-            {copy.orderDetail.cancelledNotice}
-            {order.cancellation_reason && (
-              <span className="mt-0.5 block text-neutral600">
-                {copy.orderDetail.cancelReasonPrefix}{" "}
-                {order.cancellation_reason}
-              </span>
-            )}
-          </div>
-        ) : (
-          <div className="relative flex items-start justify-between px-2 pt-2">
-            {/* Progress Line */}
-            <div className="absolute left-8 right-8 top-5 -z-0 h-0.5 bg-stone-200" />
-            <div
-              className="absolute left-8 top-5 -z-0 h-0.5 bg-primary transition-all duration-500"
-              style={{
-                width: `calc(${(currentStep / Math.max(1, steps.length - 1)) * 100}% - 16px)`,
-              }}
-            />
+      {/* 3. Live Shipper Tracking Banner (Nếu có giao hàng) */}
+      <OrderShipperCard order={order} isPaid={isPaid} />
 
-            {steps.map((step, idx) => {
-              const isPassed = idx <= currentStep;
-              const isCurrent = idx === currentStep;
+      {/* 4. Khối Thanh Toán VietQR Tức Thì (Nếu BANK_TRANSFER) */}
+      <OrderVietQrCard
+        order={order}
+        shopInfo={shopInfo}
+        isPaid={isPaid}
+        isCancelled={isCancelled}
+      />
 
-              return (
-                <div
-                  key={step.id}
-                  className="z-10 flex w-16 flex-col items-center text-center"
-                >
-                  <div
-                    className={`flex h-6 w-6 items-center justify-center rounded-full text-xs transition-all ${
-                      isPassed
-                        ? "shadow-xs bg-primary text-white"
-                        : "border border-black/[0.08] bg-stone-100 text-neutral400"
-                    } ${isCurrent ? "ring-primary/20 scale-110 ring-4" : ""}`}
-                  >
-                    {isPassed && idx < currentStep ? (
-                      <CheckIcon className="h-3.5 w-3.5 text-white" />
-                    ) : (
-                      <span className="text-xxsmall font-bold">{idx + 1}</span>
-                    )}
-                  </div>
-                  <span
-                    className={`mt-2 text-xxsmall leading-tight ${
-                      isCurrent
-                        ? "font-bold text-olive900"
-                        : isPassed
-                          ? "font-medium text-neutral800"
-                          : "text-neutral400"
-                    }`}
-                  >
-                    {step.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {/* 5. Thông Tin Nhận Hàng & Danh Sách Món Ăn & Chi Tiết Thanh Toán */}
+      <OrderDetailItems order={order} shopInfo={shopInfo} />
 
-      {/* Live Shipper Tracking Card (Khi đang giao hàng hoặc đã có tài xế nhận đơn) */}
-      {!isPickup && !isCancelled && order.status === "DELIVERING" && (
-        <div className="shadow-xs border-primary/30 overflow-hidden rounded-2xl border bg-white">
-          <div className="bg-primary/10 flex items-center justify-between px-4 py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="flex h-2.5 w-2.5 animate-ping rounded-full bg-emerald-500" />
-              <span className="text-xs font-black text-primary">
-                {copy.orderDetail.driverDeliveringTitle ||
-                  "TÀI XẾ ĐANG GIAO ĐẾN BẠN"}
-              </span>
-            </div>
-            {order.distance_km && Number(order.distance_km) > 0 && (
-              <span className="shadow-2xs rounded-full bg-white px-2 py-0.5 text-xxxxsmall font-bold text-stone-600">
-                {(copy.orderDetail.distancePrefix || "Khoảng cách: ~") +
-                  order.distance_km +
-                  " km"}
-              </span>
-            )}
-          </div>
-
-          <div className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-inner",
-                    order.delivery_provider === "AHAMOVE"
-                      ? "bg-amber-500/10 text-amber-600"
-                      : order.delivery_provider === "GRAB"
-                        ? "bg-emerald-500/10 text-emerald-600"
-                        : "bg-primary/10 text-primary",
-                  )}
-                >
-                  {order.delivery_provider === "AHAMOVE" ? (
-                    <TruckIcon className="h-6 w-6 shrink-0" />
-                  ) : (
-                    <MotorbikeIcon className="h-6 w-6 shrink-0" />
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="rounded bg-stone-100 px-1.5 py-0.5 text-xxxxsmall font-black uppercase text-stone-700">
-                      {order.delivery_provider === "AHAMOVE"
-                        ? "Ahamove"
-                        : order.delivery_provider === "GRAB"
-                          ? "GrabExpress"
-                          : "Shipper Quán"}
-                    </span>
-                    {order.shipper_tracking_code && (
-                      <span className="font-mono text-xxxxsmall text-stone-500">
-                        #{order.shipper_tracking_code}
-                      </span>
-                    )}
-                  </div>
-                  <h4 className="mt-0.5 text-sm font-black text-neutral900">
-                    {order.shipper_name ||
-                      copy.orderDetail.driverMovingDefault ||
-                      "Tài xế đang di chuyển"}
-                  </h4>
-                  <p className="text-xxsmall text-stone-500">
-                    {copy.orderDetail.driverMovingHint ||
-                      "Vui lòng để ý điện thoại để nhận món nhé!"}
-                  </p>
-                </div>
-              </div>
-
-              {order.shipper_phone && (
-                <button
-                  type="button"
-                  onClick={() => makePhoneCall(order.shipper_phone!)}
-                  className="shadow-xs flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold text-white transition-all active:scale-95"
-                >
-                  <PhoneIcon className="h-4 w-4" />
-                  <span>{copy.orderDetail.callDriver || "Gọi tài xế"}</span>
-                </button>
-              )}
-            </div>
-
-            {/* Cảnh báo tiền mặt nếu COD */}
-            {order.payment_method === "COD" && (
-              <div className="mt-3 flex items-center justify-between rounded-xl border border-amber-300/80 bg-amber-50 px-3 py-2 text-xs">
-                <span className="font-bold text-amber-900">
-                  {copy.orderDetail.cashPreparedLabel ||
-                    "Tiền mặt cần chuẩn bị:"}
-                </span>
-                <span className="text-sm font-black text-amber-900">
-                  {formatCurrency(order.total_amount || 0)}đ
-                </span>
-              </div>
-            )}
-            {order.payment_method === "BANK_TRANSFER" && isPaid && (
-              <div className="mt-3 flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
-                <CheckIcon className="h-4 w-4 text-emerald-600" />
-                <span>
-                  {copy.orderDetail.paidOnlineNotice ||
-                    "Đã thanh toán Online 0đ - Không thanh toán thêm cho tài xế"}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Khối Thanh Toán VietQR Tức Thì (Nếu chọn BANK_TRANSFER) */}
-      {isBankTransfer && !isCancelled && (
-        <div className="shadow-xs border-primary/25 space-y-3 rounded-2xl border bg-olive50/60 p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-neutral900">
-              {copy.orderDetail.vietqrTitle}
-            </span>
-            <Badge
-              variant={isPaid ? "primary" : "warning"}
-              size="small"
-              className={isPaid ? "" : "animate-pulse"}
-            >
-              {isPaid
-                ? copy.orderDetail.paidStatus
-                : copy.orderDetail.pendingPayStatus}
-            </Badge>
-          </div>
-
-          {!isPaid ? (
-            <div className="mt-3 flex flex-col items-center space-y-3 text-center">
-              <div className="inline-block rounded-2xl border border-black/10 bg-white p-2.5 shadow-sm">
-                <img
-                  src={qrUrl}
-                  alt="VietQR Bep Di 6"
-                  className="h-52 w-52 object-contain"
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSaveQr}
-                disabled={isSavingQr}
-                className={cn(
-                  "shadow-2xs inline-flex items-center justify-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all active:scale-95",
-                  isSavedQrSuccess
-                    ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
-                    : "border-primary/30 bg-white text-primary active:bg-olive50",
-                )}
-              >
-                {isSavingQr ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                ) : isSavedQrSuccess ? (
-                  <CheckIcon className="h-4 w-4 text-emerald-600" />
-                ) : (
-                  <DownloadIcon className="h-4 w-4" />
-                )}
-                <span>
-                  {isSavedQrSuccess
-                    ? "Đã lưu vào máy!"
-                    : copy.orderDetail.saveQrToGallery}
-                </span>
-              </button>
-
-              <div className="w-full space-y-2.5 rounded-xl border border-black/5 bg-black/[0.02] p-3.5 text-left text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral500">
-                    {copy.orderDetail.bankLabel}
-                  </span>
-                  <span className="font-bold text-neutral900">
-                    {bankDisplayName}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral500">
-                    {copy.orderDetail.accountNumberLabel}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-primary">
-                      {bankAccountNo}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleCopy(
-                          bankAccountNo,
-                          "bankAccountNo",
-                          copy.orderDetail.accountNumberLabel,
-                        )
-                      }
-                      className={cn(
-                        "shadow-2xs inline-flex min-h-[28px] items-center justify-center gap-1 rounded-md border px-2.5 py-1 text-xxsmall font-semibold transition-all active:scale-95",
-                        copiedKey === "bankAccountNo"
-                          ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
-                          : "border-primary/30 active:bg-primary/10 bg-white text-primary",
-                      )}
-                    >
-                      {copiedKey === "bankAccountNo" ? (
-                        <>
-                          <CheckIcon className="h-3 w-3 text-emerald-600" />
-                          <span>Đã chép</span>
-                        </>
-                      ) : (
-                        copy.orderDetail.copy
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral500">
-                    {copy.orderDetail.accountHolderLabel}
-                  </span>
-                  <span className="font-bold text-neutral900">
-                    {bankAccountHolder}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral500">
-                    {copy.orderDetail.amountLabel}
-                  </span>
-                  <span className="text-sm font-bold text-neutral900">
-                    {formatCurrency(order.total_amount)}đ
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral500">
-                    {copy.orderDetail.transferContentLabel}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-neutral900">
-                      {order.order_code}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleCopy(
-                          order.order_code,
-                          "orderCode",
-                          copy.orderDetail.transferContentLabel,
-                        )
-                      }
-                      className={cn(
-                        "shadow-2xs inline-flex min-h-[28px] items-center justify-center gap-1 rounded-md border px-2.5 py-1 text-xxsmall font-semibold transition-all active:scale-95",
-                        copiedKey === "orderCode"
-                          ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
-                          : "border-primary/30 active:bg-primary/10 bg-white text-primary",
-                      )}
-                    >
-                      {copiedKey === "orderCode" ? (
-                        <>
-                          <CheckIcon className="h-3 w-3 text-emerald-600" />
-                          <span>Đã chép</span>
-                        </>
-                      ) : (
-                        copy.orderDetail.copy
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-xxsmall italic text-neutral500">
-                {copy.orderDetail.autoUpdateNote}
-              </p>
-            </div>
-          ) : (
-            <div className="border-primary/30 bg-primary/10 mt-2 rounded-lg border p-2.5 text-xs text-primaryDark">
-              {copy.orderDetail.paidSuccessMessage}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Thông tin nhận hàng (Giao tận nơi vs Tự đến lấy) */}
-      <div className="shadow-xs space-y-3 rounded-2xl border border-black/[0.06] bg-white p-4">
-        <span className="block text-xs font-bold uppercase tracking-wider text-neutral900">
-          {isPickup
-            ? copy.checkout.pickupStoreSection
-            : copy.checkout.deliveryAddressSection}
-        </span>
-
-        {isPickup ? (
-          <div className="space-y-3">
-            {/* Thẻ thông tin địa chỉ cửa hàng + nút chỉ đường */}
-            <div className="border-primary/20 rounded-xl border bg-olive50/40 p-3">
-              <div className="flex items-start gap-2.5">
-                <div className="bg-primary/10 mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-primary">
-                  <StoreIcon className="h-4 w-4" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-bold text-neutral900">{shopName}</div>
-                  <div className="mt-1 text-xs leading-relaxed text-neutral700">
-                    {shopAddress}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons: Google Maps, Sao chép địa chỉ & Hotline */}
-              <div className="mt-3 flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={handleOpenDirections}
-                  className="shadow-xs flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-all active:scale-[0.98] active:bg-primaryDark"
-                >
-                  <NavigationIcon className="h-3.5 w-3.5" />
-                  <span>{copy.orderDetail.openGoogleMap}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleCopy(
-                      shopAddress,
-                      "shopAddress",
-                      copy.orderDetail.shopAddressLabel,
-                    )
-                  }
-                  className={cn(
-                    "shadow-2xs flex items-center justify-center gap-1 rounded-lg border px-2.5 py-2 text-xs font-semibold transition-all active:scale-[0.98]",
-                    copiedKey === "shopAddress"
-                      ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
-                      : "border-black/10 bg-white text-neutral700 active:bg-stone-50",
-                  )}
-                  title={copy.orderDetail.copyAddress}
-                >
-                  {copiedKey === "shopAddress" ? (
-                    <>
-                      <CheckIcon className="h-3.5 w-3.5 text-emerald-600" />
-                      <span>Đã chép</span>
-                    </>
-                  ) : (
-                    <>
-                      <CopyIcon className="h-3.5 w-3.5" />
-                      <span>{copy.orderDetail.copy}</span>
-                    </>
-                  )}
-                </button>
-                {shopHotline && (
-                  <button
-                    type="button"
-                    onClick={() => makePhoneCall(shopHotline)}
-                    className="shadow-2xs border-primary/30 flex items-center justify-center gap-1.5 rounded-lg border bg-white px-3 py-2 text-xs font-semibold text-primary transition-all active:scale-[0.98] active:bg-olive50"
-                  >
-                    <PhoneIcon className="h-3.5 w-3.5" />
-                    <span>{shopHotline}</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Thông tin người đến lấy */}
-            <div className="space-y-1 rounded-xl border border-black/[0.05] bg-stone-50/70 p-3 text-xs">
-              <div className="text-xxsmall font-medium text-neutral500">
-                {copy.orderDetail.recipient}:
-              </div>
-              <div className="font-semibold text-neutral900">
-                {order.recipient_name} • {order.phone}
-              </div>
-              {order.scheduled_delivery_at && (
-                <div className="mt-1.5 flex items-center gap-1.5 pt-0.5">
-                  <span className="border-primary/20 rounded-md border bg-olive50/90 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
-                    {copy.orderDetail.scheduledPickupTime}{" "}
-                    {new Date(order.scheduled_delivery_at).toLocaleTimeString(
-                      "vi-VN",
-                      {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      },
-                    )}
-                  </span>
-                </div>
-              )}
-              {order.note && (
-                <div className="mt-1 text-xxsmall italic text-neutral500">
-                  {copy.checkout.note}: "{order.note}"
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          /* Giao tận nơi */
-          <div className="space-y-2 text-xs text-neutral800">
-            <div className="flex items-start gap-2">
-              <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <div>
-                <div className="font-semibold text-neutral900">
-                  {copy.orderDetail.recipient}: {order.recipient_name} •{" "}
-                  {order.phone}
-                </div>
-                <div className="mt-1 leading-relaxed text-neutral600">
-                  {order.delivery_address}
-                </div>
-              </div>
-            </div>
-
-            {order.scheduled_delivery_at && (
-              <div className="mt-1.5 flex items-center gap-1.5">
-                <span className="border-primary/20 rounded-md border bg-olive50/90 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
-                  {copy.orderDetail.scheduledDeliveryTime}{" "}
-                  {new Date(order.scheduled_delivery_at).toLocaleTimeString(
-                    "vi-VN",
-                    {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    },
-                  )}
-                </span>
-              </div>
-            )}
-            {order.note && (
-              <div className="mt-1 text-xxsmall italic text-neutral500">
-                {copy.checkout.note}: "{order.note}"
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Danh sách món ăn */}
-      <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4">
-        <span className="mb-2.5 block text-xs font-bold text-neutral900">
-          {copy.orderDetail.itemsSection} ({order.items?.length || 0})
-        </span>
-        <div className="space-y-3 divide-y divide-black/[0.05]">
-          {(order.items || []).map((item) => (
-            <div
-              key={item.id}
-              className="flex items-start justify-between pt-2 first:pt-0"
-            >
-              <div className="flex-1 pr-3">
-                <div className="text-xs font-medium text-neutral900">
-                  {item.product_name}{" "}
-                  <span className="font-normal text-neutral500">
-                    x{item.quantity}
-                  </span>
-                </div>
-                {item.options && item.options.length > 0 && (
-                  <div className="mt-0.5 text-xxsmall text-neutral500">
-                    + {item.options.map((o) => o.option_name).join(", ")}
-                  </div>
-                )}
-                {item.note && (
-                  <div className="mt-0.5 text-xxsmall italic text-amber-700">
-                    "{item.note}"
-                  </div>
-                )}
-              </div>
-              <span className="whitespace-nowrap text-xs font-bold text-neutral900">
-                {formatCurrency(item.subtotal || 0)}đ
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Chi tiết thanh toán */}
-      <div className="shadow-xs space-y-2.5 rounded-2xl border border-black/[0.06] bg-white p-4 text-xs">
-        <span className="block text-xs font-bold text-neutral900">
-          {copy.orderDetail.totalSection}
-        </span>
-        <div className="flex justify-between text-neutral600">
-          <span>{copy.checkout.subtotal}</span>
-          <span className="font-medium text-neutral900">
-            {formatCurrency(order.subtotal || 0)}đ
-          </span>
-        </div>
-        <div className="flex justify-between text-neutral600">
-          <span>
-            {isPickup
-              ? copy.checkout.deliveryMethod || "Hình thức"
-              : `${copy.checkout.shippingFee} (${Number(order.distance_km ?? 0).toFixed(1)} km)`}
-          </span>
-          <span className="font-medium text-neutral900">
-            {isPickup
-              ? copy.checkout.selfPickupFree || "Tự đến lấy (0đ)"
-              : `${formatCurrency(order.shipping_fee || 0)}đ`}
-          </span>
-        </div>
-        {order.discount > 0 && (
-          <div className="flex justify-between font-medium text-primary">
-            <span>{copy.checkout.discount}</span>
-            <span>-{formatCurrency(order.discount)}đ</span>
-          </div>
-        )}
-        <div className="flex items-center justify-between border-t border-black/[0.05] pt-3 text-sm">
-          <span className="font-bold text-neutral900">
-            {copy.checkout.total}
-          </span>
-          <span className="text-base font-extrabold text-neutral900">
-            {formatCurrency(order.total_amount || 0)}đ
-          </span>
-        </div>
-      </div>
-
-      {/* Footer Action: Hủy đơn nếu còn Chờ xác nhận (Chuẩn Touch-Target Zalo 48px) */}
+      {/* Footer Action: Hủy đơn nếu còn Chờ xác nhận (Chuẩn Touch-Target Zalo >= 48px) */}
       {order.status === "PENDING_CONFIRMATION" && (
         <div className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-4 pb-3 pt-3 shadow-lg backdrop-blur-md">
           <button
             type="button"
             onClick={() => setShowCancelModal(true)}
             disabled={isCancelling}
-            className="shadow-2xs flex h-12 w-full items-center justify-center rounded-xl border border-red-200 bg-red-50/90 text-sm font-semibold text-red-600 transition-all active:scale-[0.98] active:bg-red-100 disabled:opacity-50"
+            className="shadow-2xs flex h-12 w-full touch-manipulation items-center justify-center rounded-xl border border-red-200 bg-red-50/90 text-sm font-semibold text-red-600 transition-all active:scale-[0.98] active:bg-red-100 disabled:opacity-50"
           >
             {isCancelling ? (
               <div className="flex items-center gap-2">
@@ -937,7 +263,7 @@ export default function OrderDetailPage() {
           <button
             type="button"
             onClick={handleReorder}
-            className="shadow-2xs flex h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-bold text-white transition-all hover:bg-primaryDark active:scale-[0.98]"
+            className="shadow-2xs flex h-12 w-full touch-manipulation items-center justify-center rounded-xl bg-primary text-sm font-bold text-white transition-all hover:bg-primaryDark active:scale-[0.98]"
           >
             {copy.orderDetail.reorderButton ||
               copy.order.reorder ||
@@ -946,7 +272,7 @@ export default function OrderDetailPage() {
         </div>
       )}
 
-      {/* Confirm Modal Hủy đơn theo chuẩn Zalo Guidelines */}
+      {/* Confirm Modal Hủy đơn */}
       <ConfirmModal
         visible={showCancelModal}
         title={copy.orderDetail.cancelModalTitle}

@@ -77,12 +77,12 @@ export default function Footer() {
             aria-label={item.name}
             aria-current={isActive ? "page" : undefined}
           >
-            <div className="relative flex h-6 w-6 items-center justify-center">
+            <div className="relative flex h-6 w-6 shrink-0 items-center justify-center">
               <item.icon active={isActive} />
               {item.badge > 0 && (
                 <span
                   key={item.badge}
-                  className="shadow-xs absolute -right-2.5 -top-1.5 flex h-4 min-w-[16px] animate-bounce items-center justify-center rounded-full bg-red-500 px-1 text-xxxxsmall font-extrabold leading-none text-white ring-2 ring-white [animation-iteration-count:2]"
+                  className="shadow-xs absolute -right-2.5 -top-1.5 flex h-4 min-w-[16px] animate-bounce items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-extrabold leading-none text-white ring-2 ring-white [animation-iteration-count:2]"
                 >
                   {item.badge > 99 ? "99+" : item.badge}
                 </span>
@@ -90,8 +90,8 @@ export default function Footer() {
             </div>
             <span
               className={cn(
-                "mt-1 text-xxxxsmall font-bold tracking-tight transition-colors",
-                isActive ? "text-primary" : "text-stone-500",
+                "mt-1 text-[11px] font-semibold tracking-tight transition-colors",
+                isActive ? "font-bold text-primary" : "text-stone-500",
               )}
             >
               {item.name}
