@@ -4,9 +4,9 @@ import { theme } from "@/constants/copy";
 export type SvgProps = React.SVGProps<SVGSVGElement>;
 
 const iconColors = {
-  active: theme.colors.primary, // #4D7C0F — xanh rêu rustic olive khi active
+  active: "var(--theme-primary, #4D7C0F)", // #4D7C0F — xanh rêu rustic olive khi active
   inactive: "#78716C", // stone-500 — đồng bộ với text-stone-500 của nhãn footer
-  accent: theme.colors.primary,
+  accent: "var(--theme-primary, #4D7C0F)",
   white: theme.colors.white,
   black: theme.colors.black,
 };

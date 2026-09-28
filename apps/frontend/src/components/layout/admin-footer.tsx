@@ -218,7 +218,7 @@ export default function AdminFooter({ className }: AdminFooterProps) {
             </div>
             <span
               className={cn(
-                "mt-1 text-xxxxsmall font-bold tracking-tight transition-colors",
+                "mt-1 text-[11px] font-semibold tracking-tight transition-colors",
                 isActive ? "font-extrabold text-primary" : "text-stone-500",
               )}
             >

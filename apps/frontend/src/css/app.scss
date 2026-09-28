@@ -10,11 +10,25 @@
   );
 
   /* Dynamic Theme Colors — Default: Rustic Olive (Customer Mode) */
-  --theme-primary: #4d7c0f;
-  --theme-primary-dark: #3f6212;
-  --theme-primary-light: #ecfccb;
-  --theme-primary-surface: #f7fee7;
+  --theme-primary-rgb: 77 124 15;
+  --theme-primary-dark-rgb: 63 98 18;
+  --theme-primary-light-rgb: 236 252 203;
+  --theme-primary-surface-rgb: 247 254 231;
+
+  --theme-primary: rgb(var(--theme-primary-rgb));
+  --theme-primary-dark: rgb(var(--theme-primary-dark-rgb));
+  --theme-primary-light: rgb(var(--theme-primary-light-rgb));
+  --theme-primary-surface: rgb(var(--theme-primary-surface-rgb));
   --theme-primary-border: rgba(77, 124, 15, 0.2);
+
+  /* Brand Accent: Warm Amber */
+  --theme-accent-rgb: 217 119 6;
+  --theme-accent-light-rgb: 254 243 199;
+  --theme-accent-surface-rgb: 255 251 235;
+
+  --theme-accent: rgb(var(--theme-accent-rgb));
+  --theme-accent-light: rgb(var(--theme-accent-light-rgb));
+  --theme-accent-surface: rgb(var(--theme-accent-surface-rgb));
 
   /* ZaUI Primary Theme Overrides */
   --zaui-light-color-primary: var(--theme-primary);
@@ -58,10 +72,15 @@
 /* Admin Theme Overrides — Warm Orange / Amber System */
 .admin-theme,
 [data-theme="admin"] {
-  --theme-primary: #ea580c; /* Orange 600 */
-  --theme-primary-dark: #c2410c; /* Orange 700 */
-  --theme-primary-light: #ffedd5; /* Orange 100 */
-  --theme-primary-surface: #fff7ed; /* Orange 50 */
+  --theme-primary-rgb: 234 88 12; /* Orange 600 */
+  --theme-primary-dark-rgb: 194 65 12; /* Orange 700 */
+  --theme-primary-light-rgb: 255 237 213; /* Orange 100 */
+  --theme-primary-surface-rgb: 255 247 237; /* Orange 50 */
+
+  --theme-primary: rgb(var(--theme-primary-rgb));
+  --theme-primary-dark: rgb(var(--theme-primary-dark-rgb));
+  --theme-primary-light: rgb(var(--theme-primary-light-rgb));
+  --theme-primary-surface: rgb(var(--theme-primary-surface-rgb));
   --theme-primary-border: rgba(234, 88, 12, 0.25);
 }
 
@@ -115,7 +134,7 @@ textarea:focus,
 select:focus {
   outline: none !important;
   border-color: var(--zaui-primary-color, #4d7c0f) !important;
-  box-shadow: 0 0 0 1px rgba(77, 124, 15, 0.25) !important;
+  box-shadow: 0 0 0 1px var(--theme-primary-border, rgba(77, 124, 15, 0.25)) !important;
 }
 
 button,

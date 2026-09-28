@@ -240,7 +240,7 @@ export function DeliveryAddressCard({
                 <button
                   type="button"
                   onClick={handleGetZaloProfile}
-                  className="text-xxxxsmall font-bold text-primary underline"
+                  className="text-xs font-bold text-primary underline"
                 >
                   {copy.checkout.getZaloProfile}
                 </button>
@@ -259,7 +259,7 @@ export function DeliveryAddressCard({
                   className={`shadow-xs w-full rounded-xl border bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:outline-none ${
                     hasPickupNameError
                       ? "border-red-500 ring-1 ring-red-500 focus:border-red-500"
-                      : "focus:ring-primary/30 border-black/[0.08] focus:border-primary focus:ring-1"
+                      : "border-black/[0.08] focus:border-primary focus:ring-1 focus:ring-primary/30"
                   }`}
                 />
                 {hasPickupNameError && (
@@ -284,7 +284,7 @@ export function DeliveryAddressCard({
                   className={`shadow-xs w-full rounded-xl border bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:outline-none ${
                     hasPickupPhoneError
                       ? "border-red-500 ring-1 ring-red-500 focus:border-red-500"
-                      : "focus:ring-primary/30 border-black/[0.08] focus:border-primary focus:ring-1"
+                      : "border-black/[0.08] focus:border-primary focus:ring-1 focus:ring-primary/30"
                   }`}
                 />
                 {hasPickupPhoneError && (

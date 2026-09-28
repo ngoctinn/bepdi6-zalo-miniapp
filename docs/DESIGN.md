@@ -21,20 +21,22 @@
 Toàn bộ mã màu trong tài liệu này đồng bộ 100% với `apps/frontend/src/tokens.js` và biến CSS `:root` tại `apps/frontend/src/css/app.scss`.
 
 ### 2.1. Primary & Brand Colors (Khách hàng)
-| Token Key | Giá trị HEX | Tên gọi & Ứng dụng |
+Toàn bộ mã màu theme được khai báo dưới dạng kênh màu RGB phân cách bằng khoảng trắng (`--theme-*-rgb: R G B;`) trong `apps/frontend/src/css/app.scss` và ánh xạ qua `rgb(var(...) / <alpha-value>)` trong `apps/frontend/src/tokens.js`. Điều này cho phép Tailwind v3 hỗ trợ hoàn hảo các class modifier opacity như `bg-primary/20`, `border-primary/30`.
+
+| Token Key | Biến RGB / HEX | Tên gọi & Ứng dụng |
 | :--- | :--- | :--- |
-| `olive700` (`--theme-primary`) | `#4D7C0F` | **Primary Brand**: Nút CTA chính, Tab đang active, icon nổi bật, viền nhấn |
-| `olive800` (`--theme-primary-dark`) | `#3F6212` | **Primary Pressed / Hover**: Trạng thái nhấn giữ của nút chính |
-| `olive100` (`--theme-primary-light`) | `#ECFCCB` | Nền phụ, chip lựa chọn, highlight nhẹ |
-| `olive50` (`--theme-primary-surface`) | `#F7FEE7` | Nền block tóm tắt, banner trạng thái đơn đang xử lý, badge active |
-| `amber600` (`brandAccent`) | `#D97706` | **Warm Amber**: Điểm nhấn ẩm thực, badge giảm giá, hình thức "Tự đến lấy" |
+| `primary` (`--theme-primary`) | `77 124 15` / `#4D7C0F` | **Primary Brand**: Nút CTA chính, Tab đang active, icon nổi bật, viền nhấn |
+| `primaryDark` (`--theme-primary-dark`) | `63 98 18` / `#3F6212` | **Primary Pressed / Hover**: Trạng thái nhấn giữ của nút chính |
+| `primaryLight` (`--theme-primary-light`) | `236 252 203` / `#ECFCCB` | Nền phụ, chip lựa chọn, highlight nhẹ |
+| `primarySurface` (`--theme-primary-surface`) | `247 254 231` / `#F7FEE7` | Nền block tóm tắt, banner trạng thái đơn đang xử lý, badge active |
+| `brandAccent` (`--theme-accent`) | `217 119 6` / `#D97706` | **Warm Amber**: Điểm nhấn ẩm thực, badge giảm giá, hình thức "Tự đến lấy" |
 | `amber500` / `amber100` | `#F59E0B` / `#FEF3C7` | Nền nhạt và viền của cảnh báo hoặc badge chuẩn bị món |
 
 ### 2.2. Admin & Staff Theme (Vận hành Bếp & Quản trị)
-| Token Key | Giá trị HEX | Tên gọi & Ứng dụng |
+| Token Key | Biến RGB / HEX | Tên gọi & Ứng dụng |
 | :--- | :--- | :--- |
-| `orange600` (`--theme-primary`) | `#EA580C` | Màu chủ đạo cho module Quản trị Bếp & Nhân viên |
-| `orange700` / `orange100` | `#C2410C` / `#FFEDD5` | Trạng thái nhấn & bề mặt phụ giao diện Admin |
+| `orange600` (`--theme-primary`) | `234 88 12` / `#EA580C` | Màu chủ đạo cho module Quản trị Bếp & Nhân viên |
+| `orange700` / `orange100` | `194 65 12` / `255 237 213` | Trạng thái nhấn & bề mặt phụ giao diện Admin |
 
 ### 2.3. Neutrals & Surfaces (Nền & Bề mặt)
 | Token Key | Giá trị HEX | Ứng dụng |
@@ -105,8 +107,11 @@ Toàn bộ mã màu trong tài liệu này đồng bộ 100% với `apps/fronten
   - Triệt tiêu hoàn toàn lỗi "Ghost Click" và "Click Jacking" trên Android WebView.
 
 ### 4.3. Typography & Khả Năng Tiếp Cận (Accessibility)
-- **Cấm Micro-typography (< 11px):**
-  - Tuyệt đối hạn chế `text-xxxxsmall` (9px). Cỡ chữ nhỏ nhất cho metadata, nhãn thời gian, số lượng phải từ `11px` (`text-[11px]`) đến `12px` (`text-xs`).
+- **Cấm Tuyệt Đối Micro-typography (< 11px) cho Văn Bản:**
+  - Đã loại bỏ hoàn toàn `text-xxxxsmall` (10px). Cỡ chữ nhỏ nhất cho toàn bộ nhãn thông tin, metadata, mã vận đơn, số điện thoại, tag shipper là **`11px font-semibold / font-bold`** (`text-[11px]`) hoặc chuẩn **`12px`** (`text-xs`).
+  - **Ngoại lệ duy nhất cho 10px:** Badge số lượng hình tròn cực nhỏ (`h-4 min-w-[16px]`) trên icon giỏ hàng dùng `text-[10px] font-black leading-none` để tránh vỡ viền tròn.
+- **Tiêu chuẩn Line-Height & Dấu Tiếng Việt:**
+  - Hạn chế dùng `leading-none` trên các dòng tiêu đề hoặc đoạn văn đa dòng vì dễ gây cắt ngọn dấu hỏi/ngã/mũ. Luôn đảm bảo `line-height` tối thiểu `1.25` đến `1.35` (`leading-tight` hoặc `leading-snug`).
 - **Phản hồi Screen Reader (`aria-live`):**
   - Mọi khu vực cập nhật số lượng giỏ hàng hoặc số lượng trong stepper phải có thuộc tính `aria-live="polite"` để phần mềm đọc màn hình tự động thông báo thay đổi cho người khiếm thị.
 - **Quy tắc Icon & Trợ năng:**

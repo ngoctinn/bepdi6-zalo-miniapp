@@ -125,12 +125,14 @@ const base = {
 
 const semantic = {
   colors: {
-    primary: "var(--theme-primary, #4D7C0F)", // Dynamic theme variable
-    primaryDark: "var(--theme-primary-dark, #3F6212)",
-    primaryLight: "var(--theme-primary-light, #ECFCCB)",
-    primarySurface: "var(--theme-primary-surface, #F7FEE7)",
+    primary: "rgb(var(--theme-primary-rgb, 77 124 15) / <alpha-value>)", // Dynamic theme variable with opacity support
+    primaryDark: "rgb(var(--theme-primary-dark-rgb, 63 98 18) / <alpha-value>)",
+    primaryLight:
+      "rgb(var(--theme-primary-light-rgb, 236 252 203) / <alpha-value>)",
+    primarySurface:
+      "rgb(var(--theme-primary-surface-rgb, 247 254 231) / <alpha-value>)",
     primaryBorder: "var(--theme-primary-border, rgba(77, 124, 15, 0.2))",
-    brandAccent: "var(--theme-primary, #D97706)", // Đồng bộ màu thương hiệu
+    brandAccent: "rgb(var(--theme-accent-rgb, 217 119 6) / <alpha-value>)", // Đồng bộ màu thương hiệu Warm Amber
     background: base.colors.stone50, // #FCFCFB — Nền sáng dịu sạch sẽ
     surface: "#FFFFFF",
     surfaceSubtle: "rgba(0,0,0,0.02)",

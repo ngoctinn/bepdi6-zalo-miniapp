@@ -440,7 +440,7 @@ export default function StaffOrdersPage() {
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="shadow-xs flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-center">
-            <div className="bg-primary/10 mb-2.5 flex h-12 w-12 items-center justify-center rounded-full text-primary">
+            <div className="mb-2.5 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Icon icon="zi-list-1" className="text-2xl" />
             </div>
             <p className="text-sm font-bold text-neutral900">
@@ -449,7 +449,7 @@ export default function StaffOrdersPage() {
             <p className="mt-1 max-w-[260px] text-xs text-stone-500">
               {copy.staff.emptyOrdersHint}
             </p>
-            <div className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-xxxxsmall font-semibold text-stone-600">
+            <div className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-semibold text-stone-600">
               <span className="h-2 w-2 animate-ping rounded-full bg-primary" />
               <span>Hệ thống tự động cập nhật liên tục</span>
             </div>

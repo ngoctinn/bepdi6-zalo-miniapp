@@ -80,7 +80,7 @@ export function Tabs<T extends string>({
             {tab.badge !== undefined && (
               <span
                 className={cn(
-                  "ml-1.5 inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-xxxxsmall font-bold leading-none",
+                  "ml-1.5 inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-[11px] font-bold leading-none",
                   isActive
                     ? "bg-primaryLight text-primaryDark"
                     : "bg-black/[0.07] text-neutral600",

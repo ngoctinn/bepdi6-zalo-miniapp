@@ -25,8 +25,8 @@ export function OrderShipperCard({ order, isPaid }: OrderShipperCardProps) {
   }
 
   return (
-    <div className="shadow-xs border-primary/30 overflow-hidden rounded-2xl border bg-white">
-      <div className="bg-primary/10 flex items-center justify-between px-4 py-2.5">
+    <div className="shadow-xs overflow-hidden rounded-2xl border border-primary/30 bg-white">
+      <div className="flex items-center justify-between bg-primary/10 px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 animate-ping rounded-full bg-emerald-500" />
           <span className="text-xs font-black text-primary">
@@ -35,7 +35,7 @@ export function OrderShipperCard({ order, isPaid }: OrderShipperCardProps) {
           </span>
         </div>
         {order.distance_km && Number(order.distance_km) > 0 && (
-          <span className="shadow-2xs rounded-full bg-white px-2 py-0.5 text-xxxxsmall font-bold text-stone-600">
+          <span className="shadow-2xs rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-stone-600">
             {(copy.orderDetail.distancePrefix || "Khoảng cách: ~") +
               order.distance_km +
               " km"}
@@ -64,7 +64,7 @@ export function OrderShipperCard({ order, isPaid }: OrderShipperCardProps) {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="rounded bg-stone-100 px-1.5 py-0.5 text-xxxxsmall font-black uppercase text-stone-700">
+                <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[11px] font-black uppercase text-stone-700">
                   {order.delivery_provider === "AHAMOVE"
                     ? "Ahamove"
                     : order.delivery_provider === "GRAB"
@@ -72,7 +72,7 @@ export function OrderShipperCard({ order, isPaid }: OrderShipperCardProps) {
                       : "Shipper Quán"}
                 </span>
                 {order.shipper_tracking_code && (
-                  <span className="font-mono text-xxxxsmall text-stone-500">
+                  <span className="font-mono text-[11px] text-stone-500">
                     #{order.shipper_tracking_code}
                   </span>
                 )}

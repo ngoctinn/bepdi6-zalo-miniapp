@@ -340,7 +340,7 @@ export default function SelectLocationPage() {
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 placeholder={copy.selectLocation.searchPlaceholder}
-                className="shadow-xs focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-white py-2.5 pl-9 pr-8 text-xs text-neutral900 placeholder:text-neutral400 focus:border-primary focus:outline-none focus:ring-1"
+                className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white py-2.5 pl-9 pr-8 text-xs text-neutral900 placeholder:text-neutral400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
               {isSearching && (
                 <div className="absolute right-3">
@@ -448,7 +448,7 @@ export default function SelectLocationPage() {
               onChange={(e) => setHouseNumber(e.target.value)}
               onFocus={handleInputFocus}
               placeholder={copy.selectLocation.houseNumberPlaceholder}
-              className="shadow-xs focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-white p-3 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
+              className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white p-3 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
             />
           </div>
 
@@ -470,7 +470,7 @@ export default function SelectLocationPage() {
                   <button
                     type="button"
                     onClick={() => setIsEditingStreet(!isEditingStreet)}
-                    className="text-xxxxsmall font-semibold text-primary underline"
+                    className="text-xs font-semibold text-primary underline"
                   >
                     {isEditingStreet
                       ? copy.selectLocation.doneManual
@@ -492,7 +492,7 @@ export default function SelectLocationPage() {
                 }
                 onFocus={handleInputFocus}
                 placeholder={copy.selectLocation.streetPlaceholder}
-                className="shadow-xs focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-white p-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
+                className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white p-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
             ) : (
               <div className="flex items-start gap-2.5 rounded-xl border border-black/[0.08] bg-stone-50/80 p-3">
@@ -556,7 +556,7 @@ export default function SelectLocationPage() {
               }
               onFocus={handleInputFocus}
               placeholder={copy.selectLocation.namePlaceholder}
-              className="shadow-xs focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
+              className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
             />
           </div>
 
@@ -597,7 +597,7 @@ export default function SelectLocationPage() {
               }
               onFocus={handleInputFocus}
               placeholder={copy.selectLocation.phonePlaceholder}
-              className="shadow-xs focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
+              className="shadow-xs w-full rounded-xl border border-black/[0.08] bg-white px-3.5 py-2.5 text-xs text-neutral900 transition-colors placeholder:text-neutral400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
             />
           </div>
 
@@ -657,7 +657,7 @@ export default function SelectLocationPage() {
                   onClick={() => handleSelectAddress(addr)}
                   className={`shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border bg-white p-3.5 transition-all ${
                     isSelected
-                      ? "ring-primary/20 border-[1.5px] border-primary shadow-sm ring-1"
+                      ? "border-[1.5px] border-primary shadow-sm ring-1 ring-primary/20"
                       : "border-black/[0.06] hover:border-black/15 active:bg-black/[0.02]"
                   }`}
                 >

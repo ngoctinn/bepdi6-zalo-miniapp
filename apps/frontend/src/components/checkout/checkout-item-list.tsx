@@ -115,7 +115,7 @@ export function CheckoutItemList({
                         <span className="text-xs font-bold text-neutral900">
                           {formatCurrency(itemTotal)}đ
                         </span>
-                        <span className="text-xxxxsmall font-medium text-primary underline">
+                        <span className="text-xs font-semibold text-primary underline">
                           Sửa
                         </span>
                       </div>

@@ -117,7 +117,7 @@ export function StaffOrderDetailSheet({
           <div
             className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold ${
               isPaid
-                ? "border-primary/20 bg-primary/10 border text-primary"
+                ? "border border-primary/20 bg-primary/10 text-primary"
                 : "border-2 border-amber-500 bg-amber-50 text-amber-900 shadow-sm"
             }`}
           >
@@ -164,7 +164,7 @@ export function StaffOrderDetailSheet({
                 <button
                   type="button"
                   onClick={() => makePhoneCall(order.phone)}
-                  className="border-primary/40 inline-flex h-9 items-center justify-center gap-1 rounded-full border bg-primarySurface px-3.5 text-xs font-bold text-primaryDark shadow-sm transition-transform active:scale-95"
+                  className="inline-flex h-9 items-center justify-center gap-1 rounded-full border border-primary/40 bg-primarySurface px-3.5 text-xs font-bold text-primaryDark shadow-sm transition-transform active:scale-95"
                 >
                   <Icon icon="zi-call" className="text-sm leading-none" />
                   <span>{copy.staff.callCustomerBtn}</span>
@@ -203,7 +203,7 @@ export function StaffOrderDetailSheet({
 
           {/* Shipper Info (if assigned) */}
           {order.shipper_name && (
-            <div className="border-primary/20 bg-primary/5 rounded-xl border p-3 text-xs">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white">
@@ -218,7 +218,7 @@ export function StaffOrderDetailSheet({
                   </span>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xxxxsmall font-bold uppercase text-primary">
+                      <span className="text-[11px] font-bold uppercase text-primary">
                         {order.delivery_provider === "AHAMOVE"
                           ? "Ahamove"
                           : order.delivery_provider === "GRAB"
@@ -226,7 +226,7 @@ export function StaffOrderDetailSheet({
                             : copy.staff.dispatch.internalShipper}
                       </span>
                       {order.shipper_tracking_code && (
-                        <span className="rounded border border-stone-200 bg-white px-1 py-0.5 font-mono text-xxxxsmall font-bold text-stone-600">
+                        <span className="rounded border border-stone-200 bg-white px-1 py-0.5 font-mono text-[11px] font-bold text-stone-600">
                           {order.shipper_tracking_code}
                         </span>
                       )}
@@ -242,7 +242,7 @@ export function StaffOrderDetailSheet({
                   <button
                     type="button"
                     onClick={() => makePhoneCall(order.shipper_phone!)}
-                    className="border-primary/30 inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-primary active:scale-95"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-primary/30 bg-white text-primary active:scale-95"
                     title={copy.staff.actions.call}
                   >
                     <Icon
