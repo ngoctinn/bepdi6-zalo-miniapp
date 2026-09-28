@@ -1,8 +1,15 @@
 import { Order } from "@/types/order.types";
 
+function escapeHtml(str: string | undefined | null): string {
+  if (!str) return "";
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 /**
  * Utility tạo cửa sổ in hóa đơn nhiệt 80mm cho Quán
- * Hỗ trợ in trực tiếp từ trình duyệt Webview hoặc máy in Bluetooth/LAN
+ * Hỗ trợ in trực tiếp từ trình duyệt Webview hoặc máy trường Bluetooth/LAN
  */
 export function printOrderReceipt(
   order: Order,
@@ -20,17 +27,17 @@ export function printOrderReceipt(
       (item, idx) => `
       <div style="margin-bottom: 8px; border-bottom: 1px dashed #ddd; padding-bottom: 6px;">
         <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: ${type === "KITCHEN" ? "16px" : "14px"};">
-          <span>[ ${item.quantity} ] ${item.product_name}</span>
+          <span>[ ${item.quantity} ] ${escapeHtml(item.product_name)}</span>
           ${type === "DELIVERY_BAG" ? `<span>${Number(item.subtotal || 0).toLocaleString("vi-VN")}đ</span>` : ""}
         </div>
         ${
           item.options && item.options.length > 0
-            ? `<div style="font-size: 12px; color: #555; margin-left: 12px;">+ ${item.options.map((o) => o.option_name).join(", ")}</div>`
+            ? `<div style="font-size: 12px; color: #555; margin-left: 12px;">+ ${item.options.map((o) => escapeHtml(o.option_name)).join(", ")}</div>`
             : ""
         }
         ${
           item.note
-            ? `<div style="font-size: 13px; font-weight: bold; color: #b91c1c; margin-top: 4px; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">>>> LƯU Ý: ${item.note}</div>`
+            ? `<div style="font-size: 13px; font-weight: bold; color: #b91c1c; margin-top: 4px; background: #fee2e2; padding: 2px 6px; border-radius: 4px;">>>> LƯU Ý: ${escapeHtml(item.note)}</div>`
             : ""
         }
       </div>
@@ -74,9 +81,9 @@ export function printOrderReceipt(
           type === "DELIVERY_BAG"
             ? `
           <div>
-            <div><b>Khách:</b> ${order.recipient_name}</div>
-            <div><b>SĐT:</b> ${order.phone}</div>
-            ${order.delivery_address ? `<div><b>Đ/C:</b> ${order.delivery_address}</div>` : `<div><b>Hình thức:</b> Khách lấy tại quán</div>`}
+            <div><b>Khách:</b> ${escapeHtml(order.recipient_name)}</div>
+            <div><b>SĐT:</b> ${escapeHtml(order.phone)}</div>
+            ${order.delivery_address ? `<div><b>Đ/C:</b> ${escapeHtml(order.delivery_address)}</div>` : `<div><b>Hình thức:</b> Khách lấy tại quán</div>`}
           </div>
           <div class="divider"></div>
         `
@@ -86,7 +93,7 @@ export function printOrderReceipt(
         ${
           order.note
             ? `<div class="alert-box" style="border-color: #d97706; background: #fef3c7; color: #78350f; font-size: 12px;">
-                GHI CHÚ ĐƠN: ${order.note}
+                GHI CHÚ ĐƠN: ${escapeHtml(order.note)}
                </div>`
             : ""
         }

@@ -20,6 +20,7 @@ class VoucherValidateView(APIView):
     """
 
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "voucher"
 
     def post(self, request):
         serializer = VoucherValidateRequestSerializer(data=request.data)
@@ -44,14 +45,15 @@ class VoucherValidateView(APIView):
                 status=status.HTTP_200_OK,
             )
         except VoucherValidationError as e:
-            return Response(
+            from rest_framework.exceptions import ValidationError
+
+            raise ValidationError(
                 {
                     "valid": False,
                     "reason": e.code,
                     "message": e.message,
-                },
-                status=status.HTTP_200_OK,
-            )
+                }
+            ) from e
 
 
 class AdminVoucherListCreateView(APIView):

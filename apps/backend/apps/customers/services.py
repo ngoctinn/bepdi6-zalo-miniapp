@@ -9,6 +9,7 @@ import requests.adapters
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.customers.models import Customer, User
@@ -62,14 +63,12 @@ class AuthService:
         zalo_app_secret = getattr(settings, "ZALO_APP_SECRET", "")
 
         is_testing = "pytest" in sys.modules or getattr(settings, "IS_TESTING", False)
-        # Default fallback for testing & local development without credentials
-        if (
+        is_mock_allowed = settings.DEBUG or is_testing
+
+        if is_mock_allowed and (
             not zalo_app_id
             or not zalo_app_secret
-            or (
-                is_testing
-                and (zalo_token.startswith("mock_") or zalo_token.startswith("test_"))
-            )
+            or (zalo_token.startswith("mock_") or zalo_token.startswith("test_"))
         ):
             clean_token = zalo_token.replace("mock_", "").replace("test_", "")
             zalo_user_id = (
@@ -87,6 +86,12 @@ class AuthService:
                 "phone": phone,
                 "avatar_url": avatar_url,
             }
+        elif not zalo_app_id or not zalo_app_secret:
+            from django.core.exceptions import ImproperlyConfigured
+
+            raise ImproperlyConfigured(
+                "ZALO_APP_ID and ZALO_APP_SECRET must be set in production"
+            )
 
         # Real Zalo OpenAPI Token Exchange
         try:
@@ -135,14 +140,10 @@ class AuthService:
                 "avatar_url": avatar,
             }
         except Exception as e:
-            logger.error("Error exchanging Zalo tokens: %s", e)
-            zalo_user_id = f"zalo_{zalo_token[:10]}"
-            return {
-                "zalo_user_id": zalo_user_id,
-                "name": name or "Khách Zalo",
-                "phone": "",
-                "avatar_url": avatar_url,
-            }
+            logger.error("Zalo token exchange failed: %s", e)
+            raise AuthenticationFailed(
+                "Xác thực Zalo thất bại. Vui lòng thử lại."
+            ) from e
 
     @classmethod
     def authenticate_or_register_zalo_customer(
@@ -265,8 +266,10 @@ class AuthService:
         zalo_app_id = getattr(settings, "ZALO_APP_ID", "")
         zalo_app_secret = getattr(settings, "ZALO_APP_SECRET", "")
 
-        # Default fallback for testing & local development
-        if (
+        is_testing = "pytest" in sys.modules or getattr(settings, "IS_TESTING", False)
+        is_mock_allowed = settings.DEBUG or is_testing
+
+        if is_mock_allowed and (
             not zalo_app_id
             or not zalo_app_secret
             or phone_token.startswith("dev_")
@@ -274,6 +277,12 @@ class AuthService:
             or phone_token.startswith("test_")
         ):
             return "0987654321"
+        elif not zalo_app_id or not zalo_app_secret:
+            from django.core.exceptions import ImproperlyConfigured
+
+            raise ImproperlyConfigured(
+                "ZALO_APP_ID and ZALO_APP_SECRET must be set in production"
+            )
 
         try:
             session = get_zalo_http_session()
@@ -758,8 +767,10 @@ class AuthService:
         zalo_app_id = getattr(settings, "ZALO_APP_ID", "")
         zalo_app_secret = getattr(settings, "ZALO_APP_SECRET", "")
 
-        # Default fallback for testing, simulator & local development
-        if (
+        is_testing = "pytest" in sys.modules or getattr(settings, "IS_TESTING", False)
+        is_mock_allowed = settings.DEBUG or is_testing
+
+        if is_mock_allowed and (
             not zalo_app_id
             or not zalo_app_secret
             or token.startswith("dev_")
@@ -787,6 +798,12 @@ class AuthService:
                 "district": "Quận 1",
                 "city": "Thành phố Hồ Chí Minh",
             }
+        elif not zalo_app_id or not zalo_app_secret:
+            from django.core.exceptions import ImproperlyConfigured
+
+            raise ImproperlyConfigured(
+                "ZALO_APP_ID and ZALO_APP_SECRET must be set in production"
+            )
 
         try:
             session = get_zalo_http_session()

@@ -151,7 +151,10 @@ class ProductListView(APIView):
         )
 
         if category_id:
-            queryset = queryset.filter(category_id=category_id)
+            try:
+                queryset = queryset.filter(category_id=int(category_id))
+            except ValueError:
+                pass
 
         if status_param:
             queryset = queryset.filter(status=status_param)

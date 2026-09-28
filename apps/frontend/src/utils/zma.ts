@@ -20,7 +20,12 @@ export function getBasePath() {
     appEnv === "TESTING" ||
     appEnv === "DEVELOPMENT"
   ) {
-    return `/zapps/${window.APP_ID}`;
+    const appId = window.APP_ID;
+    if (!appId) {
+      console.warn("window.APP_ID is not defined!");
+      return window.BASE_PATH || "";
+    }
+    return `/zapps/${appId}`;
   }
 
   return window.BASE_PATH || "";

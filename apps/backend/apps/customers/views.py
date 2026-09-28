@@ -22,6 +22,7 @@ class ZaloAuthView(APIView):
     """
 
     permission_classes = [permissions.AllowAny]
+    throttle_scope = "auth"
 
     def post(self, request):
         serializer = ZaloAuthRequestSerializer(data=request.data)
@@ -57,6 +58,7 @@ class ZaloLocationDecodeView(APIView):
     """
 
     permission_classes = [permissions.IsAuthenticated]
+    throttle_scope = "geocoding"
 
     def post(self, request):
         serializer = ZaloLocationDecodeRequestSerializer(data=request.data)
@@ -96,6 +98,7 @@ class CustomerReverseGeocodeView(APIView):
     """
 
     permission_classes = [permissions.IsAuthenticated]
+    throttle_scope = "geocoding"
 
     def get(self, request):
         lat_str = request.query_params.get("latitude")
@@ -147,6 +150,7 @@ class LocationSearchView(APIView):
     """
 
     permission_classes = [permissions.IsAuthenticated]
+    throttle_scope = "geocoding"
 
     def get(self, request):
         query = request.query_params.get("query", "").strip()

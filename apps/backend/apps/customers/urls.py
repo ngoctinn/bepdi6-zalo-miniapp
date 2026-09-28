@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 
 from apps.customers.views import (
     AddressDetailView,
@@ -13,6 +14,7 @@ from apps.customers.views import (
 
 urlpatterns = [
     path("auth/zalo", ZaloAuthView.as_view(), name="auth-zalo"),
+    path("auth/token/refresh", TokenRefreshView.as_view(), name="token-refresh"),
     path(
         "customers/location/decode",
         ZaloLocationDecodeView.as_view(),

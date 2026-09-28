@@ -28,10 +28,17 @@ class Command(BaseCommand):
             },
         )
         if created:
-            admin_user.set_password("admin123")
+            import secrets
+            import string
+
+            alphabet = string.ascii_letters + string.digits
+            password = "".join(secrets.choice(alphabet) for i in range(12))
+            admin_user.set_password(password)
             admin_user.save()
             self.stdout.write(
-                self.style.SUCCESS("Created admin user (admin / admin123)")
+                self.style.WARNING(
+                    f"Created admin user (admin / {password}) - Please change this password in production!"
+                )
             )
 
         # 2. Xóa sạch dữ liệu menu & order test cũ để tái tạo dữ liệu hoàn hảo, không bị đè FK

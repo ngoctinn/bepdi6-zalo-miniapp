@@ -17,7 +17,6 @@ ROOT_DIR = BASE_DIR.parent.parent
 
 env = environ.Env(
     DEBUG=(bool, False),
-    SECRET_KEY=(str, "django-insecure-default-change-me"),
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
     DATABASE_URL=(str, "postgres://postgres:postgres@localhost:5432/bepdi6_db"),
     REDIS_URL=(str, "redis://localhost:6379/0"),
@@ -60,6 +59,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
 ]
 
@@ -232,19 +232,20 @@ else:
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS settings
+ZALO_CORS_ORIGINS = ["https://h5.zdn.vn", "zbrowser://h5.zdn.vn"]
 cors_origins_env = env("CORS_ALLOWED_ORIGINS", default="")
 if cors_origins_env:
     CORS_ALLOWED_ORIGINS = [
         origin.strip() for origin in cors_origins_env.split(",") if origin.strip()
     ]
+    for origin in ZALO_CORS_ORIGINS:
+        if origin not in CORS_ALLOWED_ORIGINS:
+            CORS_ALLOWED_ORIGINS.append(origin)
     CORS_ALLOW_ALL_ORIGINS = False
 elif DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    CORS_ALLOWED_ORIGINS = [
-        "https://h5.zdn.vn",
-        "zbrowser://h5.zdn.vn",
-    ]
+    CORS_ALLOWED_ORIGINS = list(ZALO_CORS_ORIGINS)
     CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -273,13 +274,26 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.BrowsableAPIRenderer",
     ),
     "EXCEPTION_HANDLER": "config.exceptions.custom_exception_handler",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "30/minute",
+        "user": "120/minute",
+        "auth": "10/minute",
+        "voucher": "20/minute",
+        "geocoding": "30/minute",
+    },
 }
 
 # Simple JWT settings
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 

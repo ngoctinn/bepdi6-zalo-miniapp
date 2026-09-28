@@ -36,12 +36,11 @@ export async function getZaloLoginCredentials() {
   let accessToken = "";
   try {
     accessToken = await getRequiredAccessToken();
-    const { userInfo } = await getUserInfo({ autoRequestPermission: true });
     return {
       accessToken,
-      name: userInfo?.name || "",
-      avatar: userInfo?.avatar || "",
-      id: userInfo?.id || "",
+      name: "",
+      avatar: "",
+      id: "",
     };
   } catch {
     return { accessToken, name: "", avatar: "", id: "" };

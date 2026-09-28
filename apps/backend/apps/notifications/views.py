@@ -93,6 +93,22 @@ class ZaloOAuthCallbackView(APIView):
         code = request.query_params.get("code")
         oa_id = request.query_params.get("oa_id")
         code_verifier = request.query_params.get("code_verifier", "")
+        state = request.query_params.get("state")
+
+        from django.core.cache import cache
+
+        if not state or not cache.get(f"zalo_oauth_state_{state}"):
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "INVALID_STATE",
+                        "message": "Trạng thái xác thực không hợp lệ hoặc đã hết hạn.",
+                    },
+                },
+                status=400,
+            )
+        cache.delete(f"zalo_oauth_state_{state}")
 
         if not code:
             return Response(

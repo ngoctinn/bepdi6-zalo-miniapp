@@ -1,6 +1,6 @@
 import { copy } from "@/constants/copy";
 import { Order } from "@/types/order.types";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, createContext, useContext } from "react";
 import { Icon, Spinner } from "zmp-ui";
 import { Badge } from "@/components/common/badge";
 import {
@@ -8,6 +8,25 @@ import {
   getOrderStatusVariant,
   getDeliveryTypeLabel,
 } from "@/utils/order-display";
+
+export const OrderTimerContext = createContext<number>(Date.now());
+
+export function OrderTimerProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(interval);
+  }, []);
+  return (
+    <OrderTimerContext.Provider value={now}>
+      {children}
+    </OrderTimerContext.Provider>
+  );
+}
 
 interface StaffOrderCardProps {
   order: Order;
@@ -19,15 +38,7 @@ interface StaffOrderCardProps {
 }
 
 function useOrderAging(createdAt?: string, isCompletedOrCancelled?: boolean) {
-  const [now, setNow] = useState(Date.now());
-
-  useEffect(() => {
-    if (isCompletedOrCancelled || !createdAt) return;
-    const interval = setInterval(() => {
-      setNow(Date.now());
-    }, 15000);
-    return () => clearInterval(interval);
-  }, [createdAt, isCompletedOrCancelled]);
+  const now = useContext(OrderTimerContext);
 
   if (!createdAt) return null;
   const createdTime = new Date(createdAt).getTime();

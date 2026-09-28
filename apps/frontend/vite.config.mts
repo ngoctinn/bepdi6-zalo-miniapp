@@ -10,6 +10,13 @@ export default () => {
     plugins: [zaloMiniApp(), react()],
     build: {
       assetsInlineLimit: 0,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'zmp-sdk', 'zmp-ui'],
+          }
+        }
+      }
     },
     css: {
       preprocessorOptions: {

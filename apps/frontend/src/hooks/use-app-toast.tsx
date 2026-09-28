@@ -44,6 +44,7 @@ interface ToastStore {
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
+let fadeTimer: ReturnType<typeof setTimeout> | null = null;
 let toastCounter = 0;
 
 export const useToastStore = create<ToastStore>((set) => ({
@@ -52,6 +53,10 @@ export const useToastStore = create<ToastStore>((set) => ({
     if (toastTimer) {
       clearTimeout(toastTimer);
       toastTimer = null;
+    }
+    if (fadeTimer) {
+      clearTimeout(fadeTimer);
+      fadeTimer = null;
     }
 
     const id = ++toastCounter;
@@ -74,7 +79,7 @@ export const useToastStore = create<ToastStore>((set) => ({
         return state;
       });
       // Sau khi hiệu ứng fade-out 300ms kết thúc, unmount hoàn toàn
-      setTimeout(() => {
+      fadeTimer = setTimeout(() => {
         set((state) => {
           if (state.currentToast?.id === id && !state.currentToast.visible) {
             return { currentToast: null };
@@ -89,13 +94,17 @@ export const useToastStore = create<ToastStore>((set) => ({
       clearTimeout(toastTimer);
       toastTimer = null;
     }
+    if (fadeTimer) {
+      clearTimeout(fadeTimer);
+      fadeTimer = null;
+    }
     set((state) => {
       if (state.currentToast) {
         return { currentToast: { ...state.currentToast, visible: false } };
       }
       return state;
     });
-    setTimeout(() => {
+    fadeTimer = setTimeout(() => {
       set((state) => {
         if (state.currentToast && !state.currentToast.visible) {
           return { currentToast: null };

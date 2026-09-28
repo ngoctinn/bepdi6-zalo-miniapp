@@ -6,7 +6,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ADMIN_ORDERS_QUERY_KEY } from "@/services/order/order.queries";
 import { Tabs, Tab } from "@/components/common/tabs";
 import { Spinner, Icon } from "zmp-ui";
-import { StaffOrderCard } from "@/components/staff/staff-order-card";
+import {
+  StaffOrderCard,
+  OrderTimerProvider,
+} from "@/components/staff/staff-order-card";
 import { CancelOrderModal } from "@/components/staff/cancel-order-modal";
 import { DispatchOrderModal } from "@/components/staff/dispatch-order-modal";
 import { StaffOrderDetailSheet } from "@/components/staff/staff-order-detail-sheet";
@@ -49,6 +52,13 @@ export default function StaffOrdersPage() {
 
   const prevPendingCountRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
+
+  useEffect(() => {
+    return () => {
+      audioContextRef.current?.close();
+      audioContextRef.current = null;
+    };
+  }, []);
 
   const {
     data: orders = [],
@@ -445,17 +455,19 @@ export default function StaffOrdersPage() {
             </div>
           </div>
         ) : (
-          filteredOrders.map((order) => (
-            <StaffOrderCard
-              key={order.id}
-              order={order}
-              isProcessing={processingOrderId === order.id}
-              onUpdateStatus={handleUpdateStatus}
-              onOpenCancelModal={handleOpenCancelModal}
-              onOpenDispatchModal={handleOpenDispatchModal}
-              onOpenDetail={setSelectedOrderForDetail}
-            />
-          ))
+          <OrderTimerProvider>
+            {filteredOrders.map((order) => (
+              <StaffOrderCard
+                key={order.id}
+                order={order}
+                isProcessing={processingOrderId === order.id}
+                onUpdateStatus={handleUpdateStatus}
+                onOpenCancelModal={handleOpenCancelModal}
+                onOpenDispatchModal={handleOpenDispatchModal}
+                onOpenDetail={setSelectedOrderForDetail}
+              />
+            ))}
+          </OrderTimerProvider>
         )}
       </div>
 

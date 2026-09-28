@@ -26,6 +26,12 @@ export default function HomePage() {
   const isManualScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
+
   // Group products by category
   const categorizedProducts = useMemo(() => {
     if (!categories || !allProducts) return [];

@@ -109,7 +109,7 @@ class CheckoutPreviewView(APIView):
                 "fee_reason": calc_result["fee_reason"],
                 "can_checkout": True,
             }
-            return Response({"success": True, "data": payload, **payload})
+            return Response({"success": True, "data": payload})
         except OrderProcessingError as e:
             if e.code in [
                 "OUT_OF_DELIVERY_RADIUS",
@@ -596,6 +596,13 @@ class AdminOrderPaymentVerifyView(APIView):
                 }
             )
 
+        from django.core.cache import cache
+
+        cache_key = f"idempotency:payment_verify:{pk}:{idempotency_key}"
+        cached_response = cache.get(cache_key)
+        if cached_response:
+            return Response(cached_response)
+
         with transaction.atomic():
             try:
                 order = (
@@ -653,4 +660,6 @@ class AdminOrderPaymentVerifyView(APIView):
                 payment.verified_by = request.user
             payment.save()
 
-        return Response(PaymentSerializer(payment).data)
+        response_data = PaymentSerializer(payment).data
+        cache.set(cache_key, response_data, timeout=86400)
+        return Response(response_data)

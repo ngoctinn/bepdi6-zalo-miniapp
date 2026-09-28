@@ -18,7 +18,14 @@ class CustomerSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "zalo_user_id", "role", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "zalo_user_id",
+            "phone",
+            "role",
+            "created_at",
+            "updated_at",
+        ]
 
     def get_role(self, obj) -> str:
         from django.conf import settings
