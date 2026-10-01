@@ -141,7 +141,7 @@ export default function ProductCard({
             handleCardClick();
           }
         }}
-        className="focus-visible:ring-primary/40 cursor-pointer focus-visible:rounded-2xl focus-visible:outline-none focus-visible:ring-2 active:opacity-90"
+        className="cursor-pointer focus-visible:rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:opacity-90"
       >
         {/* Product Image with Overlays */}
         <div className="shadow-xs relative aspect-square w-full overflow-hidden rounded-2xl bg-stone-100 ring-1 ring-black/5">
@@ -228,7 +228,7 @@ export default function ProductCard({
                 <button
                   type="button"
                   onClick={handleQuickDecrease}
-                  className="shadow-xs border-primary/25 flex h-10 min-h-[40px] w-10 min-w-[40px] touch-manipulation items-center justify-center rounded-full border bg-olive50/80 text-olive900 transition-transform active:scale-90"
+                  className="shadow-xs flex h-10 min-h-[40px] w-10 min-w-[40px] touch-manipulation items-center justify-center rounded-full border border-primary/25 bg-olive50/80 text-olive900 transition-transform active:scale-90"
                   aria-label="Giảm số lượng"
                 >
                   <svg

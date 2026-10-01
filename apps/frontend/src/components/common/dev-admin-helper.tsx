@@ -22,8 +22,13 @@ export function DevAdminHelper() {
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Không bao giờ render ở Production
-  if (!isDev) {
+  // Không bao giờ render ở Production hoặc khi ẩn qua cấu hình/local dev
+  const isHidden =
+    typeof window !== "undefined" &&
+    (localStorage.getItem("hide_dev_admin_helper") === "true" ||
+      new URLSearchParams(window.location.search).has("hide_dev_admin"));
+
+  if (!isDev || isHidden) {
     return null;
   }
 

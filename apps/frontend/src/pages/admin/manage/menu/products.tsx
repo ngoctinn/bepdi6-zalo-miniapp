@@ -222,7 +222,7 @@ export default function AdminProductManagementPage() {
             </p>
             <button
               onClick={handleOpenCreate}
-              className="bg-primary/10 mt-3 inline-flex items-center gap-1 rounded-xl px-4 py-2 text-xs font-bold text-primary"
+              className="mt-3 inline-flex items-center gap-1 rounded-xl bg-primary/10 px-4 py-2 text-xs font-bold text-primary"
             >
               <Icon icon="zi-plus" className="text-xs" />
               <span>Tạo món ăn đầu tiên</span>
@@ -245,7 +245,7 @@ export default function AdminProductManagementPage() {
                       className="h-14 w-14 shrink-0 rounded-xl border border-stone-100 object-cover"
                     />
                   ) : (
-                    <div className="bg-primary/10 flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-primary">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                       <Icon icon="zi-more-grid" className="text-2xl" />
                     </div>
                   )}

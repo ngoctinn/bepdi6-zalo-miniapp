@@ -100,7 +100,7 @@ export default function AdminManageHubPage() {
                   className="flex cursor-pointer items-center justify-between p-3.5 transition-colors active:bg-stone-50"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-primary">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                       <Icon icon={item.icon} className="text-xl leading-none" />
                     </span>
                     <div>

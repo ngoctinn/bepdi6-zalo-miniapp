@@ -1,6 +1,7 @@
 import { api } from "@/lib/api-client";
 import {
   AdminCategory,
+  AdminDashboardStats,
   AdminProduct,
   AdminShopConfig,
   AdminVoucher,
@@ -15,6 +16,11 @@ import {
 import { orderService } from "@/services/order/order.api";
 
 export const adminService = {
+  // --- Dashboard Stats API ---
+  getDashboardStats: async (): Promise<AdminDashboardStats> => {
+    return api.get<AdminDashboardStats>("/admin/dashboard/stats");
+  },
+
   // --- Category APIs ---
   getCategories: async (): Promise<AdminCategory[]> => {
     return api.get<AdminCategory[]>("/admin/categories");
@@ -131,4 +137,5 @@ export const adminService = {
   updateOrderStatus: orderService.updateAdminOrderStatus,
   cancelOrder: orderService.cancelAdminOrder,
   dispatchOrder: orderService.dispatchAdminOrder,
+  verifyOrderPayment: orderService.verifyAdminOrderPayment,
 };

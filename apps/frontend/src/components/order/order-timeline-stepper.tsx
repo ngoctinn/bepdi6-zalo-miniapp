@@ -114,7 +114,7 @@ export function OrderTimelineStepper({ order }: OrderTimelineStepperProps) {
                     isPassed
                       ? "shadow-xs bg-primary text-white"
                       : "border border-black/[0.08] bg-stone-100 text-neutral400"
-                  } ${isCurrent ? "ring-primary/20 scale-110 ring-4" : ""}`}
+                  } ${isCurrent ? "scale-110 ring-4 ring-primary/20" : ""}`}
                 >
                   {isPassed && idx < currentStep ? (
                     <CheckIcon className="h-3.5 w-3.5 shrink-0 text-white" />

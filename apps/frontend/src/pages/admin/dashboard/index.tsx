@@ -1,43 +1,33 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
-import { useAdminOrders } from "@/services/order/order.queries";
-import { useAdminProducts } from "@/services/admin/admin.queries";
-import { useAdminVouchers } from "@/services/admin/admin.queries";
-import { useAdminShopConfig } from "@/services/admin/admin.queries";
+import {
+  useAdminDashboardStats,
+  useAdminProducts,
+  useAdminShopConfig,
+  useAdminVouchers,
+} from "@/services/admin/admin.queries";
 import { Spinner, Icon } from "zmp-ui";
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
   const { customer } = useAuth();
 
-  const { data: ordersData, isLoading: ordersLoading } = useAdminOrders();
+  const { data: stats, isLoading: statsLoading } = useAdminDashboardStats();
   const { data: productsData, isLoading: productsLoading } = useAdminProducts();
   const { data: vouchersData, isLoading: vouchersLoading } = useAdminVouchers();
   const { data: shopConfig, isLoading: configLoading } = useAdminShopConfig();
 
-  const orders = Array.isArray(ordersData) ? ordersData : [];
-  const pendingOrders = orders.filter(
-    (o) => o.status === "PENDING_CONFIRMATION",
-  );
-  const preparingOrders = orders.filter(
-    (o) => o.status === "CONFIRMED" || o.status === "PREPARING",
-  );
-  const completedOrders = orders.filter((o) => o.status === "COMPLETED");
+  const pendingCount = stats?.pending_count ?? 0;
+  const preparingCount = stats?.preparing_count ?? 0;
+  const todayRevenue = stats?.today_revenue ?? 0;
+  const todayCompletedCount = stats?.today_completed_count ?? 0;
 
-  const todayStr = new Date().toISOString().split("T")[0];
-  const todayCompletedOrders = completedOrders.filter(
-    (o) => o.created_at && o.created_at.startsWith(todayStr),
-  );
-  const todayRevenue = todayCompletedOrders.reduce(
-    (sum, o) => sum + Number(o.total_amount || 0),
-    0,
-  );
   const products = Array.isArray(productsData) ? productsData : [];
   const vouchers = Array.isArray(vouchersData) ? vouchersData : [];
   const activeVouchers = vouchers.filter((v) => v.status === "ACTIVE");
 
-  const isLoading = ordersLoading && productsLoading;
+  const isLoading = statsLoading && productsLoading;
 
   return (
     <div className="flex min-h-full flex-col bg-stone-50 pb-20">
@@ -87,19 +77,15 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-medium text-stone-500">
                 Đơn chờ xử lý
               </span>
-              <span className="bg-primary/10 flex h-7 w-7 items-center justify-center rounded-full text-primary">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <Icon icon="zi-clock-1" className="text-base leading-none" />
               </span>
             </div>
             <div className="mt-2 text-2xl font-extrabold text-stone-900">
-              {ordersLoading ? (
-                <Spinner visible={true} />
-              ) : (
-                pendingOrders.length
-              )}
+              {statsLoading ? <Spinner visible={true} /> : pendingCount}
             </div>
             <p className="mt-1 text-[11px] font-medium text-primary">
-              {preparingOrders.length} đơn đang nấu
+              {processingCount} đơn đang nấu
             </p>
           </div>
 
@@ -114,14 +100,14 @@ export default function AdminDashboardPage() {
               </span>
             </div>
             <div className="mt-2 truncate text-xl font-extrabold text-stone-900">
-              {ordersLoading ? (
+              {statsLoading ? (
                 <Spinner visible={true} />
               ) : (
                 `${todayRevenue.toLocaleString("vi-VN")}₫`
               )}
             </div>
             <p className="mt-1 text-[11px] font-medium text-emerald-600">
-              {todayCompletedOrders.length} đơn hoàn tất hôm nay
+              {todayCompletedCount} đơn hoàn tất hôm nay
             </p>
           </div>
 
@@ -191,7 +177,7 @@ export default function AdminDashboardPage() {
               onClick={() => navigate("/admin/manage/menu")}
               className="flex items-center gap-2.5 rounded-xl border border-stone-200/80 bg-stone-50/50 p-3 text-left transition-colors active:bg-stone-100"
             >
-              <span className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg text-primary">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Icon icon="zi-list-2" className="text-lg leading-none" />
               </span>
               <div>
@@ -209,7 +195,7 @@ export default function AdminDashboardPage() {
               onClick={() => navigate("/admin/settings")}
               className="flex items-center gap-2.5 rounded-xl border border-stone-200/80 bg-stone-50/50 p-3 text-left transition-colors active:bg-stone-100"
             >
-              <span className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg text-primary">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Icon icon="zi-setting" className="text-lg leading-none" />
               </span>
               <div>

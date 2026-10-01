@@ -263,3 +263,15 @@ class TestShopConfig:
 
         assert res.status_code == status.HTTP_200_OK
         assert res.json()["data"]["max_delivery_radius_km"] == "15.00"
+
+    def test_admin_shop_config_allowed_with_admin_zalo_id(self, settings):
+        settings.ADMIN_ZALO_IDS = ["whitelisted_zalo_admin"]
+        user_whitelisted = User.objects.create_user(
+            username="whitelisted_user",
+            role=User.Role.CUSTOMER,
+            zalo_user_id="whitelisted_zalo_admin",
+            password="somepassword",
+        )
+        self.client.force_authenticate(user=user_whitelisted)
+        res = self.client.get("/api/v1/admin/shop/config")
+        assert res.status_code == status.HTTP_200_OK

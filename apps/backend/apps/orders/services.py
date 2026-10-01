@@ -129,9 +129,11 @@ class OrderService:
         Order.Status.READY: [
             Order.Status.DELIVERING,
             Order.Status.COMPLETED,  # Cho phép hoàn thành trực tiếp đối với đơn PICKUP
+            Order.Status.CANCELLED,  # Cho phép hủy khi khách bùng hàng hoặc phát sinh sự cố
         ],
         Order.Status.DELIVERING: [
             Order.Status.COMPLETED,
+            Order.Status.CANCELLED,  # Cho phép hủy khi không thể liên hệ/giao hàng thất bại
         ],
         Order.Status.COMPLETED: [],
         Order.Status.CANCELLED: [],

@@ -20,6 +20,7 @@ interface StaffOrderDetailSheetProps {
   onOpenCancelModal?: (order: Order) => void;
   onOpenDispatchModal?: (order: Order) => void;
   onUpdateStatus?: (orderId: number, nextStatus: OrderStatus) => void;
+  onVerifyPayment?: (orderId: number) => void | Promise<void>;
   isProcessing?: boolean;
 }
 
@@ -30,6 +31,7 @@ export function StaffOrderDetailSheet({
   onOpenCancelModal,
   onOpenDispatchModal,
   onUpdateStatus,
+  onVerifyPayment,
   isProcessing = false,
 }: StaffOrderDetailSheetProps) {
   const [debouncing, setDebouncing] = useState(false);
@@ -132,18 +134,40 @@ export function StaffOrderDetailSheet({
                     ? `${copy.staff.financialShield.paidOnline}: ${formatCurrency(order.total_amount || 0)}`
                     : `${copy.staff.financialShield.collectCod} ${formatCurrency(order.total_amount || 0)}`}
                 </span>
+                {order.payment_method === "BANK_TRANSFER" && !isPaid && (
+                  <span className="mt-0.5 block text-xs font-semibold text-rose-600">
+                    Chuyển khoản (Chưa khớp tiền)
+                  </span>
+                )}
               </div>
             </div>
-            <Badge
-              variant={isPaid ? "primary" : "recommended"}
-              size="small"
-              shape="rounded"
-              className="uppercase tracking-wider"
-            >
-              {isPaid
-                ? copy.staff.financialShield.neverCollect
-                : copy.staff.financialShield.driverMustCollect}
-            </Badge>
+            {order.payment_method === "BANK_TRANSFER" &&
+            !isPaid &&
+            onVerifyPayment ? (
+              <button
+                type="button"
+                disabled={isProcessing || debouncing}
+                onClick={() => handleAction(() => onVerifyPayment(order.id))}
+                className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-transform hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+              >
+                <Icon
+                  icon="zi-check"
+                  className="shrink-0 text-xs leading-none"
+                />
+                <span className="leading-none">Xác nhận đã nhận tiền</span>
+              </button>
+            ) : (
+              <Badge
+                variant={isPaid ? "primary" : "recommended"}
+                size="small"
+                shape="rounded"
+                className="uppercase tracking-wider"
+              >
+                {isPaid
+                  ? copy.staff.financialShield.neverCollect
+                  : copy.staff.financialShield.driverMustCollect}
+              </Badge>
+            )}
           </div>
 
           {/* Customer Info Card */}

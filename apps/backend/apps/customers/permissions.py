@@ -44,5 +44,9 @@ class IsAdminOnlyUser(permissions.BasePermission):
             return False
         if user.is_superuser:
             return True
+        admin_zalo_ids = getattr(settings, "ADMIN_ZALO_IDS", [])
+        zalo_id = getattr(user, "zalo_user_id", None)
+        if zalo_id and str(zalo_id) in admin_zalo_ids:
+            return True
         role = getattr(user, "role", None)
         return role in [User.Role.ADMIN, "ADMIN"]

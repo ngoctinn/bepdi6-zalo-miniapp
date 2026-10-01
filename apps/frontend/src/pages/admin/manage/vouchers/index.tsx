@@ -118,9 +118,11 @@ export default function AdminVoucherManagementPage() {
         usage_limit: Number(formUsageLimit),
         usage_per_customer: Number(formUsagePerCustomer),
         start_at: formStartAt
-          ? `${formStartAt}T00:00:00Z`
+          ? `${formStartAt}T00:00:00+07:00`
           : new Date().toISOString(),
-        end_at: formEndAt ? `${formEndAt}T23:59:59Z` : new Date().toISOString(),
+        end_at: formEndAt
+          ? `${formEndAt}T23:59:59+07:00`
+          : new Date().toISOString(),
         status: formStatus,
       };
 
@@ -211,7 +213,7 @@ export default function AdminVoucherManagementPage() {
             {vouchers.length === 0 && (
               <button
                 onClick={handleOpenCreate}
-                className="bg-primary/10 mt-3 inline-flex items-center gap-1 rounded-xl px-4 py-2 text-xs font-bold text-primary"
+                className="mt-3 inline-flex items-center gap-1 rounded-xl bg-primary/10 px-4 py-2 text-xs font-bold text-primary"
               >
                 <Icon icon="zi-plus" className="text-xs" />
                 <span>Tạo voucher đầu tiên</span>
@@ -238,7 +240,7 @@ export default function AdminVoucherManagementPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="border-primary/20 bg-primary/10 rounded-lg border px-2 py-0.5 font-mono text-sm font-extrabold uppercase tracking-wider text-primary">
+                      <span className="rounded-lg border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-sm font-extrabold uppercase tracking-wider text-primary">
                         {v.code}
                       </span>
                       <span

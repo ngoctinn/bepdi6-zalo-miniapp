@@ -112,12 +112,13 @@ class TestCheckoutPreview:
         assert response.status_code == status.HTTP_200_OK
         data = response.data
         assert data["success"] is True
+        actual_data = data.get("data", data)
         # Subtotal: (50,000 + 10,000) * 2 = 120,000
-        assert Decimal(str(data["subtotal"])) == Decimal("120000.00")
-        assert Decimal(str(data["discount"])) == Decimal("10000.00")
-        assert Decimal(str(data["total_amount"])) == Decimal(
-            str(data["subtotal"])
-        ) + Decimal(str(data["shipping_fee"])) - Decimal("10000.00")
+        assert Decimal(str(actual_data["subtotal"])) == Decimal("120000.00")
+        assert Decimal(str(actual_data["discount"])) == Decimal("10000.00")
+        assert Decimal(str(actual_data["total_amount"])) == Decimal(
+            str(actual_data["subtotal"])
+        ) + Decimal(str(actual_data["shipping_fee"])) - Decimal("10000.00")
 
 
 @pytest.mark.django_db

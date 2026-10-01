@@ -141,3 +141,29 @@ def test_admin_product_and_category_image_size_validation(admin_client):
     )
     assert res.status_code == 400
     assert "Kích thước file ảnh không được vượt quá 5MB" in str(res.json())
+
+
+@pytest.mark.django_db
+def test_admin_category_delete_guard_with_products(admin_client):
+    from decimal import Decimal
+
+    cat = Category.objects.create(name="Tráng miệng", sort_order=10)
+    prod = Product.objects.create(
+        category=cat,
+        name="Chè bưởi",
+        price=Decimal("20000.00"),
+    )
+
+    # Attempt to delete category when products exist -> 400
+    res_del_fail = admin_client.delete(f"/api/v1/admin/categories/{cat.id}")
+    assert res_del_fail.status_code == 400
+    assert "Không thể xóa danh mục đang có món ăn" in str(res_del_fail.json())
+    assert Category.objects.filter(pk=cat.id).exists()
+
+    # Delete product first
+    prod.delete()
+
+    # Now category deletion succeeds
+    res_del_ok = admin_client.delete(f"/api/v1/admin/categories/{cat.id}")
+    assert res_del_ok.status_code == 200
+    assert not Category.objects.filter(pk=cat.id).exists()

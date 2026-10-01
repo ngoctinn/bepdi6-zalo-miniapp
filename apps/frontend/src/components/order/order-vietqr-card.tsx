@@ -106,7 +106,7 @@ export function OrderVietQrCard({
   };
 
   return (
-    <div className="shadow-xs border-primary/25 space-y-3 rounded-2xl border bg-olive50/60 p-4">
+    <div className="shadow-xs space-y-3 rounded-2xl border border-primary/25 bg-olive50/60 p-4">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-neutral900">
           {copy.orderDetail.vietqrTitle}
@@ -192,7 +192,7 @@ export function OrderVietQrCard({
                     "shadow-2xs inline-flex min-h-[38px] min-w-[76px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-all active:scale-95",
                     copiedKey === "bankAccountNo"
                       ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
-                      : "border-primary/30 active:bg-primary/10 bg-white text-primary",
+                      : "border-primary/30 bg-white text-primary active:bg-primary/10",
                   )}
                 >
                   {copiedKey === "bankAccountNo" ? (
@@ -240,7 +240,7 @@ export function OrderVietQrCard({
                     "shadow-2xs inline-flex min-h-[38px] min-w-[76px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-all active:scale-95",
                     copiedKey === "amount"
                       ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
-                      : "border-primary/30 active:bg-primary/10 bg-white text-primary",
+                      : "border-primary/30 bg-white text-primary active:bg-primary/10",
                   )}
                 >
                   {copiedKey === "amount" ? (
@@ -278,7 +278,7 @@ export function OrderVietQrCard({
                     "shadow-2xs inline-flex min-h-[38px] min-w-[76px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-all active:scale-95",
                     copiedKey === "orderCode"
                       ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
-                      : "border-primary/30 active:bg-primary/10 bg-white text-primary",
+                      : "border-primary/30 bg-white text-primary active:bg-primary/10",
                   )}
                 >
                   {copiedKey === "orderCode" ? (
@@ -299,7 +299,7 @@ export function OrderVietQrCard({
           </p>
         </div>
       ) : (
-        <div className="border-primary/30 bg-primary/10 mt-2 rounded-lg border p-2.5 text-xs text-primaryDark">
+        <div className="mt-2 rounded-lg border border-primary/30 bg-primary/10 p-2.5 text-xs text-primaryDark">
           {copy.orderDetail.paidSuccessMessage}
         </div>
       )}

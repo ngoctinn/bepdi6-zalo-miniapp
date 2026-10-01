@@ -564,18 +564,87 @@ class AdminOrderDispatchView(APIView):
                 Order.Status.PREPARING,
                 Order.Status.CONFIRMED,
             ]:
-                # Update status via OrderService to trigger notification & audit logs
-                updated_order = OrderService.update_order_status(
-                    order=order,
-                    new_status=Order.Status.DELIVERING,
-                    user=request.user if request.user.is_authenticated else None,
-                    reason=f"Điều phối giao hàng qua {order.get_delivery_provider_display()}",
-                )
+                try:
+                    if order.status == Order.Status.CONFIRMED:
+                        order = OrderService.update_order_status(
+                            order=order,
+                            new_status=Order.Status.PREPARING,
+                            user=request.user
+                            if request.user.is_authenticated
+                            else None,
+                            reason="Bắt đầu chuẩn bị khi điều phối giao hàng",
+                        )
+                    if order.status == Order.Status.PREPARING:
+                        order = OrderService.update_order_status(
+                            order=order,
+                            new_status=Order.Status.READY,
+                            user=request.user
+                            if request.user.is_authenticated
+                            else None,
+                            reason="Bếp hoàn tất món để xuất giao",
+                        )
+                    # Update status via OrderService to trigger notification & audit logs
+                    updated_order = OrderService.update_order_status(
+                        order=order,
+                        new_status=Order.Status.DELIVERING,
+                        user=request.user if request.user.is_authenticated else None,
+                        reason=f"Điều phối giao hàng qua {order.get_delivery_provider_display()}",
+                    )
+                except (OrderProcessingError, InvalidStateTransitionError) as e:
+                    raise ValidationError(
+                        {"code": e.code, "message": e.message}
+                    ) from None
             else:
                 order.save()
                 updated_order = order
 
         return Response(OrderDetailSerializer(updated_order).data)
+
+
+class AdminDashboardStatsView(APIView):
+    """
+    GET /api/v1/admin/dashboard/stats
+    Aggregated operational statistics and today's revenue in Asia/Ho_Chi_Minh timezone (UTC+7).
+    """
+
+    permission_classes = [IsStaffOrAdminUser]
+
+    def get(self, request):
+        from django.db.models import Sum
+
+        now = timezone.localtime()
+        start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        pending_count = Order.objects.filter(
+            status=Order.Status.PENDING_CONFIRMATION
+        ).count()
+        preparing_count = Order.objects.filter(
+            status__in=[Order.Status.CONFIRMED, Order.Status.PREPARING]
+        ).count()
+        ready_count = Order.objects.filter(
+            status__in=[Order.Status.READY, Order.Status.DELIVERING]
+        ).count()
+
+        today_completed_orders = Order.objects.filter(
+            status=Order.Status.COMPLETED,
+            completed_at__gte=start_of_day,
+        )
+        today_completed_count = today_completed_orders.count()
+        today_revenue = today_completed_orders.aggregate(total=Sum("total_amount"))[
+            "total"
+        ] or Decimal("0.00")
+
+        total_orders_count = Order.objects.count()
+
+        data = {
+            "pending_count": pending_count,
+            "preparing_count": preparing_count,
+            "ready_count": ready_count,
+            "today_completed_count": today_completed_count,
+            "today_revenue": float(today_revenue),
+            "total_orders_count": total_orders_count,
+        }
+        return Response(data)
 
 
 class AdminOrderPaymentVerifyView(APIView):

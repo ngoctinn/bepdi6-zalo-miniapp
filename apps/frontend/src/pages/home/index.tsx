@@ -185,7 +185,7 @@ export default function HomePage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm món ngon trong thực đơn..."
               aria-label="Tìm kiếm món ăn trong thực đơn"
-              className="focus:ring-primary/30 w-full rounded-xl border border-black/[0.08] bg-stone-50/90 py-2 pl-9 pr-9 text-xs text-neutral900 transition-colors placeholder:text-stone-400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1"
+              className="w-full rounded-xl border border-black/[0.08] bg-stone-50/90 py-2 pl-9 pr-9 text-xs text-neutral900 transition-colors placeholder:text-stone-400 focus:border-primary focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary/30"
             />
             {searchQuery && (
               <button
@@ -225,7 +225,7 @@ export default function HomePage() {
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className="bg-primary/15 h-7 w-20 shrink-0 animate-pulse rounded-full"
+                    className="h-7 w-20 shrink-0 animate-pulse rounded-full bg-primary/15"
                   />
                 ))}
               </div>

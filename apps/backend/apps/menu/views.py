@@ -2,7 +2,7 @@ from django.core.cache import cache
 from django.db.models import Exists, OuterRef, Prefetch, Q, Subquery
 from django.utils import timezone
 from rest_framework import permissions, status
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -272,6 +272,10 @@ class AdminCategoryDetailView(APIView):
 
     def delete(self, request, pk: int):
         category = self.get_object(pk)
+        if category.products.exists():
+            raise ValidationError(
+                "Không thể xóa danh mục đang có món ăn. Vui lòng chuyển hoặc xóa các món ăn thuộc danh mục này trước."
+            )
         category.delete()
         invalidate_menu_cache()
         return Response({"success": True}, status=status.HTTP_200_OK)

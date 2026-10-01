@@ -95,9 +95,9 @@ export function OrderDetailItems({ order, shopInfo }: OrderDetailItemsProps) {
         {isPickup ? (
           <div className="space-y-3">
             {/* Thẻ thông tin địa chỉ cửa hàng + nút chỉ đường */}
-            <div className="border-primary/20 rounded-xl border bg-olive50/40 p-3">
+            <div className="rounded-xl border border-primary/20 bg-olive50/40 p-3">
               <div className="flex items-start gap-2.5">
-                <div className="bg-primary/10 mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-primary">
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <StoreIcon className="h-4 w-4 shrink-0" />
                 </div>
                 <div className="flex-1">
@@ -154,7 +154,7 @@ export function OrderDetailItems({ order, shopInfo }: OrderDetailItemsProps) {
                     type="button"
                     aria-label={`Gọi hotline quán ${shopHotline}`}
                     onClick={() => makePhoneCall(shopHotline)}
-                    className="shadow-2xs border-primary/30 flex min-h-[38px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border bg-white px-3 py-2 text-xs font-semibold text-primary transition-all active:scale-[0.98] active:bg-olive50"
+                    className="shadow-2xs flex min-h-[38px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-2 text-xs font-semibold text-primary transition-all active:scale-[0.98] active:bg-olive50"
                   >
                     <PhoneIcon className="h-3.5 w-3.5 shrink-0" />
                     <span>{shopHotline}</span>
@@ -173,7 +173,7 @@ export function OrderDetailItems({ order, shopInfo }: OrderDetailItemsProps) {
               </div>
               {order.scheduled_delivery_at && (
                 <div className="mt-1.5 flex items-center gap-1.5 pt-0.5">
-                  <span className="border-primary/20 rounded-md border bg-olive50/90 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
+                  <span className="rounded-md border border-primary/20 bg-olive50/90 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
                     {copy.orderDetail.scheduledPickupTime}{" "}
                     {new Date(order.scheduled_delivery_at).toLocaleTimeString(
                       "vi-VN",
@@ -210,7 +210,7 @@ export function OrderDetailItems({ order, shopInfo }: OrderDetailItemsProps) {
 
             {order.scheduled_delivery_at && (
               <div className="mt-1.5 flex items-center gap-1.5">
-                <span className="border-primary/20 rounded-md border bg-olive50/90 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
+                <span className="rounded-md border border-primary/20 bg-olive50/90 px-2 py-0.5 text-xxsmall font-semibold text-primaryDark">
                   {copy.orderDetail.scheduledDeliveryTime}{" "}
                   {new Date(order.scheduled_delivery_at).toLocaleTimeString(
                     "vi-VN",

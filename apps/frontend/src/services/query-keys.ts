@@ -66,4 +66,7 @@ export const queryKeys = {
   adminShopConfig: {
     all: ["admin", "shopConfig"] as const,
   },
+  adminDashboard: {
+    stats: () => ["admin", "dashboard", "stats"] as const,
+  },
 } as const;

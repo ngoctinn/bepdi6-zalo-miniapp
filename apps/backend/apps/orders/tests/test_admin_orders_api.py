@@ -334,3 +334,145 @@ def test_admin_order_dispatch_api(admin_setup):
     assert order.status == Order.Status.DELIVERING
     assert order.delivery_provider == Order.DeliveryProvider.INTERNAL
     assert order.shipper_name == "Anh Ba Giao Hàng"
+
+
+@pytest.mark.django_db
+def test_admin_order_dispatch_from_confirmed_and_preparing(admin_setup):
+    """Verify dispatching an order in CONFIRMED or PREPARING transitions smoothly to DELIVERING without crash."""
+    client = admin_setup["client"]
+    customer = admin_setup["customer"]
+
+    order = Order.objects.create(
+        order_code="FODISPATCH02",
+        idempotency_key="idemp_dispatch_02",
+        customer=customer,
+        recipient_name=customer.name,
+        phone=customer.phone,
+        delivery_address="789 Tran Hung Dao, Q5",
+        delivery_latitude=Decimal("10.75"),
+        delivery_longitude=Decimal("106.67"),
+        subtotal=Decimal("95000.00"),
+        total_amount=Decimal("95000.00"),
+        payment_method=Order.PaymentMethod.COD,
+        status=Order.Status.PREPARING,
+    )
+
+    dispatch_payload = {
+        "delivery_provider": "AHAMOVE",
+        "shipper_name": "Tài xế Ahamove",
+        "shipper_phone": "0909999888",
+        "shipper_tracking_code": "AHA123456",
+    }
+    res = client.post(
+        f"/api/v1/admin/orders/{order.id}/dispatch",
+        dispatch_payload,
+        format="json",
+    )
+    assert res.status_code == 200
+    data = res.json()["data"]
+    assert data["status"] == "DELIVERING"
+    assert data["delivery_provider"] == "AHAMOVE"
+
+    order.refresh_from_db()
+    assert order.status == Order.Status.DELIVERING
+
+
+@pytest.mark.django_db
+def test_admin_order_cancel_from_ready_and_delivering(admin_setup):
+    """Verify staff can cancel order in READY or DELIVERING state when customer rejects delivery."""
+    client = admin_setup["client"]
+    customer = admin_setup["customer"]
+
+    # 1. Cancel from READY
+    order_ready = Order.objects.create(
+        order_code="FOCANCELREADY",
+        idempotency_key="idemp_cancel_ready",
+        customer=customer,
+        recipient_name=customer.name,
+        phone=customer.phone,
+        delivery_address="123 Test Street",
+        delivery_latitude=Decimal("10.77"),
+        delivery_longitude=Decimal("106.70"),
+        subtotal=Decimal("60000.00"),
+        total_amount=Decimal("60000.00"),
+        payment_method=Order.PaymentMethod.COD,
+        status=Order.Status.READY,
+    )
+
+    res_cancel_ready = client.post(
+        f"/api/v1/admin/orders/{order_ready.id}/cancel",
+        {"reason": "Khách gọi xin hủy vì có việc đột xuất"},
+        format="json",
+    )
+    assert res_cancel_ready.status_code == 200
+    order_ready.refresh_from_db()
+    assert order_ready.status == Order.Status.CANCELLED
+    assert order_ready.cancellation_reason == "Khách gọi xin hủy vì có việc đột xuất"
+
+    # 2. Cancel from DELIVERING
+    order_delivering = Order.objects.create(
+        order_code="FOCANCELDELIVERING",
+        idempotency_key="idemp_cancel_delivering",
+        customer=customer,
+        recipient_name=customer.name,
+        phone=customer.phone,
+        delivery_address="456 Test Street",
+        delivery_latitude=Decimal("10.77"),
+        delivery_longitude=Decimal("106.70"),
+        subtotal=Decimal("70000.00"),
+        total_amount=Decimal("70000.00"),
+        payment_method=Order.PaymentMethod.COD,
+        status=Order.Status.DELIVERING,
+    )
+
+    res_cancel_delivering = client.post(
+        f"/api/v1/admin/orders/{order_delivering.id}/cancel",
+        {"reason": "Tài xế giao tới nhưng khách không nhận (bom hàng)"},
+        format="json",
+    )
+    assert res_cancel_delivering.status_code == 200
+    order_delivering.refresh_from_db()
+    assert order_delivering.status == Order.Status.CANCELLED
+    assert (
+        order_delivering.cancellation_reason
+        == "Tài xế giao tới nhưng khách không nhận (bom hàng)"
+    )
+
+
+@pytest.mark.django_db
+def test_admin_dashboard_stats_api(admin_setup):
+    """Verify GET /api/v1/admin/dashboard/stats returns accurate aggregated operational statistics."""
+    from django.utils import timezone
+
+    client = admin_setup["client"]
+    customer = admin_setup["customer"]
+
+    now = timezone.localtime()
+
+    Order.objects.create(
+        order_code="FOSTATS01",
+        idempotency_key="idemp_stats_01",
+        customer=customer,
+        recipient_name=customer.name,
+        phone=customer.phone,
+        delivery_address="123 Test Street",
+        delivery_latitude=Decimal("10.77"),
+        delivery_longitude=Decimal("106.70"),
+        subtotal=Decimal("120000.00"),
+        total_amount=Decimal("120000.00"),
+        payment_method=Order.PaymentMethod.COD,
+        status=Order.Status.COMPLETED,
+        completed_at=now,
+    )
+
+    res = client.get("/api/v1/admin/dashboard/stats")
+    assert res.status_code == 200
+    data = res.json()["data"]
+
+    assert "pending_count" in data
+    assert "preparing_count" in data
+    assert "ready_count" in data
+    assert "today_completed_count" in data
+    assert "today_revenue" in data
+    assert data["today_completed_count"] >= 1
+    assert data["today_revenue"] >= 120000.0

@@ -56,3 +56,65 @@ def test_admin_voucher_crud(admin_client):
     res_del = admin_client.delete(f"/api/v1/admin/vouchers/{voucher_id}")
     assert res_del.status_code == 200
     assert not Voucher.objects.filter(pk=voucher_id).exists()
+
+
+@pytest.mark.django_db
+def test_admin_voucher_delete_guard_with_usages(admin_client):
+    from decimal import Decimal
+
+    from django.utils import timezone
+
+    from apps.customers.models import Customer
+    from apps.orders.models import Order
+    from apps.vouchers.models import VoucherUsage
+
+    now = timezone.now()
+    voucher = Voucher.objects.create(
+        code="DISC20K",
+        name="Giảm 20k",
+        discount_type=Voucher.DiscountType.FIXED,
+        discount_value=Decimal("20000.00"),
+        minimum_order_value=Decimal("50000.00"),
+        start_at=now - timezone.timedelta(days=1),
+        end_at=now + timezone.timedelta(days=1),
+        status=Voucher.Status.ACTIVE,
+    )
+
+    customer = Customer.objects.create(
+        zalo_user_id="cust_voucher_test",
+        name="Khách Dùng Voucher",
+        phone="0911223344",
+    )
+
+    order = Order.objects.create(
+        customer=customer,
+        order_code="ORD-TEST-VOUCHER",
+        idempotency_key="key-voucher-1",
+        recipient_name="Khách Dùng Voucher",
+        phone="0911223344",
+        delivery_address="123 Lê Lợi, Q1, TP.HCM",
+        delivery_latitude=Decimal("10.7769"),
+        delivery_longitude=Decimal("106.7009"),
+        subtotal=Decimal("60000.00"),
+        discount=Decimal("20000.00"),
+        shipping_fee=Decimal("15000.00"),
+        total_amount=Decimal("55000.00"),
+        status=Order.Status.COMPLETED,
+    )
+
+    usage = VoucherUsage.objects.create(
+        voucher=voucher,
+        customer=customer,
+        order=order,
+        discount_amount=Decimal("20000.00"),
+        status=VoucherUsage.Status.APPLIED,
+    )
+
+    # Deleting voucher with usage must NOT delete the voucher or cascade usages.
+    # Instead, it marks voucher as INACTIVE.
+    res_del = admin_client.delete(f"/api/v1/admin/vouchers/{voucher.id}")
+    assert res_del.status_code == 200
+
+    voucher.refresh_from_db()
+    assert voucher.status == Voucher.Status.INACTIVE
+    assert VoucherUsage.objects.filter(pk=usage.id).exists()

@@ -7,7 +7,7 @@ export default function AdminCustomerPlaceholderPage() {
 
   return (
     <div className="flex min-h-full flex-col items-center justify-center bg-stone-50 p-6 pb-20 text-center">
-      <div className="bg-primary/10 flex h-20 w-20 items-center justify-center rounded-3xl text-primary shadow-inner">
+      <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 text-primary shadow-inner">
         <Icon icon="zi-user-circle" className="text-4xl" />
       </div>
       <h1 className="mt-4 text-lg font-bold text-stone-900">

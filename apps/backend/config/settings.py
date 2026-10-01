@@ -132,13 +132,21 @@ if "pytest" in sys.modules or os.environ.get("USE_SQLITE_TEST", "").lower() in (
 
 
 # Cache (Redis / LocMem)
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": env("REDIS_URL"),
-        "KEY_PREFIX": "bepdi6_cache",
+if "pytest" in sys.modules:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "test-cache",
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": env("REDIS_URL"),
+            "KEY_PREFIX": "bepdi6_cache",
+        }
+    }
 
 # Use cached_db session backend to prevent querying Postgres database for every single HTTP request
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"

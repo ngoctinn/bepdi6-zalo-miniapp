@@ -225,6 +225,39 @@ export default function StaffOrdersPage() {
     }
   };
 
+  // Xác nhận thanh toán VietQR
+  const handleVerifyPayment = async (orderId: number) => {
+    try {
+      setProcessingOrderId(orderId);
+      const updatedOrder = await orderService.verifyAdminOrderPayment(orderId);
+      await queryClient.invalidateQueries({
+        queryKey: ADMIN_ORDERS_QUERY_KEY,
+      });
+      setSelectedOrderForDetail((prev) =>
+        prev && prev.id === orderId
+          ? {
+              ...prev,
+              payment: updatedOrder.payment || {
+                id: prev.payment?.id || 0,
+                status: "PAID",
+                amount: prev.total_amount,
+                method: prev.payment_method,
+              },
+            }
+          : null,
+      );
+      showSuccess("Đã xác nhận thanh toán chuyển khoản thành công", {
+        duration: 2500,
+      });
+    } catch (err: unknown) {
+      const errorMsg =
+        (err as { message?: string })?.message || "Lỗi xác nhận thanh toán";
+      showError(errorMsg, { duration: 3000 });
+    } finally {
+      setProcessingOrderId(null);
+    }
+  };
+
   // Mở modal hủy đơn
   const handleOpenCancelModal = (order: Order) => {
     setSelectedOrderForCancel(order);
@@ -486,6 +519,7 @@ export default function StaffOrdersPage() {
               : null,
           );
         }}
+        onVerifyPayment={handleVerifyPayment}
         isProcessing={processingOrderId === selectedOrderForDetail?.id}
       />
 

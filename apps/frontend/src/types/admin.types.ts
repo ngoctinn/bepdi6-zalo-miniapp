@@ -79,3 +79,12 @@ export interface AdminShopConfig extends ShopInfo {
 }
 
 export type UpdateShopConfigRequest = Partial<AdminShopConfig>;
+
+export interface AdminDashboardStats {
+  today_revenue: number;
+  today_completed_count: number;
+  pending_count: number;
+  preparing_count: number;
+  ready_count: number;
+  total_orders_count: number;
+}

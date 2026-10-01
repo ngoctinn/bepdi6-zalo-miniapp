@@ -1,6 +1,7 @@
 from django.urls import path
 
 from apps.orders.views import (
+    AdminDashboardStatsView,
     AdminOrderCancelView,
     AdminOrderConfirmView,
     AdminOrderDispatchView,
@@ -30,6 +31,11 @@ urlpatterns = [
         name="order-payment-detail",
     ),
     # Admin / Staff APIs
+    path(
+        "admin/dashboard/stats",
+        AdminDashboardStatsView.as_view(),
+        name="admin-dashboard-stats",
+    ),
     path("admin/orders", AdminOrderListView.as_view(), name="admin-order-list"),
     path(
         "admin/orders/<int:pk>/confirm",

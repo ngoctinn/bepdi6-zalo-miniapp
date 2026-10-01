@@ -126,4 +126,24 @@ export const orderService = {
   ): Promise<Order> => {
     return api.post<Order>(`admin/orders/${id}/dispatch`, payload);
   },
+
+  /**
+   * Xác nhận thanh toán chuyển khoản VietQR cho đơn hàng
+   * POST /api/v1/admin/orders/:id/payment/verify
+   */
+  verifyAdminOrderPayment: async (
+    id: number | string,
+    note?: string,
+  ): Promise<Order> => {
+    const idempotencyKey = `verify-payment-${id}-${Date.now()}`;
+    return api.post<Order>(
+      `admin/orders/${id}/payment/verify`,
+      { note: note || "Nhân viên xác nhận thanh toán chuyển khoản" },
+      {
+        headers: {
+          "Idempotency-Key": idempotencyKey,
+        },
+      },
+    );
+  },
 };

@@ -63,3 +63,12 @@ export const useAdminShopConfig = () => {
     staleTime: 60 * 1000,
   });
 };
+
+export const useAdminDashboardStats = () => {
+  return useQuery({
+    queryKey: queryKeys.adminDashboard.stats(),
+    queryFn: () => adminService.getDashboardStats(),
+    staleTime: 15 * 1000,
+    refetchInterval: 30 * 1000,
+  });
+};

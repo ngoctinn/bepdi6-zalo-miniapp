@@ -63,7 +63,7 @@ export default function CategoryList({
               "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
               "select-none whitespace-nowrap",
               isSelected
-                ? "border-primary/30 shadow-xs bg-olive50/80 font-bold text-olive900"
+                ? "shadow-xs border-primary/30 bg-olive50/80 font-bold text-olive900"
                 : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50 hover:text-olive900",
             )}
             onClick={() => onCategorySelect?.(category)}

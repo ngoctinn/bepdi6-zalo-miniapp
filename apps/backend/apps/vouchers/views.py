@@ -45,15 +45,14 @@ class VoucherValidateView(APIView):
                 status=status.HTTP_200_OK,
             )
         except VoucherValidationError as e:
-            from rest_framework.exceptions import ValidationError
-
-            raise ValidationError(
+            return Response(
                 {
                     "valid": False,
                     "reason": e.code,
                     "message": e.message,
-                }
-            ) from e
+                },
+                status=status.HTTP_200_OK,
+            )
 
 
 class AdminVoucherListCreateView(APIView):
@@ -107,5 +106,16 @@ class AdminVoucherDetailView(APIView):
             voucher = Voucher.objects.get(pk=pk)
         except Voucher.DoesNotExist:
             raise NotFound("Voucher không tồn tại.") from None
+        if voucher.usages.exists():
+            voucher.status = Voucher.Status.INACTIVE
+            voucher.save(update_fields=["status"])
+            return Response(
+                {
+                    "success": True,
+                    "message": "Voucher đã có lượt sử dụng, đã chuyển sang trạng thái Ngưng hoạt động thay vì xóa hoàn toàn.",
+                    "status": voucher.status,
+                },
+                status=status.HTTP_200_OK,
+            )
         voucher.delete()
         return Response({"success": True}, status=status.HTTP_200_OK)
