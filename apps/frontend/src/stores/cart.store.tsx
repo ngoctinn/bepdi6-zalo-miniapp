@@ -2,6 +2,12 @@ import { create } from "zustand";
 import { CartItem, CartStore } from "../types/cart.types";
 import { calculateCartTotal } from "../utils/cart";
 
+import {
+  nativeStorageGet,
+  nativeStorageSet,
+  nativeStorageRemove,
+} from "../lib/storage";
+
 const CART_STORAGE_KEY = "bepdi6_cart_items";
 
 const loadSavedCart = (): CartItem[] => {
@@ -16,10 +22,16 @@ const loadSavedCart = (): CartItem[] => {
 };
 
 const saveCart = (items: CartItem[]) => {
+  const json = JSON.stringify(items);
   try {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(CART_STORAGE_KEY, json);
   } catch {
-    // Ignore storage errors
+    // Ignore
+  }
+  if (items.length > 0) {
+    void nativeStorageSet(CART_STORAGE_KEY, json);
+  } else {
+    void nativeStorageRemove(CART_STORAGE_KEY);
   }
 };
 
@@ -140,3 +152,22 @@ export const useCartStore = create<CartStore>((set, get) => ({
     return calculateCartTotal(get().items);
   },
 }));
+
+// Hydrate cart asynchronously from native storage if localStorage was empty on startup
+if (typeof window !== "undefined") {
+  void nativeStorageGet(CART_STORAGE_KEY).then((nativeSaved) => {
+    if (nativeSaved) {
+      try {
+        const parsed = JSON.parse(nativeSaved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const currentItems = useCartStore.getState().items;
+          if (currentItems.length === 0) {
+            useCartStore.setState({ items: parsed });
+          }
+        }
+      } catch {
+        // Ignore JSON parse error
+      }
+    }
+  });
+}

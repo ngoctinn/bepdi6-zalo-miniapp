@@ -1,5 +1,10 @@
 import { create } from "zustand";
 import { Address } from "../types/customer.types";
+import {
+  nativeStorageGet,
+  nativeStorageSet,
+  nativeStorageRemove,
+} from "../lib/storage";
 
 const SELECTED_ADDRESS_KEY = "bepdi6_selected_address";
 
@@ -22,9 +27,12 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setSelectedAddress: (address) => {
     try {
       if (address) {
-        localStorage.setItem(SELECTED_ADDRESS_KEY, JSON.stringify(address));
+        const json = JSON.stringify(address);
+        localStorage.setItem(SELECTED_ADDRESS_KEY, json);
+        void nativeStorageSet(SELECTED_ADDRESS_KEY, json);
       } else {
         localStorage.removeItem(SELECTED_ADDRESS_KEY);
+        void nativeStorageRemove(SELECTED_ADDRESS_KEY);
       }
     } catch {
       // Ignore storage errors
@@ -32,3 +40,22 @@ export const useLocationStore = create<LocationStore>((set) => ({
     set({ selectedAddress: address });
   },
 }));
+
+// Hydrate selectedAddress asynchronously from native storage if localStorage was empty
+if (typeof window !== "undefined") {
+  void nativeStorageGet(SELECTED_ADDRESS_KEY).then((nativeSaved) => {
+    if (nativeSaved) {
+      try {
+        const parsed = JSON.parse(nativeSaved);
+        if (parsed && typeof parsed === "object") {
+          const currentAddress = useLocationStore.getState().selectedAddress;
+          if (!currentAddress) {
+            useLocationStore.setState({ selectedAddress: parsed });
+          }
+        }
+      } catch {
+        // Ignore
+      }
+    }
+  });
+}

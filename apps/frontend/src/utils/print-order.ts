@@ -1,10 +1,17 @@
 import { Order } from "@/types/order.types";
+import { isZaloRuntime } from "@/utils/zalo-permissions";
 
 function escapeHtml(str: string | undefined | null): string {
   if (!str) return "";
   const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
+}
+
+export interface PrintOrderResult {
+  success: boolean;
+  reason?: "ZALO_RUNTIME_POPUP_UNSUPPORTED" | "POPUP_BLOCKED" | "PRINT_SUCCESS";
+  message?: string;
 }
 
 /**
@@ -14,11 +21,34 @@ function escapeHtml(str: string | undefined | null): string {
 export function printOrderReceipt(
   order: Order,
   type: "KITCHEN" | "DELIVERY_BAG" = "DELIVERY_BAG",
-) {
-  const printWindow = window.open("", "_blank", "width=400,height=600");
+): PrintOrderResult {
+  // Tránh popup crash hoặc block trên Zalo Mini App mobile native
+  if (
+    isZaloRuntime() &&
+    /android|iphone|ipad|ipod/i.test(navigator.userAgent)
+  ) {
+    return {
+      success: false,
+      reason: "ZALO_RUNTIME_POPUP_UNSUPPORTED",
+      message:
+        "Tính năng in trực tiếp cần mở trên máy tính (Zalo PC / Web browser) hoặc thiết bị kết nối máy in nhiệt.",
+    };
+  }
+
+  let printWindow: Window | null = null;
+  try {
+    printWindow = window.open("", "_blank", "width=400,height=600");
+  } catch {
+    printWindow = null;
+  }
+
   if (!printWindow) {
-    alert("Vui lòng cho phép trình duyệt mở cửa sổ in (Pop-up).");
-    return;
+    return {
+      success: false,
+      reason: "POPUP_BLOCKED",
+      message:
+        "Trình duyệt đã chặn cửa sổ in (Pop-up). Vui lòng cấp quyền cho phép mở pop-up.",
+    };
   }
 
   const isPaid = order.payment?.status === "PAID";
@@ -155,7 +185,13 @@ export function printOrderReceipt(
   printWindow.document.close();
 
   setTimeout(() => {
-    printWindow.focus();
-    printWindow.print();
+    try {
+      printWindow.focus();
+      printWindow.print();
+    } catch {
+      // Ignore print execution errors
+    }
   }, 250);
+
+  return { success: true, reason: "PRINT_SUCCESS" };
 }

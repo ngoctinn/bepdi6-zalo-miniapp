@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/common/badge";
 import { PrinterIcon } from "@/components/common/vectors";
 import { Spinner, Icon } from "zmp-ui";
+import { useAppToast } from "@/hooks/use-app-toast";
 
 interface StaffOrderDetailSheetProps {
   visible: boolean;
@@ -35,6 +36,14 @@ export function StaffOrderDetailSheet({
   isProcessing = false,
 }: StaffOrderDetailSheetProps) {
   const [debouncing, setDebouncing] = useState(false);
+  const { showError, showSuccess } = useAppToast();
+
+  const handlePrint = (targetOrder: Order) => {
+    const res = printOrderReceipt(targetOrder, "DELIVERY_BAG");
+    if (!res.success) {
+      showError(res.message || "Không thể mở cửa sổ in trên thiết bị này.");
+    }
+  };
 
   useEffect(() => {
     if (!visible) return;
@@ -339,7 +348,7 @@ export function StaffOrderDetailSheet({
           {/* Nút in phiếu in túi (Auxiliary) */}
           <button
             type="button"
-            onClick={() => printOrderReceipt(order, "DELIVERY_BAG")}
+            onClick={() => handlePrint(order)}
             className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 shadow-sm transition-transform active:scale-[0.98]"
             title={copy.staff.printBagReceiptBtn}
             aria-label={copy.staff.printBagReceiptBtn}

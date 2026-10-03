@@ -10,6 +10,12 @@ interface RequestOptions extends RequestInit {
   idempotencyKey?: string;
 }
 
+import {
+  nativeStorageGet,
+  nativeStorageSet,
+  nativeStorageRemove,
+} from "./storage";
+
 export const TOKEN_STORAGE_KEY = "bepdi6_access_token";
 export const REFRESH_TOKEN_STORAGE_KEY = "bepdi6_refresh_token";
 
@@ -17,13 +23,31 @@ let inMemoryAccessToken: string | null = null;
 let inMemoryRefreshToken: string | null = null;
 
 export const getStoredToken = (): string | null => {
+  if (inMemoryAccessToken) return inMemoryAccessToken;
   try {
     const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (token) return token;
+    if (token) {
+      inMemoryAccessToken = token;
+      return token;
+    }
   } catch {
-    // localStorage unavailable, fallback to in-memory
+    // localStorage unavailable
   }
-  return inMemoryAccessToken;
+  return null;
+};
+
+export const getStoredRefreshToken = (): string | null => {
+  if (inMemoryRefreshToken) return inMemoryRefreshToken;
+  try {
+    const token = localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
+    if (token) {
+      inMemoryRefreshToken = token;
+      return token;
+    }
+  } catch {
+    // localStorage unavailable
+  }
+  return null;
 };
 
 export const setStoredTokens = (access: string, refresh?: string): void => {
@@ -31,13 +55,19 @@ export const setStoredTokens = (access: string, refresh?: string): void => {
   if (refresh) {
     inMemoryRefreshToken = refresh;
   }
+  // Synchronously update localStorage
   try {
     localStorage.setItem(TOKEN_STORAGE_KEY, access);
     if (refresh) {
       localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refresh);
     }
   } catch {
-    // Ignore localStorage errors - memory token will be used
+    // Ignore localStorage errors
+  }
+  // Asynchronously persist to native ZMP storage
+  void nativeStorageSet(TOKEN_STORAGE_KEY, access);
+  if (refresh) {
+    void nativeStorageSet(REFRESH_TOKEN_STORAGE_KEY, refresh);
   }
 };
 
@@ -50,7 +80,27 @@ export const clearStoredTokens = (): void => {
   } catch {
     // Ignore localStorage errors
   }
+  void nativeStorageRemove(TOKEN_STORAGE_KEY);
+  void nativeStorageRemove(REFRESH_TOKEN_STORAGE_KEY);
 };
+
+/**
+ * Hydrates tokens from native storage if missing in localStorage/in-memory
+ */
+export async function initStoredTokens(): Promise<void> {
+  if (!inMemoryAccessToken) {
+    const nativeAccess = await nativeStorageGet(TOKEN_STORAGE_KEY);
+    if (nativeAccess) {
+      inMemoryAccessToken = nativeAccess;
+    }
+  }
+  if (!inMemoryRefreshToken) {
+    const nativeRefresh = await nativeStorageGet(REFRESH_TOKEN_STORAGE_KEY);
+    if (nativeRefresh) {
+      inMemoryRefreshToken = nativeRefresh;
+    }
+  }
+}
 
 export async function apiClient<T>(
   endpoint: string,
