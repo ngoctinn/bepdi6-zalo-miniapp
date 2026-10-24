@@ -8,12 +8,12 @@ export default function AdminCustomerPlaceholderPage() {
   return (
     <div className="flex min-h-full flex-col items-center justify-center bg-stone-50 p-6 pb-20 text-center">
       <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10 text-primary shadow-inner">
-        <Icon icon="zi-user-circle" className="text-4xl" />
+        <Icon icon="zi-user-circle" className="shrink-0 text-4xl" />
       </div>
       <h1 className="mt-4 text-lg font-bold text-stone-900">
         Quản Lý Khách Hàng
       </h1>
-      <p className="mt-1 max-w-xs text-xs leading-relaxed text-stone-500">
+      <p className="mt-1 max-w-xs text-xs leading-relaxed text-stone-600">
         Tính năng theo dõi hồ sơ khách hàng, phân hạng thành viên (VIP) và thống
         kê lịch sử mua sắm đang được phát triển ở phiên bản kế tiếp.
       </p>
@@ -21,9 +21,9 @@ export default function AdminCustomerPlaceholderPage() {
       <button
         type="button"
         onClick={() => navigate("/admin/manage")}
-        className="mt-6 inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-md active:scale-95"
+        className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white shadow-md active:scale-95"
       >
-        <Icon icon="zi-arrow-left" className="text-xs" />
+        <Icon icon="zi-arrow-left" className="shrink-0 text-sm" />
         <span>Quay lại trung tâm quản lý</span>
       </button>
     </div>

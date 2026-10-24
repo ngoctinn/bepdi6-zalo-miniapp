@@ -28,10 +28,7 @@ export function CancelOrderModal({
   if (!visible) return null;
 
   return (
-    <div
-      className="animate-fadeIn fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200"
-      onClick={onClose}
-    >
+    <div className="animate-fadeIn fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200">
       <div
         className="safe-bottom animate-slideUp flex max-h-[90vh] w-full max-w-lg flex-col overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl transition-transform duration-300"
         onClick={(e) => e.stopPropagation()}
@@ -45,7 +42,10 @@ export function CancelOrderModal({
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div className="flex items-center gap-2.5">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
-              <Icon icon="zi-warning-solid" className="text-xl leading-none" />
+              <Icon
+                icon="zi-warning-solid"
+                className="shrink-0 text-xl leading-none"
+              />
             </div>
             <div>
               <h3 className="text-sm font-bold text-neutral900">
@@ -61,10 +61,10 @@ export function CancelOrderModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-transform active:scale-95"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-transform active:scale-95"
             aria-label="Đóng"
           >
-            <Icon icon="zi-close" className="text-base" />
+            <Icon icon="zi-close" className="shrink-0 text-lg" />
           </button>
         </div>
 
@@ -125,7 +125,7 @@ export function CancelOrderModal({
               placeholder={copy.staff.cancel.customPlaceholder}
               value={customReason}
               onChange={(e) => onChangeCustomReason(e.target.value)}
-              className="w-full resize-none rounded-xl border border-stone-200 bg-stone-50 p-3 text-xs text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:border-rose-400 focus:bg-white focus:ring-1 focus:ring-rose-200"
+              className="w-full resize-none rounded-xl border border-stone-200 bg-stone-50 p-3 text-base text-stone-800 outline-none transition-colors placeholder:text-stone-400 focus:border-rose-400 focus:bg-white focus:ring-1 focus:ring-rose-200"
             />
           </div>
         )}

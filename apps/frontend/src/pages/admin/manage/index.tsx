@@ -1,22 +1,15 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  useAdminCategories,
-  useAdminProducts,
-  useAdminVouchers,
-} from "@/services/admin/admin.queries";
+import { useAdminDashboardStats } from "@/services/admin/admin.queries";
 import { Icon } from "zmp-ui";
 
 export default function AdminManageHubPage() {
   const navigate = useNavigate();
+  const { data: stats } = useAdminDashboardStats();
 
-  const { data: categories } = useAdminCategories();
-  const { data: products } = useAdminProducts();
-  const { data: vouchers } = useAdminVouchers();
-
-  const catCount = Array.isArray(categories) ? categories.length : 0;
-  const prodCount = Array.isArray(products) ? products.length : 0;
-  const voucherCount = Array.isArray(vouchers) ? vouchers.length : 0;
+  const catCount = stats?.total_categories_count ?? 0;
+  const prodCount = stats?.total_products_count ?? 0;
+  const voucherCount = stats?.active_vouchers_count ?? 0;
 
   type IconName = React.ComponentProps<typeof Icon>["icon"];
 
@@ -27,6 +20,7 @@ export default function AdminManageHubPage() {
     description: string;
     badge: string;
     path: string;
+    disabled?: boolean;
   }
 
   interface MenuSection {
@@ -50,7 +44,7 @@ export default function AdminManageHubPage() {
           id: "products",
           icon: "zi-more-grid",
           title: "Danh sách món ăn",
-          description: "Bật/tắt hết hàng, giá bán, mô tả, ảnh món",
+          description: "Topping/Size, bật/tắt hết hàng, giá bán, ảnh món",
           badge: `${prodCount} món`,
           path: "/admin/manage/menu/products",
         },
@@ -79,41 +73,53 @@ export default function AdminManageHubPage() {
           description: "Tra cứu lịch sử mua hàng và địa chỉ khách",
           badge: "Sắp ra mắt",
           path: "/admin/manage/customers",
+          disabled: true,
         },
       ],
     },
   ];
 
   return (
-    <div className="flex min-h-full flex-col bg-stone-50 pb-20">
+    <div className="flex min-h-full flex-col bg-stone-50 pb-24 font-sans">
       <div className="space-y-5 p-4">
         {MENU_SECTIONS.map((section) => (
           <div key={section.title} className="space-y-2">
-            <h2 className="px-1 text-xs font-bold uppercase tracking-wider text-stone-500">
+            <h2 className="px-1 text-xs font-bold uppercase tracking-wider text-stone-600">
               {section.title}
             </h2>
-            <div className="divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-100 bg-white shadow-sm">
+            <div className="divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-200/60 bg-white shadow-sm">
               {section.items.map((item) => (
                 <div
                   key={item.id}
-                  onClick={() => navigate(item.path)}
-                  className="flex cursor-pointer items-center justify-between p-3.5 transition-colors active:bg-stone-50"
+                  onClick={() => {
+                    if (!item.disabled) {
+                      navigate(item.path);
+                    }
+                  }}
+                  className={`flex items-center justify-between p-3.5 transition-colors ${
+                    item.disabled
+                      ? "cursor-not-allowed opacity-60"
+                      : "cursor-pointer active:bg-stone-50"
+                  }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <Icon icon={item.icon} className="text-xl leading-none" />
+                      <Icon
+                        icon={item.icon}
+                        className="shrink-0 text-xl leading-none"
+                      />
                     </span>
                     <div>
                       <div className="text-sm font-bold text-stone-900">
                         {item.title}
                       </div>
-                      <div className="line-clamp-1 text-[11px] text-stone-500">
+                      <div className="line-clamp-1 text-xs text-stone-500">
                         {item.description}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold text-stone-600">
+                    <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-700">
                       {item.badge}
                     </span>
                     <Icon

@@ -68,10 +68,7 @@ export function StaffOrderDetailSheet({
   };
 
   return (
-    <div
-      className="animate-fadeIn fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200"
-      onClick={onClose}
-    >
+    <div className="animate-fadeIn fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200">
       <div
         className="safe-bottom animate-slideUp flex max-h-[88vh] w-full max-w-lg flex-col rounded-t-3xl bg-white shadow-2xl transition-transform duration-300"
         onClick={(e) => e.stopPropagation()}
@@ -91,7 +88,7 @@ export function StaffOrderDetailSheet({
               <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xxsmall font-bold text-blue-700">
                 <Icon
                   icon="zi-location-solid"
-                  className="text-xs leading-none text-blue-600"
+                  className="shrink-0 text-xs leading-none text-blue-600"
                 />
                 <span className="leading-none">GIAO TẬN NƠI</span>
               </span>
@@ -99,7 +96,7 @@ export function StaffOrderDetailSheet({
               <span className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-xxsmall font-bold text-amber-800">
                 <Icon
                   icon="zi-home"
-                  className="text-xs leading-none text-amber-700"
+                  className="shrink-0 text-xs leading-none text-amber-700"
                 />
                 <span className="leading-none">TẠI QUÁN</span>
               </span>
@@ -115,10 +112,10 @@ export function StaffOrderDetailSheet({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-transform active:scale-95"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-transform active:scale-95"
             aria-label={copy.staff.dispatch.close}
           >
-            <Icon icon="zi-close" className="text-base" />
+            <Icon icon="zi-close" className="shrink-0 text-lg" />
           </button>
         </div>
 
@@ -294,43 +291,57 @@ export function StaffOrderDetailSheet({
               {copy.staff.items.itemCountPrefix} ({order.items?.length || 0})
             </h4>
             <div className="divide-y divide-stone-100">
-              {order.items?.map((item, idx) => (
-                <div key={item.id || idx} className="py-2 first:pt-0 last:pb-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-2">
-                      <span className="font-mono text-sm font-black text-primary">
-                        {item.quantity}x
-                      </span>
-                      <div>
-                        <p className="text-sm font-bold text-neutral900">
-                          {item.product_name}
-                        </p>
-                        {item.options && item.options.length > 0 && (
-                          <p className="mt-0.5 text-xs text-stone-500">
-                            ↳{" "}
-                            {item.options.map((o) => o.option_name).join(", ")}
+              {order.items?.map((item, idx) => {
+                const isMulti = (item.quantity || 1) >= 2;
+                return (
+                  <div
+                    key={item.id || idx}
+                    className="py-2 first:pt-0 last:pb-0"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2">
+                        {isMulti ? (
+                          <span className="inline-flex shrink-0 items-center justify-center rounded-md bg-primary px-1.5 py-0.5 font-mono text-xs font-black text-white">
+                            {item.quantity}x
+                          </span>
+                        ) : (
+                          <span className="inline-flex shrink-0 items-center justify-center px-1 py-0.5 font-mono text-sm font-black text-stone-700">
+                            {item.quantity}x
+                          </span>
+                        )}
+                        <div>
+                          <p className="text-sm font-bold text-neutral900">
+                            {item.product_name}
                           </p>
-                        )}
-                        {item.note && (
-                          <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xxsmall font-semibold text-amber-900">
-                            <Icon
-                              icon="zi-warning-circle-solid"
-                              className="inline-flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
-                            />
-                            <span className="leading-none">
-                              {copy.staff.itemWarningPrefix}
-                              {item.note}
-                            </span>
-                          </div>
-                        )}
+                          {item.options && item.options.length > 0 && (
+                            <p className="mt-0.5 text-xs font-medium text-stone-700">
+                              ↳{" "}
+                              {item.options
+                                .map((o) => o.option_name)
+                                .join(", ")}
+                            </p>
+                          )}
+                          {item.note && (
+                            <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xxsmall font-semibold text-amber-900">
+                              <Icon
+                                icon="zi-warning-circle-solid"
+                                className="inline-flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
+                              />
+                              <span className="leading-none">
+                                {copy.staff.itemWarningPrefix}
+                                {item.note}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
+                      <span className="font-mono text-xs font-bold text-stone-700">
+                        {formatCurrency(item.subtotal || 0)}
+                      </span>
                     </div>
-                    <span className="font-mono text-xs font-bold text-stone-700">
-                      {formatCurrency(item.subtotal || 0)}
-                    </span>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Total summary */}
@@ -487,29 +498,53 @@ export function StaffOrderDetailSheet({
             </>
           )}
 
-          {order.status === "DELIVERING" && onUpdateStatus && (
-            <button
-              type="button"
-              disabled={isProcessing || debouncing}
-              onClick={() =>
-                handleAction(() => onUpdateStatus(order.id, "COMPLETED"))
-              }
-              className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-neutral900 text-xs font-bold text-white shadow-sm transition-transform hover:bg-black active:scale-[0.98] disabled:opacity-50"
-            >
-              {isProcessing ? (
-                <Spinner visible logo={false} />
-              ) : (
-                <>
+          {order.status === "DELIVERING" && (
+            <div className="flex flex-1 gap-2">
+              {isDelivery && onOpenDispatchModal && (
+                <button
+                  type="button"
+                  disabled={isProcessing || debouncing}
+                  onClick={() =>
+                    handleAction(() => {
+                      onClose();
+                      onOpenDispatchModal(order);
+                    })
+                  }
+                  title={copy.staff.updateShipperBtn}
+                  aria-label={copy.staff.updateShipperBtn}
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-stone-600 transition-colors active:bg-stone-200 disabled:opacity-50"
+                >
                   <Icon
-                    icon="zi-check-circle-solid"
+                    icon="zi-edit"
                     className="inline-flex shrink-0 items-center justify-center text-base leading-none"
                   />
-                  <span className="leading-none">
-                    {copy.staff.actions.completeOrder}
-                  </span>
-                </>
+                </button>
               )}
-            </button>
+              {onUpdateStatus && (
+                <button
+                  type="button"
+                  disabled={isProcessing || debouncing}
+                  onClick={() =>
+                    handleAction(() => onUpdateStatus(order.id, "COMPLETED"))
+                  }
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-neutral900 text-xs font-bold text-white shadow-sm transition-transform hover:bg-black active:scale-[0.98] disabled:opacity-50"
+                >
+                  {isProcessing ? (
+                    <Spinner visible logo={false} />
+                  ) : (
+                    <>
+                      <Icon
+                        icon="zi-check-circle-solid"
+                        className="inline-flex shrink-0 items-center justify-center text-base leading-none text-primary"
+                      />
+                      <span className="leading-none">
+                        {copy.staff.actions.completeOrder}
+                      </span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>

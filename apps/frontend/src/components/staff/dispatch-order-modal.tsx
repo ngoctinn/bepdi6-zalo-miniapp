@@ -37,6 +37,15 @@ export function DispatchOrderModal({
   const [trackingCode, setTrackingCode] = useState("");
 
   useEffect(() => {
+    if (order && visible) {
+      setProvider(order.delivery_provider || "INTERNAL");
+      setShipperName(order.shipper_name || "");
+      setShipperPhone(order.shipper_phone || "");
+      setTrackingCode(order.shipper_tracking_code || "");
+    }
+  }, [order, visible]);
+
+  useEffect(() => {
     if (!visible) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -72,10 +81,7 @@ export function DispatchOrderModal({
   };
 
   return (
-    <div
-      className="animate-fadeIn fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200"
-      onClick={onClose}
-    >
+    <div className="animate-fadeIn fixed inset-0 z-[1500] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-200">
       <div
         className="safe-bottom animate-slideUp flex max-h-[88vh] w-full max-w-lg flex-col overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl transition-transform duration-300"
         onClick={(e) => e.stopPropagation()}
@@ -107,9 +113,10 @@ export function DispatchOrderModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-stone-500 active:scale-95"
+            aria-label={copy.staff.dispatch.close}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-stone-500 active:scale-95"
           >
-            <Icon icon="zi-close" className="text-base" />
+            <Icon icon="zi-close" className="shrink-0 text-lg" />
           </button>
         </div>
 
@@ -117,7 +124,7 @@ export function DispatchOrderModal({
         <div className="mt-3 flex items-start gap-2 rounded-xl bg-stone-50 p-2.5 text-xs text-stone-700">
           <Icon
             icon="zi-location"
-            className="mt-0.5 text-sm leading-none text-primary"
+            className="mt-0.5 shrink-0 text-sm leading-none text-primary"
           />
           <span className="line-clamp-2 leading-relaxed">
             {order.delivery_address || "Địa chỉ khách hàng"}
@@ -129,7 +136,7 @@ export function DispatchOrderModal({
           <label className="text-xxsmall font-bold uppercase tracking-wider text-stone-400">
             {copy.staff.dispatch.selectChannel}
           </label>
-          <div className="mt-1.5 grid grid-cols-3 gap-2">
+          <div className="mt-1.5 grid grid-cols-3 gap-1.5">
             <button
               type="button"
               onClick={() => {
@@ -137,13 +144,13 @@ export function DispatchOrderModal({
                 setShipperName("");
                 setShipperPhone("");
               }}
-              className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
+              className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-colors active:scale-[0.98] ${
                 provider === "INTERNAL"
                   ? "shadow-xs border-primary bg-primary/10 text-primary ring-2 ring-primary/20"
                   : "border-stone-200 bg-white text-stone-600"
               }`}
             >
-              <MotorbikeIcon className="h-6 w-6 shrink-0" />
+              <MotorbikeIcon className="h-5 w-5 shrink-0" />
               <span className="mt-1 text-xs font-bold">
                 {copy.staff.dispatch.internalShipper}
               </span>
@@ -158,13 +165,13 @@ export function DispatchOrderModal({
                 setProvider("AHAMOVE");
                 setShipperName(copy.staff.dispatch.driverAhamoveDefault);
               }}
-              className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
+              className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-colors active:scale-[0.98] ${
                 provider === "AHAMOVE"
                   ? "shadow-xs border-amber-500 bg-amber-50 text-amber-900 ring-2 ring-amber-400/30"
                   : "border-stone-200 bg-white text-stone-600"
               }`}
             >
-              <TruckIcon className="h-6 w-6 shrink-0 text-amber-600" />
+              <TruckIcon className="h-5 w-5 shrink-0 text-amber-600" />
               <span className="mt-1 text-xs font-bold">Ahamove</span>
               <span className="text-xxxsmall font-semibold text-amber-700">
                 {copy.staff.dispatch.ahamoveFeeLabel}
@@ -177,13 +184,13 @@ export function DispatchOrderModal({
                 setProvider("GRAB");
                 setShipperName(copy.staff.dispatch.driverGrabDefault);
               }}
-              className={`flex flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-colors active:scale-[0.98] ${
+              className={`flex flex-col items-center justify-center rounded-2xl border p-2 text-center transition-colors active:scale-[0.98] ${
                 provider === "GRAB"
                   ? "shadow-xs border-emerald-500 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-500/20"
                   : "border-stone-200 bg-white text-stone-600"
               }`}
             >
-              <MotorbikeIcon className="h-6 w-6 shrink-0 text-emerald-600" />
+              <MotorbikeIcon className="h-5 w-5 shrink-0 text-emerald-600" />
               <span className="mt-1 text-xs font-bold">GrabExpress</span>
               <span className="text-xxxsmall text-stone-500">
                 {copy.staff.dispatch.grabDesc}
@@ -221,29 +228,37 @@ export function DispatchOrderModal({
                 ))}
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 <div>
-                  <label className="text-xxxsmall font-bold text-stone-500">
+                  <label
+                    htmlFor="dispatch-internal-shipper-name"
+                    className="text-xxxsmall font-bold text-stone-500"
+                  >
                     {copy.staff.dispatch.shipperNameLabel}
                   </label>
                   <input
+                    id="dispatch-internal-shipper-name"
                     type="text"
                     placeholder={copy.staff.dispatch.shipperNamePlaceholder}
                     value={shipperName}
                     onChange={(e) => setShipperName(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-neutral900 outline-none focus:border-primary"
+                    className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-white px-3 text-base font-semibold text-neutral900 outline-none focus:border-primary"
                   />
                 </div>
                 <div>
-                  <label className="text-xxxsmall font-bold text-stone-500">
+                  <label
+                    htmlFor="dispatch-internal-shipper-phone"
+                    className="text-xxxsmall font-bold text-stone-500"
+                  >
                     {copy.staff.dispatch.shipperPhoneLabel}
                   </label>
                   <input
+                    id="dispatch-internal-shipper-phone"
                     type="tel"
                     placeholder={copy.staff.dispatch.shipperPhonePlaceholder}
                     value={shipperPhone}
                     onChange={(e) => setShipperPhone(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-neutral900 outline-none focus:border-primary"
+                    className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-white px-3 text-base font-semibold text-neutral900 outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -253,7 +268,7 @@ export function DispatchOrderModal({
               <div className="flex items-center gap-2 rounded-xl bg-amber-50 p-2.5 text-xs text-amber-900">
                 <Icon
                   icon="zi-info-circle"
-                  className="text-base text-amber-600"
+                  className="shrink-0 text-base text-amber-600"
                 />
                 <div className="leading-snug">
                   <p className="font-bold">
@@ -266,45 +281,57 @@ export function DispatchOrderModal({
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 <div>
-                  <label className="text-xxxsmall font-bold text-stone-500">
+                  <label
+                    htmlFor="dispatch-external-driver-name"
+                    className="text-xxxsmall font-bold text-stone-500"
+                  >
                     {copy.staff.dispatch.driverLicenseLabel}
                   </label>
                   <input
+                    id="dispatch-external-driver-name"
                     type="text"
                     placeholder={
                       copy.staff.dispatch.driverAhaLicensePlaceholder
                     }
                     value={shipperName}
                     onChange={(e) => setShipperName(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-neutral900 outline-none focus:border-primary"
+                    className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-white px-3 text-base font-semibold text-neutral900 outline-none focus:border-primary"
                   />
                 </div>
                 <div>
-                  <label className="text-xxxsmall font-bold text-stone-500">
+                  <label
+                    htmlFor="dispatch-external-driver-phone"
+                    className="text-xxxsmall font-bold text-stone-500"
+                  >
                     {copy.staff.dispatch.driverPhoneLabel}
                   </label>
                   <input
+                    id="dispatch-external-driver-phone"
                     type="tel"
                     placeholder={copy.staff.dispatch.driverPhonePlaceholder}
                     value={shipperPhone}
                     onChange={(e) => setShipperPhone(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-neutral900 outline-none focus:border-primary"
+                    className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-white px-3 text-base font-semibold text-neutral900 outline-none focus:border-primary"
                   />
                 </div>
               </div>
 
-              <div className="mt-2">
-                <label className="text-xxxsmall font-bold text-stone-500">
+              <div className="mt-2.5">
+                <label
+                  htmlFor="dispatch-external-tracking-code"
+                  className="text-xxxsmall font-bold text-stone-500"
+                >
                   {copy.staff.dispatch.trackingCodeLabel}
                 </label>
                 <input
+                  id="dispatch-external-tracking-code"
                   type="text"
                   placeholder={copy.staff.dispatch.trackingCodePlaceholder}
                   value={trackingCode}
                   onChange={(e) => setTrackingCode(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 font-mono text-xs font-semibold text-neutral900 outline-none focus:border-primary"
+                  className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-white px-3 font-mono text-base font-semibold text-neutral900 outline-none focus:border-primary"
                 />
               </div>
             </div>
@@ -335,7 +362,7 @@ export function DispatchOrderModal({
               </>
             ) : (
               <>
-                <Icon icon="zi-send-solid" className="text-base" />
+                <Icon icon="zi-send-solid" className="shrink-0 text-base" />
                 <span>{copy.staff.dispatch.confirmDispatch}</span>
               </>
             )}

@@ -204,14 +204,14 @@ export function StaffOrderCard({
         )}
 
         {order.note && (
-          <div className="mt-1.5 flex items-start gap-1.5 rounded-lg bg-stone-50 p-2 text-xs text-stone-700">
+          <div className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs font-semibold text-amber-900">
             <Icon
-              icon="zi-chat"
-              className="flex shrink-0 items-center justify-center text-xs leading-none text-stone-400"
+              icon="zi-warning-circle-solid"
+              className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-600"
             />
             <div className="leading-snug">
-              <span className="font-bold text-stone-900">
-                {copy.staff.orderNoteHeader}
+              <span className="font-bold text-amber-950">
+                {copy.staff.orderNoteHeader}{" "}
               </span>
               <span>{order.note}</span>
             </div>
@@ -223,18 +223,25 @@ export function StaffOrderCard({
       <div className="space-y-2 border-t border-stone-100/80 py-2.5">
         {order.items?.map((item, idx) => {
           const itemId = item.id || idx;
+          const isMulti = (item.quantity || 1) >= 2;
           return (
             <div key={itemId} className="text-xs">
               <div className="flex items-start gap-2">
-                <span className="font-mono text-sm font-black text-primary">
-                  {item.quantity}x
-                </span>
+                {isMulti ? (
+                  <span className="inline-flex shrink-0 items-center justify-center rounded-md bg-primary px-1.5 py-0.5 font-mono text-xs font-black text-white">
+                    {item.quantity}x
+                  </span>
+                ) : (
+                  <span className="inline-flex shrink-0 items-center justify-center px-1 py-0.5 font-mono text-sm font-black text-stone-700">
+                    {item.quantity}x
+                  </span>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold leading-snug text-neutral900">
                     {item.product_name}
                   </p>
                   {item.options && item.options.length > 0 && (
-                    <p className="mt-0.5 text-xs text-stone-500">
+                    <p className="mt-0.5 text-xs font-medium text-stone-700">
                       ↳ {item.options.map((o) => o.option_name).join(", ")}
                     </p>
                   )}

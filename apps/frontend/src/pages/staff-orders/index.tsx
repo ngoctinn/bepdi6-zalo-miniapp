@@ -24,14 +24,19 @@ type StaffTab = "PENDING" | "PREPARING" | "READY" | "ALL";
 export default function StaffOrdersPage() {
   const queryClient = useQueryClient();
   const { showSuccess, showError, showWarning, showToast } = useAppToast();
-  const { customer, isLoading: isAuthLoading, refetchCustomer } = useAuth();
+  const { customer, isLoading: isAuthLoading } = useAuth();
 
-  const isAdmin = customer?.role === "ADMIN" || customer?.role === "STAFF";
+  const isAdmin = customer?.role === "ADMIN";
 
   const [activeTab, setActiveTab] = useState<StaffTab>("PENDING");
-  const [isSoundEnabled, setIsSoundEnabled] = useState(false);
-  const [processingOrderId, setProcessingOrderId] = useState<number | null>(
-    null,
+  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("bepdi6_kds_sound_enabled") === "true";
+    }
+    return false;
+  });
+  const [processingOrderIds, setProcessingOrderIds] = useState<Set<number>>(
+    new Set(),
   );
 
   // Modal Cancel state
@@ -80,10 +85,11 @@ export default function StaffOrdersPage() {
             .webkitAudioContext;
         const ctx = new AudioCtx();
         if (ctx.state === "suspended") {
-          ctx.resume();
+          void ctx.resume();
         }
         audioContextRef.current = ctx;
         setIsSoundEnabled(true);
+        localStorage.setItem("bepdi6_kds_sound_enabled", "true");
         playBeep(ctx);
         showSuccess(copy.staff.soundOnSuccess, { duration: 2000 });
       } catch {
@@ -91,6 +97,7 @@ export default function StaffOrdersPage() {
       }
     } else {
       setIsSoundEnabled(false);
+      localStorage.setItem("bepdi6_kds_sound_enabled", "false");
       showToast(copy.staff.soundOff);
     }
   };
@@ -204,10 +211,22 @@ export default function StaffOrdersPage() {
     return orders;
   }, [orders, activeTab]);
 
+  // Helper quản lý processingOrderIds
+  const startProcessing = (id: number) => {
+    setProcessingOrderIds((prev) => new Set(prev).add(id));
+  };
+  const stopProcessing = (id: number) => {
+    setProcessingOrderIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  };
+
   // Xử lý chuyển trạng thái đơn
   const handleUpdateStatus = async (orderId: number, nextStatus: string) => {
     try {
-      setProcessingOrderId(orderId);
+      startProcessing(orderId);
       await orderService.updateAdminOrderStatus(orderId, nextStatus);
       await queryClient.invalidateQueries({
         queryKey: ADMIN_ORDERS_QUERY_KEY,
@@ -221,14 +240,14 @@ export default function StaffOrdersPage() {
         copy.staff.toasts.statusUpdateError;
       showError(errorMsg, { duration: 3000 });
     } finally {
-      setProcessingOrderId(null);
+      stopProcessing(orderId);
     }
   };
 
   // Xác nhận thanh toán VietQR
   const handleVerifyPayment = async (orderId: number) => {
     try {
-      setProcessingOrderId(orderId);
+      startProcessing(orderId);
       const updatedOrder = await orderService.verifyAdminOrderPayment(orderId);
       await queryClient.invalidateQueries({
         queryKey: ADMIN_ORDERS_QUERY_KEY,
@@ -254,7 +273,7 @@ export default function StaffOrdersPage() {
         (err as { message?: string })?.message || "Lỗi xác nhận thanh toán";
       showError(errorMsg, { duration: 3000 });
     } finally {
-      setProcessingOrderId(null);
+      stopProcessing(orderId);
     }
   };
 
@@ -273,13 +292,11 @@ export default function StaffOrdersPage() {
       cancelReason === copy.staff.cancel.otherReasonKey
         ? customReason.trim() || copy.staff.cancel.staffDefault
         : cancelReason;
+    const cancellingId = selectedOrderForCancel.id;
     try {
-      setProcessingOrderId(selectedOrderForCancel.id);
+      startProcessing(cancellingId);
       setCancelModalVisible(false);
-      await orderService.cancelAdminOrder(
-        selectedOrderForCancel.id,
-        finalReason,
-      );
+      await orderService.cancelAdminOrder(cancellingId, finalReason);
       await queryClient.invalidateQueries({
         queryKey: ADMIN_ORDERS_QUERY_KEY,
       });
@@ -295,7 +312,7 @@ export default function StaffOrdersPage() {
         (err as { message?: string })?.message || copy.staff.toasts.cancelError;
       showError(errorMsg, { duration: 3000 });
     } finally {
-      setProcessingOrderId(null);
+      stopProcessing(cancellingId);
       setSelectedOrderForCancel(null);
     }
   };
@@ -314,12 +331,10 @@ export default function StaffOrdersPage() {
     shipper_tracking_code?: string;
   }) => {
     if (!selectedOrderForDispatch) return;
+    const dispatchingId = selectedOrderForDispatch.id;
     try {
-      setProcessingOrderId(selectedOrderForDispatch.id);
-      await orderService.dispatchAdminOrder(
-        selectedOrderForDispatch.id,
-        payload,
-      );
+      startProcessing(dispatchingId);
+      await orderService.dispatchAdminOrder(dispatchingId, payload);
       await queryClient.invalidateQueries({
         queryKey: ADMIN_ORDERS_QUERY_KEY,
       });
@@ -337,7 +352,7 @@ export default function StaffOrdersPage() {
         copy.staff.toasts.dispatchError;
       showError(errorMsg, { duration: 3000 });
     } finally {
-      setProcessingOrderId(null);
+      stopProcessing(dispatchingId);
     }
   };
 
@@ -493,7 +508,7 @@ export default function StaffOrdersPage() {
               <StaffOrderCard
                 key={order.id}
                 order={order}
-                isProcessing={processingOrderId === order.id}
+                isProcessing={processingOrderIds.has(order.id)}
                 onUpdateStatus={handleUpdateStatus}
                 onOpenCancelModal={handleOpenCancelModal}
                 onOpenDispatchModal={handleOpenDispatchModal}
@@ -520,7 +535,11 @@ export default function StaffOrdersPage() {
           );
         }}
         onVerifyPayment={handleVerifyPayment}
-        isProcessing={processingOrderId === selectedOrderForDetail?.id}
+        isProcessing={
+          selectedOrderForDetail
+            ? processingOrderIds.has(selectedOrderForDetail.id)
+            : false
+        }
       />
 
       {/* Modal Hủy Đơn Hàng */}
@@ -529,7 +548,11 @@ export default function StaffOrdersPage() {
         order={selectedOrderForCancel}
         cancelReason={cancelReason}
         customReason={customReason}
-        loading={processingOrderId === selectedOrderForCancel?.id}
+        loading={
+          selectedOrderForCancel
+            ? processingOrderIds.has(selectedOrderForCancel.id)
+            : false
+        }
         onClose={() => setCancelModalVisible(false)}
         onSelectReason={setCancelReason}
         onChangeCustomReason={setCustomReason}
@@ -540,7 +563,11 @@ export default function StaffOrdersPage() {
       <DispatchOrderModal
         visible={dispatchModalVisible}
         order={selectedOrderForDispatch}
-        loading={processingOrderId === selectedOrderForDispatch?.id}
+        loading={
+          selectedOrderForDispatch
+            ? processingOrderIds.has(selectedOrderForDispatch.id)
+            : false
+        }
         onClose={() => {
           setDispatchModalVisible(false);
           setSelectedOrderForDispatch(null);
