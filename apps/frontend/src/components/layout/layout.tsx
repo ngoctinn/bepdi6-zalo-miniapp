@@ -21,11 +21,19 @@ export default function Layout() {
   const matches = useMatches();
   const location = useLocation();
   const pathname = location.pathname;
-  const isAdminRoute = pathname.startsWith("/admin");
+  const isAdminRoute =
+    pathname.startsWith("/admin") || pathname.startsWith("/staff");
   const setIsAdminMode = useAdminStore((s) => s.setIsAdminMode);
 
   useEffect(() => {
     setIsAdminMode(isAdminRoute);
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute(
+        "data-theme",
+        isAdminRoute ? "admin" : "customer",
+      );
+      document.documentElement.classList.toggle("admin-theme", isAdminRoute);
+    }
   }, [isAdminRoute, setIsAdminMode]);
 
   const current = matches[matches.length - 1];

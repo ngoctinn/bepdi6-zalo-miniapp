@@ -82,6 +82,25 @@
   --theme-primary-light: rgb(var(--theme-primary-light-rgb));
   --theme-primary-surface: rgb(var(--theme-primary-surface-rgb));
   --theme-primary-border: rgba(234, 88, 12, 0.25);
+
+  /* ZaUI Variable Overrides inside Admin Theme (Portal Sheet & Modal) */
+  --zaui-light-color-primary: var(--theme-primary);
+  --zaui-dark-color-primary: var(--theme-primary);
+  --zaui-primary-color: var(--theme-primary);
+  --zaui-light-button-primary-background: var(--theme-primary);
+  --zaui-light-button-primary-background-pressed: var(--theme-primary-dark);
+  --zaui-light-button-secondary-background: var(--theme-primary-light);
+  --zaui-light-button-secondary-background-pressed: var(--theme-primary-light);
+  --zaui-light-button-secondary-text: var(--theme-primary-dark);
+  --zaui-light-button-secondary-icon: var(--theme-primary-dark);
+  --zaui-light-button-tertiary-text: var(--theme-primary);
+  --zaui-light-button-tertiary-icon: var(--theme-primary);
+  --zaui-light-button-tertiary-background-pressed: var(--theme-primary-surface);
+  --zaui-light-input-hover-border-color: var(--theme-primary);
+  --zaui-dark-input-hover-border-color: var(--theme-primary);
+  --zaui-light-switch-bg-color: var(--theme-primary);
+  --zaui-light-tabbar-active-line: var(--theme-primary);
+  --zaui-light-spinner-dot-color: var(--theme-primary);
 }
 
 /* Global viewport overflow-x prevention */

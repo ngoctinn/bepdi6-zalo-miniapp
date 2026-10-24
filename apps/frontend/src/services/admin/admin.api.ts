@@ -8,10 +8,12 @@ import {
   CreateCategoryRequest,
   CreateProductRequest,
   CreateVoucherRequest,
+  DeleteProductResponse,
   UpdateCategoryRequest,
   UpdateProductRequest,
   UpdateShopConfigRequest,
   UpdateVoucherRequest,
+  UploadImageResponse,
 } from "@/types/admin.types";
 import { orderService } from "@/services/order/order.api";
 
@@ -86,6 +88,17 @@ export const adminService = {
     return api.post<{ id: number; status: string }>(
       `/admin/products/${id}/toggle-status`,
     );
+  },
+
+  deleteProduct: async (id: number): Promise<DeleteProductResponse> => {
+    return api.delete<DeleteProductResponse>(`/admin/products/${id}`);
+  },
+
+  // --- Upload Image API ---
+  uploadImage: async (file: File): Promise<UploadImageResponse> => {
+    const formData = new FormData();
+    formData.append("image", file);
+    return api.post<UploadImageResponse>("/admin/upload-image", formData);
   },
 
   // --- Shop Config APIs ---

@@ -99,19 +99,8 @@ const router = createBrowserRouter(
           },
         },
         {
-          element: <StaffRouteGuard />,
-          children: [
-            {
-              path: "/staff/orders",
-              element: withSuspense(StaffOrdersPage),
-              handle: {
-                back: false,
-                hideFooter: true,
-                headerPosition: "sticky",
-                hideHeader: true,
-              },
-            },
-          ],
+          path: "/staff/orders",
+          element: <Navigate to="/admin/kitchen" replace />,
         },
         {
           element: <AdminRouteGuard />,

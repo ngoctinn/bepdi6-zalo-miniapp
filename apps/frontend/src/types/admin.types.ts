@@ -23,6 +23,24 @@ export interface AdminProduct extends Product {
   updated_at?: string;
 }
 
+export interface AdminOptionInput {
+  id?: number;
+  name: string;
+  price: number | string;
+  status?: "AVAILABLE" | "INACTIVE";
+  sort_order?: number;
+}
+
+export interface AdminOptionGroupInput {
+  id?: number;
+  name: string;
+  is_required: boolean;
+  min_select: number;
+  max_select: number;
+  sort_order?: number;
+  options?: AdminOptionInput[];
+}
+
 export interface CreateProductRequest {
   category_id: number;
   category?: number;
@@ -31,9 +49,21 @@ export interface CreateProductRequest {
   price: number;
   image_url?: string;
   status?: "AVAILABLE" | "OUT_OF_STOCK" | "INACTIVE";
+  option_groups?: AdminOptionGroupInput[];
 }
 
 export type UpdateProductRequest = Partial<CreateProductRequest>;
+
+export interface DeleteProductResponse {
+  id: number;
+  soft_deleted: boolean;
+  status?: "AVAILABLE" | "OUT_OF_STOCK" | "INACTIVE";
+  message?: string;
+}
+
+export interface UploadImageResponse {
+  image_url: string;
+}
 
 export interface AdminVoucher {
   id: number;
@@ -87,4 +117,7 @@ export interface AdminDashboardStats {
   preparing_count: number;
   ready_count: number;
   total_orders_count: number;
+  total_products_count?: number;
+  active_vouchers_count?: number;
+  total_categories_count?: number;
 }

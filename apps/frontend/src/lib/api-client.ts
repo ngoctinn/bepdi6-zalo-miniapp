@@ -124,8 +124,11 @@ export async function apiClient<T>(
   }
 
   const token = getStoredToken();
+  const isFormData =
+    typeof FormData !== "undefined" && customConfig.body instanceof FormData;
+
   const requestHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     Accept: "application/json",
     "ngrok-skip-browser-warning": "69420",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -208,26 +211,35 @@ export const api = {
   get: <T>(endpoint: string, options?: RequestOptions) =>
     apiClient<T>(endpoint, { ...options, method: "GET" }),
 
-  post: <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
-    apiClient<T>(endpoint, {
+  post: <T>(endpoint: string, body?: unknown, options?: RequestOptions) => {
+    const isFormData =
+      typeof FormData !== "undefined" && body instanceof FormData;
+    return apiClient<T>(endpoint, {
       ...options,
       method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
-    }),
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+    });
+  },
 
-  put: <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
-    apiClient<T>(endpoint, {
+  put: <T>(endpoint: string, body?: unknown, options?: RequestOptions) => {
+    const isFormData =
+      typeof FormData !== "undefined" && body instanceof FormData;
+    return apiClient<T>(endpoint, {
       ...options,
       method: "PUT",
-      body: body ? JSON.stringify(body) : undefined,
-    }),
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+    });
+  },
 
-  patch: <T>(endpoint: string, body?: unknown, options?: RequestOptions) =>
-    apiClient<T>(endpoint, {
+  patch: <T>(endpoint: string, body?: unknown, options?: RequestOptions) => {
+    const isFormData =
+      typeof FormData !== "undefined" && body instanceof FormData;
+    return apiClient<T>(endpoint, {
       ...options,
       method: "PATCH",
-      body: body ? JSON.stringify(body) : undefined,
-    }),
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+    });
+  },
 
   delete: <T>(endpoint: string, options?: RequestOptions) =>
     apiClient<T>(endpoint, { ...options, method: "DELETE" }),

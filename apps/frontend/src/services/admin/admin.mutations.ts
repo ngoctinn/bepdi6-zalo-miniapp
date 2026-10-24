@@ -96,6 +96,26 @@ export const useToggleProductStatus = () => {
   });
 };
 
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => adminService.deleteProduct(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminProducts.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.adminDashboardStats.all,
+      });
+    },
+  });
+};
+
+export const useUploadAdminImage = () => {
+  return useMutation({
+    mutationFn: (file: File) => adminService.uploadImage(file),
+  });
+};
+
 export const useCreateVoucher = () => {
   const queryClient = useQueryClient();
   return useMutation({
