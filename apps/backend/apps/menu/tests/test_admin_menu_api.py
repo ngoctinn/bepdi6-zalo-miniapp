@@ -167,3 +167,151 @@ def test_admin_category_delete_guard_with_products(admin_client):
     res_del_ok = admin_client.delete(f"/api/v1/admin/categories/{cat.id}")
     assert res_del_ok.status_code == 200
     assert not Category.objects.filter(pk=cat.id).exists()
+
+
+@pytest.mark.django_db
+def test_admin_upload_image_webp(admin_client):
+    import io
+
+    from PIL import Image
+
+    # 1. Valid image upload
+    img = Image.new("RGB", (100, 100), color="blue")
+    img_byte_arr = io.BytesIO()
+    img.save(img_byte_arr, format="PNG")
+    img_byte_arr.seek(0)
+    img_byte_arr.name = "test.png"
+
+    res = admin_client.post(
+        "/api/v1/admin/upload-image",
+        {"image": img_byte_arr},
+        format="multipart",
+    )
+    assert res.status_code == 201
+    assert "image_url" in res.json()["data"]
+    assert res.json()["data"]["image_url"].endswith(".webp")
+
+    # 2. Missing image file -> 400
+    res_err = admin_client.post("/api/v1/admin/upload-image", {}, format="multipart")
+    assert res_err.status_code == 400
+    assert "MISSING_IMAGE_FILE" in str(res_err.json())
+
+
+@pytest.mark.django_db
+def test_admin_product_nested_option_groups_and_delete(admin_client):
+    from decimal import Decimal
+
+    from apps.orders.models import Order, OrderItem
+
+    cat = Category.objects.create(name="Trà & Cà phê", sort_order=1)
+
+    # 1. Create product with nested option_groups & options
+    payload = {
+        "category_id": cat.id,
+        "name": "Trà Sữa Trân Châu",
+        "price": "30000.00",
+        "status": "AVAILABLE",
+        "option_groups": [
+            {
+                "name": "Chọn Size",
+                "is_required": True,
+                "min_select": 1,
+                "max_select": 1,
+                "options": [
+                    {"name": "Size M", "price": "0.00"},
+                    {"name": "Size L", "price": "5000.00"},
+                ],
+            },
+            {
+                "name": "Topping thêm",
+                "is_required": False,
+                "min_select": 0,
+                "max_select": 3,
+                "options": [
+                    {"name": "Trân châu đen", "price": "5000.00"},
+                    {"name": "Thạch phô mai", "price": "7000.00"},
+                ],
+            },
+        ],
+    }
+
+    res_create = admin_client.post("/api/v1/admin/products", payload, format="json")
+    assert res_create.status_code == 201
+    prod_data = res_create.json()["data"]
+    prod_id = prod_data["id"]
+    assert len(prod_data["option_groups"]) == 2
+    assert len(prod_data["option_groups"][0]["options"]) == 2
+
+    # 2. Update product and option_groups via PATCH
+    group1_id = prod_data["option_groups"][0]["id"]
+    opt1_id = prod_data["option_groups"][0]["options"][0]["id"]
+    update_payload = {
+        "price": "32000.00",
+        "option_groups": [
+            {
+                "id": group1_id,
+                "name": "Chọn Cỡ Ly",
+                "is_required": True,
+                "min_select": 1,
+                "max_select": 1,
+                "options": [
+                    {"id": opt1_id, "name": "Ly Vừa", "price": "0.00"},
+                    {"name": "Ly Lớn", "price": "6000.00"},
+                ],
+            }
+        ],
+    }
+    res_patch = admin_client.patch(
+        f"/api/v1/admin/products/{prod_id}", update_payload, format="json"
+    )
+    assert res_patch.status_code == 200
+    patched_data = res_patch.json()["data"]
+    assert len(patched_data["option_groups"]) == 1
+    assert patched_data["option_groups"][0]["name"] == "Chọn Cỡ Ly"
+
+    # 3. Soft-delete product if attached to an OrderItem
+    from apps.customers.models import Customer
+
+    customer = Customer.objects.create(
+        zalo_user_id="zalo_test_12345",
+        name="Test Customer",
+        phone="0987654321",
+    )
+    order = Order.objects.create(
+        customer=customer,
+        order_code="ORD-TEST-001",
+        idempotency_key="idemp_test_001",
+        recipient_name="Test Customer",
+        phone="0987654321",
+        delivery_address="123 Lê Lợi, Q1, TP.HCM",
+        delivery_latitude=Decimal("10.776889"),
+        delivery_longitude=Decimal("106.700806"),
+        subtotal=Decimal("50000.00"),
+        total_amount=Decimal("50000.00"),
+    )
+    prod = Product.objects.get(pk=prod_id)
+    OrderItem.objects.create(
+        order=order,
+        product=prod,
+        product_name=prod.name,
+        unit_price=prod.price,
+        quantity=1,
+        subtotal=prod.price,
+    )
+
+    res_del_soft = admin_client.delete(f"/api/v1/admin/products/{prod_id}")
+    assert res_del_soft.status_code == 200
+    assert res_del_soft.json()["data"]["soft_deleted"] is True
+    prod.refresh_from_db()
+    assert prod.status == Product.Status.INACTIVE
+
+    # 4. Hard-delete product if no orders attached
+    prod_standalone = Product.objects.create(
+        category=cat,
+        name="Món Ăn Thử",
+        price=Decimal("15000.00"),
+    )
+    res_del_hard = admin_client.delete(f"/api/v1/admin/products/{prod_standalone.id}")
+    assert res_del_hard.status_code == 200
+    assert res_del_hard.json()["data"]["soft_deleted"] is False
+    assert not Product.objects.filter(pk=prod_standalone.id).exists()

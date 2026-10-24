@@ -610,7 +610,10 @@ class AdminDashboardStatsView(APIView):
     permission_classes = [IsStaffOrAdminUser]
 
     def get(self, request):
-        from django.db.models import Sum
+        from django.db.models import Q, Sum
+
+        from apps.menu.models import Category, Product
+        from apps.vouchers.models import Voucher
 
         now = timezone.localtime()
         start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -635,6 +638,16 @@ class AdminDashboardStatsView(APIView):
         ] or Decimal("0.00")
 
         total_orders_count = Order.objects.count()
+        total_products_count = Product.objects.count()
+        total_categories_count = Category.objects.count()
+
+        now_utc = timezone.now()
+        active_vouchers_count = (
+            Voucher.objects.filter(status=Voucher.Status.ACTIVE)
+            .filter(Q(start_at__isnull=True) | Q(start_at__lte=now_utc))
+            .filter(Q(end_at__isnull=True) | Q(end_at__gte=now_utc))
+            .count()
+        )
 
         data = {
             "pending_count": pending_count,
@@ -643,6 +656,9 @@ class AdminDashboardStatsView(APIView):
             "today_completed_count": today_completed_count,
             "today_revenue": float(today_revenue),
             "total_orders_count": total_orders_count,
+            "total_products_count": total_products_count,
+            "active_vouchers_count": active_vouchers_count,
+            "total_categories_count": total_categories_count,
         }
         return Response(data)
 

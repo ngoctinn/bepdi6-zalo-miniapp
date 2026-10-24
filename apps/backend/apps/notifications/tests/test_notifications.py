@@ -365,6 +365,10 @@ def test_zalo_oauth_callback_endpoint(api_client, monkeypatch):
     from unittest.mock import MagicMock
 
     import requests
+    from django.core.cache import cache
+
+    test_state = "valid_oauth_state_secret_123"
+    cache.set(f"zalo_oauth_state_{test_state}", True, timeout=300)
 
     mock_post = MagicMock()
     mock_post.return_value.status_code = 200
@@ -377,7 +381,7 @@ def test_zalo_oauth_callback_endpoint(api_client, monkeypatch):
     monkeypatch.setattr(requests, "post", mock_post)
 
     res = api_client.get(
-        "/api/v1/notifications/zalo/oauth/callback?code=auth_code_xyz&oa_id=oa_test_999"
+        f"/api/v1/notifications/zalo/oauth/callback?code=auth_code_xyz&oa_id=oa_test_999&state={test_state}"
     )
     assert res.status_code == 200
     data = res.json()

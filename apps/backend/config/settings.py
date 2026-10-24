@@ -198,7 +198,10 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Cloudflare R2 / AWS S3 Storage configuration
-USE_S3_STORAGE = env.bool("USE_S3_STORAGE", default=False)
+# Force local FileSystemStorage under pytest to avoid network S3 signature mismatch
+USE_S3_STORAGE = (
+    env.bool("USE_S3_STORAGE", default=False) and "pytest" not in sys.modules
+)
 if USE_S3_STORAGE:
     AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID", default="")
     AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY", default="")
@@ -313,6 +316,15 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_IGNORE_RESULT = True
+
+# Phân tách hàng đợi tác vụ: Đảm bảo cảnh báo đơn mới cho bếp (Telegram) có độ ưu tiên cao nhất
+CELERY_TASK_DEFAULT_QUEUE = "celery"
+CELERY_TASK_ROUTES = {
+    "notifications.send_telegram_staff_order_alert": {"queue": "high_priority"},
+    "notifications.send_zalo_oa_staff_alert": {"queue": "notifications"},
+    "notifications.send_in_app_notification": {"queue": "notifications"},
+    "notifications.send_zns_order_delivering": {"queue": "notifications"},
+}
 
 # Chuẩn hóa Redis Broker URL: Luôn sử dụng DB 0 để tương thích với Upstash Redis, Dragonfly, Redis Cluster
 if CELERY_BROKER_URL.startswith(("redis://", "rediss://")):

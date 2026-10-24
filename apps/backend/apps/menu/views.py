@@ -1,18 +1,25 @@
+import uuid
+
 from django.core.cache import cache
+from django.core.files.storage import default_storage
+from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q, Subquery
 from django.utils import timezone
 from rest_framework import permissions, status
 from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.customers.permissions import IsStaffOrAdminUser
 from apps.menu.models import Category, Option, OptionGroup, Product, ProductPromotion
 from apps.menu.serializers import (
+    MAX_IMAGE_SIZE_BYTES,
     CategorySerializer,
     ProductDetailSerializer,
     ProductListSerializer,
 )
+from apps.menu.utils import optimize_image_to_webp
 
 MENU_CACHE_TIMEOUT = 600  # 10 minutes
 MENU_CACHE_VERSION_KEY = "menu_cache_version"
@@ -316,6 +323,55 @@ class AdminProductListCreateView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+class AdminUploadImageView(APIView):
+    """
+    POST /api/v1/admin/upload-image
+    Uploads image (multipart/form-data), compresses to WebP, and saves to MEDIA_ROOT/uploads/%Y/%m/.
+    Returns {"image_url": media_url}.
+    """
+
+    permission_classes = [IsStaffOrAdminUser]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        image_file = request.FILES.get("image") or request.FILES.get("file")
+        if not image_file:
+            raise ValidationError(
+                {
+                    "code": "MISSING_IMAGE_FILE",
+                    "message": "Vui lòng chọn file ảnh để tải lên (tham số 'image' hoặc 'file').",
+                }
+            )
+
+        if getattr(image_file, "size", 0) > MAX_IMAGE_SIZE_BYTES:
+            raise ValidationError(
+                {
+                    "code": "IMAGE_TOO_LARGE",
+                    "message": "Kích thước file ảnh không được vượt quá 5MB.",
+                }
+            )
+
+        try:
+            webp_content = optimize_image_to_webp(image_file)
+        except Exception as e:
+            raise ValidationError(
+                {
+                    "code": "INVALID_IMAGE_FILE",
+                    "message": f"File ảnh không hợp lệ hoặc bị lỗi: {str(e)}",
+                }
+            ) from e
+
+        now = timezone.now()
+        unique_prefix = uuid.uuid4().hex[:8]
+        file_name = f"{unique_prefix}_{webp_content.name}"
+        save_path = f"uploads/{now.strftime('%Y/%m')}/{file_name}"
+
+        saved_name = default_storage.save(save_path, webp_content)
+        media_url = default_storage.url(saved_name)
+
+        return Response({"image_url": media_url}, status=status.HTTP_201_CREATED)
+
+
 class AdminProductDetailView(APIView):
     """
     GET /api/v1/admin/products/{id} - Get product detail
@@ -358,10 +414,43 @@ class AdminProductDetailView(APIView):
         serializer.is_valid(raise_exception=True)
         product = serializer.save()
         invalidate_menu_cache(product_id=product.id)
-        product = with_active_promotion(Product.objects.select_related("category")).get(
-            pk=product.id
-        )
-        return Response(ProductListSerializer(product).data)
+        refetched_product = self.get_object(product.id)
+        return Response(ProductListSerializer(refetched_product).data)
+
+    @transaction.atomic
+    def delete(self, request, pk: int):
+        from apps.orders.models import OrderItem
+
+        try:
+            product = Product.objects.get(pk=pk)
+        except Product.DoesNotExist:
+            raise NotFound("Món ăn không tồn tại.") from None
+
+        has_orders = OrderItem.objects.filter(product=product).exists()
+        if has_orders:
+            product.status = Product.Status.INACTIVE
+            product.save(update_fields=["status"])
+            invalidate_menu_cache(product_id=pk)
+            return Response(
+                {
+                    "id": pk,
+                    "soft_deleted": True,
+                    "status": Product.Status.INACTIVE,
+                    "message": "Món ăn đã có trong đơn hàng trước đây, được chuyển sang trạng thái Ngưng bán (INACTIVE) để bảo toàn lịch sử đơn hàng.",
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            product.delete()
+            invalidate_menu_cache(product_id=pk)
+            return Response(
+                {
+                    "id": pk,
+                    "soft_deleted": False,
+                    "message": "Đã xóa hoàn toàn món ăn khỏi hệ thống.",
+                },
+                status=status.HTTP_200_OK,
+            )
 
 
 class AdminProductToggleStatusView(APIView):

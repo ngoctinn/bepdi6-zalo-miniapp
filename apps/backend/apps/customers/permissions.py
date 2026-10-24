@@ -36,17 +36,18 @@ class IsStaffOrAdminUser(permissions.BasePermission):
 class IsAdminOnlyUser(permissions.BasePermission):
     """
     Allows access only to admin users (BR-SEC-002, BR-SHOP-004).
+    Unified 2-role system: ADMIN vs CUSTOMER.
     """
 
     def has_permission(self, request, view):
         user = request.user
         if not user or not user.is_authenticated:
             return False
-        if user.is_superuser:
+        if user.is_superuser or user.is_staff:
             return True
         admin_zalo_ids = getattr(settings, "ADMIN_ZALO_IDS", [])
         zalo_id = getattr(user, "zalo_user_id", None)
         if zalo_id and str(zalo_id) in admin_zalo_ids:
             return True
         role = getattr(user, "role", None)
-        return role in [User.Role.ADMIN, "ADMIN"]
+        return role in [User.Role.ADMIN, User.Role.STAFF, "ADMIN", "STAFF"]

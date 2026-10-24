@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 
 from apps.menu.models import Category, Option, OptionGroup, Product, ProductPromotion
@@ -16,6 +17,8 @@ class MaxSizeImageField(serializers.ImageField):
 
 
 class OptionSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = Option
         fields = [
@@ -28,7 +31,8 @@ class OptionSerializer(serializers.ModelSerializer):
 
 
 class OptionGroupSerializer(serializers.ModelSerializer):
-    options = OptionSerializer(many=True, read_only=True)
+    id = serializers.IntegerField(required=False)
+    options = OptionSerializer(many=True, required=False)
 
     class Meta:
         model = OptionGroup
@@ -58,6 +62,7 @@ class ProductPromotionSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     category_id = serializers.IntegerField(required=True)
+    category_name = serializers.CharField(source="category.name", read_only=True)
     image_url = serializers.CharField(required=False, allow_blank=True, default="")
     image = MaxSizeImageField(required=False, allow_null=True, write_only=True)
 
@@ -66,13 +71,14 @@ class ProductListSerializer(serializers.ModelSerializer):
     has_promotion = serializers.SerializerMethodField()
     discount_percent = serializers.SerializerMethodField()
 
-    option_groups = OptionGroupSerializer(many=True, read_only=True)
+    option_groups = OptionGroupSerializer(many=True, required=False)
 
     class Meta:
         model = Product
         fields = [
             "id",
             "category_id",
+            "category_name",
             "name",
             "description",
             "image",
@@ -122,17 +128,84 @@ class ProductListSerializer(serializers.ModelSerializer):
         data["image_url"] = instance.effective_image_url
         return data
 
-    def create(self, validated_data):
-        image = validated_data.get("image")
-        if image:
-            validated_data["image"] = optimize_image_to_webp(image)
-        return super().create(validated_data)
+    def _save_option_groups(self, product: Product, option_groups_data: list[dict]):
+        retained_group_ids = []
 
-    def update(self, instance, validated_data):
+        for group_idx, group_data in enumerate(option_groups_data):
+            options_data = group_data.pop("options", [])
+            group_id = group_data.get("id")
+
+            group_defaults = {
+                "name": group_data.get("name", ""),
+                "is_required": group_data.get("is_required", False),
+                "min_select": group_data.get("min_select", 0),
+                "max_select": group_data.get("max_select", 1),
+                "sort_order": group_data.get("sort_order", group_idx),
+            }
+
+            if (
+                group_id
+                and OptionGroup.objects.filter(id=group_id, product=product).exists()
+            ):
+                group = OptionGroup.objects.get(id=group_id, product=product)
+                for key, val in group_defaults.items():
+                    setattr(group, key, val)
+                group.save()
+            else:
+                group = OptionGroup.objects.create(product=product, **group_defaults)
+
+            retained_group_ids.append(group.id)
+
+            retained_option_ids = []
+            for opt_idx, opt_data in enumerate(options_data):
+                opt_id = opt_data.get("id")
+                opt_defaults = {
+                    "name": opt_data.get("name", ""),
+                    "price": opt_data.get("price", 0),
+                    "status": opt_data.get("status", Option.Status.AVAILABLE),
+                    "sort_order": opt_data.get("sort_order", opt_idx),
+                }
+
+                if (
+                    opt_id
+                    and Option.objects.filter(id=opt_id, option_group=group).exists()
+                ):
+                    opt = Option.objects.get(id=opt_id, option_group=group)
+                    for key, val in opt_defaults.items():
+                        setattr(opt, key, val)
+                    opt.save()
+                else:
+                    opt = Option.objects.create(option_group=group, **opt_defaults)
+
+                retained_option_ids.append(opt.id)
+
+            # Xóa các option không còn trong group
+            group.options.exclude(id__in=retained_option_ids).delete()
+
+        # Xóa các group không còn trong product
+        product.option_groups.exclude(id__in=retained_group_ids).delete()
+
+    @transaction.atomic
+    def create(self, validated_data):
+        option_groups_data = validated_data.pop("option_groups", None)
         image = validated_data.get("image")
         if image:
             validated_data["image"] = optimize_image_to_webp(image)
-        return super().update(instance, validated_data)
+        product = super().create(validated_data)
+        if option_groups_data is not None:
+            self._save_option_groups(product, option_groups_data)
+        return product
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        option_groups_data = validated_data.pop("option_groups", None)
+        image = validated_data.get("image")
+        if image:
+            validated_data["image"] = optimize_image_to_webp(image)
+        product = super().update(instance, validated_data)
+        if option_groups_data is not None:
+            self._save_option_groups(product, option_groups_data)
+        return product
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):

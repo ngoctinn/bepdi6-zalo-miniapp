@@ -34,16 +34,21 @@ def test_customer_me_get_and_patch(auth_client):
     assert data["name"] == "Lê Hoàng"
     assert data["phone"] == "0901234567"
 
-    # 2. PATCH /customers/me
+    # 2. PATCH /customers/me (Name & avatar can be updated; phone is strictly read-only for security)
     res_patch = client.patch(
         "/api/v1/customers/me",
-        {"name": "Lê Hoàng Updated", "phone": "0988776655"},
+        {
+            "name": "Lê Hoàng Updated",
+            "avatar_url": "https://example.com/avatar_new.jpg",
+            "phone": "0988776655",  # Read-only field, must be ignored by CustomerSerializer
+        },
         format="json",
     )
     assert res_patch.status_code == 200
     updated = res_patch.json()["data"]
     assert updated["name"] == "Lê Hoàng Updated"
-    assert updated["phone"] == "0988776655"
+    assert updated["avatar_url"] == "https://example.com/avatar_new.jpg"
+    assert updated["phone"] == "0901234567"  # Phone remains immutable via profile PATCH
 
 
 @pytest.mark.django_db

@@ -6,6 +6,7 @@ from apps.menu.views import (
     AdminProductDetailView,
     AdminProductListCreateView,
     AdminProductToggleStatusView,
+    AdminUploadImageView,
     CategoryListView,
     ProductDetailView,
     ProductListView,
@@ -17,6 +18,11 @@ urlpatterns = [
     path("products", ProductListView.as_view(), name="product-list"),
     path("products/<int:pk>", ProductDetailView.as_view(), name="product-detail"),
     # Admin APIs
+    path(
+        "admin/upload-image",
+        AdminUploadImageView.as_view(),
+        name="admin-upload-image",
+    ),
     path(
         "admin/categories",
         AdminCategoryListCreateView.as_view(),
