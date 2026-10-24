@@ -3,17 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import {
   useAdminDashboardStats,
-  useAdminProducts,
-  useAdminShopConfig,
-  useAdminVouchers,
-} from "@/services/admin/admin.queries";
-import { Spinner, Icon } from "zmp-ui";
-
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/use-auth";
-import {
-  useAdminDashboardStats,
   useAdminShopConfig,
 } from "@/services/admin/admin.queries";
 import { Icon } from "zmp-ui";

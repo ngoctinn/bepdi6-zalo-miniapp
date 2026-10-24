@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Layout from "./components/layout";
 import { getBasePath } from "./utils/zma";
 import RouteErrorBoundary from "./components/common/route-error-boundary";
