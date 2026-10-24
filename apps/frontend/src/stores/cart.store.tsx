@@ -163,6 +163,25 @@ if (typeof window !== "undefined") {
           const currentItems = useCartStore.getState().items;
           if (currentItems.length === 0) {
             useCartStore.setState({ items: parsed });
+          } else {
+            // If items were added before async resolution, merge them without losing previous items
+            const currentItemIds = new Set(
+              currentItems.map(
+                (item) =>
+                  `${item.product.id}_${item.optionSignature}_${item.note || ""}`,
+              ),
+            );
+            const missingItems = parsed.filter(
+              (p) =>
+                !currentItemIds.has(
+                  `${p.product.id}_${p.optionSignature}_${p.note || ""}`,
+                ),
+            );
+            if (missingItems.length > 0) {
+              const merged = [...currentItems, ...missingItems];
+              saveCart(merged);
+              useCartStore.setState({ items: merged });
+            }
           }
         }
       } catch {

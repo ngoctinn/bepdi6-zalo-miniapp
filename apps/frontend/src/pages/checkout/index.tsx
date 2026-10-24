@@ -19,6 +19,7 @@ import { useAppToast } from "@/hooks/use-app-toast";
 import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
 import { makePhoneCall } from "@/utils/phone";
+import { ApiError } from "@/lib/api-error";
 
 // Modularized Checkout Sub-components
 import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
@@ -186,10 +187,10 @@ export default function CheckoutPage() {
             setAppliedVoucherCode("");
           }
           const errorMsg =
-            (err as { response?: { data?: { error?: { message?: string } } } })
-              ?.response?.data?.error?.message ||
-            (err instanceof Error ? err.message : "") ||
-            "Không thể tính phí giao hàng. Vui lòng kiểm tra lại địa chỉ.";
+            err instanceof ApiError
+              ? err.message
+              : (err instanceof Error ? err.message : "") ||
+                "Không thể tính phí giao hàng. Vui lòng kiểm tra lại địa chỉ.";
           showError(errorMsg);
         },
       },

@@ -83,7 +83,7 @@ export default function OrderDetailPage() {
     setIsCancelling(true);
     try {
       await cancelOrderMutation.mutateAsync({
-        orderId: order.id,
+        id: order.id,
         reason:
           copy.orderDetail.cancelDefaultReason || "Khách hàng yêu cầu hủy",
       });

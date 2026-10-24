@@ -85,7 +85,7 @@ export default function AdminDashboardPage() {
               {statsLoading ? <Spinner visible={true} /> : pendingCount}
             </div>
             <p className="mt-1 text-[11px] font-medium text-primary">
-              {processingCount} đơn đang nấu
+              {preparingCount} đơn đang nấu
             </p>
           </div>
 
