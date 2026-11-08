@@ -32,50 +32,32 @@ export default function AdminCustomerPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-stone-50 pb-20">
-      {/* Top Header */}
-      <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-stone-200/80 bg-white px-4">
-        <div className="flex items-center gap-3">
+    <div className="flex min-h-full flex-col bg-stone-50 pb-24 font-sans">
+      <div className="space-y-3 p-4">
+        {/* Search Bar & Refresh */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Icon
+              icon="zi-search"
+              className="absolute left-3.5 top-1/2 shrink-0 -translate-y-1/2 text-sm text-stone-400"
+            />
+            <input
+              type="text"
+              placeholder="Tìm theo tên, số điện thoại..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="h-10 w-full rounded-xl border border-stone-200 bg-white pl-9 pr-3 text-xs text-stone-800 placeholder-stone-400 shadow-sm focus:border-primary focus:outline-none"
+            />
+          </div>
           <button
             type="button"
-            onClick={() => navigate("/admin/manage")}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-100 text-stone-700 active:scale-95"
+            onClick={() => refetch()}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 shadow-sm active:scale-95"
+            title="Tải lại danh sách"
+            aria-label="Tải lại danh sách"
           >
-            <Icon icon="zi-arrow-left" className="shrink-0 text-base" />
+            <Icon icon="zi-reload" className="shrink-0 text-base" />
           </button>
-          <div>
-            <h1 className="text-sm font-bold text-stone-900">
-              Quản Lý Khách Hàng
-            </h1>
-            <p className="text-[10px] text-stone-500">
-              {customers.length} khách hàng trong hệ thống
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => refetch()}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-100 text-stone-700 active:scale-95"
-        >
-          <Icon icon="zi-reload" className="shrink-0 text-base" />
-        </button>
-      </div>
-
-      <div className="space-y-3 p-4">
-        {/* Search Bar */}
-        <div className="relative">
-          <Icon
-            icon="zi-search"
-            className="absolute left-3.5 top-1/2 shrink-0 -translate-y-1/2 text-sm text-stone-400"
-          />
-          <input
-            type="text"
-            placeholder="Tìm theo tên, số điện thoại..."
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="h-10 w-full rounded-xl border border-stone-200 bg-white pl-9 pr-3 text-xs text-stone-800 placeholder-stone-400 shadow-sm focus:border-primary focus:outline-none"
-          />
         </div>
 
         {/* List of Customers */}
@@ -102,8 +84,8 @@ export default function AdminCustomerPage() {
                 key={c.id}
                 className="shadow-xs flex flex-col gap-2 rounded-2xl border border-stone-200/80 bg-white p-3.5"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
                     {c.avatar_url ? (
                       <img
                         src={c.avatar_url}
@@ -115,24 +97,24 @@ export default function AdminCustomerPage() {
                         <Icon icon="zi-user" className="shrink-0 text-lg" />
                       </div>
                     )}
-                    <div>
+                    <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <h2 className="text-xs font-bold text-stone-900">
+                        <h2 className="truncate text-xs font-bold text-stone-900">
                           {c.name || "Khách hàng Zalo"}
                         </h2>
                         {Number(c.total_orders) >= 5 && (
-                          <span className="rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">
+                          <span className="shrink-0 rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">
                             VIP
                           </span>
                         )}
                       </div>
-                      <p className="font-mono text-[11px] text-stone-500">
+                      <p className="truncate font-mono text-[11px] text-stone-500">
                         {c.phone || "Chưa có SĐT"}
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="shrink-0 text-right">
                     <span className="text-xs font-black text-primary">
                       {formatCurrency(Number(c.total_spent || 0))}
                     </span>

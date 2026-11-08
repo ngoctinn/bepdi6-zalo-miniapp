@@ -537,7 +537,7 @@ export default function AdminProductManagementPage() {
                     disabled={isToggling}
                     onChange={(e) => handleToggleStatus(p, e)}
                   />
-                  <span className="text-xs font-medium text-stone-500">
+                  <span className="w-16 text-center text-xs font-medium text-stone-500">
                     {isToggling
                       ? "Đang lưu..."
                       : isAvailable
@@ -966,11 +966,11 @@ export default function AdminProductManagementPage() {
                       {(group.options || []).map((opt, oIdx) => (
                         <div
                           key={oIdx}
-                          className="flex items-center gap-2 rounded-lg bg-stone-50 p-2"
+                          className="flex flex-col gap-2 rounded-lg border border-stone-200/80 bg-stone-50 p-2.5"
                         >
                           <input
                             type="text"
-                            placeholder="Tên (VD: Trân châu...)"
+                            placeholder="Tên lựa chọn (VD: Trân châu, Ít đá...)"
                             value={opt.name}
                             onChange={(e) =>
                               handleUpdateOption(
@@ -980,50 +980,54 @@ export default function AdminProductManagementPage() {
                                 e.target.value,
                               )
                             }
-                            className="h-9 flex-1 rounded border border-stone-200 bg-white px-2 text-xs font-medium text-stone-900"
+                            className="h-9 w-full rounded border border-stone-200 bg-white px-2.5 text-xs font-medium text-stone-900 focus:border-primary focus:outline-none"
                           />
-                          <div className="flex w-24 items-center">
-                            <input
-                              type="number"
-                              step="1000"
-                              placeholder="Giá +₫"
-                              value={opt.price}
+                          <div className="flex items-center gap-2">
+                            <div className="flex flex-1 items-center">
+                              <input
+                                type="number"
+                                step="1000"
+                                placeholder="Giá +₫"
+                                value={opt.price}
+                                onChange={(e) =>
+                                  handleUpdateOption(
+                                    gIdx,
+                                    oIdx,
+                                    "price",
+                                    Number(e.target.value),
+                                  )
+                                }
+                                className="h-9 w-full rounded border border-stone-200 bg-white px-2 text-xs font-bold text-primary focus:border-primary focus:outline-none"
+                              />
+                            </div>
+                            <select
+                              value={opt.status || "AVAILABLE"}
                               onChange={(e) =>
                                 handleUpdateOption(
                                   gIdx,
                                   oIdx,
-                                  "price",
-                                  Number(e.target.value),
+                                  "status",
+                                  e.target.value,
                                 )
                               }
-                              className="h-9 w-full rounded border border-stone-200 bg-white px-2 text-xs font-bold text-primary"
-                            />
+                              className="h-9 shrink-0 rounded border border-stone-200 bg-white px-2 text-xs font-medium text-stone-700 focus:border-primary focus:outline-none"
+                            >
+                              <option value="AVAILABLE">Còn hàng</option>
+                              <option value="INACTIVE">Hết hàng</option>
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveOption(gIdx, oIdx)}
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded border border-stone-200 bg-white text-stone-400 hover:text-red-500 active:scale-95"
+                              title="Xóa lựa chọn"
+                              aria-label="Xóa lựa chọn"
+                            >
+                              <Icon
+                                icon="zi-close"
+                                className="shrink-0 text-xs"
+                              />
+                            </button>
                           </div>
-                          <select
-                            value={opt.status || "AVAILABLE"}
-                            onChange={(e) =>
-                              handleUpdateOption(
-                                gIdx,
-                                oIdx,
-                                "status",
-                                e.target.value,
-                              )
-                            }
-                            className="h-9 rounded border border-stone-200 bg-white px-1.5 text-xs text-stone-700"
-                          >
-                            <option value="AVAILABLE">Còn</option>
-                            <option value="INACTIVE">Hết</option>
-                          </select>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveOption(gIdx, oIdx)}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center text-stone-400 hover:text-red-500"
-                          >
-                            <Icon
-                              icon="zi-close"
-                              className="shrink-0 text-xs"
-                            />
-                          </button>
                         </div>
                       ))}
                     </div>

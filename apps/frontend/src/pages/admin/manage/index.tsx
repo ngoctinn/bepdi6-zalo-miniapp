@@ -71,9 +71,8 @@ export default function AdminManageHubPage() {
           icon: "zi-user-circle",
           title: "Khách hàng & Thành viên",
           description: "Tra cứu lịch sử mua hàng và địa chỉ khách",
-          badge: "Sắp ra mắt",
+          badge: "Tra cứu",
           path: "/admin/manage/customers",
-          disabled: true,
         },
       ],
     },
@@ -102,15 +101,15 @@ export default function AdminManageHubPage() {
                       : "cursor-pointer active:bg-stone-50"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                       <Icon
                         icon={item.icon}
                         className="shrink-0 text-xl leading-none"
                       />
                     </span>
-                    <div>
-                      <div className="text-sm font-bold text-stone-900">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-bold text-stone-900">
                         {item.title}
                       </div>
                       <div className="line-clamp-1 text-xs text-stone-500">
@@ -118,7 +117,7 @@ export default function AdminManageHubPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex shrink-0 items-center gap-2">
                     <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-semibold text-stone-700">
                       {item.badge}
                     </span>

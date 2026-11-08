@@ -17,12 +17,13 @@ interface DispatchOrderModalProps {
   }) => Promise<void>;
 }
 
-// Fallback internal shippers list when no dynamic staff list is configured
-const INTERNAL_SHIPPERS = [
-  { name: "Anh Tuấn", phone: "0901234567" },
-  { name: "Anh Hùng", phone: "0902345678" },
-  { name: "Bảo (NV Quán)", phone: "0903456789" },
-];
+// LocalStorage key to remember recently used internal shippers
+const RECENT_SHIPPERS_KEY = "bepdi6_recent_internal_shippers";
+
+interface ShipperPreset {
+  name: string;
+  phone: string;
+}
 
 export function DispatchOrderModal({
   visible,
@@ -35,6 +36,23 @@ export function DispatchOrderModal({
   const [shipperName, setShipperName] = useState("");
   const [shipperPhone, setShipperPhone] = useState("");
   const [trackingCode, setTrackingCode] = useState("");
+  const [recentShippers, setRecentShippers] = useState<ShipperPreset[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(RECENT_SHIPPERS_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setRecentShippers(parsed);
+          }
+        }
+      } catch {
+        // ignore parse error
+      }
+    }
+  }, [visible]);
 
   useEffect(() => {
     if (order && visible) {
@@ -64,6 +82,24 @@ export function DispatchOrderModal({
   };
 
   const handleSubmit = () => {
+    // Lưu lại shipper vào recentShippers nếu là kênh nội bộ và có tên/SĐT
+    if (provider === "INTERNAL" && shipperName.trim()) {
+      try {
+        const updated = [
+          { name: shipperName.trim(), phone: shipperPhone.trim() },
+          ...recentShippers.filter(
+            (s) =>
+              s.name !== shipperName.trim() &&
+              (s.phone ? s.phone !== shipperPhone.trim() : true),
+          ),
+        ].slice(0, 5);
+        setRecentShippers(updated);
+        localStorage.setItem(RECENT_SHIPPERS_KEY, JSON.stringify(updated));
+      } catch {
+        // ignore storage errors
+      }
+    }
+
     onConfirmDispatch({
       delivery_provider: provider,
       shipper_name:
@@ -203,30 +239,34 @@ export function DispatchOrderModal({
         <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50/50 p-3.5">
           {provider === "INTERNAL" ? (
             <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xxsmall font-bold uppercase text-stone-500">
-                  {copy.staff.dispatch.quickSelectLabel}
-                </span>
-                <span className="text-xxxsmall text-stone-400">
-                  {copy.staff.dispatch.quickSelectHint}
-                </span>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {INTERNAL_SHIPPERS.map((s) => (
-                  <button
-                    key={s.phone}
-                    type="button"
-                    onClick={() => handleSelectInternal(s)}
-                    className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors active:scale-[0.98] ${
-                      shipperPhone === s.phone
-                        ? "shadow-xs border-primary bg-primary text-white"
-                        : "border-stone-200 bg-white text-stone-700"
-                    }`}
-                  >
-                    {s.name}
-                  </button>
-                ))}
-              </div>
+              {recentShippers.length > 0 && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xxsmall font-bold uppercase text-stone-500">
+                      Gợi ý shipper đã lưu
+                    </span>
+                    <span className="text-xxxsmall text-stone-400">
+                      Chạm để chọn nhanh
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {recentShippers.map((s) => (
+                      <button
+                        key={s.phone || s.name}
+                        type="button"
+                        onClick={() => handleSelectInternal(s)}
+                        className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors active:scale-[0.98] ${
+                          shipperName === s.name
+                            ? "shadow-xs border-primary bg-primary text-white"
+                            : "border-stone-200 bg-white text-stone-700"
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
 
               <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                 <div>

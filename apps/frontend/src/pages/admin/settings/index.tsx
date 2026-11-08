@@ -395,55 +395,60 @@ export default function AdminSettingsPage() {
             </h2>
 
             {/* Geolocation & Haversine Multiplier */}
-            <div className="grid grid-cols-3 gap-2.5">
-              <div>
-                <label
-                  htmlFor="settings-lat"
-                  className="text-xs font-semibold text-stone-700"
-                >
-                  Vĩ độ (Lat)
-                </label>
-                <input
-                  id="settings-lat"
-                  type="number"
-                  step="0.0001"
-                  value={formData.latitude}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      latitude: Number(e.target.value),
-                    })
-                  }
-                  className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="settings-lng"
-                  className="text-xs font-semibold text-stone-700"
-                >
-                  Kinh độ (Lng)
-                </label>
-                <input
-                  id="settings-lng"
-                  type="number"
-                  step="0.0001"
-                  value={formData.longitude}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      longitude: Number(e.target.value),
-                    })
-                  }
-                  className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
-                />
+            <div className="space-y-2.5">
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label
+                    htmlFor="settings-lat"
+                    className="text-xs font-semibold text-stone-700"
+                  >
+                    Vĩ độ (Lat)
+                  </label>
+                  <input
+                    id="settings-lat"
+                    type="number"
+                    step="0.0001"
+                    value={formData.latitude}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        latitude: Number(e.target.value),
+                      })
+                    }
+                    className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="settings-lng"
+                    className="text-xs font-semibold text-stone-700"
+                  >
+                    Kinh độ (Lng)
+                  </label>
+                  <input
+                    id="settings-lng"
+                    type="number"
+                    step="0.0001"
+                    value={formData.longitude}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        longitude: Number(e.target.value),
+                      })
+                    }
+                    className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
+                  />
+                </div>
               </div>
               <div>
                 <label
                   htmlFor="settings-haversine"
-                  className="text-xs font-semibold text-stone-700"
+                  className="flex items-center justify-between text-xs font-semibold text-stone-700"
                 >
-                  Hệ số uốn lượn
+                  <span>Hệ số uốn lượn đường đi</span>
+                  <span className="font-mono text-[11px] text-stone-400">
+                    Mặc định 1.3
+                  </span>
                 </label>
                 <input
                   id="settings-haversine"
@@ -556,57 +561,67 @@ export default function AdminSettingsPage() {
                 {formData.shipping_tiers.map((tier, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 rounded-lg border border-stone-200 bg-white p-2 text-xs"
+                    className="shadow-xs flex flex-col gap-2 rounded-xl border border-stone-200/90 bg-stone-50/50 p-2.5 text-xs"
                   >
-                    <span className="w-12 font-mono font-bold text-stone-600">
-                      {tier.from_km} km
-                    </span>
-                    <span className="text-stone-400">→</span>
-                    <div className="flex w-20 items-center">
-                      <input
-                        type="number"
-                        step="0.5"
-                        min={tier.from_km + 0.1}
-                        value={tier.to_km}
-                        onChange={(e) =>
-                          handleUpdateShippingTier(
-                            idx,
-                            "to_km",
-                            Number(e.target.value),
-                          )
-                        }
-                        className="h-8 w-full rounded border border-stone-200 bg-stone-50 px-1.5 text-center font-mono font-bold text-stone-800"
-                      />
-                      <span className="ml-1 text-[11px] text-stone-500">
-                        km
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-stone-700">
+                        <span className="rounded border border-stone-200 bg-white px-1.5 py-0.5">
+                          {tier.from_km} km
+                        </span>
+                        <span className="text-stone-400">→</span>
+                        <div className="flex items-center">
+                          <input
+                            type="number"
+                            step="0.5"
+                            min={tier.from_km + 0.1}
+                            value={tier.to_km}
+                            onChange={(e) =>
+                              handleUpdateShippingTier(
+                                idx,
+                                "to_km",
+                                Number(e.target.value),
+                              )
+                            }
+                            className="h-7 w-16 rounded border border-stone-200 bg-white px-1.5 text-center font-mono font-bold text-stone-800 focus:border-primary focus:outline-none"
+                          />
+                          <span className="ml-1 text-[11px] font-normal text-stone-500">
+                            km
+                          </span>
+                        </div>
+                      </div>
+                      {formData.shipping_tiers.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveShippingTier(idx)}
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-stone-200 bg-white text-stone-400 hover:text-red-500 active:scale-95"
+                          title="Xóa bậc cước này"
+                          aria-label="Xóa bậc cước này"
+                        >
+                          <Icon icon="zi-close" className="shrink-0 text-xs" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between border-t border-stone-200/60 pt-2">
+                      <span className="text-[11px] font-semibold text-stone-500">
+                        Cước phí:
                       </span>
+                      <div className="flex items-center">
+                        <input
+                          type="number"
+                          step="1000"
+                          value={tier.fee}
+                          onChange={(e) =>
+                            handleUpdateShippingTier(
+                              idx,
+                              "fee",
+                              Number(e.target.value),
+                            )
+                          }
+                          className="h-8 w-28 rounded border border-stone-200 bg-white px-2 text-right font-mono text-xs font-black text-primary focus:border-primary focus:outline-none"
+                        />
+                        <span className="ml-1 font-bold text-primary">₫</span>
+                      </div>
                     </div>
-                    <span className="text-stone-400">:</span>
-                    <div className="flex flex-1 items-center">
-                      <input
-                        type="number"
-                        step="1000"
-                        value={tier.fee}
-                        onChange={(e) =>
-                          handleUpdateShippingTier(
-                            idx,
-                            "fee",
-                            Number(e.target.value),
-                          )
-                        }
-                        className="h-8 w-full rounded border border-stone-200 bg-stone-50 px-2 text-right font-mono font-bold text-primary"
-                      />
-                      <span className="ml-1 text-[11px] text-stone-500">₫</span>
-                    </div>
-                    {formData.shipping_tiers.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveShippingTier(idx)}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center text-stone-400 hover:text-red-500"
-                      >
-                        <Icon icon="zi-close" className="shrink-0 text-xs" />
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
@@ -690,7 +705,7 @@ export default function AdminSettingsPage() {
             <button
               type="submit"
               disabled={updateConfig.isPending || !isDirty}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-white shadow-md transition-transform active:scale-[0.99] disabled:opacity-50"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-white shadow-md transition-transform active:scale-[0.99] disabled:opacity-50"
             >
               {updateConfig.isPending && <Spinner visible logo={false} />}
               <span>

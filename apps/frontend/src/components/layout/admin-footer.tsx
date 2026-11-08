@@ -198,14 +198,14 @@ export default function AdminFooter({ className }: AdminFooterProps) {
       <button
         type="button"
         onClick={() => navigate("/")}
-        className="flex min-h-[52px] w-12 touch-manipulation select-none flex-col items-center justify-center border-r border-black/5 py-1.5 transition-colors focus:outline-none active:scale-95"
+        className="flex min-h-[52px] w-12 shrink-0 touch-manipulation select-none flex-col items-center justify-center border-r border-stone-200/60 py-1.5 transition-colors focus:outline-none active:scale-95"
         title="Quay lại cửa hàng"
         aria-label="Quay lại cửa hàng"
       >
-        <div className="relative flex h-6 w-6 items-center justify-center">
+        <div className="relative flex h-6 w-6 shrink-0 items-center justify-center">
           <BackToShopIcon />
         </div>
-        <span className="mt-1 text-[10px] font-medium tracking-tight text-stone-500">
+        <span className="mt-1 text-[11px] font-semibold tracking-tight text-stone-500">
           Khách
         </span>
       </button>
@@ -225,7 +225,7 @@ export default function AdminFooter({ className }: AdminFooterProps) {
             aria-label={item.name}
             aria-current={isActive ? "page" : undefined}
           >
-            <div className="relative flex h-6 w-6 items-center justify-center">
+            <div className="relative flex h-6 w-6 shrink-0 items-center justify-center">
               <item.icon active={isActive} />
             </div>
             <span

@@ -27,7 +27,7 @@ export default function AdminDashboardPage() {
       {/* Top Header Card */}
       <div className="header-margin bg-primary px-4 pb-6 pr-24 pt-4 text-white shadow-sm">
         <div>
-          <span className="inline-block rounded-full bg-black/20 px-2.5 py-0.5 text-xs font-bold font-semibold text-white">
+          <span className="inline-block rounded-full bg-black/20 px-2.5 py-0.5 text-xs font-bold text-white">
             Quản Trị Viên
           </span>
           <h1 className="mt-1 text-xl font-bold">
@@ -131,7 +131,7 @@ export default function AdminDashboardPage() {
               <span>Xem danh sách món</span>
               <Icon
                 icon="zi-chevron-right"
-                className="ml-0.5 shrink-0 text-xs"
+                className="ml-0.5 shrink-0 text-xs leading-none"
               />
             </p>
           </div>
@@ -163,7 +163,7 @@ export default function AdminDashboardPage() {
               <span>Mã đang hoạt động</span>
               <Icon
                 icon="zi-chevron-right"
-                className="ml-0.5 shrink-0 text-xs"
+                className="ml-0.5 shrink-0 text-xs leading-none"
               />
             </p>
           </div>
@@ -178,7 +178,7 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => navigate("/admin/manage/menu")}
-              className="flex items-center gap-2.5 rounded-xl border border-stone-200/80 bg-stone-50/70 p-3 text-left transition-colors active:bg-stone-100"
+              className="flex min-w-0 items-center gap-2.5 rounded-xl border border-stone-200/80 bg-stone-50/70 p-3 text-left transition-colors active:bg-stone-100"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Icon
@@ -186,18 +186,20 @@ export default function AdminDashboardPage() {
                   className="shrink-0 text-lg leading-none"
                 />
               </span>
-              <div>
-                <div className="text-xs font-bold text-stone-900">
+              <div className="min-w-0">
+                <div className="truncate text-xs font-bold text-stone-900">
                   Danh mục món
                 </div>
-                <div className="text-xs text-stone-500">Phân loại & thứ tự</div>
+                <div className="truncate text-xs text-stone-500">
+                  Phân loại & thứ tự
+                </div>
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => navigate("/admin/settings")}
-              className="flex items-center gap-2.5 rounded-xl border border-stone-200/80 bg-stone-50/70 p-3 text-left transition-colors active:bg-stone-100"
+              className="flex min-w-0 items-center gap-2.5 rounded-xl border border-stone-200/80 bg-stone-50/70 p-3 text-left transition-colors active:bg-stone-100"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Icon
@@ -205,11 +207,11 @@ export default function AdminDashboardPage() {
                   className="shrink-0 text-lg leading-none"
                 />
               </span>
-              <div>
-                <div className="text-xs font-bold text-stone-900">
+              <div className="min-w-0">
+                <div className="truncate text-xs font-bold text-stone-900">
                   Cài đặt quán
                 </div>
-                <div className="text-xs text-stone-500">
+                <div className="truncate text-xs text-stone-500">
                   Giờ mở, VietQR, ship
                 </div>
               </div>
@@ -251,7 +253,7 @@ export default function AdminDashboardPage() {
               <div className="flex justify-between py-1">
                 <span className="text-stone-500">Hotline hỗ trợ</span>
                 <span className="font-semibold text-primary">
-                  {shopConfig?.hotline || "0901234567"}
+                  {shopConfig?.hotline || "Chưa thiết lập"}
                 </span>
               </div>
             </div>

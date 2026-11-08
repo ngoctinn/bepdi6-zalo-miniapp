@@ -241,8 +241,11 @@ export function StaffOrderCard({
                     {item.product_name}
                   </p>
                   {item.options && item.options.length > 0 && (
-                    <p className="mt-0.5 text-xs font-medium text-stone-700">
-                      ↳ {item.options.map((o) => o.option_name).join(", ")}
+                    <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-stone-700">
+                      <span className="font-mono text-stone-400">+</span>
+                      <span>
+                        {item.options.map((o) => o.option_name).join(", ")}
+                      </span>
                     </p>
                   )}
                   {item.note && (
