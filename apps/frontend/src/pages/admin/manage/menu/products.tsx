@@ -47,17 +47,25 @@ export default function AdminProductManagementPage() {
 
   const [formName, setFormName] = useState("");
   const [formCategoryId, setFormCategoryId] = useState<number>(0);
-  const [formPrice, setFormPrice] = useState<number>(0);
+  const [formPrice, setFormPrice] = useState<number | "">(0);
   const [formDescription, setFormDescription] = useState("");
   const [formImageUrl, setFormImageUrl] = useState("");
   const [formStatus, setFormStatus] = useState<
     "AVAILABLE" | "OUT_OF_STOCK" | "INACTIVE"
   >("AVAILABLE");
   const [formHasPromotion, setFormHasPromotion] = useState(false);
-  const [formPromotionalPrice, setFormPromotionalPrice] = useState<number>(0);
+  const [formPromoType, setFormPromoType] = useState<"FIXED" | "PERCENTAGE">(
+    "FIXED",
+  );
+  const [formPromotionalPrice, setFormPromotionalPrice] = useState<number | "">(
+    0,
+  );
+  const [formPromoDiscountPercent, setFormPromoDiscountPercent] = useState<
+    number | ""
+  >(0);
   const [formPromotionNote, setFormPromotionNote] = useState("");
   const [formIsFeatured, setFormIsFeatured] = useState(false);
-  const [formSortOrder, setFormSortOrder] = useState<number>(0);
+  const [formSortOrder, setFormSortOrder] = useState<number | "">(0);
   const [formOptionGroups, setFormOptionGroups] = useState<
     AdminOptionGroupInput[]
   >([]);
@@ -81,7 +89,9 @@ export default function AdminProductManagementPage() {
     setFormCategoryId(selectedCatId || (categories[0]?.id ?? 0));
     setFormPrice(0);
     setFormHasPromotion(false);
+    setFormPromoType("FIXED");
     setFormPromotionalPrice(0);
+    setFormPromoDiscountPercent(0);
     setFormPromotionNote("");
     setFormIsFeatured(false);
     setFormSortOrder(0);
@@ -98,12 +108,21 @@ export default function AdminProductManagementPage() {
     setFormCategoryId(
       prod.category_id || prod.category || (categories[0]?.id ?? 0),
     );
-    setFormPrice(Number(prod.price || 0));
-    setFormHasPromotion(Boolean(prod.has_promotion));
-    setFormPromotionalPrice(
-      prod.effective_price && prod.has_promotion
+    const basePrice = Number(prod.price || 0);
+    const hasPromo = Boolean(prod.has_promotion);
+    const promoPrice =
+      prod.effective_price && hasPromo
         ? Number(prod.effective_price)
-        : Number(prod.price || 0),
+        : basePrice;
+
+    setFormPrice(basePrice);
+    setFormHasPromotion(hasPromo);
+    setFormPromoType("FIXED");
+    setFormPromotionalPrice(promoPrice);
+    setFormPromoDiscountPercent(
+      basePrice > 0 && promoPrice < basePrice
+        ? Math.round((1 - promoPrice / basePrice) * 100)
+        : 0,
     );
     setFormPromotionNote("");
     setFormIsFeatured(Boolean(prod.is_featured));
@@ -619,7 +638,21 @@ export default function AdminProductManagementPage() {
                 type="number"
                 step="1000"
                 value={formPrice}
-                onChange={(e) => setFormPrice(Number(e.target.value))}
+                onChange={(e) => {
+                  const val =
+                    e.target.value === "" ? "" : Number(e.target.value);
+                  setFormPrice(val);
+                  if (
+                    formHasPromotion &&
+                    formPromoType === "PERCENTAGE" &&
+                    typeof val === "number" &&
+                    typeof formPromoDiscountPercent === "number"
+                  ) {
+                    setFormPromotionalPrice(
+                      Math.round(val * (1 - formPromoDiscountPercent / 100)),
+                    );
+                  }
+                }}
                 className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
                 required
               />
@@ -634,49 +667,182 @@ export default function AdminProductManagementPage() {
                   Giá ưu đãi (Khuyến mãi)
                 </span>
                 <p className="text-[11px] text-stone-500">
-                  Thiết lập giá giảm cho món ăn
+                  Thiết lập giá giảm theo số tiền hoặc phần trăm
                 </p>
               </div>
               <Switch
                 checked={formHasPromotion}
-                onChange={(e) => setFormHasPromotion(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setFormHasPromotion(checked);
+                  if (
+                    checked &&
+                    (!formPromotionalPrice || formPromotionalPrice === 0)
+                  ) {
+                    const base = typeof formPrice === "number" ? formPrice : 0;
+                    setFormPromotionalPrice(base);
+                    setFormPromoDiscountPercent(0);
+                  }
+                }}
               />
             </div>
 
             {formHasPromotion && (
               <div className="mt-3 space-y-2.5 border-t border-stone-200/60 pt-2.5">
-                <div className="grid grid-cols-2 gap-2.5">
-                  <div>
-                    <label
-                      htmlFor="prod-promo-price-input"
-                      className="text-[11px] font-semibold text-stone-700"
-                    >
-                      Giá ưu đãi (₫) *
-                    </label>
-                    <input
-                      id="prod-promo-price-input"
-                      type="number"
-                      step="1000"
-                      value={formPromotionalPrice}
-                      onChange={(e) =>
-                        setFormPromotionalPrice(Number(e.target.value))
+                {/* Lựa chọn loại ưu đãi: Theo số tiền hoặc Phần trăm */}
+                <div className="flex rounded-lg border border-stone-200 bg-stone-100 p-0.5 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormPromoType("FIXED");
+                      const base =
+                        typeof formPrice === "number" ? formPrice : 0;
+                      const promo =
+                        typeof formPromotionalPrice === "number"
+                          ? formPromotionalPrice
+                          : 0;
+                      if (base > 0 && promo > 0 && promo < base) {
+                        setFormPromoDiscountPercent(
+                          Math.round((1 - promo / base) * 100),
+                        );
                       }
-                      className="mt-1 h-10 w-full rounded-lg border border-stone-200 bg-white px-2.5 text-xs font-bold text-primary focus:border-primary focus:outline-none"
-                      required={formHasPromotion}
-                    />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-semibold text-stone-700">
-                      Mức giảm (%)
-                    </span>
-                    <div className="mt-1 flex h-10 items-center rounded-lg border border-stone-200 bg-stone-100/70 px-2.5 text-xs font-extrabold text-red-600">
-                      {formPrice > 0 &&
-                      formPromotionalPrice > 0 &&
-                      formPrice > formPromotionalPrice
-                        ? `-${Math.round((1 - formPromotionalPrice / formPrice) * 100)}%`
-                        : "0%"}
-                    </div>
-                  </div>
+                    }}
+                    className={`flex-1 rounded-md py-1.5 text-center transition-all ${
+                      formPromoType === "FIXED"
+                        ? "shadow-xs bg-white font-bold text-primary"
+                        : "text-stone-600 hover:text-stone-900"
+                    }`}
+                  >
+                    Theo số tiền (₫)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormPromoType("PERCENTAGE");
+                      const base =
+                        typeof formPrice === "number" ? formPrice : 0;
+                      const promo =
+                        typeof formPromotionalPrice === "number"
+                          ? formPromotionalPrice
+                          : 0;
+                      if (base > 0 && promo > 0 && promo < base) {
+                        setFormPromoDiscountPercent(
+                          Math.round((1 - promo / base) * 100),
+                        );
+                      }
+                    }}
+                    className={`flex-1 rounded-md py-1.5 text-center transition-all ${
+                      formPromoType === "PERCENTAGE"
+                        ? "shadow-xs bg-white font-bold text-primary"
+                        : "text-stone-600 hover:text-stone-900"
+                    }`}
+                  >
+                    Theo phần trăm (%)
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  {formPromoType === "FIXED" ? (
+                    <>
+                      <div>
+                        <label
+                          htmlFor="prod-promo-price-input"
+                          className="text-[11px] font-semibold text-stone-700"
+                        >
+                          Giá ưu đãi (₫) *
+                        </label>
+                        <input
+                          id="prod-promo-price-input"
+                          type="number"
+                          step="1000"
+                          value={formPromotionalPrice}
+                          onChange={(e) => {
+                            const val =
+                              e.target.value === ""
+                                ? ""
+                                : Number(e.target.value);
+                            setFormPromotionalPrice(val);
+                            const base =
+                              typeof formPrice === "number" ? formPrice : 0;
+                            if (
+                              typeof val === "number" &&
+                              base > 0 &&
+                              val < base
+                            ) {
+                              setFormPromoDiscountPercent(
+                                Math.round((1 - val / base) * 100),
+                              );
+                            } else {
+                              setFormPromoDiscountPercent(0);
+                            }
+                          }}
+                          className="mt-1 h-10 w-full rounded-lg border border-stone-200 bg-white px-2.5 text-xs font-bold text-primary focus:border-primary focus:outline-none"
+                          required={formHasPromotion}
+                        />
+                      </div>
+                      <div>
+                        <span className="text-[11px] font-semibold text-stone-700">
+                          Mức giảm (%)
+                        </span>
+                        <div className="mt-1 flex h-10 items-center rounded-lg border border-stone-200 bg-stone-100/70 px-2.5 text-xs font-extrabold text-red-600">
+                          {typeof formPrice === "number" &&
+                          typeof formPromotionalPrice === "number" &&
+                          formPrice > 0 &&
+                          formPromotionalPrice > 0 &&
+                          formPrice > formPromotionalPrice
+                            ? `-${Math.round((1 - formPromotionalPrice / formPrice) * 100)}%`
+                            : "0%"}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <label
+                          htmlFor="prod-promo-percent-input"
+                          className="text-[11px] font-semibold text-stone-700"
+                        >
+                          Phần trăm giảm (%) *
+                        </label>
+                        <input
+                          id="prod-promo-percent-input"
+                          type="number"
+                          min="1"
+                          max="100"
+                          value={formPromoDiscountPercent}
+                          onChange={(e) => {
+                            const val =
+                              e.target.value === ""
+                                ? ""
+                                : Number(e.target.value);
+                            setFormPromoDiscountPercent(val);
+                            const base =
+                              typeof formPrice === "number" ? formPrice : 0;
+                            if (typeof val === "number" && base > 0) {
+                              const calculatedPrice = Math.max(
+                                0,
+                                Math.round(base * (1 - val / 100)),
+                              );
+                              setFormPromotionalPrice(calculatedPrice);
+                            }
+                          }}
+                          className="mt-1 h-10 w-full rounded-lg border border-stone-200 bg-white px-2.5 text-xs font-bold text-primary focus:border-primary focus:outline-none"
+                          required={formHasPromotion}
+                        />
+                      </div>
+                      <div>
+                        <span className="text-[11px] font-semibold text-stone-700">
+                          Giá sau giảm (₫)
+                        </span>
+                        <div className="mt-1 flex h-10 items-center rounded-lg border border-stone-200 bg-stone-100/70 px-2.5 text-xs font-extrabold text-primary">
+                          {typeof formPromotionalPrice === "number" &&
+                          formPromotionalPrice > 0
+                            ? `${formPromotionalPrice.toLocaleString("vi-VN")}₫`
+                            : "0₫"}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div>
                   <label
@@ -820,7 +986,11 @@ export default function AdminProductManagementPage() {
                 id="prod-sort-order-input"
                 type="number"
                 value={formSortOrder}
-                onChange={(e) => setFormSortOrder(Number(e.target.value))}
+                onChange={(e) =>
+                  setFormSortOrder(
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  )
+                }
                 placeholder="0"
                 className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
               />
@@ -844,8 +1014,8 @@ export default function AdminProductManagementPage() {
 
           {/* Option Groups & Topping Section */}
           <div className="rounded-2xl border border-stone-200 bg-stone-50/80 p-3.5">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
                 <h4 className="text-xs font-bold text-stone-900">
                   Nhóm tùy chọn & Topping/Size
                 </h4>
@@ -856,13 +1026,15 @@ export default function AdminProductManagementPage() {
               <button
                 type="button"
                 onClick={handleAddOptionGroup}
-                className="inline-flex h-9 items-center justify-center gap-1 rounded-xl bg-primary/10 px-3 text-xs font-bold leading-none text-primary active:scale-95"
+                className="inline-flex h-9 shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-xl bg-primary/10 px-3 text-xs font-bold leading-none text-primary active:scale-95"
               >
                 <Icon
                   icon="zi-plus"
                   className="inline-flex shrink-0 items-center justify-center text-xs leading-none"
                 />
-                <span className="leading-none">Thêm nhóm</span>
+                <span className="whitespace-nowrap leading-none">
+                  Thêm nhóm
+                </span>
               </button>
             </div>
 
@@ -929,7 +1101,9 @@ export default function AdminProductManagementPage() {
                             handleUpdateOptionGroup(
                               gIdx,
                               "min_select",
-                              Number(e.target.value),
+                              e.target.value === ""
+                                ? ""
+                                : Number(e.target.value),
                             )
                           }
                           className="mt-1 h-9 w-full rounded-lg border border-stone-200 bg-stone-50 px-2 text-xs font-medium text-stone-800"
@@ -947,7 +1121,9 @@ export default function AdminProductManagementPage() {
                             handleUpdateOptionGroup(
                               gIdx,
                               "max_select",
-                              Number(e.target.value),
+                              e.target.value === ""
+                                ? ""
+                                : Number(e.target.value),
                             )
                           }
                           className="mt-1 h-9 w-full rounded-lg border border-stone-200 bg-stone-50 px-2 text-xs font-medium text-stone-800"
@@ -1003,7 +1179,9 @@ export default function AdminProductManagementPage() {
                                     gIdx,
                                     oIdx,
                                     "price",
-                                    Number(e.target.value),
+                                    e.target.value === ""
+                                      ? ""
+                                      : Number(e.target.value),
                                   )
                                 }
                                 className="h-9 w-full rounded border border-stone-200 bg-white px-2 text-xs font-bold text-primary focus:border-primary focus:outline-none"

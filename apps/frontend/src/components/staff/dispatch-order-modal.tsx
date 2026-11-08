@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
 import { DeliveryProvider, Order } from "@/types/order.types";
 import { Icon, Spinner } from "zmp-ui";
-import { MotorbikeIcon, TruckIcon } from "@/components/common/vectors";
+import {
+  MotorbikeIcon,
+  TruckIcon,
+  CloseIcon,
+  MapPinIcon,
+} from "@/components/common/vectors";
 import { copy } from "@/constants/copy";
 
 interface DispatchOrderModalProps {
@@ -150,18 +155,15 @@ export function DispatchOrderModal({
             type="button"
             onClick={onClose}
             aria-label={copy.staff.dispatch.close}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-stone-500 active:scale-95"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stone-100 text-stone-500 active:scale-95"
           >
-            <Icon icon="zi-close" className="shrink-0 text-lg" />
+            <CloseIcon size={20} className="shrink-0" />
           </button>
         </div>
 
         {/* Địa chỉ giao */}
         <div className="mt-3 flex items-start gap-2 rounded-xl bg-stone-50 p-2.5 text-xs text-stone-700">
-          <Icon
-            icon="zi-location"
-            className="mt-0.5 shrink-0 text-sm leading-none text-primary"
-          />
+          <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
           <span className="line-clamp-2 leading-relaxed">
             {order.delivery_address || "Địa chỉ khách hàng"}
           </span>

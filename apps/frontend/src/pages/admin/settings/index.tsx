@@ -542,7 +542,10 @@ export default function AdminSettingsPage() {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    prep_time_minutes: Number(e.target.value),
+                    prep_time_minutes:
+                      e.target.value === ""
+                        ? (0 as any)
+                        : Number(e.target.value),
                   })
                 }
                 className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
@@ -639,7 +642,10 @@ export default function AdminSettingsPage() {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      haversine_multiplier: Number(e.target.value),
+                      haversine_multiplier:
+                        e.target.value === ""
+                          ? (1 as any)
+                          : Number(e.target.value),
                     })
                   }
                   title="Hệ số bù trừ đường cong thực tế so với đường chim bay (mặc định 1.3)"
@@ -664,7 +670,10 @@ export default function AdminSettingsPage() {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    max_delivery_radius_km: Number(e.target.value),
+                    max_delivery_radius_km:
+                      e.target.value === ""
+                        ? (0 as any)
+                        : Number(e.target.value),
                   })
                 }
                 className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
@@ -686,7 +695,10 @@ export default function AdminSettingsPage() {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      min_order_amount: Number(e.target.value),
+                      min_order_amount:
+                        e.target.value === ""
+                          ? (0 as any)
+                          : Number(e.target.value),
                     })
                   }
                   className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
@@ -707,7 +719,10 @@ export default function AdminSettingsPage() {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      min_order_for_freeship: Number(e.target.value),
+                      min_order_for_freeship:
+                        e.target.value === ""
+                          ? (0 as any)
+                          : Number(e.target.value),
                     })
                   }
                   className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
@@ -761,7 +776,9 @@ export default function AdminSettingsPage() {
                               handleUpdateShippingTier(
                                 idx,
                                 "to_km",
-                                Number(e.target.value),
+                                e.target.value === ""
+                                  ? (0 as any)
+                                  : Number(e.target.value),
                               )
                             }
                             className="h-7 w-16 rounded border border-stone-200 bg-white px-1.5 text-center font-mono font-bold text-stone-800 focus:border-primary focus:outline-none"
@@ -796,7 +813,9 @@ export default function AdminSettingsPage() {
                             handleUpdateShippingTier(
                               idx,
                               "fee",
-                              Number(e.target.value),
+                              e.target.value === ""
+                                ? (0 as any)
+                                : Number(e.target.value),
                             )
                           }
                           className="h-8 w-28 rounded border border-stone-200 bg-white px-2 text-right font-mono text-xs font-black text-primary focus:border-primary focus:outline-none"

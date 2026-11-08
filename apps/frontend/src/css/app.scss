@@ -515,3 +515,12 @@ a:focus-visible,
   overflow-x: hidden !important;
   margin: 0 auto !important;
 }
+
+/* Fix icon baseline alignment in flex containers */
+.zaui-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  vertical-align: middle;
+}

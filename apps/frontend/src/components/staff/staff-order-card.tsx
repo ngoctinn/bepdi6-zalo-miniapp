@@ -3,6 +3,7 @@ import { Order } from "@/types/order.types";
 import { useEffect, useState, useRef, createContext, useContext } from "react";
 import { Icon, Spinner } from "zmp-ui";
 import { Badge } from "@/components/common/badge";
+import { MapPinIcon } from "@/components/common/vectors";
 import {
   getOrderStatusLabel,
   getOrderStatusVariant,
@@ -204,10 +205,7 @@ export function StaffOrderCard({
 
         {isDelivery && order.delivery_address && (
           <div className="mt-1.5 flex items-start gap-1.5 text-xs text-stone-500">
-            <Icon
-              icon="zi-location"
-              className="flex shrink-0 items-center justify-center text-xs leading-none text-stone-400"
-            />
+            <MapPinIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-stone-400" />
             <span className="truncate leading-snug">
               {order.delivery_address}
               {order.distance_km ? ` (${order.distance_km}km)` : ""}

@@ -45,14 +45,11 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
       attributionControl: false,
     });
 
-    // TileLayer CartoDB Voyager mượt mà, dễ nhìn địa chỉ tại Việt Nam
-    L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-      {
-        maxZoom: 19,
-        subdomains: "abcd",
-      },
-    ).addTo(map);
+    // TileLayer OpenStreetMap chuẩn, không đòi hỏi API Key
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      subdomains: ["a", "b", "c"],
+    }).addTo(map);
 
     map.on("movestart", () => {
       isUserDraggingRef.current = true;

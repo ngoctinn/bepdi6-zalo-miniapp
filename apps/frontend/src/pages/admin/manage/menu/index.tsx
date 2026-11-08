@@ -33,7 +33,7 @@ export default function AdminCategoryManagementPage() {
   const [formName, setFormName] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formImageUrl, setFormImageUrl] = useState("");
-  const [formSortOrder, setFormSortOrder] = useState(0);
+  const [formSortOrder, setFormSortOrder] = useState<number | "">(0);
   const [formStatus, setFormStatus] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
 
   const categories = Array.isArray(categoriesData) ? categoriesData : [];
@@ -392,7 +392,11 @@ export default function AdminCategoryManagementPage() {
                 id="cat-sort-input"
                 type="number"
                 value={formSortOrder}
-                onChange={(e) => setFormSortOrder(Number(e.target.value))}
+                onChange={(e) =>
+                  setFormSortOrder(
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  )
+                }
                 className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
               />
             </div>

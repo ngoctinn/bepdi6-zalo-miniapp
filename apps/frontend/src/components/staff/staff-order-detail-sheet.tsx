@@ -10,7 +10,11 @@ import {
   getDeliveryTypeLabel,
 } from "@/utils/order-display";
 import { Badge } from "@/components/common/badge";
-import { PrinterIcon } from "@/components/common/vectors";
+import {
+  PrinterIcon,
+  CloseIcon,
+  MapPinIcon,
+} from "@/components/common/vectors";
 import { Spinner, Icon } from "zmp-ui";
 import { useAppToast } from "@/hooks/use-app-toast";
 
@@ -122,10 +126,10 @@ export function StaffOrderDetailSheet({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-transform active:scale-95"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-transform active:scale-95"
             aria-label={copy.staff.dispatch.close}
           >
-            <Icon icon="zi-close" className="shrink-0 text-lg" />
+            <CloseIcon size={20} className="shrink-0" />
           </button>
         </div>
 
@@ -217,10 +221,7 @@ export function StaffOrderDetailSheet({
 
             {isDelivery && order.delivery_address && (
               <div className="mt-2.5 flex items-start gap-2 rounded-lg border border-stone-200 bg-white p-2.5 text-xs">
-                <Icon
-                  icon="zi-location"
-                  className="inline-flex shrink-0 items-center justify-center text-sm leading-none text-primary"
-                />
+                <MapPinIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <span className="font-medium leading-relaxed text-stone-800">
                   {order.delivery_address}
                   {order.distance_km ? ` (${order.distance_km} km)` : ""}

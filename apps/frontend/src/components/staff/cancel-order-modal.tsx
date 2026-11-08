@@ -1,6 +1,7 @@
 import { Spinner, Icon } from "zmp-ui";
 import { Order } from "@/types/order.types";
 import { copy } from "@/constants/copy";
+import { CloseIcon } from "@/components/common/vectors";
 
 interface CancelOrderModalProps {
   visible: boolean;
@@ -61,10 +62,10 @@ export function CancelOrderModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-transform active:scale-95"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-transform active:scale-95"
             aria-label="Đóng"
           >
-            <Icon icon="zi-close" className="shrink-0 text-lg" />
+            <CloseIcon size={20} className="shrink-0" />
           </button>
         </div>
 

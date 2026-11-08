@@ -47,13 +47,15 @@ export default function AdminVoucherManagementPage() {
   const [formDiscountType, setFormDiscountType] = useState<
     "FIXED" | "PERCENTAGE"
   >("FIXED");
-  const [formDiscountValue, setFormDiscountValue] = useState<number>(0);
-  const [formMinOrder, setFormMinOrder] = useState<number>(0);
-  const [formMaxDiscount, setFormMaxDiscount] = useState<number | undefined>(
-    undefined,
+  const [formDiscountValue, setFormDiscountValue] = useState<number | "">(0);
+  const [formMinOrder, setFormMinOrder] = useState<number | "">(0);
+  const [formMaxDiscount, setFormMaxDiscount] = useState<
+    number | undefined | ""
+  >(undefined);
+  const [formUsageLimit, setFormUsageLimit] = useState<number | "">(100);
+  const [formUsagePerCustomer, setFormUsagePerCustomer] = useState<number | "">(
+    1,
   );
-  const [formUsageLimit, setFormUsageLimit] = useState<number>(100);
-  const [formUsagePerCustomer, setFormUsagePerCustomer] = useState<number>(1);
   const [formStartAt, setFormStartAt] = useState("");
   const [formEndAt, setFormEndAt] = useState("");
   const [formStatus, setFormStatus] = useState<"ACTIVE" | "INACTIVE">("ACTIVE");
@@ -435,6 +437,10 @@ export default function AdminVoucherManagementPage() {
                 max={formDiscountType === "PERCENTAGE" ? 100 : undefined}
                 value={formDiscountValue}
                 onChange={(e) => {
+                  if (e.target.value === "") {
+                    setFormDiscountValue("");
+                    return;
+                  }
                   const val = Number(e.target.value);
                   if (formDiscountType === "PERCENTAGE") {
                     setFormDiscountValue(Math.min(val, 100));
@@ -465,7 +471,11 @@ export default function AdminVoucherManagementPage() {
                 type="number"
                 step="1000"
                 value={formMinOrder}
-                onChange={(e) => setFormMinOrder(Number(e.target.value))}
+                onChange={(e) =>
+                  setFormMinOrder(
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  )
+                }
                 className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
               />
             </div>
@@ -482,10 +492,10 @@ export default function AdminVoucherManagementPage() {
                   type="number"
                   step="1000"
                   placeholder="Không giới hạn"
-                  value={formMaxDiscount || ""}
+                  value={formMaxDiscount === undefined ? "" : formMaxDiscount}
                   onChange={(e) =>
                     setFormMaxDiscount(
-                      e.target.value ? Number(e.target.value) : undefined,
+                      e.target.value === "" ? "" : Number(e.target.value),
                     )
                   }
                   className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
@@ -506,7 +516,11 @@ export default function AdminVoucherManagementPage() {
                 id="voucher-limit-input"
                 type="number"
                 value={formUsageLimit}
-                onChange={(e) => setFormUsageLimit(Number(e.target.value))}
+                onChange={(e) =>
+                  setFormUsageLimit(
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  )
+                }
                 className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
               />
             </div>
@@ -522,7 +536,9 @@ export default function AdminVoucherManagementPage() {
                 type="number"
                 value={formUsagePerCustomer}
                 onChange={(e) =>
-                  setFormUsagePerCustomer(Number(e.target.value))
+                  setFormUsagePerCustomer(
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  )
                 }
                 className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
               />

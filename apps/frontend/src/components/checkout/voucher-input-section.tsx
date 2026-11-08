@@ -4,6 +4,7 @@ import { copy } from "@/constants/copy";
 import { formatCurrency } from "@/utils/format";
 import { BrowseVoucherItem } from "@/types/shop.types";
 import { voucherService } from "@/services/voucher/voucher.api";
+import { CloseIcon } from "@/components/common/vectors";
 
 interface VoucherInputSectionProps {
   voucherCodeInput: string;
@@ -123,9 +124,9 @@ export function VoucherInputSection({
               <button
                 type="button"
                 onClick={() => setSheetVisible(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-200/80 text-stone-600 active:scale-95"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stone-200/80 text-stone-600 active:scale-95"
               >
-                <Icon icon="zi-close" className="shrink-0 text-sm" />
+                <CloseIcon size={16} className="shrink-0" />
               </button>
             </div>
 
