@@ -75,10 +75,10 @@ class AuthService:
                 clean_token if clean_token.isdigit() else f"zalo_{clean_token}"
             )
             phone = "0987654321" if phone_token else ""
+            admin_zalo_ids = [str(i) for i in getattr(settings, "ADMIN_ZALO_IDS", [])]
+            is_admin = clean_token in admin_zalo_ids
             user_name = name or (
-                "Khách Admin"
-                if clean_token == "5746042945227030407"
-                else f"Khách {zalo_user_id[-6:]}"
+                "Khách Admin" if is_admin else f"Khách {zalo_user_id[-6:]}"
             )
             return {
                 "zalo_user_id": zalo_user_id,

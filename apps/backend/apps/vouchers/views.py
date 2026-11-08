@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from apps.customers.permissions import IsAdminOnlyUser
 from apps.customers.views import get_current_customer
-from apps.vouchers.models import Voucher
+from apps.vouchers.models import Voucher, VoucherUsage
 from apps.vouchers.serializers import (
     VoucherSerializer,
     VoucherValidateRequestSerializer,
@@ -25,6 +25,7 @@ class VoucherBrowseView(APIView):
     def post(self, request):
         from decimal import Decimal
 
+        from django.db.models import Count, Q
         from django.utils import timezone
 
         subtotal_raw = request.data.get("subtotal", 0)
@@ -36,11 +37,32 @@ class VoucherBrowseView(APIView):
         customer = get_current_customer(request)
         now = timezone.now()
 
-        active_vouchers = Voucher.objects.filter(
+        active_vouchers_qs = Voucher.objects.filter(
             status=Voucher.Status.ACTIVE,
             start_at__lte=now,
             end_at__gte=now,
-        ).order_by("-discount_value")
+        )
+
+        annotations = {
+            "total_applied_count": Count(
+                "usages",
+                filter=Q(usages__status=VoucherUsage.Status.APPLIED),
+                distinct=True,
+            )
+        }
+        if customer:
+            annotations["cust_applied_count"] = Count(
+                "usages",
+                filter=Q(
+                    usages__customer=customer,
+                    usages__status=VoucherUsage.Status.APPLIED,
+                ),
+                distinct=True,
+            )
+
+        active_vouchers = active_vouchers_qs.annotate(**annotations).order_by(
+            "-discount_value"
+        )
 
         results = []
         for voucher in active_vouchers:
@@ -55,22 +77,13 @@ class VoucherBrowseView(APIView):
 
             # Check usage limit if applicable
             if is_eligible and voucher.usage_limit > 0:
-                from apps.vouchers.models import VoucherUsage
-
-                total_applied = voucher.usages.filter(
-                    status=VoucherUsage.Status.APPLIED
-                ).count()
+                total_applied = getattr(voucher, "total_applied_count", 0)
                 if total_applied >= voucher.usage_limit:
                     is_eligible = False
                     ineligible_reason = "Voucher đã hết lượt sử dụng"
 
             if is_eligible and customer and voucher.usage_per_customer > 0:
-                from apps.vouchers.models import VoucherUsage
-
-                cust_applied = voucher.usages.filter(
-                    customer=customer,
-                    status=VoucherUsage.Status.APPLIED,
-                ).count()
+                cust_applied = getattr(voucher, "cust_applied_count", 0)
                 if cust_applied >= voucher.usage_per_customer:
                     is_eligible = False
                     ineligible_reason = "Bạn đã hết lượt dùng voucher này"

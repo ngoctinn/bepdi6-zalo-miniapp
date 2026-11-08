@@ -131,22 +131,15 @@ class Product(models.Model):
             return prefetched_promotions[0] if prefetched_promotions else None
 
         now = timezone.now()
-        try:
-            return (
-                self.promotions.filter(
-                    is_active=True,
-                )
-                .filter(
-                    models.Q(valid_from__isnull=True) | models.Q(valid_from__lte=now),
-                )
-                .filter(
-                    models.Q(valid_to__isnull=True) | models.Q(valid_to__gte=now),
-                )
-                .order_by("-created_at")
-                .first()
+        return (
+            self.promotions.filter(
+                models.Q(valid_from__isnull=True) | models.Q(valid_from__lte=now),
+                models.Q(valid_to__isnull=True) | models.Q(valid_to__gte=now),
+                is_active=True,
             )
-        except Exception:
-            return None
+            .order_by("-created_at")
+            .first()
+        )
 
     @property
     def effective_price(self) -> Decimal:

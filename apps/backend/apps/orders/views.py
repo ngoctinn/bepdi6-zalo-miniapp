@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 from django.db import transaction
@@ -29,6 +30,8 @@ from apps.orders.services import (
     OrderService,
 )
 from apps.payments.models import Payment
+
+logger = logging.getLogger(__name__)
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -151,6 +154,12 @@ class CheckoutPreviewView(APIView):
                             )
                         )
                     except Exception:
+                        logger.warning(
+                            "Không thể tính khoảng cách địa chỉ (%s, %s)",
+                            address.latitude,
+                            address.longitude,
+                            exc_info=True,
+                        )
                         calculated_distance = Decimal("0.00")
 
                 err_payload = {
@@ -560,10 +569,32 @@ class AdminOrderDispatchView(APIView):
         data = serializer.validated_data
 
         with transaction.atomic():
+            try:
+                order = Order.objects.select_for_update().get(pk=pk)
+            except Order.DoesNotExist:
+                raise NotFound("Đơn hàng không tồn tại.") from None
+
+            if order.status in [Order.Status.COMPLETED, Order.Status.CANCELLED]:
+                raise ValidationError(
+                    {
+                        "code": "ORDER_ALREADY_FINISHED",
+                        "message": f"Không thể điều phối đơn hàng đã ở trạng thái kết thúc ({order.get_status_display()}).",
+                    }
+                )
+
             order.delivery_provider = data["delivery_provider"]
             order.shipper_name = data.get("shipper_name", "").strip()
             order.shipper_phone = data.get("shipper_phone", "").strip()
             order.shipper_tracking_code = data.get("shipper_tracking_code", "").strip()
+            order.save(
+                update_fields=[
+                    "delivery_provider",
+                    "shipper_name",
+                    "shipper_phone",
+                    "shipper_tracking_code",
+                    "updated_at",
+                ]
+            )
 
             # Nếu đơn chưa ở DELIVERING và đang ở READY/PREPARING/CONFIRMED -> Chuyển sang DELIVERING
             if order.status in [
@@ -714,15 +745,24 @@ class AdminOrderPaymentVerifyView(APIView):
                     }
                 )
 
-            if order.status in [Order.Status.CANCELLED]:
+            if order.status in [Order.Status.COMPLETED, Order.Status.CANCELLED]:
                 raise ValidationError(
                     {
                         "code": "INVALID_ORDER_STATUS",
-                        "message": f"Không thể xác nhận thanh toán cho đơn hàng đã bị hủy ({order.status}).",
+                        "message": f"Không thể xác nhận thanh toán cho đơn hàng đã ở trạng thái kết thúc ({order.status}).",
                     }
                 )
 
+            # Idempotent re-entry: If already marked PAID with same Idempotency-Key
             if payment.status == Payment.Status.PAID:
+                # Check if previous verification was done under this exact idempotency key
+                verified_key = cache.get(
+                    f"payment_verified_idempotency_key:{payment.id}"
+                )
+                if verified_key and verified_key == idempotency_key:
+                    response_data = PaymentSerializer(payment).data
+                    cache.set(cache_key, response_data, timeout=86400)
+                    return Response(response_data)
                 raise ValidationError(
                     {
                         "code": "PAYMENT_ALREADY_VERIFIED",
@@ -751,6 +791,11 @@ class AdminOrderPaymentVerifyView(APIView):
             if request.user.is_authenticated:
                 payment.verified_by = request.user
             payment.save()
+            cache.set(
+                f"payment_verified_idempotency_key:{payment.id}",
+                idempotency_key,
+                timeout=86400,
+            )
 
         response_data = PaymentSerializer(payment).data
         cache.set(cache_key, response_data, timeout=86400)

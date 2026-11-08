@@ -20,7 +20,12 @@ export default function ProductCard({
   onAddToCart,
 }: ProductCardProps) {
   const navigate = useNavigate();
-  const { items, addToCart, updateQuantity, removeFromCart } = useCartStore();
+  const addToCart = useCartStore((state) => state.addToCart);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
+  const cartItemsForProduct = useCartStore((state) =>
+    state.items.filter((item) => item.product_id === product.id),
+  );
   const prefetchProduct = usePrefetchProduct();
 
   const handleCardClick = () => {
@@ -60,10 +65,6 @@ export default function ProductCard({
   );
   const canQuickAddDirectly = !hasOptionGroups;
 
-  // Lọc items của món này hiện có trong giỏ hàng
-  const cartItemsForProduct = items.filter(
-    (item) => item.product_id === product.id,
-  );
   const totalQuantityInCart = cartItemsForProduct.reduce(
     (sum, item) => sum + item.quantity,
     0,

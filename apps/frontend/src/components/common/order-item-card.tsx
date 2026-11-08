@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Order } from "@/types/order.types";
 import { formatCurrency } from "@/utils/format";
@@ -30,36 +31,44 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
   const isCancelled = order.status === "CANCELLED";
   const isActive = !isCompleted && !isCancelled;
   const canReorder = isCompleted || isCancelled;
+  const [isReordering, setIsReordering] = useState(false);
 
   // Xử lý Đặt lại món 1-chạm vào giỏ hàng
   const handleReorder = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!order.items || order.items.length === 0) return;
+    if (isReordering || !order.items || order.items.length === 0) return;
+    setIsReordering(true);
 
-    let addedCount = 0;
-    order.items.forEach((item) => {
-      const productId = item.product_id ?? item.product;
-      if (!productId) return;
+    try {
+      let addedCount = 0;
+      order.items.forEach((item) => {
+        const productId = item.product_id ?? item.product;
+        if (!productId) return;
 
-      addedCount++;
-      addToCart({
-        product_id: productId,
-        product_name: item.product_name,
-        unit_price: Number(item.unit_price || 0),
-        quantity: item.quantity || 1,
-        note: item.note,
-        options: item.options?.map((o) => ({
-          option_id: (o.option_id ?? o.option) as number,
-          option_name: o.option_name,
-          price: Number(o.price || 0),
-          quantity: o.quantity || 1,
-        })),
+        addedCount++;
+        addToCart({
+          product_id: productId,
+          product_name: item.product_name,
+          unit_price: Number(item.unit_price || 0),
+          quantity: item.quantity || 1,
+          note: item.note,
+          options: item.options?.map((o) => ({
+            option_id: (o.option_id ?? o.option) as number,
+            option_name: o.option_name,
+            price: Number(o.price || 0),
+            quantity: o.quantity || 1,
+          })),
+        });
       });
-    });
 
-    if (addedCount > 0) {
-      showSuccess(copy.order.reorderSuccess || "Đã thêm các món vào giỏ hàng!");
-      navigate("/checkout");
+      if (addedCount > 0) {
+        showSuccess(
+          copy.order.reorderSuccess || "Đã thêm các món vào giỏ hàng!",
+        );
+        navigate("/checkout");
+      }
+    } finally {
+      setIsReordering(false);
     }
   };
 
@@ -230,15 +239,18 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
           {canReorder && (
             <button
               type="button"
+              disabled={isReordering}
               onClick={handleReorder}
-              className="inline-flex h-10 min-h-[40px] flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98]"
+              className="inline-flex h-10 min-h-[40px] flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:bg-olive800 active:scale-[0.98] disabled:opacity-50"
             >
               <Icon
                 icon="zi-retry"
                 className="inline-flex shrink-0 items-center justify-center text-sm leading-none"
               />
               <span className="leading-none">
-                {copy.order.reorder || "Đặt lại"}
+                {isReordering
+                  ? "Đang xử lý..."
+                  : copy.order.reorder || "Đặt lại"}
               </span>
             </button>
           )}

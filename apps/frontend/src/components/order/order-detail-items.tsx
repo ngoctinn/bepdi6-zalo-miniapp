@@ -16,6 +16,7 @@ import { cn } from "@/utils/cn";
 import { openWebview } from "zmp-sdk/apis";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { DEFAULT_SHOP_ADDRESS } from "@/constants/shop";
+import { copyToClipboard } from "@/utils/clipboard";
 
 interface OrderDetailItemsProps {
   order: Order;
@@ -51,30 +52,13 @@ export function OrderDetailItems({ order, shopInfo }: OrderDetailItemsProps) {
   };
 
   const handleCopy = async (text: string, key: string, label: string) => {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-9999px";
-        textArea.style.top = "0";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        const successful = document.execCommand("copy");
-        document.body.removeChild(textArea);
-        if (!successful) {
-          throw new Error("Copy command failed");
-        }
-      }
+    const success = await copyToClipboard(text);
+    if (success) {
       setCopiedKey(key);
       setTimeout(() => {
         setCopiedKey((prev) => (prev === key ? null : prev));
       }, 1500);
-    } catch (err) {
-      console.warn("[Clipboard] copy failed:", err);
+    } else {
       showError(
         copy.orderDetail.copyFailedFallback ||
           "Không thể tự động sao chép. Vui lòng sao chép thủ công.",

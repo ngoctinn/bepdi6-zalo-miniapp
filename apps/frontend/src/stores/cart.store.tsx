@@ -165,17 +165,12 @@ if (typeof window !== "undefined") {
             useCartStore.setState({ items: parsed });
           } else {
             // If items were added before async resolution, merge them without losing previous items
-            const currentItemIds = new Set(
-              currentItems.map(
-                (item) =>
-                  `${item.product.id}_${item.optionSignature}_${item.note || ""}`,
-              ),
-            );
+            const getCartItemKey = (item: CartItem) =>
+              `${item.product_id}_${getOptionsSignature(item.options)}_${(item.note || "").trim()}`;
+
+            const currentItemIds = new Set(currentItems.map(getCartItemKey));
             const missingItems = parsed.filter(
-              (p) =>
-                !currentItemIds.has(
-                  `${p.product.id}_${p.optionSignature}_${p.note || ""}`,
-                ),
+              (p: CartItem) => !currentItemIds.has(getCartItemKey(p)),
             );
             if (missingItems.length > 0) {
               const merged = [...currentItems, ...missingItems];

@@ -60,40 +60,10 @@ class ProductPromotionSerializer(serializers.ModelSerializer):
         ]
 
 
-class ProductListSerializer(serializers.ModelSerializer):
-    category_id = serializers.IntegerField(required=True)
-    category_name = serializers.CharField(source="category.name", read_only=True)
-    image_url = serializers.CharField(required=False, allow_blank=True, default="")
-    image = MaxSizeImageField(required=False, allow_null=True, write_only=True)
-
-    # Computed promotion fields (read-only)
+class BaseProductSerializer(serializers.ModelSerializer):
     effective_price = serializers.SerializerMethodField()
     has_promotion = serializers.SerializerMethodField()
     discount_percent = serializers.SerializerMethodField()
-
-    option_groups = OptionGroupSerializer(many=True, required=False)
-    promotion = ProductPromotionSerializer(required=False, allow_null=True)
-
-    class Meta:
-        model = Product
-        fields = [
-            "id",
-            "category_id",
-            "category_name",
-            "name",
-            "description",
-            "image",
-            "image_url",
-            "price",
-            "effective_price",
-            "has_promotion",
-            "discount_percent",
-            "is_featured",
-            "sort_order",
-            "status",
-            "option_groups",
-            "promotion",
-        ]
 
     def get_effective_price(self, obj: Product):
         active_price = getattr(obj, "active_promotion_price", None)
@@ -120,17 +90,48 @@ class ProductListSerializer(serializers.ModelSerializer):
             return None
         return obj.discount_percent
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["image_url"] = instance.effective_image_url
+        return data
+
+
+class ProductListSerializer(BaseProductSerializer):
+    category_id = serializers.IntegerField(required=True)
+    category_name = serializers.CharField(source="category.name", read_only=True)
+    image_url = serializers.CharField(required=False, allow_blank=True, default="")
+    image = MaxSizeImageField(required=False, allow_null=True, write_only=True)
+
+    option_groups = OptionGroupSerializer(many=True, required=False)
+    promotion = ProductPromotionSerializer(required=False, allow_null=True)
+
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "category_id",
+            "category_name",
+            "name",
+            "description",
+            "image",
+            "image_url",
+            "price",
+            "effective_price",
+            "has_promotion",
+            "discount_percent",
+            "is_featured",
+            "sort_order",
+            "status",
+            "option_groups",
+            "promotion",
+        ]
+
     def validate_image(self, value):
         if value and getattr(value, "size", 0) > MAX_IMAGE_SIZE_BYTES:
             raise serializers.ValidationError(
                 "Kích thước file ảnh không được vượt quá 5MB."
             )
         return value
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data["image_url"] = instance.effective_image_url
-        return data
 
     def _save_option_groups(self, product: Product, option_groups_data: list[dict]):
         retained_group_ids = []
@@ -245,15 +246,10 @@ class ProductListSerializer(serializers.ModelSerializer):
         return product
 
 
-class ProductDetailSerializer(serializers.ModelSerializer):
+class ProductDetailSerializer(BaseProductSerializer):
     option_groups = OptionGroupSerializer(many=True, read_only=True)
     image_url = serializers.CharField(required=False, allow_blank=True, default="")
     image = serializers.ImageField(required=False, allow_null=True, write_only=True)
-
-    # Computed promotion fields (read-only)
-    effective_price = serializers.SerializerMethodField()
-    has_promotion = serializers.SerializerMethodField()
-    discount_percent = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -273,36 +269,6 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             "status",
             "option_groups",
         ]
-
-    def get_effective_price(self, obj: Product):
-        active_price = getattr(obj, "active_promotion_price", None)
-        has_active_promotion = getattr(obj, "has_active_promotion", None)
-        if active_price is not None:
-            return float(active_price)
-        if has_active_promotion is not None:
-            return float(obj.price)
-        return float(obj.effective_price)
-
-    def get_has_promotion(self, obj: Product) -> bool:
-        has_active_promotion = getattr(obj, "has_active_promotion", None)
-        if has_active_promotion is not None:
-            return bool(has_active_promotion)
-        return obj.has_promotion
-
-    def get_discount_percent(self, obj: Product):
-        active_price = getattr(obj, "active_promotion_price", None)
-        has_active_promotion = getattr(obj, "has_active_promotion", None)
-        if active_price is not None and obj.price and obj.price > 0:
-            pct = round((1 - float(active_price) / float(obj.price)) * 100)
-            return max(0, pct)
-        if has_active_promotion is not None:
-            return None
-        return obj.discount_percent
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data["image_url"] = instance.effective_image_url
-        return data
 
 
 class CategorySerializer(serializers.ModelSerializer):

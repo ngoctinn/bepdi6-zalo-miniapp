@@ -34,6 +34,7 @@ env = environ.Env(
     VIETQR_BANK_ID=(str, "MB"),
     VIETQR_ACCOUNT_NO=(str, ""),
     VIETQR_ACCOUNT_NAME=(str, "BEP DI 6"),
+    ADMIN_ZALO_IDS=(list, ["5746042945227030407"]),
 )
 
 # Read .env file if it exists in ROOT_DIR or BASE_DIR
@@ -42,6 +43,7 @@ environ.Env.read_env(ROOT_DIR / ".env")
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+ADMIN_ZALO_IDS = env("ADMIN_ZALO_IDS")
 
 # Application definition
 DJANGO_APPS = [
@@ -371,9 +373,12 @@ ZALO_APP_SECRET = env("ZALO_APP_SECRET")
 ZALO_OA_ID = env("ZALO_OA_ID")
 ZALO_OA_SECRET = env("ZALO_OA_SECRET")
 ZALO_OA_ACCESS_TOKEN = env("ZALO_OA_ACCESS_TOKEN")
-ADMIN_ZALO_IDS = [
-    x.strip() for x in env("ADMIN_ZALO_IDS", default="").split(",") if x.strip()
-]
+_raw_admin_zalo = env("ADMIN_ZALO_IDS")
+ADMIN_ZALO_IDS: list[str] = (
+    [x.strip() for x in _raw_admin_zalo.split(",") if x.strip()]
+    if isinstance(_raw_admin_zalo, str)
+    else [str(x).strip() for x in (_raw_admin_zalo or []) if str(x).strip()]
+)
 VIETQR_BANK_ID = env("VIETQR_BANK_ID")
 VIETQR_ACCOUNT_NO = env("VIETQR_ACCOUNT_NO")
 VIETQR_ACCOUNT_NAME = env("VIETQR_ACCOUNT_NAME")

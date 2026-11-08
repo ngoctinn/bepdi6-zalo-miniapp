@@ -73,7 +73,7 @@ export default function StaffOrdersPage() {
     refetch,
     isError,
   } = useAdminOrders(undefined, {
-    enabled: isAdmin,
+    enabled: isStaffOrAdmin,
   });
 
   // Khởi tạo AudioContext khi bật chuông

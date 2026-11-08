@@ -27,7 +27,7 @@ export function useProduct(id: number | string | undefined) {
       const numId = Number(id);
       // Look up cached product in any products list query
       const cachedLists = queryClient.getQueriesData<Product[]>({
-        queryKey: [PRODUCTS_QUERY_KEY],
+        queryKey: PRODUCTS_QUERY_KEY,
       });
       for (const [, list] of cachedLists) {
         if (Array.isArray(list)) {

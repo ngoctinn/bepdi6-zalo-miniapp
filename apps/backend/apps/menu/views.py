@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from django.core.cache import cache
@@ -23,6 +24,8 @@ from apps.menu.utils import optimize_image_to_webp
 
 MENU_CACHE_TIMEOUT = 600  # 10 minutes
 MENU_CACHE_VERSION_KEY = "menu_cache_version"
+
+logger = logging.getLogger(__name__)
 CACHE_KEY_CATEGORIES = "menu:categories:list"
 CACHE_KEY_PRODUCTS_PREFIX = "menu:products:list"
 CACHE_KEY_PRODUCT_DETAIL_PREFIX = "menu:product:detail"
@@ -75,17 +78,13 @@ def invalidate_menu_cache(product_id: int | None = None) -> None:
     try:
         try:
             cache.incr(MENU_CACHE_VERSION_KEY)
-        except Exception:
-            current = cache.get(MENU_CACHE_VERSION_KEY)
-            if current is None:
-                cache.set(MENU_CACHE_VERSION_KEY, 2, timeout=None)
-            else:
-                try:
-                    cache.set(MENU_CACHE_VERSION_KEY, int(current) + 1, timeout=None)
-                except Exception:
-                    cache.set(MENU_CACHE_VERSION_KEY, 1, timeout=None)
+        except (ValueError, TypeError):
+            current = cache.get(MENU_CACHE_VERSION_KEY) or 1
+            cache.set(MENU_CACHE_VERSION_KEY, int(current) + 1, timeout=None)
     except Exception:
-        pass
+        logger.exception(
+            "Không thể tăng menu cache version key: %s", MENU_CACHE_VERSION_KEY
+        )
 
 
 class CategoryListView(APIView):

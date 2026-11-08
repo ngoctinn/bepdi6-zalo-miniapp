@@ -680,15 +680,11 @@ class OrderService:
         Records audit logs and releases voucher if cancelled.
         """
         # Lock order row in DB to serialize transitions and guarantee fresh state
-        locked_status = (
-            Order.objects.select_for_update()
-            .filter(pk=order.pk)
-            .values_list("status", flat=True)
-            .first()
-        )
-        if locked_status is None:
-            raise InvalidStateTransitionError("Đơn hàng không tồn tại.")
-        current_status = locked_status
+        try:
+            order = Order.objects.select_for_update().get(pk=order.pk)
+        except Order.DoesNotExist:
+            raise InvalidStateTransitionError("Đơn hàng không tồn tại.") from None
+        current_status = order.status
 
         # Strict terminal state guard (BR-ORD terminal state rules)
         if current_status in [Order.Status.COMPLETED, Order.Status.CANCELLED]:
@@ -705,15 +701,19 @@ class OrderService:
 
         old_data = {"status": current_status}
         order.status = new_status
+        update_fields = ["status", "updated_at"]
 
         now = timezone.now()
         if new_status == Order.Status.CONFIRMED:
             order.confirmed_at = now
+            update_fields.append("confirmed_at")
         elif new_status == Order.Status.PREPARING:
             if not order.confirmed_at:
                 order.confirmed_at = now
+                update_fields.append("confirmed_at")
         elif new_status == Order.Status.COMPLETED:
             order.completed_at = now
+            update_fields.append("completed_at")
             # BR-PAY-003: COD order is marked as PAID upon successful delivery completion
             if order.payment_method == Order.PaymentMethod.COD:
                 try:
@@ -730,10 +730,11 @@ class OrderService:
         elif new_status == Order.Status.CANCELLED:
             order.cancelled_at = now
             order.cancellation_reason = reason
+            update_fields.extend(["cancelled_at", "cancellation_reason"])
             # Release voucher if cancelled (BR-VOU-005)
             VoucherService.release_voucher(order=order)
 
-        order.save()
+        order.save(update_fields=update_fields)
 
         # Audit log
         AuditLog.objects.create(
@@ -1060,6 +1061,16 @@ class OrderService:
             order.discount = discount
             order.total_amount = total_amount
             order.voucher = voucher
+
+            # Synchronize VoucherUsage discount snapshot with recalculated discount
+            if voucher:
+                from apps.vouchers.models import VoucherUsage
+
+                VoucherUsage.objects.filter(
+                    order=order,
+                    voucher=voucher,
+                    status=VoucherUsage.Status.APPLIED,
+                ).update(discount_amount=discount)
 
             # Update Payment amount
             try:

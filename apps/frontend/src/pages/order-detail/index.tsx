@@ -53,29 +53,35 @@ export default function OrderDetailPage() {
   const { data: shopInfo } = useShopInfo();
   const cancelOrderMutation = useCancelOrder();
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isReordering, setIsReordering] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   const handleReorder = () => {
-    if (!order?.items || order.items.length === 0) return;
-    for (const item of order.items) {
-      const productId = item.product_id ?? item.product;
-      if (!productId) continue;
-      addToCart({
-        product_id: productId,
-        product_name: item.product_name,
-        unit_price: item.unit_price,
-        quantity: item.quantity,
-        note: item.note,
-        options: (item.options || []).map((opt) => ({
-          option_id: Number(opt.option_id ?? opt.option),
-          option_name: opt.option_name,
-          price: opt.price,
-          quantity: opt.quantity,
-        })),
-      });
+    if (isReordering || !order?.items || order.items.length === 0) return;
+    setIsReordering(true);
+    try {
+      for (const item of order.items) {
+        const productId = item.product_id ?? item.product;
+        if (!productId) continue;
+        addToCart({
+          product_id: productId,
+          product_name: item.product_name,
+          unit_price: item.unit_price,
+          quantity: item.quantity,
+          note: item.note,
+          options: (item.options || []).map((opt) => ({
+            option_id: Number(opt.option_id ?? opt.option),
+            option_name: opt.option_name,
+            price: opt.price,
+            quantity: opt.quantity,
+          })),
+        });
+      }
+      showSuccess(copy.order.reorderSuccess || "Đã thêm các món vào giỏ hàng!");
+      navigate("/checkout");
+    } finally {
+      setIsReordering(false);
     }
-    showSuccess(copy.order.reorderSuccess || "Đã thêm các món vào giỏ hàng!");
-    navigate("/checkout");
   };
 
   const handleConfirmCancel = async () => {
@@ -262,12 +268,15 @@ export default function OrderDetailPage() {
         <div className="safe-bottom fixed bottom-0 left-0 right-0 z-40 border-t border-black/5 bg-background/95 px-4 pb-3 pt-3 shadow-lg backdrop-blur-md">
           <button
             type="button"
+            disabled={isReordering}
             onClick={handleReorder}
-            className="shadow-2xs flex h-12 w-full touch-manipulation items-center justify-center rounded-xl bg-primary text-sm font-bold text-white transition-colors hover:bg-primaryDark active:scale-[0.98]"
+            className="shadow-2xs flex h-12 w-full touch-manipulation items-center justify-center rounded-xl bg-primary text-sm font-bold text-white transition-colors hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
           >
-            {copy.orderDetail.reorderButton ||
-              copy.order.reorder ||
-              "Đặt lại đơn này"}
+            {isReordering
+              ? "Đang xử lý..."
+              : copy.orderDetail.reorderButton ||
+                copy.order.reorder ||
+                "Đặt lại đơn này"}
           </button>
         </div>
       )}

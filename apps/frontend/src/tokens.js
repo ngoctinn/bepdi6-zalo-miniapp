@@ -1008,13 +1008,6 @@ const semantic = {
       "02": "#FAFAF5",
     },
   },
-  rounded: {
-    corner08: "8px",
-    card: "16px",
-    button: "12px",
-    modal: "20px",
-    badge: "9999px",
-  },
   borderRadius: {
     corner08: "8px",
     card: "16px",

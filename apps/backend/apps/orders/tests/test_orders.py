@@ -120,6 +120,40 @@ class TestCheckoutPreview:
             str(actual_data["subtotal"])
         ) + Decimal(str(actual_data["shipping_fee"])) - Decimal("10000.00")
 
+    def test_checkout_preview_rejects_negative_or_zero_quantity(
+        self, api_client, setup_environment
+    ):
+        """Checkout preview must reject non-positive item quantities."""
+        payload = {
+            "address_id": setup_environment["address"].id,
+            "delivery_type": "DELIVERY",
+            "items": [
+                {
+                    "product_id": setup_environment["product"].id,
+                    "quantity": -1,
+                    "option_ids": [],
+                }
+            ],
+        }
+        response = api_client.post("/api/v1/checkout/preview", payload, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        payload_zero = {
+            "address_id": setup_environment["address"].id,
+            "delivery_type": "DELIVERY",
+            "items": [
+                {
+                    "product_id": setup_environment["product"].id,
+                    "quantity": 0,
+                    "option_ids": [],
+                }
+            ],
+        }
+        response_zero = api_client.post(
+            "/api/v1/checkout/preview", payload_zero, format="json"
+        )
+        assert response_zero.status_code == status.HTTP_400_BAD_REQUEST
+
 
 @pytest.mark.django_db
 class TestOrderCreateAndIdempotency:

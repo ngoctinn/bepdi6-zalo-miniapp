@@ -218,6 +218,16 @@ class OrderAdmin(ModelAdmin):
     def total_amount_formatted(self, obj):
         return f"{obj.total_amount:,.0f} đ"
 
+    def has_change_permission(self, request, obj=None):
+        if obj and obj.status in [Order.Status.COMPLETED, Order.Status.CANCELLED]:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.status in [Order.Status.COMPLETED, Order.Status.CANCELLED]:
+            return False
+        return super().has_delete_permission(request, obj)
+
     @display(description="Thời gian đặt", ordering="created_at")
     def created_at_formatted(self, obj):
         from django.utils import timezone
@@ -225,7 +235,7 @@ class OrderAdmin(ModelAdmin):
         local_time = timezone.localtime(obj.created_at)
         return local_time.strftime("%d/%m/%Y %H:%M")
 
-    @action(description="✅ Xác nhận đơn")
+    @action(description="Xác nhận đơn hàng")
     def action_confirm_orders(self, request, queryset):
         from apps.orders.services import OrderService
 
@@ -238,7 +248,7 @@ class OrderAdmin(ModelAdmin):
                 count += 1
         self.message_user(request, f"Đã xác nhận {count} đơn hàng.")
 
-    @action(description="🍳 Chuyển bếp làm món")
+    @action(description="Chuyển bếp làm món")
     def action_mark_preparing(self, request, queryset):
         from apps.orders.services import OrderService
 
@@ -251,7 +261,7 @@ class OrderAdmin(ModelAdmin):
                 count += 1
         self.message_user(request, f"Đã chuyển {count} đơn sang làm món.")
 
-    @action(description="📦 Báo đã làm xong")
+    @action(description="Báo đã làm xong")
     def action_mark_ready(self, request, queryset):
         from apps.orders.services import OrderService
 
@@ -264,7 +274,7 @@ class OrderAdmin(ModelAdmin):
                 count += 1
         self.message_user(request, f"Đã chuyển {count} đơn sang sẵn sàng giao.")
 
-    @action(description="🛵 Bàn giao shipper")
+    @action(description="Bàn giao shipper")
     def action_mark_delivering(self, request, queryset):
         from apps.orders.services import OrderService
 
@@ -277,7 +287,7 @@ class OrderAdmin(ModelAdmin):
                 count += 1
         self.message_user(request, f"Đã chuyển {count} đơn sang đang giao.")
 
-    @action(description="🎉 Giao thành công")
+    @action(description="Xác nhận giao thành công")
     def action_mark_completed(self, request, queryset):
         from apps.orders.services import OrderService
 
@@ -290,27 +300,30 @@ class OrderAdmin(ModelAdmin):
                 count += 1
         self.message_user(request, f"Đã hoàn tất {count} đơn hàng.")
 
-    @action(description="💳 Xác nhận thanh toán")
+    @action(description="Xác nhận thanh toán")
     def action_verify_vietqr_paid(self, request, queryset):
+        from django.db import transaction
         from django.utils import timezone
 
         count = 0
-        for order in queryset:
-            if (
-                hasattr(order, "payment")
-                and order.payment.status != Payment.Status.PAID
-            ):
-                payment = order.payment
-                payment.status = Payment.Status.PAID
-                payment.actual_paid_amount = order.total_amount
-                payment.paid_at = timezone.now()
-                if request.user.is_authenticated:
-                    payment.verified_by = request.user
-                payment.save()
-                count += 1
+        with transaction.atomic():
+            for order in queryset:
+                if (
+                    hasattr(order, "payment")
+                    and order.payment.status != Payment.Status.PAID
+                    and order.status not in [Order.Status.CANCELLED]
+                ):
+                    payment = order.payment
+                    payment.status = Payment.Status.PAID
+                    payment.actual_paid_amount = order.total_amount
+                    payment.paid_at = timezone.now()
+                    if request.user.is_authenticated:
+                        payment.verified_by = request.user
+                    payment.save()
+                    count += 1
         self.message_user(request, f"Đã xác nhận thanh toán {count} đơn hàng.")
 
-    @action(description="❌ Hủy đơn hàng")
+    @action(description="Hủy đơn hàng")
     def action_cancel_orders(self, request, queryset):
         from apps.orders.services import OrderService
 

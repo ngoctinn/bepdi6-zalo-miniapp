@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "zmp-ui";
 import { useAdminCustomers } from "@/services/admin/admin.queries";
@@ -10,13 +10,15 @@ export default function AdminCustomerPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Simple debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
-    const timeout = setTimeout(() => {
-      setDebouncedSearch(val);
-    }, 300);
-    return () => clearTimeout(timeout);
   };
 
   const {

@@ -107,17 +107,6 @@ class CustomerSerializer(serializers.ModelSerializer):
                 if u.is_staff:
                     return User.Role.STAFF
 
-        # 3. Fallback theo số điện thoại nếu đã có
-        if obj.phone:
-            user_by_phone = User.objects.filter(phone=obj.phone).first()
-            if user_by_phone:
-                if user_by_phone.role in [User.Role.ADMIN, User.Role.STAFF]:
-                    return user_by_phone.role
-                if user_by_phone.is_superuser:
-                    return User.Role.ADMIN
-                if user_by_phone.is_staff:
-                    return User.Role.STAFF
-
         return User.Role.CUSTOMER
 
 

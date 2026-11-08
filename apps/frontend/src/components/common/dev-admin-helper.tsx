@@ -3,6 +3,7 @@ import { isDevelopmentRuntime } from "@/utils/zma";
 import { fetchZaloUserInfo, isZaloRuntime } from "@/utils/zalo-permissions";
 import { useAuth } from "@/hooks/use-auth";
 import { useAppToast } from "@/hooks/use-app-toast";
+import { copyToClipboard } from "@/utils/clipboard";
 import { Icon } from "zmp-ui";
 
 /**
@@ -65,23 +66,12 @@ export function DevAdminHelper() {
       return;
     }
 
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(textToCopy);
-      } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = textToCopy;
-        textArea.style.position = "fixed";
-        textArea.style.opacity = "0";
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textArea);
-      }
+    const success = await copyToClipboard(textToCopy);
+    if (success) {
       setCopied(true);
       showSuccess("Đã sao chép Zalo User ID!");
       setTimeout(() => setCopied(false), 2000);
-    } catch {
+    } else {
       showError("Không thể tự động copy, vui lòng chọn và copy thủ công");
     }
   };
