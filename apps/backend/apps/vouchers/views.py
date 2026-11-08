@@ -3,7 +3,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.customers.permissions import IsStaffOrAdminUser
+from apps.customers.permissions import IsAdminOnlyUser
 from apps.customers.views import get_current_customer
 from apps.vouchers.models import Voucher
 from apps.vouchers.serializers import (
@@ -61,7 +61,7 @@ class AdminVoucherListCreateView(APIView):
     POST /api/v1/admin/vouchers - Create voucher (Admin)
     """
 
-    permission_classes = [IsStaffOrAdminUser]
+    permission_classes = [IsAdminOnlyUser]
 
     def get(self, request):
         vouchers = Voucher.objects.all().order_by("-created_at")
@@ -82,7 +82,7 @@ class AdminVoucherDetailView(APIView):
     DELETE /api/v1/admin/vouchers/{id} - Delete voucher
     """
 
-    permission_classes = [IsStaffOrAdminUser]
+    permission_classes = [IsAdminOnlyUser]
 
     def get(self, request, pk: int):
         try:

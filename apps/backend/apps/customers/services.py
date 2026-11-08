@@ -216,22 +216,19 @@ class AuthService:
                         user.zalo_user_id = customer.zalo_user_id
                         user.save(update_fields=["zalo_user_id", "updated_at"])
 
-            target_role = (
-                User.Role.ADMIN
-                if (
-                    is_admin_by_id
-                    or (
-                        user
-                        and (
-                            user.role == User.Role.ADMIN
-                            or user.is_staff
-                            or user.is_superuser
-                        )
-                    )
-                )
-                else User.Role.CUSTOMER
-            )
-            is_admin_flag = target_role == User.Role.ADMIN
+            if is_admin_by_id:
+                target_role = User.Role.ADMIN
+            elif user and user.role in [User.Role.ADMIN, User.Role.STAFF]:
+                target_role = user.role
+            elif user and user.is_superuser:
+                target_role = User.Role.ADMIN
+            elif user and user.is_staff:
+                target_role = User.Role.STAFF
+            else:
+                target_role = User.Role.CUSTOMER
+
+            is_staff_flag = target_role in [User.Role.ADMIN, User.Role.STAFF]
+            is_superuser_flag = target_role == User.Role.ADMIN
 
             if not user:
                 user, _ = User.objects.get_or_create(
@@ -239,8 +236,8 @@ class AuthService:
                     defaults={
                         "zalo_user_id": customer.zalo_user_id,
                         "role": target_role,
-                        "is_staff": is_admin_flag,
-                        "is_superuser": is_admin_flag,
+                        "is_staff": is_staff_flag,
+                        "is_superuser": is_superuser_flag,
                     },
                 )
             elif is_admin_by_id and user.role != User.Role.ADMIN:

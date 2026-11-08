@@ -67,7 +67,7 @@ export default function OrderDetailPage() {
         quantity: item.quantity,
         note: item.note,
         options: (item.options || []).map((opt) => ({
-          option_id: (opt.option_id ?? opt.option) as number,
+          option_id: Number(opt.option_id ?? opt.option),
           option_name: opt.option_name,
           price: opt.price,
           quantity: opt.quantity,

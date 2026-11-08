@@ -37,21 +37,20 @@ class CustomerSerializer(serializers.ModelSerializer):
             obj, "_cached_role", None
         )
         if annotated_role:
-            return (
-                "ADMIN"
-                if annotated_role
-                in [User.Role.ADMIN, User.Role.STAFF, "ADMIN", "STAFF"]
-                else User.Role.CUSTOMER
-            )
+            if annotated_role in [User.Role.ADMIN, "ADMIN"]:
+                return User.Role.ADMIN
+            if annotated_role in [User.Role.STAFF, "STAFF"]:
+                return User.Role.STAFF
+            return User.Role.CUSTOMER
 
         user_obj = getattr(obj, "_user", None) or getattr(obj, "user", None)
         if user_obj is not None:
             if getattr(user_obj, "role", None) in [User.Role.ADMIN, User.Role.STAFF]:
-                return "ADMIN"
-            if getattr(user_obj, "is_staff", False) or getattr(
-                user_obj, "is_superuser", False
-            ):
-                return "ADMIN"
+                return user_obj.role
+            if getattr(user_obj, "is_superuser", False):
+                return User.Role.ADMIN
+            if getattr(user_obj, "is_staff", False):
+                return User.Role.STAFF
 
         # 1. Check Whitelist ADMIN_ZALO_IDS (O(1) set lookup)
         admin_zalo_ids = getattr(settings, "ADMIN_ZALO_IDS", ())
@@ -61,7 +60,7 @@ class CustomerSerializer(serializers.ModelSerializer):
             admin_zalo_ids = {str(x) for x in admin_zalo_ids if x}
 
         if obj.zalo_user_id and str(obj.zalo_user_id) in admin_zalo_ids:
-            return "ADMIN"
+            return User.Role.ADMIN
 
         # Check serializer context cache if available
         if isinstance(self.context, dict):
@@ -73,12 +72,12 @@ class CustomerSerializer(serializers.ModelSerializer):
             ):
                 u = context_users_by_zalo[obj.zalo_user_id]
                 if u:
-                    if (
-                        u.role in [User.Role.ADMIN, User.Role.STAFF]
-                        or u.is_staff
-                        or u.is_superuser
-                    ):
-                        return "ADMIN"
+                    if u.role in [User.Role.ADMIN, User.Role.STAFF]:
+                        return u.role
+                    if u.is_superuser:
+                        return User.Role.ADMIN
+                    if u.is_staff:
+                        return User.Role.STAFF
                     return User.Role.CUSTOMER
 
             context_users_by_phone = self.context.get("users_by_phone")
@@ -89,35 +88,35 @@ class CustomerSerializer(serializers.ModelSerializer):
             ):
                 u = context_users_by_phone[obj.phone]
                 if u:
-                    if (
-                        u.role in [User.Role.ADMIN, User.Role.STAFF]
-                        or u.is_staff
-                        or u.is_superuser
-                    ):
-                        return "ADMIN"
+                    if u.role in [User.Role.ADMIN, User.Role.STAFF]:
+                        return u.role
+                    if u.is_superuser:
+                        return User.Role.ADMIN
+                    if u.is_staff:
+                        return User.Role.STAFF
                     return User.Role.CUSTOMER
 
         # 2. Tìm User theo zalo_user_id (ưu tiên Admin / staff / superuser)
         if obj.zalo_user_id:
             users = User.objects.filter(zalo_user_id=obj.zalo_user_id)
             for u in users:
-                if (
-                    u.role in [User.Role.ADMIN, User.Role.STAFF]
-                    or u.is_staff
-                    or u.is_superuser
-                ):
-                    return "ADMIN"
+                if u.role in [User.Role.ADMIN, User.Role.STAFF]:
+                    return u.role
+                if u.is_superuser:
+                    return User.Role.ADMIN
+                if u.is_staff:
+                    return User.Role.STAFF
 
         # 3. Fallback theo số điện thoại nếu đã có
         if obj.phone:
             user_by_phone = User.objects.filter(phone=obj.phone).first()
             if user_by_phone:
-                if (
-                    user_by_phone.role in [User.Role.ADMIN, User.Role.STAFF]
-                    or user_by_phone.is_staff
-                    or user_by_phone.is_superuser
-                ):
-                    return "ADMIN"
+                if user_by_phone.role in [User.Role.ADMIN, User.Role.STAFF]:
+                    return user_by_phone.role
+                if user_by_phone.is_superuser:
+                    return User.Role.ADMIN
+                if user_by_phone.is_staff:
+                    return User.Role.STAFF
 
         return User.Role.CUSTOMER
 
