@@ -141,33 +141,16 @@ export function StaffOrderCard({
       onClick={() => onOpenDetail?.(order)}
       className="relative cursor-pointer overflow-hidden rounded-2xl border border-stone-100/90 bg-white p-3.5 shadow-sm transition-transform active:scale-[0.995]"
     >
-      {/* 1. Header: Mã đơn + Badge Loại đơn nổi bật (Trái) & Thời gian + Trạng thái (Phải) */}
+      {/* 1. Header: Hàng 1 (Mã đơn + Aging timer <-> Trạng thái đơn) */}
       <div className="flex items-center justify-between gap-2 pb-2">
         <div className="flex items-center gap-2">
           <span className="font-mono text-sm font-bold text-neutral900">
             #{order.order_code}
           </span>
-          {isDelivery ? (
-            <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xxsmall font-bold text-blue-700">
-              <Icon
-                icon="zi-location-solid"
-                className="flex shrink-0 items-center justify-center text-xs leading-none text-blue-600"
-              />
-              <span className="leading-none">GIAO TẬN NƠI</span>
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-xxsmall font-bold text-amber-800">
-              <Icon
-                icon="zi-home"
-                className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-700"
-              />
-              <span className="leading-none">TẠI QUÁN</span>
-            </span>
-          )}
+          {renderAgingBadge()}
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {renderAgingBadge()}
+        <div className="shrink-0">
           <Badge
             variant={getOrderStatusVariant(order.status)}
             size="small"
@@ -178,9 +161,9 @@ export function StaffOrderCard({
         </div>
       </div>
 
-      {/* 2. Thông tin khách & Ghi chú đơn */}
+      {/* 2. Thông tin khách & Loại đơn */}
       <div className="pb-2.5">
-        <div className="flex items-center justify-between text-xs text-stone-600">
+        <div className="flex items-center justify-between gap-2 text-xs text-stone-600">
           <span className="truncate">
             {copy.staff.customerHeader}{" "}
             <strong className="font-semibold text-neutral900">
@@ -188,6 +171,35 @@ export function StaffOrderCard({
             </strong>
             {order.phone ? ` • ${order.phone}` : ""}
           </span>
+          <div className="shrink-0">
+            {isDelivery ? (
+              <Badge
+                variant="primary"
+                size="small"
+                shape="pill"
+                className="gap-1"
+              >
+                <Icon
+                  icon="zi-location-solid"
+                  className="flex shrink-0 items-center justify-center text-xs leading-none"
+                />
+                <span className="leading-none">Giao tận nơi</span>
+              </Badge>
+            ) : (
+              <Badge
+                variant="warning"
+                size="small"
+                shape="pill"
+                className="gap-1"
+              >
+                <Icon
+                  icon="zi-home"
+                  className="flex shrink-0 items-center justify-center text-xs leading-none"
+                />
+                <span className="leading-none">Tại quán</span>
+              </Badge>
+            )}
+          </div>
         </div>
 
         {isDelivery && order.delivery_address && (

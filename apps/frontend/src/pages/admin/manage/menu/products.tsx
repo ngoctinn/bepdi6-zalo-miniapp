@@ -379,10 +379,13 @@ export default function AdminProductManagementPage() {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="flex h-10 items-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
+            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold leading-none text-white shadow-sm transition-transform active:scale-95"
           >
-            <Icon icon="zi-plus" className="shrink-0 text-base" />
-            <span>Thêm món</span>
+            <Icon
+              icon="zi-plus"
+              className="inline-flex shrink-0 items-center justify-center text-base leading-none"
+            />
+            <span className="leading-none">Thêm món</span>
           </button>
         </div>
 
@@ -853,10 +856,13 @@ export default function AdminProductManagementPage() {
               <button
                 type="button"
                 onClick={handleAddOptionGroup}
-                className="flex h-9 items-center gap-1 rounded-xl bg-primary/10 px-3 text-xs font-bold text-primary active:scale-95"
+                className="inline-flex h-9 items-center justify-center gap-1 rounded-xl bg-primary/10 px-3 text-xs font-bold leading-none text-primary active:scale-95"
               >
-                <Icon icon="zi-plus" className="shrink-0 text-xs" />
-                <span>Thêm nhóm</span>
+                <Icon
+                  icon="zi-plus"
+                  className="inline-flex shrink-0 items-center justify-center text-xs leading-none"
+                />
+                <span className="leading-none">Thêm nhóm</span>
               </button>
             </div>
 
@@ -956,10 +962,13 @@ export default function AdminProductManagementPage() {
                         <button
                           type="button"
                           onClick={() => handleAddOption(gIdx)}
-                          className="flex items-center gap-1 text-xs font-bold text-primary active:opacity-75"
+                          className="inline-flex items-center justify-center gap-1 text-xs font-bold leading-none text-primary active:opacity-75"
                         >
-                          <Icon icon="zi-plus" className="shrink-0 text-xs" />
-                          <span>Thêm lựa chọn</span>
+                          <Icon
+                            icon="zi-plus"
+                            className="inline-flex shrink-0 items-center justify-center text-xs leading-none"
+                          />
+                          <span className="leading-none">Thêm lựa chọn</span>
                         </button>
                       </div>
 

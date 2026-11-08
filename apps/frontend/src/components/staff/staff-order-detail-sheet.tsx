@@ -85,21 +85,31 @@ export function StaffOrderDetailSheet({
               #{order.order_code}
             </span>
             {isDelivery ? (
-              <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xxsmall font-bold text-blue-700">
+              <Badge
+                variant="primary"
+                size="small"
+                shape="pill"
+                className="gap-1"
+              >
                 <Icon
                   icon="zi-location-solid"
-                  className="shrink-0 text-xs leading-none text-blue-600"
+                  className="shrink-0 text-xs leading-none"
                 />
-                <span className="leading-none">GIAO TẬN NƠI</span>
-              </span>
+                <span className="leading-none">Giao tận nơi</span>
+              </Badge>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-xxsmall font-bold text-amber-800">
+              <Badge
+                variant="warning"
+                size="small"
+                shape="pill"
+                className="gap-1"
+              >
                 <Icon
                   icon="zi-home"
-                  className="shrink-0 text-xs leading-none text-amber-700"
+                  className="shrink-0 text-xs leading-none"
                 />
-                <span className="leading-none">TẠI QUÁN</span>
-              </span>
+                <span className="leading-none">Tại quán</span>
+              </Badge>
             )}
             <Badge
               variant={getOrderStatusVariant(order.status)}

@@ -103,8 +103,8 @@ export default function AdminCustomerPage() {
                           {c.name || "Khách hàng Zalo"}
                         </h2>
                         {Number(c.total_orders) >= 5 && (
-                          <span className="shrink-0 rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">
-                            VIP
+                          <span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                            Khách VIP
                           </span>
                         )}
                       </div>

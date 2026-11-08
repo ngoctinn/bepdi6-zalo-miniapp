@@ -190,7 +190,7 @@ export default function AdminFooter({ className }: AdminFooterProps) {
       role="navigation"
       aria-label="Thanh điều hướng quản trị"
       className={cn(
-        "safe-bottom bg-white/98 relative z-40 flex w-full items-center border-t-2 border-primary shadow-md backdrop-blur-md",
+        "safe-bottom shadow-xs relative z-40 flex w-full items-center border-t border-stone-200/80 bg-white/95 backdrop-blur-md",
         className,
       )}
     >

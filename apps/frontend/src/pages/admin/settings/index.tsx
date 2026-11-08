@@ -1,10 +1,16 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAdminShopConfig } from "@/services/admin/admin.queries";
 import { useUpdateShopConfig } from "@/services/admin/admin.mutations";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Icon, Spinner, Switch } from "zmp-ui";
 import { ShippingTier } from "@/types/shop.types";
+import { LocationPickerMap } from "@/components/location/location-picker-map";
+import {
+  useSearchPlaces,
+  useReverseGeocode,
+} from "@/services/address/address.queries";
+import { PlaceSuggestion } from "@/types/customer.types";
 
 const NAPAS_BANKS = [
   { code: "MB", name: "MB Bank (Quân Đội)" },
@@ -86,6 +92,66 @@ export default function AdminSettingsPage() {
       });
     }
   }, [config]);
+
+  const reverseGeocodeMutation = useReverseGeocode();
+  const reverseGeocodeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const [mapSearchQuery, setMapSearchQuery] = useState("");
+  const [debouncedMapSearch, setDebouncedMapSearch] = useState("");
+  const [showMapSuggestions, setShowMapSuggestions] = useState(false);
+  const [showAdvancedCoords, setShowAdvancedCoords] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedMapSearch(mapSearchQuery.trim());
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [mapSearchQuery]);
+
+  const { data: mapSuggestions = [], isFetching: isSearchingPlaces } =
+    useSearchPlaces(debouncedMapSearch);
+
+  const handleSelectMapPlace = (place: PlaceSuggestion) => {
+    setFormData((prev) => ({
+      ...prev,
+      address_text: place.address || place.title,
+      latitude: place.latitude,
+      longitude: place.longitude,
+    }));
+    setMapSearchQuery("");
+    setShowMapSuggestions(false);
+    showSuccess("Đã cập nhật vị trí quán từ tìm kiếm");
+  };
+
+  const handleMapLocationChange = (lat: number, lng: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      latitude: lat,
+      longitude: lng,
+    }));
+
+    if (reverseGeocodeTimeoutRef.current) {
+      clearTimeout(reverseGeocodeTimeoutRef.current);
+    }
+
+    reverseGeocodeTimeoutRef.current = setTimeout(async () => {
+      try {
+        const result = await reverseGeocodeMutation.mutateAsync({
+          latitude: lat,
+          longitude: lng,
+        });
+        if (result?.formatted_address) {
+          setFormData((prev) => ({
+            ...prev,
+            address_text: result.formatted_address,
+          }));
+        }
+      } catch {
+        // ignore reverse geocode error
+      }
+    }, 600);
+  };
 
   const isDirty = useMemo(() => {
     if (!config) return false;
@@ -284,12 +350,18 @@ export default function AdminSettingsPage() {
               />
             </div>
             <div>
-              <label
-                htmlFor="settings-address"
-                className="text-xs font-semibold text-stone-700"
-              >
-                Địa chỉ quán *
-              </label>
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="settings-address"
+                  className="text-xs font-semibold text-stone-700"
+                >
+                  Địa chỉ quán *
+                </label>
+                <span className="text-[11px] font-medium text-primary">
+                  {formData.latitude.toFixed(4)},{" "}
+                  {formData.longitude.toFixed(4)}
+                </span>
+              </div>
               <textarea
                 id="settings-address"
                 rows={2}
@@ -300,6 +372,96 @@ export default function AdminSettingsPage() {
                 className="mt-1 min-h-[56px] w-full rounded-xl border border-stone-200 bg-stone-50/50 p-3 text-base text-stone-900 focus:border-primary focus:outline-none md:text-sm"
                 required
               />
+
+              {/* Tìm kiếm & Ghim vị trí bản đồ trực quan */}
+              <div className="mt-2.5 space-y-2 rounded-xl border border-stone-200/80 bg-stone-50/60 p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-stone-700">
+                    Vị trí thực tế trên bản đồ
+                  </span>
+                  <span className="text-[10px] text-stone-500">
+                    Kéo bản đồ để chỉnh tâm ghim
+                  </span>
+                </div>
+
+                {/* Autocomplete Search Bar */}
+                <div className="relative">
+                  <div className="relative">
+                    <Icon
+                      icon="zi-search"
+                      className="absolute left-3 top-1/2 shrink-0 -translate-y-1/2 text-xs leading-none text-stone-400"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Tìm địa điểm, tên đường quán..."
+                      value={mapSearchQuery}
+                      onChange={(e) => {
+                        setMapSearchQuery(e.target.value);
+                        setShowMapSuggestions(true);
+                      }}
+                      onFocus={() => setShowMapSuggestions(true)}
+                      className="h-9 w-full rounded-lg border border-stone-200 bg-white pl-8 pr-8 text-xs text-stone-800 placeholder-stone-400 focus:border-primary focus:outline-none"
+                    />
+                    {mapSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMapSearchQuery("");
+                          setShowMapSuggestions(false);
+                        }}
+                        className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center text-stone-400 hover:text-stone-600"
+                      >
+                        <Icon
+                          icon="zi-close"
+                          className="text-xs leading-none"
+                        />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Dropdown Suggestions */}
+                  {showMapSuggestions && mapSearchQuery.trim().length > 1 && (
+                    <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-48 overflow-y-auto rounded-xl border border-stone-200 bg-white shadow-lg">
+                      {isSearchingPlaces ? (
+                        <div className="p-3 text-center text-xs text-stone-500">
+                          Đang tìm kiếm địa điểm...
+                        </div>
+                      ) : mapSuggestions.length === 0 ? (
+                        <div className="p-3 text-center text-xs text-stone-500">
+                          Không tìm thấy kết quả phù hợp
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-stone-100">
+                          {mapSuggestions.map((place, pIdx) => (
+                            <div
+                              key={pIdx}
+                              onClick={() => handleSelectMapPlace(place)}
+                              className="cursor-pointer p-2.5 text-xs transition-colors hover:bg-stone-50 active:bg-stone-100"
+                            >
+                              <div className="font-bold text-stone-900">
+                                {place.title}
+                              </div>
+                              <div className="line-clamp-1 text-[11px] text-stone-500">
+                                {place.address}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Interactive Leaflet Map */}
+                <div className="overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
+                  <LocationPickerMap
+                    latitude={formData.latitude}
+                    longitude={formData.longitude}
+                    onChangeLocation={handleMapLocationChange}
+                    height="180px"
+                  />
+                </div>
+              </div>
             </div>
             <div>
               <label
@@ -396,50 +558,67 @@ export default function AdminSettingsPage() {
 
             {/* Geolocation & Haversine Multiplier */}
             <div className="space-y-2.5">
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label
-                    htmlFor="settings-lat"
-                    className="text-xs font-semibold text-stone-700"
-                  >
-                    Vĩ độ (Lat)
-                  </label>
-                  <input
-                    id="settings-lat"
-                    type="number"
-                    step="0.0001"
-                    value={formData.latitude}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        latitude: Number(e.target.value),
-                      })
-                    }
-                    className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="settings-lng"
-                    className="text-xs font-semibold text-stone-700"
-                  >
-                    Kinh độ (Lng)
-                  </label>
-                  <input
-                    id="settings-lng"
-                    type="number"
-                    step="0.0001"
-                    value={formData.longitude}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        longitude: Number(e.target.value),
-                      })
-                    }
-                    className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
-                  />
-                </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-stone-700">
+                  Tọa độ vị trí quán
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedCoords(!showAdvancedCoords)}
+                  className="text-[11px] font-semibold text-primary underline active:opacity-75"
+                >
+                  {showAdvancedCoords
+                    ? "Thu gọn tọa độ"
+                    : "Chỉnh sửa thủ công tọa độ"}
+                </button>
               </div>
+
+              {showAdvancedCoords && (
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label
+                      htmlFor="settings-lat"
+                      className="text-xs font-semibold text-stone-700"
+                    >
+                      Vĩ độ (Lat)
+                    </label>
+                    <input
+                      id="settings-lat"
+                      type="number"
+                      step="0.0001"
+                      value={formData.latitude}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          latitude: Number(e.target.value),
+                        })
+                      }
+                      className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="settings-lng"
+                      className="text-xs font-semibold text-stone-700"
+                    >
+                      Kinh độ (Lng)
+                    </label>
+                    <input
+                      id="settings-lng"
+                      type="number"
+                      step="0.0001"
+                      value={formData.longitude}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          longitude: Number(e.target.value),
+                        })
+                      }
+                      className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
+                    />
+                  </div>
+                </div>
+              )}
               <div>
                 <label
                   htmlFor="settings-haversine"
@@ -550,10 +729,13 @@ export default function AdminSettingsPage() {
                 <button
                   type="button"
                   onClick={handleAddShippingTier}
-                  className="flex h-8 items-center gap-1 rounded-lg bg-primary/10 px-2.5 text-xs font-bold text-primary active:scale-95"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-lg bg-primary/10 px-2.5 text-xs font-bold leading-none text-primary active:scale-95"
                 >
-                  <Icon icon="zi-plus" className="shrink-0 text-xs" />
-                  <span>Thêm bậc</span>
+                  <Icon
+                    icon="zi-plus"
+                    className="inline-flex shrink-0 items-center justify-center text-xs leading-none"
+                  />
+                  <span className="leading-none">Thêm bậc</span>
                 </button>
               </div>
 

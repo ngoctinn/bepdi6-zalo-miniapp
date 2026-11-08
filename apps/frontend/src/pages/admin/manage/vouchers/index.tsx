@@ -184,10 +184,13 @@ export default function AdminVoucherManagementPage() {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="flex h-10 items-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
+            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold leading-none text-white shadow-sm transition-transform active:scale-95"
           >
-            <Icon icon="zi-plus" className="shrink-0 text-base" />
-            <span>Tạo mã</span>
+            <Icon
+              icon="zi-plus"
+              className="inline-flex shrink-0 items-center justify-center text-base leading-none"
+            />
+            <span className="leading-none">Tạo mã</span>
           </button>
         </div>
 
