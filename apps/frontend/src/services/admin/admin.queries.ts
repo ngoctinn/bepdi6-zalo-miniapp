@@ -72,3 +72,11 @@ export const useAdminDashboardStats = () => {
     refetchInterval: 30 * 1000,
   });
 };
+
+export const useAdminCustomers = (params?: { search?: string }) => {
+  return useQuery({
+    queryKey: queryKeys.adminCustomers.list(params),
+    queryFn: () => adminService.getCustomers(params),
+    staleTime: 30 * 1000,
+  });
+};

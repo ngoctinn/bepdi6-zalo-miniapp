@@ -299,3 +299,47 @@ def test_create_order_scheduled_delivery(test_setup):
     )
     assert order.id is not None
     assert order.scheduled_delivery_at is not None
+
+
+@pytest.mark.django_db
+def test_order_with_multiple_quantity_same_option(test_setup):
+    """
+    Test TDD: Khách hàng chọn 2 phần topping cùng loại (quantity=2).
+    Hệ thống phải chấp nhận, tính đúng tiền và lưu DB OrderItemOption.quantity=2.
+    """
+    customer = test_setup["customer"]
+    product = test_setup["product"]
+    address = test_setup["address"]
+    option = test_setup["option"]
+
+    # option giá 12.000đ, số lượng 2 -> 24.000đ
+    # product giá 50.000đ -> tổng đơn trước ship: 74.000đ
+    items_data = [
+        {
+            "product_id": product.id,
+            "quantity": 1,
+            "options": [{"option_id": option.id, "quantity": 2}],
+        }
+    ]
+
+    calc = OrderService.validate_and_calculate_cart(
+        customer=customer,
+        items_data=items_data,
+        address=address,
+    )
+    assert calc["subtotal"] == Decimal("74000.00")
+
+    order = OrderService.create_order(
+        customer=customer,
+        idempotency_key="idemp_multi_qty_opt",
+        items_data=items_data,
+        address=address,
+    )
+    assert order.subtotal == Decimal("74000.00")
+
+    item = order.items.first()
+    assert item is not None
+    opt_record = item.options.first()
+    assert opt_record is not None
+    assert opt_record.quantity == 2
+    assert opt_record.price == Decimal("12000.00")

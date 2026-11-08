@@ -196,3 +196,26 @@ class ZaloPhoneUpdateRequestSerializer(serializers.Serializer):
         default="",
         help_text="Zalo User Access Token để xác thực với Zalo Open API",
     )
+
+
+class AdminCustomerSerializer(serializers.ModelSerializer):
+    total_orders = serializers.IntegerField(read_only=True)
+    total_spent = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+    last_order_at = serializers.DateTimeField(read_only=True, allow_null=True)
+
+    class Meta:
+        model = Customer
+        fields = [
+            "id",
+            "zalo_user_id",
+            "name",
+            "phone",
+            "avatar_url",
+            "total_orders",
+            "total_spent",
+            "last_order_at",
+            "created_at",
+            "updated_at",
+        ]

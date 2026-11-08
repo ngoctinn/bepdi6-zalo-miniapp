@@ -1,6 +1,7 @@
 import { api } from "@/lib/api-client";
 import {
   AdminCategory,
+  AdminCustomer,
   AdminDashboardStats,
   AdminProduct,
   AdminShopConfig,
@@ -21,6 +22,20 @@ export const adminService = {
   // --- Dashboard Stats API ---
   getDashboardStats: async (): Promise<AdminDashboardStats> => {
     return api.get<AdminDashboardStats>("/admin/dashboard/stats");
+  },
+
+  // --- Customer APIs ---
+  getCustomers: async (params?: {
+    search?: string;
+  }): Promise<AdminCustomer[]> => {
+    const searchParams = new URLSearchParams();
+    if (params?.search) {
+      searchParams.append("search", params.search);
+    }
+    const query = searchParams.toString();
+    return api.get<AdminCustomer[]>(
+      `/admin/customers${query ? `?${query}` : ""}`,
+    );
   },
 
   // --- Category APIs ---
@@ -147,6 +162,7 @@ export const adminService = {
 
   // --- Re-export Order Operations ---
   getOrders: orderService.getAdminOrders,
+  confirmOrder: orderService.confirmAdminOrder,
   updateOrderStatus: orderService.updateAdminOrderStatus,
   cancelOrder: orderService.cancelAdminOrder,
   dispatchOrder: orderService.dispatchAdminOrder,

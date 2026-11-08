@@ -13,6 +13,106 @@ from apps.vouchers.serializers import (
 from apps.vouchers.services import VoucherService, VoucherValidationError
 
 
+class VoucherBrowseView(APIView):
+    """
+    POST /api/v1/vouchers/browse
+    Lists all active vouchers and dynamically calculates eligibility and discount amount
+    for the given cart subtotal in-memory without database locking.
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        from decimal import Decimal
+
+        from django.utils import timezone
+
+        subtotal_raw = request.data.get("subtotal", 0)
+        try:
+            subtotal = Decimal(str(subtotal_raw))
+        except Exception:
+            subtotal = Decimal("0.00")
+
+        customer = get_current_customer(request)
+        now = timezone.now()
+
+        active_vouchers = Voucher.objects.filter(
+            status=Voucher.Status.ACTIVE,
+            start_at__lte=now,
+            end_at__gte=now,
+        ).order_by("-discount_value")
+
+        results = []
+        for voucher in active_vouchers:
+            # Check eligibility
+            is_eligible = True
+            ineligible_reason = ""
+
+            if subtotal < voucher.minimum_order_value:
+                is_eligible = False
+                needed = voucher.minimum_order_value - subtotal
+                ineligible_reason = f"Mua thêm {needed:,.0f}đ để áp dụng"
+
+            # Check usage limit if applicable
+            if is_eligible and voucher.usage_limit > 0:
+                from apps.vouchers.models import VoucherUsage
+
+                total_applied = voucher.usages.filter(
+                    status=VoucherUsage.Status.APPLIED
+                ).count()
+                if total_applied >= voucher.usage_limit:
+                    is_eligible = False
+                    ineligible_reason = "Voucher đã hết lượt sử dụng"
+
+            if is_eligible and customer and voucher.usage_per_customer > 0:
+                from apps.vouchers.models import VoucherUsage
+
+                cust_applied = voucher.usages.filter(
+                    customer=customer,
+                    status=VoucherUsage.Status.APPLIED,
+                ).count()
+                if cust_applied >= voucher.usage_per_customer:
+                    is_eligible = False
+                    ineligible_reason = "Bạn đã hết lượt dùng voucher này"
+
+            # Compute estimated discount
+            discount_amount = Decimal("0.00")
+            if is_eligible:
+                if voucher.discount_type == Voucher.DiscountType.FIXED:
+                    discount_amount = voucher.discount_value
+                elif voucher.discount_type == Voucher.DiscountType.PERCENTAGE:
+                    discount_amount = subtotal * (
+                        voucher.discount_value / Decimal("100")
+                    )
+                    if (
+                        voucher.maximum_discount
+                        and discount_amount > voucher.maximum_discount
+                    ):
+                        discount_amount = voucher.maximum_discount
+                discount_amount = min(discount_amount, subtotal)
+
+            results.append(
+                {
+                    "id": voucher.id,
+                    "code": voucher.code,
+                    "name": voucher.name,
+                    "discount_type": voucher.discount_type,
+                    "discount_value": float(voucher.discount_value),
+                    "maximum_discount": float(voucher.maximum_discount)
+                    if voucher.maximum_discount
+                    else None,
+                    "minimum_order_value": float(voucher.minimum_order_value),
+                    "start_at": voucher.start_at.isoformat(),
+                    "end_at": voucher.end_at.isoformat(),
+                    "eligible": is_eligible,
+                    "ineligible_reason": ineligible_reason,
+                    "discount_amount": float(discount_amount),
+                }
+            )
+
+        return Response({"success": True, "data": results})
+
+
 class VoucherValidateView(APIView):
     """
     POST /api/v1/vouchers/validate

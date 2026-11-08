@@ -3,10 +3,12 @@ from django.urls import path
 from apps.vouchers.views import (
     AdminVoucherDetailView,
     AdminVoucherListCreateView,
+    VoucherBrowseView,
     VoucherValidateView,
 )
 
 urlpatterns = [
+    path("vouchers/browse", VoucherBrowseView.as_view(), name="voucher-browse"),
     path("vouchers/validate", VoucherValidateView.as_view(), name="voucher-validate"),
     path(
         "admin/vouchers",

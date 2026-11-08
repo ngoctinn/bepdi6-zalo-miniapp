@@ -88,6 +88,12 @@ class Product(models.Model):
         verbose_name="Đường dẫn ảnh",
     )
     price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Giá bán")
+    is_featured = models.BooleanField(
+        default=False, db_index=True, verbose_name="Món nổi bật"
+    )
+    sort_order = models.IntegerField(
+        default=0, db_index=True, verbose_name="Thứ tự hiển thị"
+    )
     status = models.CharField(
         max_length=50,
         choices=Status.choices,

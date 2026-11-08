@@ -72,6 +72,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     discount_percent = serializers.SerializerMethodField()
 
     option_groups = OptionGroupSerializer(many=True, required=False)
+    promotion = ProductPromotionSerializer(required=False, allow_null=True)
 
     class Meta:
         model = Product
@@ -87,8 +88,11 @@ class ProductListSerializer(serializers.ModelSerializer):
             "effective_price",
             "has_promotion",
             "discount_percent",
+            "is_featured",
+            "sort_order",
             "status",
             "option_groups",
+            "promotion",
         ]
 
     def get_effective_price(self, obj: Product):
@@ -185,26 +189,59 @@ class ProductListSerializer(serializers.ModelSerializer):
         # Xóa các group không còn trong product
         product.option_groups.exclude(id__in=retained_group_ids).delete()
 
+    def _save_promotion(self, product: Product, promotion_data: dict | None):
+        if promotion_data is None:
+            return
+        promotional_price = promotion_data.get("promotional_price")
+        if promotional_price is not None:
+            # Lấy promotion gần nhất nếu có hoặc tạo mới
+            promo = product.promotions.order_by("-created_at").first()
+            if promo:
+                promo.promotional_price = promotional_price
+                promo.is_active = promotion_data.get("is_active", True)
+                if "valid_from" in promotion_data:
+                    promo.valid_from = promotion_data["valid_from"]
+                if "valid_to" in promotion_data:
+                    promo.valid_to = promotion_data["valid_to"]
+                if "note" in promotion_data:
+                    promo.note = promotion_data["note"]
+                promo.save()
+            else:
+                ProductPromotion.objects.create(
+                    product=product,
+                    promotional_price=promotional_price,
+                    is_active=promotion_data.get("is_active", True),
+                    valid_from=promotion_data.get("valid_from"),
+                    valid_to=promotion_data.get("valid_to"),
+                    note=promotion_data.get("note", ""),
+                )
+
     @transaction.atomic
     def create(self, validated_data):
         option_groups_data = validated_data.pop("option_groups", None)
+        promotion_data = validated_data.pop("promotion", None)
         image = validated_data.get("image")
         if image:
             validated_data["image"] = optimize_image_to_webp(image)
         product = super().create(validated_data)
         if option_groups_data is not None:
             self._save_option_groups(product, option_groups_data)
+        if promotion_data is not None:
+            self._save_promotion(product, promotion_data)
         return product
 
     @transaction.atomic
     def update(self, instance, validated_data):
         option_groups_data = validated_data.pop("option_groups", None)
+        promotion_data = validated_data.pop("promotion", None)
         image = validated_data.get("image")
         if image:
             validated_data["image"] = optimize_image_to_webp(image)
         product = super().update(instance, validated_data)
         if option_groups_data is not None:
             self._save_option_groups(product, option_groups_data)
+        if promotion_data is not None:
+            self._save_promotion(product, promotion_data)
         return product
 
 
@@ -231,6 +268,8 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             "effective_price",
             "has_promotion",
             "discount_percent",
+            "is_featured",
+            "sort_order",
             "status",
             "option_groups",
         ]

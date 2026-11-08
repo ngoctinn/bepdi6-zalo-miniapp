@@ -4,9 +4,11 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.customers.models import Address
+from apps.customers.models import Address, Customer
+from apps.customers.permissions import IsStaffOrAdminUser
 from apps.customers.serializers import (
     AddressSerializer,
+    AdminCustomerSerializer,
     CustomerSerializer,
     ZaloAuthRequestSerializer,
     ZaloLocationDecodeRequestSerializer,
@@ -334,3 +336,40 @@ class AddressDetailView(APIView):
                 first_remaining.save(update_fields=["is_default"])
 
         return Response({"success": True}, status=status.HTTP_200_OK)
+
+
+class AdminCustomerListView(APIView):
+    """
+    GET /api/v1/admin/customers
+    List customers with order statistics and search capability.
+    """
+
+    permission_classes = [IsStaffOrAdminUser]
+
+    def get(self, request):
+        from decimal import Decimal
+
+        from django.db.models import Count, Max, Q, Sum
+        from django.db.models.functions import Coalesce
+
+        search_query = request.query_params.get("search", "").strip()
+
+        # Aggregate total orders and total spent
+        customers = Customer.objects.annotate(
+            total_orders=Count("orders"),
+            total_spent=Coalesce(
+                Sum("orders__total_amount"),
+                Decimal("0.00"),
+            ),
+            last_order_at=Max("orders__created_at"),
+        ).order_by("-created_at")
+
+        if search_query:
+            customers = customers.filter(
+                Q(name__icontains=search_query)
+                | Q(phone__icontains=search_query)
+                | Q(zalo_user_id__icontains=search_query)
+            )
+
+        serializer = AdminCustomerSerializer(customers, many=True)
+        return Response({"success": True, "data": serializer.data})

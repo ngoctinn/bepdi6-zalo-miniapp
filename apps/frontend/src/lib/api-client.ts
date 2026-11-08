@@ -127,14 +127,38 @@ export async function apiClient<T>(
   const isFormData =
     typeof FormData !== "undefined" && customConfig.body instanceof FormData;
 
+  // Sanitize and forward Idempotency-Key if present
+  let resolvedIdempotencyKey: string | undefined = idempotencyKey;
+  if (!resolvedIdempotencyKey && headers) {
+    const rawHeader =
+      (headers as Record<string, string>)["Idempotency-Key"] ||
+      (headers as Record<string, string>)["idempotency-key"];
+    if (typeof rawHeader === "string") {
+      resolvedIdempotencyKey = rawHeader;
+    }
+  }
+
+  const sanitizedIdempotencyKey =
+    typeof resolvedIdempotencyKey === "string" &&
+    resolvedIdempotencyKey.trim().length >= 8
+      ? resolvedIdempotencyKey.trim()
+      : undefined;
+
   const requestHeaders: Record<string, string> = {
     ...(isFormData ? {} : { "Content-Type": "application/json" }),
     Accept: "application/json",
     "ngrok-skip-browser-warning": "69420",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
+    ...(sanitizedIdempotencyKey
+      ? { "Idempotency-Key": sanitizedIdempotencyKey }
+      : {}),
     ...(headers as Record<string, string>),
   };
+  // Ensure the single canonical header is present if key is valid
+  if (sanitizedIdempotencyKey) {
+    requestHeaders["Idempotency-Key"] = sanitizedIdempotencyKey;
+    delete requestHeaders["idempotency-key"];
+  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15_000); // 15s default timeout (NEW-10)

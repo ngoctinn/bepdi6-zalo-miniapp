@@ -69,4 +69,9 @@ export const queryKeys = {
   adminDashboard: {
     stats: () => ["admin", "dashboard", "stats"] as const,
   },
+  adminCustomers: {
+    all: ["admin", "customers"] as const,
+    list: (params?: Record<string, unknown>) =>
+      [...queryKeys.adminCustomers.all, "list", params] as const,
+  },
 } as const;

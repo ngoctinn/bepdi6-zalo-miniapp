@@ -179,6 +179,31 @@ class ShopConfig(models.Model):
     def __str__(self) -> str:
         return f"{self.shop_name} Configuration"
 
+    @property
+    def is_currently_operating(self) -> bool:
+        """
+        Calculates real-time store operating status considering:
+        - Manual emergency/toggle status (is_open)
+        - Operating hours range (open_time, close_time)
+        - Overnight shift support (e.g. 18:00 to 03:00 next day)
+        """
+        if not self.is_open:
+            return False
+
+        if not self.open_time or not self.close_time:
+            return True
+
+        from django.utils import timezone
+
+        now_time = timezone.localtime().time()
+
+        if self.open_time <= self.close_time:
+            # Same-day shift (e.g. 07:00 to 22:00)
+            return self.open_time <= now_time <= self.close_time
+        else:
+            # Overnight shift (e.g. 18:00 to 03:00)
+            return now_time >= self.open_time or now_time <= self.close_time
+
     def save(self, *args, **kwargs):
         # Enforce singleton pattern (id=1)
         self.pk = 1

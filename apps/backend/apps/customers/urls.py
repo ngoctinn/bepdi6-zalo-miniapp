@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from apps.customers.views import (
     AddressDetailView,
     AddressListCreateView,
+    AdminCustomerListView,
     CustomerMeView,
     CustomerPhoneUpdateView,
     CustomerReverseGeocodeView,
@@ -13,6 +14,9 @@ from apps.customers.views import (
 )
 
 urlpatterns = [
+    path(
+        "admin/customers", AdminCustomerListView.as_view(), name="admin-customer-list"
+    ),
     path("auth/zalo", ZaloAuthView.as_view(), name="auth-zalo"),
     path("auth/token/refresh", TokenRefreshView.as_view(), name="token-refresh"),
     path(

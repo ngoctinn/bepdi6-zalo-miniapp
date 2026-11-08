@@ -326,45 +326,65 @@ class OrderService:
                 for opt in group.options.all():
                     available_options_map[opt.id] = (opt, group.id)
 
+            # Parse structured options or option_ids
+            # Support both formats:
+            # 1. options: [{"option_id": 1, "quantity": 2}]
+            # 2. option_ids: [1, 2] (legacy)
+            normalized_options_input = []
+            raw_options = item.get("options") or []
+            if raw_options and isinstance(raw_options, list):
+                for opt_entry in raw_options:
+                    if isinstance(opt_entry, dict):
+                        o_id = opt_entry.get("option_id") or opt_entry.get("id")
+                        o_qty = max(1, int(opt_entry.get("quantity", 1)))
+                        if o_id is not None:
+                            normalized_options_input.append((int(o_id), o_qty))
+                    elif isinstance(opt_entry, (int, str)) and str(opt_entry).isdigit():
+                        normalized_options_input.append((int(opt_entry), 1))
+            elif option_ids and isinstance(option_ids, list):
+                for o_id in option_ids:
+                    if str(o_id).isdigit():
+                        normalized_options_input.append((int(o_id), 1))
+
             # Validate options and option group rules (BR-PROD-004)
             item_price = product.effective_price
             validated_options = []
-            if option_ids:
-                # Check for duplicate option IDs in the same item
-                if len(set(option_ids)) != len(option_ids):
-                    raise OrderProcessingError(
-                        "INVALID_OPTION",
-                        f"Không được chọn trùng lặp tùy chọn trong món '{product.name}'.",
-                    )
+            selected_group_counts = {g.id: 0 for g in option_group_list}
 
-                for opt_id in option_ids:
+            if normalized_options_input:
+                for opt_id, opt_qty in normalized_options_input:
                     opt_entry = available_options_map.get(opt_id)
                     if not opt_entry:
                         raise OrderProcessingError(
                             "INVALID_OPTION",
                             f"Một số tùy chọn của món '{product.name}' không hợp lệ.",
                         )
-                    opt, _ = opt_entry
+                    opt, g_id = opt_entry
                     if opt.status == Option.Status.INACTIVE:
                         raise OrderProcessingError(
                             "INVALID_OPTION",
                             f"Tùy chọn '{opt.name}' hiện không khả dụng.",
                         )
-                    item_price += opt.price
-                    validated_options.append(opt)
+                    item_price += opt.price * opt_qty
+                    selected_group_counts[g_id] = (
+                        selected_group_counts.get(g_id, 0) + opt_qty
+                    )
+                    validated_options.append(
+                        {
+                            "option": opt,
+                            "quantity": opt_qty,
+                            "price": opt.price,
+                            "name": opt.name,
+                        }
+                    )
 
             # Enforce OptionGroup min_select / max_select / is_required rules (BR-PROD-004)
             for group in option_group_list:
-                selected_in_group = [
-                    opt
-                    for opt in validated_options
-                    if available_options_map.get(opt.id, (None, None))[1] == group.id
-                ]
-                count = len(selected_in_group)
-                if group.is_required and count < group.min_select:
+                count = selected_group_counts.get(group.id, 0)
+                if group.is_required and count < max(1, group.min_select):
                     raise OrderProcessingError(
                         "INVALID_OPTION",
-                        f"Món '{product.name}' yêu cầu chọn tối thiểu {group.min_select} tùy chọn trong nhóm '{group.name}'.",
+                        f"Món '{product.name}' yêu cầu chọn tối thiểu {max(1, group.min_select)} tùy chọn trong nhóm '{group.name}'.",
                     )
                 if group.max_select > 0 and count > group.max_select:
                     raise OrderProcessingError(
@@ -588,14 +608,25 @@ class OrderService:
         for order_item, item in zip(
             created_order_items, calculation["validated_items"], strict=False
         ):
-            for opt in item["options"]:
+            for opt_data in item["options"]:
+                if isinstance(opt_data, dict):
+                    opt_obj = opt_data["option"]
+                    opt_name = opt_data.get("name", opt_obj.name)
+                    opt_price = opt_data.get("price", opt_obj.price)
+                    opt_qty = opt_data.get("quantity", 1)
+                else:
+                    opt_obj = opt_data
+                    opt_name = opt_data.name
+                    opt_price = opt_data.price
+                    opt_qty = 1
+
                 order_item_options_to_create.append(
                     OrderItemOption(
                         order_item=order_item,
-                        option=opt,
-                        option_name=opt.name,
-                        price=opt.price,
-                        quantity=1,
+                        option=opt_obj,
+                        option_name=opt_name,
+                        price=opt_price,
+                        quantity=opt_qty,
                     )
                 )
 
@@ -1000,14 +1031,25 @@ class OrderService:
             for order_item, v_item in zip(
                 created_order_items, validated_items, strict=False
             ):
-                for opt in v_item["options"]:
+                for opt_data in v_item["options"]:
+                    if isinstance(opt_data, dict):
+                        opt_obj = opt_data["option"]
+                        opt_name = opt_data.get("name", opt_obj.name)
+                        opt_price = opt_data.get("price", opt_obj.price)
+                        opt_qty = opt_data.get("quantity", 1)
+                    else:
+                        opt_obj = opt_data
+                        opt_name = opt_data.name
+                        opt_price = opt_data.price
+                        opt_qty = 1
+
                     order_item_options_to_create.append(
                         OrderItemOption(
                             order_item=order_item,
-                            option=opt,
-                            option_name=opt.name,
-                            price=opt.price,
-                            quantity=1,
+                            option=opt_obj,
+                            option_name=opt_name,
+                            price=opt_price,
+                            quantity=opt_qty,
                         )
                     )
 

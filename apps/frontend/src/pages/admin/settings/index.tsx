@@ -38,6 +38,9 @@ export default function AdminSettingsPage() {
     hotline: "",
     address_text: "",
     announcement_banner: "",
+    latitude: 10.7769,
+    longitude: 106.7009,
+    haversine_multiplier: 1.3,
     is_open: true,
     open_time: "",
     close_time: "",
@@ -58,6 +61,9 @@ export default function AdminSettingsPage() {
         hotline: config.hotline || "",
         address_text: config.address_text || "",
         announcement_banner: config.announcement_banner || "",
+        latitude: Number(config.latitude || 10.7769),
+        longitude: Number(config.longitude || 106.7009),
+        haversine_multiplier: Number(config.haversine_multiplier || 1.3),
         is_open: Boolean(config.is_open),
         open_time: config.open_time || "08:00",
         close_time: config.close_time || "22:00",
@@ -88,6 +94,10 @@ export default function AdminSettingsPage() {
       formData.hotline !== (config.hotline || "") ||
       formData.address_text !== (config.address_text || "") ||
       formData.announcement_banner !== (config.announcement_banner || "") ||
+      formData.latitude !== Number(config.latitude || 10.7769) ||
+      formData.longitude !== Number(config.longitude || 106.7009) ||
+      formData.haversine_multiplier !==
+        Number(config.haversine_multiplier || 1.3) ||
       formData.open_time !== (config.open_time || "08:00") ||
       formData.close_time !== (config.close_time || "22:00") ||
       formData.prep_time_minutes !== Number(config.prep_time_minutes || 20) ||
@@ -170,6 +180,9 @@ export default function AdminSettingsPage() {
         hotline: formData.hotline,
         address_text: formData.address_text,
         announcement_banner: formData.announcement_banner,
+        latitude: Number(formData.latitude),
+        longitude: Number(formData.longitude),
+        haversine_multiplier: Number(formData.haversine_multiplier),
         is_open: formData.is_open,
         open_time: formData.open_time,
         close_time: formData.close_time,
@@ -380,6 +393,77 @@ export default function AdminSettingsPage() {
             <h2 className="text-xs font-bold text-stone-600">
               Giao hàng & Bán kính
             </h2>
+
+            {/* Geolocation & Haversine Multiplier */}
+            <div className="grid grid-cols-3 gap-2.5">
+              <div>
+                <label
+                  htmlFor="settings-lat"
+                  className="text-xs font-semibold text-stone-700"
+                >
+                  Vĩ độ (Lat)
+                </label>
+                <input
+                  id="settings-lat"
+                  type="number"
+                  step="0.0001"
+                  value={formData.latitude}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      latitude: Number(e.target.value),
+                    })
+                  }
+                  className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="settings-lng"
+                  className="text-xs font-semibold text-stone-700"
+                >
+                  Kinh độ (Lng)
+                </label>
+                <input
+                  id="settings-lng"
+                  type="number"
+                  step="0.0001"
+                  value={formData.longitude}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      longitude: Number(e.target.value),
+                    })
+                  }
+                  className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="settings-haversine"
+                  className="text-xs font-semibold text-stone-700"
+                >
+                  Hệ số uốn lượn
+                </label>
+                <input
+                  id="settings-haversine"
+                  type="number"
+                  step="0.05"
+                  min="1"
+                  max="2"
+                  value={formData.haversine_multiplier}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      haversine_multiplier: Number(e.target.value),
+                    })
+                  }
+                  title="Hệ số bù trừ đường cong thực tế so với đường chim bay (mặc định 1.3)"
+                  className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50/50 px-2.5 font-mono text-xs text-stone-900 focus:border-primary focus:outline-none md:h-10"
+                />
+              </div>
+            </div>
+
             <div>
               <label
                 htmlFor="settings-radius"

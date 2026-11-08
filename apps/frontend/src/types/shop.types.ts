@@ -12,7 +12,9 @@ export interface ShopInfo {
   latitude: number;
   longitude: number;
   max_delivery_radius_km: number;
+  haversine_multiplier?: number;
   is_open: boolean;
+  is_currently_operating?: boolean;
   open_time?: string;
   close_time?: string;
   prep_time_minutes?: number;
@@ -46,4 +48,19 @@ export interface ValidateVoucherResponse {
   voucher?: Voucher;
   discount_amount: number;
   message?: string;
+}
+
+export interface BrowseVoucherItem {
+  id: number;
+  code: string;
+  name: string;
+  discount_type: "FIXED" | "PERCENTAGE";
+  discount_value: number;
+  maximum_discount?: number | null;
+  minimum_order_value: number;
+  start_at: string;
+  end_at: string;
+  eligible: boolean;
+  ineligible_reason?: string;
+  discount_amount: number;
 }

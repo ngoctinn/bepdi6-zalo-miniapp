@@ -208,9 +208,10 @@ export default function CheckoutPage() {
     previewData !== null &&
     (deliveryType === "PICKUP" || previewData?.can_checkout === true);
 
-  const handleApplyVoucher = () => {
-    if (!voucherCodeInput.trim()) return;
-    setAppliedVoucherCode(voucherCodeInput.trim().toUpperCase());
+  const handleApplyVoucher = (codeOverride?: string) => {
+    const code = codeOverride || voucherCodeInput;
+    if (!code.trim()) return;
+    setAppliedVoucherCode(code.trim().toUpperCase());
   };
 
   const handleRemoveVoucher = () => {
@@ -450,6 +451,7 @@ export default function CheckoutPage() {
       <VoucherInputSection
         voucherCodeInput={voucherCodeInput}
         appliedVoucherCode={appliedVoucherCode}
+        subtotal={displaySubtotal}
         discount={previewData?.discount}
         onInputChange={setVoucherCodeInput}
         onApply={handleApplyVoucher}

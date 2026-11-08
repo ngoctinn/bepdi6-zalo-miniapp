@@ -15,6 +15,26 @@ export const formatCurrency = (
 export const formatCount = (value: number, max = 99) =>
   value > max ? tokens.text.common.countOverflow : String(value);
 
+export const formatDateTime = (
+  dateString?: string | null,
+  locale: string = DEFAULT_LOCALE,
+): string => {
+  if (!dateString) return "";
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleString(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+};
+
 /**
  * Bóc tách tiền tố số nhà/ngõ hẻm từ chuỗi tìm kiếm địa chỉ tiếng Việt.
  * Ví dụ: "45 Đồng Nai" -> { houseNumber: "45", searchQuery: "Đồng Nai" }

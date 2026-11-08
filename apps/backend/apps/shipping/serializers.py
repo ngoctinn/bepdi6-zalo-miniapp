@@ -6,6 +6,8 @@ from apps.shipping.models import ShopConfig, normalize_shipping_tiers
 class PublicShopInfoSerializer(serializers.ModelSerializer):
     """Serializer for public customer-facing shop information."""
 
+    is_currently_operating = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = ShopConfig
         fields = [
@@ -14,6 +16,7 @@ class PublicShopInfoSerializer(serializers.ModelSerializer):
             "address_text",
             "announcement_banner",
             "is_open",
+            "is_currently_operating",
             "open_time",
             "close_time",
             "prep_time_minutes",

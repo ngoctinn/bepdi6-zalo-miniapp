@@ -41,6 +41,14 @@ export interface AdminOptionGroupInput {
   options?: AdminOptionInput[];
 }
 
+export interface AdminProductPromotionInput {
+  promotional_price: number;
+  is_active?: boolean;
+  valid_from?: string | null;
+  valid_to?: string | null;
+  note?: string;
+}
+
 export interface CreateProductRequest {
   category_id: number;
   category?: number;
@@ -48,8 +56,11 @@ export interface CreateProductRequest {
   description?: string;
   price: number;
   image_url?: string;
+  is_featured?: boolean;
+  sort_order?: number;
   status?: "AVAILABLE" | "OUT_OF_STOCK" | "INACTIVE";
   option_groups?: AdminOptionGroupInput[];
+  promotion?: AdminProductPromotionInput | null;
 }
 
 export type UpdateProductRequest = Partial<CreateProductRequest>;
@@ -119,5 +130,17 @@ export interface AdminDashboardStats {
   total_orders_count: number;
   total_products_count?: number;
   active_vouchers_count?: number;
-  total_categories_count?: number;
+}
+
+export interface AdminCustomer {
+  id: number;
+  zalo_user_id: string;
+  name: string;
+  phone: string;
+  avatar_url?: string;
+  total_orders: number;
+  total_spent: number;
+  last_order_at?: string | null;
+  created_at: string;
+  updated_at: string;
 }

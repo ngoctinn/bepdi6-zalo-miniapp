@@ -89,6 +89,26 @@ export const orderService = {
   },
 
   /**
+   * Nhân viên xác nhận đơn hàng qua điện thoại (hỗ trợ điều chỉnh món ăn đối với đơn COD)
+   * POST /api/v1/admin/orders/:id/confirm
+   */
+  confirmAdminOrder: async (
+    id: number | string,
+    payload?: {
+      items?: Array<{
+        product_id: number;
+        quantity: number;
+        options?: number[] | Array<{ option_id: number; quantity?: number }>;
+        note?: string;
+      }>;
+      note?: string;
+      scheduled_delivery_at?: string;
+    },
+  ): Promise<Order> => {
+    return api.post<Order>(`admin/orders/${id}/confirm`, payload || {});
+  },
+
+  /**
    * Cập nhật trạng thái đơn hàng (Xác nhận, Chuyển bếp, Xong món, Giao shipper, Hoàn tất)
    * POST /api/v1/admin/orders/:id/status
    */
@@ -134,15 +154,14 @@ export const orderService = {
   verifyAdminOrderPayment: async (
     id: number | string,
     note?: string,
-  ): Promise<Order> => {
-    const idempotencyKey = `verify-payment-${id}-${Date.now()}`;
-    return api.post<Order>(
+    idempotencyKey?: string,
+  ): Promise<PaymentResponse> => {
+    const key = idempotencyKey || `verify-payment-${id}-${Date.now()}`;
+    return api.post<PaymentResponse>(
       `admin/orders/${id}/payment/verify`,
       { note: note || "Nhân viên xác nhận thanh toán chuyển khoản" },
       {
-        headers: {
-          "Idempotency-Key": idempotencyKey,
-        },
+        idempotencyKey: key,
       },
     );
   },

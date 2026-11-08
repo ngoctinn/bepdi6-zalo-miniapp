@@ -521,6 +521,13 @@ class AdminOrderStatusUpdateView(APIView):
             )
 
         reason = str(request.data.get("reason", "")).strip()
+        if new_status == Order.Status.CANCELLED and not reason:
+            raise ValidationError(
+                {
+                    "code": "MISSING_CANCEL_REASON",
+                    "message": "Bắt buộc phải nhập lý do hủy đơn hàng.",
+                }
+            )
         try:
             updated_order = OrderService.update_order_status(
                 order=order,

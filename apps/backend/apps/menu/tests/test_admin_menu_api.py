@@ -315,3 +315,89 @@ def test_admin_product_nested_option_groups_and_delete(admin_client):
     assert res_del_hard.status_code == 200
     assert res_del_hard.json()["data"]["soft_deleted"] is False
     assert not Product.objects.filter(pk=prod_standalone.id).exists()
+
+
+@pytest.mark.django_db
+def test_admin_create_and_update_product_promotion(admin_client):
+    """
+    Test TDD: Admin tạo và cập nhật món ăn có khuyến mãi (promotional_price).
+    Backend ProductListSerializer phải lưu và cập nhật ProductPromotion tương ứng.
+    """
+    from decimal import Decimal
+
+    cat = Category.objects.create(name="Ăn vặt")
+
+    # 1. Tạo món ăn kèm khuyến mãi
+    create_payload = {
+        "category_id": cat.id,
+        "name": "Trà Sữa Trân Châu Ưu Đãi",
+        "price": 35000,
+        "promotion": {
+            "promotional_price": 25000,
+            "is_active": True,
+            "note": "Flash Sale Khai Trương",
+        },
+    }
+    res_create = admin_client.post(
+        "/api/v1/admin/products", create_payload, format="json"
+    )
+    assert res_create.status_code == 201
+    prod_id = res_create.json()["data"]["id"]
+    prod_data = res_create.json()["data"]
+    assert prod_data["effective_price"] == 25000.0
+    assert prod_data["has_promotion"] is True
+    assert prod_data["discount_percent"] == 29
+
+    prod = Product.objects.get(pk=prod_id)
+    promo = prod.active_promotion
+    assert promo is not None
+    assert promo.promotional_price == Decimal("25000.00")
+    assert promo.note == "Flash Sale Khai Trương"
+
+    # 2. Cập nhật tắt khuyến mãi
+    update_payload = {
+        "promotion": {
+            "promotional_price": 28000,
+            "is_active": False,
+        }
+    }
+    res_update = admin_client.patch(
+        f"/api/v1/admin/products/{prod_id}", update_payload, format="json"
+    )
+    assert res_update.status_code == 200
+    updated_data = res_update.json()["data"]
+    assert updated_data["has_promotion"] is False
+    assert updated_data["effective_price"] == 35000.0
+
+
+@pytest.mark.django_db
+def test_product_is_featured_and_sort_order(admin_client):
+    """TDD Test for Task 1.4: Product is_featured and sort_order fields."""
+    cat = Category.objects.create(name="Test Category", sort_order=1)
+    payload = {
+        "name": "Bánh mì đặc biệt",
+        "category_id": cat.id,
+        "price": 45000,
+        "is_featured": True,
+        "sort_order": 10,
+    }
+    res = admin_client.post("/api/v1/admin/products", payload, format="json")
+    assert res.status_code == 201
+    data = res.json()["data"]
+    assert data["is_featured"] is True
+    assert data["sort_order"] == 10
+
+    prod_id = data["id"]
+    prod = Product.objects.get(pk=prod_id)
+    assert prod.is_featured is True
+    assert prod.sort_order == 10
+
+    # Test update
+    update_res = admin_client.patch(
+        f"/api/v1/admin/products/{prod_id}",
+        {"is_featured": False, "sort_order": 5},
+        format="json",
+    )
+    assert update_res.status_code == 200
+    assert update_res.json()["data"]["is_featured"] is False
+    assert update_res.json()["data"]["sort_order"] == 5
