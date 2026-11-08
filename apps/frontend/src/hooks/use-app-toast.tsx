@@ -192,10 +192,32 @@ export const AppToastContainer: React.FC = () => {
   const currentToast = useToastStore((state) => state.currentToast);
   const hide = useToastStore((state) => state.hide);
 
+  const [touchStartX, setTouchStartX] = React.useState<number | null>(null);
+  const [touchDeltaX, setTouchDeltaX] = React.useState(0);
+
   if (!currentToast) return null;
 
   const { visible, type, options } = currentToast;
   const position = options.position ?? "bottom";
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchDeltaX(0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const delta = e.touches[0].clientX - touchStartX;
+    setTouchDeltaX(delta);
+  };
+
+  const handleTouchEnd = () => {
+    if (Math.abs(touchDeltaX) > 60) {
+      hide();
+    }
+    setTouchStartX(null);
+    setTouchDeltaX(0);
+  };
 
   const renderIcon = () => {
     if (options.icon) return options.icon;
@@ -347,10 +369,10 @@ export const AppToastContainer: React.FC = () => {
       role="status"
       aria-live="polite"
       style={{ zIndex: options.zIndex ?? 99999 }}
-      className={`pointer-events-none fixed inset-x-0 flex justify-center px-3 transition-opacity duration-300 ease-out ${
+      className={`pointer-events-none fixed inset-x-0 flex justify-center px-4 transition-all duration-300 ease-out ${
         position === "top"
           ? "top-[calc(var(--zaui-safe-area-inset-top,16px)+56px)]"
-          : "bottom-[calc(var(--app-safe-area-bottom,env(safe-area-inset-bottom,0px))+68px)]"
+          : "bottom-[calc(var(--app-safe-area-bottom,env(safe-area-inset-bottom,0px))+84px)]"
       } ${
         visible
           ? "translate-y-0 opacity-100"
@@ -361,23 +383,33 @@ export const AppToastContainer: React.FC = () => {
     >
       <div
         onClick={hide}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          transform: touchDeltaX ? `translateX(${touchDeltaX}px)` : undefined,
+          opacity: touchDeltaX
+            ? Math.max(0.2, 1 - Math.abs(touchDeltaX) / 120)
+            : undefined,
+          transition: touchDeltaX ? "none" : undefined,
+        }}
         className={`${
           visible ? "pointer-events-auto" : "pointer-events-none"
-        } flex w-full max-w-xl items-center gap-3 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md transition-transform active:scale-[0.99] ${variant.card}`}
+        } flex max-w-[calc(100vw-32px)] items-center gap-2.5 rounded-full border px-3.5 py-2 shadow-md backdrop-blur-md transition-all active:scale-[0.98] ${variant.card}`}
       >
         {/* Icon */}
-        {renderIcon()}
+        <div className="shrink-0">{renderIcon()}</div>
 
         {/* Content */}
-        <div className="flex flex-1 flex-col text-left">
+        <div className="flex min-w-0 flex-1 flex-col text-left">
           <span
-            className={`text-[13.5px] font-bold leading-snug tracking-tight ${variant.title}`}
+            className={`truncate text-xs font-semibold leading-tight tracking-tight ${variant.title}`}
           >
             {options.title}
           </span>
           {options.description && (
             <span
-              className={`mt-0.5 text-xs font-medium leading-normal opacity-90 ${variant.desc}`}
+              className={`truncate text-[11px] font-normal leading-normal opacity-85 ${variant.desc}`}
             >
               {options.description}
             </span>
@@ -393,7 +425,7 @@ export const AppToastContainer: React.FC = () => {
               if (options.action?.close) hide();
               options.action?.onClick?.();
             }}
-            className={`shrink-0 pl-2 text-xs font-bold transition-colors ${variant.action}`}
+            className={`shrink-0 pl-1.5 text-xs font-bold transition-colors ${variant.action}`}
           >
             {options.action.text}
           </button>

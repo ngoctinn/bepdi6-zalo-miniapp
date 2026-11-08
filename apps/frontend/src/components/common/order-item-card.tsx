@@ -5,7 +5,6 @@ import { formatCurrency } from "@/utils/format";
 import { Badge } from "@/components/common/badge";
 import { Icon } from "zmp-ui";
 import { useCartStore } from "@/stores/cart.store";
-import { useAppToast } from "@/hooks/use-app-toast";
 import { copy } from "@/constants/copy";
 import {
   getOrderStatusLabel,
@@ -19,7 +18,6 @@ interface OrderItemCardProps {
 export function OrderItemCard({ order }: OrderItemCardProps) {
   const navigate = useNavigate();
   const { addToCart } = useCartStore();
-  const { showSuccess } = useAppToast();
 
   const totalQuantity = (order.items || []).reduce(
     (sum, item) => sum + (item.quantity || 0),
@@ -62,9 +60,6 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
       });
 
       if (addedCount > 0) {
-        showSuccess(
-          copy.order.reorderSuccess || "Đã thêm các món vào giỏ hàng!",
-        );
         navigate("/checkout");
       }
     } finally {

@@ -69,7 +69,6 @@ export function DevAdminHelper() {
     const success = await copyToClipboard(textToCopy);
     if (success) {
       setCopied(true);
-      showSuccess("Đã sao chép Zalo User ID!");
       setTimeout(() => setCopied(false), 2000);
     } else {
       showError("Không thể tự động copy, vui lòng chọn và copy thủ công");
