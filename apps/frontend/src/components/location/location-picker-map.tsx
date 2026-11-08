@@ -12,6 +12,7 @@ interface LocationPickerMapProps {
   onChangeLocation: (lat: number, lng: number) => void;
   isLocating?: boolean;
   onLocateCurrent?: () => void;
+  height?: string | number;
 }
 
 export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
@@ -20,6 +21,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
   onChangeLocation,
   isLocating = false,
   onLocateCurrent,
+  height = "220px",
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -45,11 +47,27 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
       attributionControl: false,
     });
 
-    // TileLayer OpenStreetMap chuẩn, không đòi hỏi API Key
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      subdomains: ["a", "b", "c"],
-    }).addTo(map);
+    // Basemap Esri World Street Map: Ổn định, tải mượt tại VN, không chặn User-Agent/Referer và không watermark
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxZoom: 19,
+      },
+    ).addTo(map);
+
+    // Bắt buộc invalidateSize khi layout settle để tránh map bị đơ / vỡ mảng xám
+    const initTimer = setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+
+    // Lắng nghe thay đổi kích thước container để auto invalidateSize
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && containerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      resizeObserver.observe(containerRef.current);
+    }
 
     map.on("movestart", () => {
       isUserDraggingRef.current = true;
@@ -76,6 +94,10 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
     mapRef.current = map;
 
     return () => {
+      clearTimeout(initTimer);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       map.remove();
       mapRef.current = null;
     };
@@ -104,7 +126,10 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
   }, [latitude, longitude]);
 
   return (
-    <div className="shadow-xs relative z-0 h-[220px] w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-neutral-100">
+    <div
+      style={{ height }}
+      className="shadow-xs relative z-0 w-full overflow-hidden rounded-2xl border border-black/[0.08] bg-neutral-100"
+    >
       {/* Container Leaflet */}
       <div ref={containerRef} className="h-full w-full" />
 

@@ -115,7 +115,11 @@ export default function AdminSettingsPage() {
   const handleSelectMapPlace = (place: PlaceSuggestion) => {
     setFormData((prev) => ({
       ...prev,
-      address_text: place.address || place.title,
+      address_text:
+        place.address_text ||
+        (place as any).address ||
+        place.name ||
+        (place as any).title,
       latitude: place.latitude,
       longitude: place.longitude,
     }));
@@ -141,10 +145,10 @@ export default function AdminSettingsPage() {
           latitude: lat,
           longitude: lng,
         });
-        if (result?.formatted_address) {
+        if (result?.address_text) {
           setFormData((prev) => ({
             ...prev,
-            address_text: result.formatted_address,
+            address_text: result.address_text,
           }));
         }
       } catch {
@@ -439,10 +443,10 @@ export default function AdminSettingsPage() {
                               className="cursor-pointer p-2.5 text-xs transition-colors hover:bg-stone-50 active:bg-stone-100"
                             >
                               <div className="font-bold text-stone-900">
-                                {place.title}
+                                {place.name || (place as any).title}
                               </div>
                               <div className="line-clamp-1 text-[11px] text-stone-500">
-                                {place.address}
+                                {place.address_text || (place as any).address}
                               </div>
                             </div>
                           ))}
