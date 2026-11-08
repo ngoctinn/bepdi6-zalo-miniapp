@@ -38,15 +38,6 @@ export default function HomePage() {
   const isManualScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Nếu là ADMIN hoặc STAFF, tự động điều hướng vào trang quản trị ngay khi vào app
-  useEffect(() => {
-    if (userProfile?.role === "ADMIN") {
-      navigate("/admin", { replace: true });
-    } else if (userProfile?.role === "STAFF") {
-      navigate("/admin/kitchen", { replace: true });
-    }
-  }, [userProfile?.role, navigate]);
-
   useEffect(() => {
     return () => {
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);

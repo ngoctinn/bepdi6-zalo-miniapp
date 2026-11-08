@@ -22,7 +22,7 @@ export default function AdminStaffPage() {
   const revokeStaffMutation = useRevokeStaffMember();
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<"STAFF" | "ADMIN">("STAFF");
+  const [selectedRole] = useState<"ADMIN">("ADMIN");
   const [generatedInviteUrl, setGeneratedInviteUrl] = useState<string | null>(
     null,
   );
@@ -100,10 +100,10 @@ export default function AdminStaffPage() {
               setGeneratedToken(null);
               setIsInviteModalOpen(true);
             }}
-            className="flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
+            className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl bg-primary px-3 text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
           >
             <Icon icon="zi-plus" className="shrink-0 text-sm" />
-            <span>Mời nhân sự</span>
+            <span className="whitespace-nowrap">Mời nhân sự</span>
           </button>
         </div>
       </div>
@@ -202,34 +202,21 @@ export default function AdminStaffPage() {
             <>
               <div>
                 <label className="text-xs font-bold text-stone-700">
-                  Chọn vai trò phân quyền
+                  Phân quyền vai trò
                 </label>
-                <div className="mt-2 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole("STAFF")}
-                    className={`flex flex-col items-center justify-center rounded-xl border p-3 transition-colors ${
-                      selectedRole === "STAFF"
-                        ? "border-primary bg-primary/5 font-bold text-primary"
-                        : "border-stone-200 bg-white text-stone-600"
-                    }`}
-                  >
-                    <Icon icon="zi-chat" className="mb-1 text-xl" />
-                    <span className="text-xs">Nhân Viên Bếp (KDS)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole("ADMIN")}
-                    className={`flex flex-col items-center justify-center rounded-xl border p-3 transition-colors ${
-                      selectedRole === "ADMIN"
-                        ? "border-primary bg-primary/5 font-bold text-primary"
-                        : "border-stone-200 bg-white text-stone-600"
-                    }`}
-                  >
-                    <Icon icon="zi-admin" className="mb-1 text-xl" />
-                    <span className="text-xs">Quản Trị Viên (Admin)</span>
-                  </button>
+                <div className="mt-2">
+                  <div className="flex items-center gap-3 rounded-xl border border-primary bg-primary/5 p-3 font-bold text-primary">
+                    <Icon icon="zi-admin" className="shrink-0 text-xl" />
+                    <div>
+                      <div className="text-xs font-bold">
+                        Quản Trị Viên (Admin)
+                      </div>
+                      <div className="text-[11px] font-normal text-stone-500">
+                        Được cấp toàn quyền quản trị quán, thực đơn, doanh thu
+                        và nhân sự
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <p className="mt-2 text-[11px] leading-relaxed text-stone-500">
                   * Link mời được bảo mật mã hóa cao cấp, chỉ dùng được duy nhất
