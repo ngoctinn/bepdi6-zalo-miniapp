@@ -61,6 +61,19 @@ export const orderService = {
   },
 
   /**
+   * Khách hàng báo đã chuyển khoản thành công
+   * POST /api/v1/orders/:id/notify-transferred
+   */
+  notifyTransferred: async (
+    id: number | string,
+  ): Promise<{ status: string; message: string }> => {
+    return api.post<{ status: string; message: string }>(
+      `orders/${id}/notify-transferred`,
+      {},
+    );
+  },
+
+  /**
    * Khách tự hủy đơn khi ở trạng thái Chờ xác nhận
    * POST /api/v1/orders/:id/cancel
    */

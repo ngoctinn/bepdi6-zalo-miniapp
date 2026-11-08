@@ -10,6 +10,7 @@ from apps.orders.views import (
     AdminOrderStatusUpdateView,
     CheckoutPreviewView,
     CustomerOrderCancelView,
+    CustomerOrderNotifyTransferredView,
     OrderDetailView,
     OrderListCreateView,
     OrderPaymentDetailView,
@@ -24,6 +25,11 @@ urlpatterns = [
         "orders/<int:pk>/cancel",
         CustomerOrderCancelView.as_view(),
         name="customer-order-cancel",
+    ),
+    path(
+        "orders/<int:pk>/notify-transferred",
+        CustomerOrderNotifyTransferredView.as_view(),
+        name="customer-order-notify-transferred",
     ),
     path(
         "orders/<int:pk>/payment",

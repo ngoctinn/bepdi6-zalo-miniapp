@@ -519,6 +519,7 @@ export default function StaffOrdersPage() {
                 onOpenCancelModal={handleOpenCancelModal}
                 onOpenDispatchModal={handleOpenDispatchModal}
                 onOpenDetail={setSelectedOrderForDetail}
+                onVerifyPayment={handleVerifyPayment}
               />
             ))}
           </OrderTimerProvider>

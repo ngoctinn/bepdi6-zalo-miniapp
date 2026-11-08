@@ -356,6 +356,92 @@ class OrderPaymentDetailView(APIView):
         return Response({"success": True, "data": serializer.data})
 
 
+class CustomerOrderNotifyTransferredView(APIView):
+    """
+    POST /api/v1/orders/{id}/notify-transferred
+    Customer notifies that they have completed the bank transfer.
+    Sets Payment.status = PENDING so staff can verify quickly (Fallback when webhook is delayed/exhausted).
+    """
+
+    permission_classes = [IsAuthenticatedCustomer]
+
+    def post(self, request, pk):
+        customer = get_current_customer(request)
+        if not customer:
+            raise NotFound("Đơn hàng không tồn tại.") from None
+        try:
+            order = Order.objects.select_related("payment").get(
+                pk=pk, customer=customer
+            )
+        except Order.DoesNotExist:
+            raise NotFound("Đơn hàng không tồn tại.") from None
+
+        if order.payment_method != Order.PaymentMethod.BANK_TRANSFER:
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "INVALID_PAYMENT_METHOD",
+                        "message": "Chỉ áp dụng cho đơn hàng thanh toán Chuyển khoản.",
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Rule: Do NOT modify order data in terminal states (COMPLETED, CANCELLED)
+        if order.status in [Order.Status.COMPLETED, Order.Status.CANCELLED]:
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "ORDER_TERMINAL_STATE",
+                        "message": f"Không thể cập nhật thanh toán cho đơn hàng đã {order.get_status_display().lower()}.",
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            # Lock order and payment record atomically to prevent race condition
+            locked_order = Order.objects.select_for_update().get(pk=order.pk)
+            payment, _ = Payment.objects.select_for_update().get_or_create(
+                order=locked_order,
+                defaults={
+                    "amount": locked_order.total_amount,
+                    "method": Payment.Method.BANK_TRANSFER,
+                    "status": Payment.Status.UNPAID,
+                },
+            )
+
+            if payment.status == Payment.Status.PAID:
+                return Response(
+                    {
+                        "success": True,
+                        "data": {
+                            "status": payment.status,
+                            "message": "Đơn hàng đã được xác nhận thanh toán.",
+                        },
+                    }
+                )
+
+            payment.status = Payment.Status.PENDING
+            if not payment.note:
+                payment.note = (
+                    "Khách báo đã chuyển khoản thành công. Đang chờ nhân viên kiểm tra."
+                )
+            payment.save(update_fields=["status", "note", "updated_at"])
+
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "status": payment.status,
+                    "message": "Đã thông báo nhân viên kiểm tra thanh toán.",
+                },
+            }
+        )
+
+
 class CustomerOrderCancelView(APIView):
     """
     POST /api/v1/orders/{id}/cancel

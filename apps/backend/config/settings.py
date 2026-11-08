@@ -34,6 +34,7 @@ env = environ.Env(
     VIETQR_BANK_ID=(str, "MB"),
     VIETQR_ACCOUNT_NO=(str, ""),
     VIETQR_ACCOUNT_NAME=(str, "BEP DI 6"),
+    PAYMENT_WEBHOOK_API_KEY=(str, ""),
     ADMIN_ZALO_IDS=(list, ["5746042945227030407"]),
 )
 
@@ -382,6 +383,7 @@ ADMIN_ZALO_IDS: list[str] = (
 VIETQR_BANK_ID = env("VIETQR_BANK_ID")
 VIETQR_ACCOUNT_NO = env("VIETQR_ACCOUNT_NO")
 VIETQR_ACCOUNT_NAME = env("VIETQR_ACCOUNT_NAME")
+PAYMENT_WEBHOOK_API_KEY = env("PAYMENT_WEBHOOK_API_KEY")
 
 # Django Unfold Theme Configuration
 UNFOLD = {

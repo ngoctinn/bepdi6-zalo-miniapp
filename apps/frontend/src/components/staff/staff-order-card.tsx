@@ -36,6 +36,7 @@ interface StaffOrderCardProps {
   onOpenCancelModal: (order: Order) => void;
   onOpenDispatchModal?: (order: Order) => void;
   onOpenDetail?: (order: Order) => void;
+  onVerifyPayment?: (orderId: number) => Promise<void> | void;
 }
 
 function useOrderAging(createdAt?: string, isCompletedOrCancelled?: boolean) {
@@ -56,6 +57,7 @@ export function StaffOrderCard({
   onOpenCancelModal,
   onOpenDispatchModal,
   onOpenDetail,
+  onVerifyPayment,
 }: StaffOrderCardProps) {
   const isDelivery = order.delivery_type === "DELIVERY";
   const isPaid = order.payment?.status === "PAID";
@@ -290,6 +292,34 @@ export function StaffOrderCard({
                 {copy.staff.payment.paidOnlineBadge}
               </span>
             </span>
+          ) : order.payment_method === "BANK_TRANSFER" ? (
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 text-xxsmall font-semibold text-amber-700">
+                <Icon
+                  icon="zi-warning-solid"
+                  className="flex shrink-0 items-center justify-center text-xs leading-none text-amber-500"
+                />
+                <span className="leading-none">
+                  {order.payment?.status === "PENDING"
+                    ? "Khách báo đã chuyển"
+                    : "Chuyển khoản (Chưa thu)"}
+                </span>
+              </span>
+              {onVerifyPayment && (
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDebouncedAction(() => onVerifyPayment(order.id));
+                  }}
+                  className="text-3xs inline-flex items-center gap-0.5 rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 font-bold text-emerald-700 hover:bg-emerald-100 active:scale-95 disabled:opacity-50"
+                >
+                  <Icon icon="zi-check" className="text-3xs shrink-0" />
+                  <span>Duyệt tiền</span>
+                </button>
+              )}
+            </div>
           ) : (
             <span className="inline-flex items-center gap-1 text-xxsmall font-semibold text-amber-800">
               <Icon
