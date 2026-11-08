@@ -1,6 +1,35 @@
 from rest_framework import serializers
 
-from apps.customers.models import Address, Customer
+from apps.customers.models import Address, Customer, User
+
+
+class StaffInviteCreateSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(
+        choices=[(User.Role.STAFF, "STAFF"), (User.Role.ADMIN, "ADMIN")],
+        default=User.Role.STAFF,
+    )
+
+
+class StaffInviteAcceptSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True, max_length=64)
+
+
+class StaffUserSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="first_name", read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "phone",
+            "zalo_user_id",
+            "role",
+            "name",
+            "is_staff",
+            "date_joined",
+            "created_at",
+        ]
 
 
 class CustomerSerializer(serializers.ModelSerializer):

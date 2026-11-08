@@ -76,6 +76,19 @@ export default function AdminManageHubPage() {
         },
       ],
     },
+    {
+      title: "Nhân Sự & Quyền Truy Cập",
+      items: [
+        {
+          id: "staff",
+          icon: "zi-user-group",
+          title: "Đội ngũ nhân sự",
+          description: "Mời nhân viên bếp/quản trị qua Zalo & phân quyền",
+          badge: "Phân quyền",
+          path: "/admin/manage/staff",
+        },
+      ],
+    },
   ];
 
   return (

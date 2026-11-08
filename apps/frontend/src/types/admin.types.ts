@@ -144,3 +144,35 @@ export interface AdminCustomer {
   created_at: string;
   updated_at: string;
 }
+
+export interface AdminStaffUser {
+  id: number;
+  username: string;
+  phone?: string;
+  zalo_user_id?: string;
+  name?: string;
+  role: "ADMIN" | "STAFF";
+  is_staff: boolean;
+  date_joined?: string;
+  created_at?: string;
+}
+
+export interface CreateStaffInviteRequest {
+  role: "STAFF" | "ADMIN";
+}
+
+export interface CreateStaffInviteResponse {
+  token: string;
+  role: "STAFF" | "ADMIN";
+  expires_at: string;
+}
+
+export interface AcceptStaffInviteRequest {
+  token: string;
+}
+
+export interface AcceptStaffInviteResponse {
+  role: "STAFF" | "ADMIN";
+  access_token: string;
+  refresh_token: string;
+}

@@ -5,10 +5,13 @@ from apps.customers.views import (
     AddressDetailView,
     AddressListCreateView,
     AdminCustomerListView,
+    AdminStaffInviteView,
+    AdminStaffManageView,
     CustomerMeView,
     CustomerPhoneUpdateView,
     CustomerReverseGeocodeView,
     LocationSearchView,
+    StaffInviteAcceptView,
     ZaloAuthView,
     ZaloLocationDecodeView,
 )
@@ -16,6 +19,26 @@ from apps.customers.views import (
 urlpatterns = [
     path(
         "admin/customers", AdminCustomerListView.as_view(), name="admin-customer-list"
+    ),
+    path(
+        "admin/staff/invites/",
+        AdminStaffInviteView.as_view(),
+        name="admin-staff-invite-create",
+    ),
+    path(
+        "admin/staff/",
+        AdminStaffManageView.as_view(),
+        name="admin-staff-list",
+    ),
+    path(
+        "admin/staff/<int:staff_id>/",
+        AdminStaffManageView.as_view(),
+        name="admin-staff-detail",
+    ),
+    path(
+        "staff/accept-invite/",
+        StaffInviteAcceptView.as_view(),
+        name="staff-accept-invite",
     ),
     path("auth/zalo", ZaloAuthView.as_view(), name="auth-zalo"),
     path("auth/token/refresh", TokenRefreshView.as_view(), name="token-refresh"),

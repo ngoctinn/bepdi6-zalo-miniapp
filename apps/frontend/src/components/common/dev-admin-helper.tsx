@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { isDevelopmentRuntime } from "@/utils/zma";
 import { fetchZaloUserInfo, isZaloRuntime } from "@/utils/zalo-permissions";
 import { useAuth } from "@/hooks/use-auth";
@@ -13,6 +14,7 @@ import { Icon } from "zmp-ui";
  * Hỗ trợ copy ID 1-chạm kèm hiển thị vai trò (role) hiện tại được cấp bởi backend.
  */
 export function DevAdminHelper() {
+  const navigate = useNavigate();
   const isDev = isDevelopmentRuntime();
   const { customer, refetchCustomer } = useAuth();
   const { showSuccess, showError } = useAppToast();
@@ -207,6 +209,17 @@ export function DevAdminHelper() {
 
               {/* Nút hành động */}
               <div className="flex flex-col gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    navigate("/admin");
+                  }}
+                  className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-transform active:scale-95"
+                >
+                  <Icon icon="zi-admin" className="shrink-0 text-sm" />
+                  <span>Vào thẳng trang Quản trị (Admin)</span>
+                </button>
                 <div className="flex gap-2">
                   <button
                     type="button"

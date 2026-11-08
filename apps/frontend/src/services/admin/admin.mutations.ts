@@ -167,3 +167,31 @@ export const useUpdateShopConfig = () => {
     },
   });
 };
+
+export const useCreateStaffInvite = () => {
+  return useMutation({
+    mutationFn: (data: { role: "STAFF" | "ADMIN" }) =>
+      adminService.createStaffInvite(data),
+  });
+};
+
+export const useRevokeStaffMember = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (staffId: number) => adminService.revokeStaffMember(staffId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "staff", "list"] });
+    },
+  });
+};
+
+export const useAcceptStaffInvite = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { token: string }) =>
+      adminService.acceptStaffInvite(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customer", "me"] });
+    },
+  });
+};

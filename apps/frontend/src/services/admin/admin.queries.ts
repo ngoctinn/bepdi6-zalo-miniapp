@@ -80,3 +80,11 @@ export const useAdminCustomers = (params?: { search?: string }) => {
     staleTime: 30 * 1000,
   });
 };
+
+export const useAdminStaffMembers = () => {
+  return useQuery({
+    queryKey: ["admin", "staff", "list"],
+    queryFn: () => adminService.getStaffMembers(),
+    staleTime: 10 * 1000,
+  });
+};

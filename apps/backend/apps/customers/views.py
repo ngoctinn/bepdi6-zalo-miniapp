@@ -4,12 +4,19 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.customers.models import Address, Customer
-from apps.customers.permissions import IsStaffOrAdminUser
+from apps.customers.models import Address, Customer, StaffInviteToken, User
+from apps.customers.permissions import (
+    IsAdminOnlyUser,
+    IsAuthenticatedCustomer,
+    IsStaffOrAdminUser,
+)
 from apps.customers.serializers import (
     AddressSerializer,
     AdminCustomerSerializer,
     CustomerSerializer,
+    StaffInviteAcceptSerializer,
+    StaffInviteCreateSerializer,
+    StaffUserSerializer,
     ZaloAuthRequestSerializer,
     ZaloLocationDecodeRequestSerializer,
     ZaloPhoneUpdateRequestSerializer,
@@ -373,3 +380,155 @@ class AdminCustomerListView(APIView):
 
         serializer = AdminCustomerSerializer(customers, many=True)
         return Response({"success": True, "data": serializer.data})
+
+
+class AdminStaffInviteView(APIView):
+    """
+    POST /api/v1/admin/staff/invites/
+    Tạo link mời bí mật (dùng 1 lần, hết hạn sau 15p) cho nhân viên/quản trị viên mới.
+    """
+
+    permission_classes = [IsAdminOnlyUser]
+
+    def post(self, request):
+        serializer = StaffInviteCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        role = serializer.validated_data["role"]
+
+        invite = StaffInviteToken.objects.create(
+            role=role,
+            created_by=request.user,
+        )
+
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "token": invite.token,
+                    "role": invite.role,
+                    "expires_at": invite.expires_at.isoformat(),
+                },
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class StaffInviteAcceptView(APIView):
+    """
+    POST /api/v1/staff/accept-invite/
+    Nhân viên bấm xác nhận từ link Zalo để kích hoạt quyền STAFF/ADMIN.
+    """
+
+    permission_classes = [IsAuthenticatedCustomer]
+
+    def post(self, request):
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        serializer = StaffInviteAcceptSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = serializer.validated_data["token"]
+
+        with transaction.atomic():
+            invite = (
+                StaffInviteToken.objects.select_for_update().filter(token=token).first()
+            )
+
+            if not invite or not invite.is_valid:
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "INVALID_INVITE_TOKEN",
+                            "message": "Mã mời không tồn tại, đã hết hạn hoặc đã được sử dụng.",
+                        },
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Cập nhật quyền cho User hiện tại
+            user = request.user
+            user.role = invite.role
+            user.is_staff = True
+            if invite.role == User.Role.ADMIN:
+                user.is_superuser = True
+            user.save(update_fields=["role", "is_staff", "is_superuser", "updated_at"])
+
+            # Đánh dấu token đã được sử dụng
+            invite.is_used = True
+            invite.used_by = user
+            invite.save(update_fields=["is_used", "used_by"])
+
+        # Cấp Refresh/Access JWT mới chứa role đã được cập nhật
+        refresh = RefreshToken.for_user(user)
+        refresh["role"] = user.role
+        if getattr(user, "zalo_user_id", None):
+            refresh["zalo_user_id"] = user.zalo_user_id
+
+        return Response(
+            {
+                "success": True,
+                "data": {
+                    "role": user.role,
+                    "access_token": str(refresh.access_token),
+                    "refresh_token": str(refresh),
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class AdminStaffManageView(APIView):
+    """
+    GET /api/v1/admin/staff/ - Danh sách nhân viên và quản trị viên
+    DELETE /api/v1/admin/staff/<id>/ - Tước quyền nhân viên về CUSTOMER
+    """
+
+    permission_classes = [IsAdminOnlyUser]
+
+    def get(self, request):
+        staff_users = User.objects.filter(
+            role__in=[User.Role.ADMIN, User.Role.STAFF]
+        ).order_by("-date_joined")
+        serializer = StaffUserSerializer(staff_users, many=True)
+        return Response({"success": True, "data": serializer.data})
+
+    def delete(self, request, staff_id):
+        if str(request.user.id) == str(staff_id):
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "CANNOT_REVOKE_SELF",
+                        "message": "Không thể tự tước quyền quản trị của chính mình.",
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        target_user = User.objects.filter(id=staff_id).first()
+        if not target_user:
+            return Response(
+                {
+                    "success": False,
+                    "error": {
+                        "code": "USER_NOT_FOUND",
+                        "message": "Không tìm thấy người dùng.",
+                    },
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        target_user.role = User.Role.CUSTOMER
+        target_user.is_staff = False
+        target_user.is_superuser = False
+        target_user.save(
+            update_fields=["role", "is_staff", "is_superuser", "updated_at"]
+        )
+
+        return Response(
+            {
+                "success": True,
+                "data": {"message": "Đã thu hồi quyền nhân sự thành công."},
+            },
+            status=status.HTTP_200_OK,
+        )

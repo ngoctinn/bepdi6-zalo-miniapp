@@ -1,13 +1,18 @@
 import { api } from "@/lib/api-client";
 import {
+  AcceptStaffInviteRequest,
+  AcceptStaffInviteResponse,
   AdminCategory,
   AdminCustomer,
   AdminDashboardStats,
   AdminProduct,
   AdminShopConfig,
+  AdminStaffUser,
   AdminVoucher,
   CreateCategoryRequest,
   CreateProductRequest,
+  CreateStaffInviteRequest,
+  CreateStaffInviteResponse,
   CreateVoucherRequest,
   DeleteProductResponse,
   UpdateCategoryRequest,
@@ -158,6 +163,27 @@ export const adminService = {
 
   deleteVoucher: async (id: number): Promise<void> => {
     return api.delete<void>(`/admin/vouchers/${id}`);
+  },
+
+  // --- Staff Management & Invites APIs ---
+  getStaffMembers: async (): Promise<AdminStaffUser[]> => {
+    return api.get<AdminStaffUser[]>("/admin/staff/");
+  },
+
+  createStaffInvite: async (
+    data: CreateStaffInviteRequest,
+  ): Promise<CreateStaffInviteResponse> => {
+    return api.post<CreateStaffInviteResponse>("/admin/staff/invites/", data);
+  },
+
+  revokeStaffMember: async (staffId: number): Promise<void> => {
+    return api.delete<void>(`/admin/staff/${staffId}/`);
+  },
+
+  acceptStaffInvite: async (
+    data: AcceptStaffInviteRequest,
+  ): Promise<AcceptStaffInviteResponse> => {
+    return api.post<AcceptStaffInviteResponse>("/staff/accept-invite/", data);
   },
 
   // --- Re-export Order Operations ---

@@ -113,3 +113,68 @@ class Address(models.Model):
 
     def __str__(self) -> str:
         return f"{self.recipient_name} - {self.address_text}"
+
+
+class StaffInviteToken(models.Model):
+    """Secure One-Time Token for dynamic staff/admin invitation via Zalo."""
+
+    token = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        verbose_name="Mã mời bí mật",
+    )
+    role = models.CharField(
+        max_length=50,
+        choices=[(User.Role.STAFF, "Nhân viên"), (User.Role.ADMIN, "Quản trị viên")],
+        default=User.Role.STAFF,
+        verbose_name="Vai trò được cấp",
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_invites",
+        verbose_name="Người tạo lời mời",
+    )
+    used_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accepted_invites",
+        verbose_name="Người sử dụng",
+    )
+    expires_at = models.DateTimeField(verbose_name="Thời hạn hết hạn")
+    is_used = models.BooleanField(
+        default=False, db_index=True, verbose_name="Đã sử dụng"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
+
+    class Meta:
+        db_table = "staff_invite_tokens"
+        verbose_name = "Mã mời nhân viên"
+        verbose_name_plural = "Mã mời nhân viên"
+        ordering = ["-created_at"]
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            import uuid
+
+            self.token = uuid.uuid4().hex
+        if not self.expires_at:
+            from datetime import timedelta
+
+            from django.utils import timezone
+
+            self.expires_at = timezone.now() + timedelta(minutes=15)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_valid(self) -> bool:
+        from django.utils import timezone
+
+        return not self.is_used and self.expires_at > timezone.now()
+
+    def __str__(self) -> str:
+        return f"Invite {self.role} ({'USED' if self.is_used else 'ACTIVE'})"

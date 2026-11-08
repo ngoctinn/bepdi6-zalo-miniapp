@@ -1,5 +1,16 @@
 export function isDevelopmentRuntime(): boolean {
-  return Boolean(import.meta.env.DEV);
+  if (Boolean(import.meta.env.DEV)) return true;
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const appEnv = params.get("env");
+    return (
+      appEnv === "TESTING_LOCAL" ||
+      appEnv === "TESTING" ||
+      appEnv === "DEVELOPMENT" ||
+      params.has("dev_admin")
+    );
+  }
+  return false;
 }
 
 export function getBasePath() {

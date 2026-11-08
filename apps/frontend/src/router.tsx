@@ -26,7 +26,9 @@ const AdminProductPage = lazy(
 );
 const AdminVoucherPage = lazy(() => import("./pages/admin/manage/vouchers"));
 const AdminCustomerPage = lazy(() => import("./pages/admin/manage/customers"));
+const AdminStaffPage = lazy(() => import("./pages/admin/manage/staff"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/settings"));
+const StaffInvitePage = lazy(() => import("./pages/staff-invite"));
 
 const withSuspense = (Component: React.ComponentType) => (
   <Suspense fallback={<RouteLoadingFallback />}>
@@ -103,6 +105,16 @@ const router = createBrowserRouter(
           element: <Navigate to="/admin/kitchen" replace />,
         },
         {
+          path: "/staff/invite",
+          element: withSuspense(StaffInvitePage),
+          handle: {
+            title: "Lời mời tham gia",
+            back: true,
+            hideCart: true,
+            headerPosition: "sticky",
+          },
+        },
+        {
           element: <AdminRouteGuard allowedRoles={["ADMIN", "STAFF"]} />,
           children: [
             {
@@ -174,6 +186,16 @@ const router = createBrowserRouter(
               element: withSuspense(AdminCustomerPage),
               handle: {
                 title: "Quản Lý Khách Hàng",
+                back: true,
+                hideCart: true,
+                headerPosition: "sticky",
+              },
+            },
+            {
+              path: "/admin/manage/staff",
+              element: withSuspense(AdminStaffPage),
+              handle: {
+                title: "Quản Lý Nhân Sự",
                 back: true,
                 hideCart: true,
                 headerPosition: "sticky",

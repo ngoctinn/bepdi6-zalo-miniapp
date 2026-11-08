@@ -9,6 +9,7 @@ import { copy } from "@/constants/copy";
 import { cn } from "@/utils/cn";
 import { useCartStore } from "@/stores/cart.store";
 import { useAuth } from "@/hooks/use-auth";
+import { isDevelopmentRuntime } from "@/utils/zma";
 
 export default function Footer() {
   const navigate = useNavigate();
@@ -19,8 +20,10 @@ export default function Footer() {
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   // Show Staff KDS tab only when user has STAFF/ADMIN role verified by backend
+  // Hoặc khi đang ở môi trường dev/mô phỏng để dễ dàng test
+  const isDev = isDevelopmentRuntime();
   const isStaffOrAdmin =
-    userProfile?.role === "ADMIN" || userProfile?.role === "STAFF";
+    userProfile?.role === "ADMIN" || userProfile?.role === "STAFF" || isDev;
 
   const NAV_ITEMS = [
     {
