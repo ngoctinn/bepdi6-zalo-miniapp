@@ -1,10 +1,3 @@
-import React, { useState, useEffect } from "react";
-import { useAdminShopConfig } from "@/services/admin/admin.queries";
-import { useUpdateShopConfig } from "@/services/admin/admin.mutations";
-import { useAppToast } from "@/hooks/use-app-toast";
-import { useAuth } from "@/hooks/use-auth";
-import { Icon, Spinner, Switch } from "zmp-ui";
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useAdminShopConfig } from "@/services/admin/admin.queries";
 import { useUpdateShopConfig } from "@/services/admin/admin.mutations";

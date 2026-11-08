@@ -10,8 +10,46 @@ function escapeHtml(str: string | undefined | null): string {
 
 export interface PrintOrderResult {
   success: boolean;
-  reason?: "ZALO_RUNTIME_POPUP_UNSUPPORTED" | "POPUP_BLOCKED" | "PRINT_SUCCESS";
+  reason?:
+    | "ZALO_RUNTIME_POPUP_UNSUPPORTED"
+    | "POPUP_BLOCKED"
+    | "PRINT_SUCCESS"
+    | "COPIED_TO_CLIPBOARD";
   message?: string;
+}
+
+export function formatOrderTextSummary(order: Order): string {
+  const isDelivery = order.delivery_type === "DELIVERY";
+  const itemsText = (order.items || [])
+    .map(
+      (it) =>
+        `- ${it.quantity}x ${it.product_name}${
+          it.options && it.options.length > 0
+            ? ` (${it.options.map((o) => o.option_name).join(", ")})`
+            : ""
+        }: ${Number(it.subtotal || 0).toLocaleString("vi-VN")}đ`,
+    )
+    .join("\n");
+
+  return [
+    `--- BẾP DÌ 6 ---`,
+    `ĐƠN HÀNG: #${order.order_code}`,
+    `Thời gian: ${order.created_at ? new Date(order.created_at).toLocaleString("vi-VN") : ""}`,
+    `Hình thức: ${isDelivery ? "GIAO TẬN NƠI" : "TỰ ĐẾN LẤY"}`,
+    `Khách hàng: ${order.customer_name || "Khách lẻ"}`,
+    `SĐT: ${order.phone || "---"}`,
+    isDelivery ? `Địa chỉ: ${order.address || "---"}` : "",
+    order.note ? `Ghi chú: ${order.note}` : "",
+    `----------------`,
+    itemsText,
+    `----------------`,
+    `TỔNG CỘNG: ${Number(order.total_amount || 0).toLocaleString("vi-VN")}đ`,
+    order.payment_status === "PAID"
+      ? `[ ĐÃ THANH TOÁN - KHÔNG THU TIỀN ]`
+      : `[ THU TIỀN MẶT COD: ${Number(order.total_amount || 0).toLocaleString("vi-VN")}đ ]`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 /**
@@ -27,11 +65,20 @@ export function printOrderReceipt(
     isZaloRuntime() &&
     /android|iphone|ipad|ipod/i.test(navigator.userAgent)
   ) {
+    const textSummary = formatOrderTextSummary(order);
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        void navigator.clipboard.writeText(textSummary);
+      }
+    } catch {
+      // Ignore clipboard write errors
+    }
+
     return {
-      success: false,
-      reason: "ZALO_RUNTIME_POPUP_UNSUPPORTED",
+      success: true,
+      reason: "COPIED_TO_CLIPBOARD",
       message:
-        "Tính năng in trực tiếp cần mở trên máy tính (Zalo PC / Web browser) hoặc thiết bị kết nối máy in nhiệt.",
+        "Đã sao chép nội dung tóm tắt đơn hàng vào clipboard! Bạn có thể dán vào ứng dụng máy in Bluetooth để in nhanh.",
     };
   }
 

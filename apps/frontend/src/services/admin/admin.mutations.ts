@@ -104,7 +104,7 @@ export const useDeleteProduct = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.adminProducts.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.adminDashboardStats.all,
+        queryKey: queryKeys.adminDashboard.stats(),
       });
     },
   });

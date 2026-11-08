@@ -14,7 +14,8 @@ function DashboardIcon({ active }: { active: boolean }) {
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={active ? "var(--theme-primary, #ea580c)" : "#78716C"}
+      stroke="currentColor"
+      className={active ? "text-primary" : "text-stone-500"}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -25,7 +26,8 @@ function DashboardIcon({ active }: { active: boolean }) {
         width="7"
         height="9"
         rx="1"
-        fill={active ? "var(--theme-primary-light, #ffedd5)" : "none"}
+        fill={active ? "currentColor" : "none"}
+        fillOpacity={active ? "0.2" : "0"}
       />
       <rect
         x="14"
@@ -33,7 +35,8 @@ function DashboardIcon({ active }: { active: boolean }) {
         width="7"
         height="5"
         rx="1"
-        fill={active ? "var(--theme-primary-light, #ffedd5)" : "none"}
+        fill={active ? "currentColor" : "none"}
+        fillOpacity={active ? "0.2" : "0"}
       />
       <rect
         x="14"
@@ -41,7 +44,8 @@ function DashboardIcon({ active }: { active: boolean }) {
         width="7"
         height="9"
         rx="1"
-        fill={active ? "var(--theme-primary-light, #ffedd5)" : "none"}
+        fill={active ? "currentColor" : "none"}
+        fillOpacity={active ? "0.2" : "0"}
       />
       <rect
         x="3"
@@ -49,7 +53,8 @@ function DashboardIcon({ active }: { active: boolean }) {
         width="7"
         height="5"
         rx="1"
-        fill={active ? "var(--theme-primary-light, #ffedd5)" : "none"}
+        fill={active ? "currentColor" : "none"}
+        fillOpacity={active ? "0.2" : "0"}
       />
     </svg>
   );
@@ -62,14 +67,16 @@ function KitchenIcon({ active }: { active: boolean }) {
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={active ? "var(--theme-primary, #ea580c)" : "#78716C"}
+      stroke="currentColor"
+      className={active ? "text-primary" : "text-stone-500"}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path
         d="M3 9L4.5 4H19.5L21 9V11C21 12.1 20.1 13 19 13C17.9 13 17 12.1 17 11C17 12.1 16.1 13 15 13C13.9 13 13 12.1 13 11C13 12.1 12.1 13 11 13C9.9 13 9 12.1 9 11C9 12.1 8.1 13 7 13C5.9 13 5 12.1 5 11V9H3Z"
-        fill={active ? "var(--theme-primary-light, #ffedd5)" : "none"}
+        fill={active ? "currentColor" : "none"}
+        fillOpacity={active ? "0.2" : "0"}
       />
       <path d="M4 13V20C4 20.5523 4.44772 21 5 21H19C19.5523 21 20 20.5523 20 20V13" />
       <path d="M9 21V16C9 15.4477 9.44772 15 10 15H14C14.5523 15 15 15.4477 15 16V21" />
@@ -84,14 +91,16 @@ function ManageIcon({ active }: { active: boolean }) {
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={active ? "var(--theme-primary, #ea580c)" : "#78716C"}
+      stroke="currentColor"
+      className={active ? "text-primary" : "text-stone-500"}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path
         d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-        fill={active ? "var(--theme-primary-light, #ffedd5)" : "none"}
+        fill={active ? "currentColor" : "none"}
+        fillOpacity={active ? "0.2" : "0"}
       />
       <polyline points="14 2 14 8 20 8" />
       <line x1="16" y1="13" x2="8" y2="13" />
@@ -108,7 +117,8 @@ function SettingsIcon({ active }: { active: boolean }) {
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={active ? "var(--theme-primary, #ea580c)" : "#78716C"}
+      stroke="currentColor"
+      className={active ? "text-primary" : "text-stone-500"}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -117,7 +127,8 @@ function SettingsIcon({ active }: { active: boolean }) {
         cx="12"
         cy="12"
         r="3"
-        fill={active ? "var(--theme-primary-light, #ffedd5)" : "none"}
+        fill={active ? "currentColor" : "none"}
+        fillOpacity={active ? "0.2" : "0"}
       />
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
@@ -131,7 +142,8 @@ function BackToShopIcon() {
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#78716C"
+      stroke="currentColor"
+      className="text-stone-500"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"

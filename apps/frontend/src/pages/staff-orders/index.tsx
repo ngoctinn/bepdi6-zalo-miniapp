@@ -26,7 +26,8 @@ export default function StaffOrdersPage() {
   const { showSuccess, showError, showWarning, showToast } = useAppToast();
   const { customer, isLoading: isAuthLoading } = useAuth();
 
-  const isAdmin = customer?.role === "ADMIN";
+  const isStaffOrAdmin =
+    customer?.role === "ADMIN" || customer?.role === "STAFF";
 
   const [activeTab, setActiveTab] = useState<StaffTab>("PENDING");
   const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
@@ -248,7 +249,12 @@ export default function StaffOrdersPage() {
   const handleVerifyPayment = async (orderId: number) => {
     try {
       startProcessing(orderId);
-      const updatedOrder = await orderService.verifyAdminOrderPayment(orderId);
+      const idempotencyKey = `verify-pay-${orderId}-${Date.now()}`;
+      const paymentData = await orderService.verifyAdminOrderPayment(
+        orderId,
+        "Nhân viên xác nhận thanh toán chuyển khoản",
+        idempotencyKey,
+      );
       await queryClient.invalidateQueries({
         queryKey: ADMIN_ORDERS_QUERY_KEY,
       });
@@ -256,7 +262,7 @@ export default function StaffOrdersPage() {
         prev && prev.id === orderId
           ? {
               ...prev,
-              payment: updatedOrder.payment || {
+              payment: paymentData || {
                 id: prev.payment?.id || 0,
                 status: "PAID",
                 amount: prev.total_amount,
@@ -367,7 +373,7 @@ export default function StaffOrdersPage() {
     );
   }
 
-  if (!isAdmin) {
+  if (!isStaffOrAdmin) {
     return (
       <div className="relative flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-600">
@@ -442,13 +448,13 @@ export default function StaffOrdersPage() {
       </div>
 
       {/* Main Content: Order Cards */}
-      <div className="flex flex-col gap-3 px-3.5 py-3">
+      <div className="grid grid-cols-1 gap-3.5 px-3.5 py-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {isLoading && orders.length === 0 ? (
-          <div className="flex flex-col gap-3">
-            {[1, 2, 3].map((i) => (
+          <>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
                 key={i}
-                className="flex animate-pulse flex-col rounded-2xl bg-white p-3.5 shadow-sm"
+                className="flex animate-pulse flex-col rounded-2xl border border-stone-100 bg-white p-3.5 shadow-sm"
               >
                 {/* 1. Skeleton Header */}
                 <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
@@ -485,9 +491,9 @@ export default function StaffOrdersPage() {
                 </div>
               </div>
             ))}
-          </div>
+          </>
         ) : filteredOrders.length === 0 ? (
-          <div className="shadow-xs flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-center">
+          <div className="shadow-xs col-span-full flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-center">
             <div className="mb-2.5 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Icon icon="zi-list-1" className="text-2xl" />
             </div>

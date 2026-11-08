@@ -103,16 +103,8 @@ const router = createBrowserRouter(
           element: <Navigate to="/admin/kitchen" replace />,
         },
         {
-          element: <AdminRouteGuard />,
+          element: <AdminRouteGuard allowedRoles={["ADMIN", "STAFF"]} />,
           children: [
-            {
-              path: "/admin",
-              element: withSuspense(AdminDashboardPage),
-              handle: {
-                hideHeader: true,
-                hideCart: true,
-              },
-            },
             {
               path: "/admin/kitchen",
               element: withSuspense(AdminKitchenPage),
@@ -120,6 +112,19 @@ const router = createBrowserRouter(
                 back: false,
                 hideFooter: false,
                 headerPosition: "sticky",
+                hideHeader: true,
+                hideCart: true,
+              },
+            },
+          ],
+        },
+        {
+          element: <AdminRouteGuard allowedRoles={["ADMIN"]} />,
+          children: [
+            {
+              path: "/admin",
+              element: withSuspense(AdminDashboardPage),
+              handle: {
                 hideHeader: true,
                 hideCart: true,
               },

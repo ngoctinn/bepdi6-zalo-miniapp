@@ -53,6 +53,11 @@ export default function AdminProductManagementPage() {
   const [formStatus, setFormStatus] = useState<
     "AVAILABLE" | "OUT_OF_STOCK" | "INACTIVE"
   >("AVAILABLE");
+  const [formHasPromotion, setFormHasPromotion] = useState(false);
+  const [formPromotionalPrice, setFormPromotionalPrice] = useState<number>(0);
+  const [formPromotionNote, setFormPromotionNote] = useState("");
+  const [formIsFeatured, setFormIsFeatured] = useState(false);
+  const [formSortOrder, setFormSortOrder] = useState<number>(0);
   const [formOptionGroups, setFormOptionGroups] = useState<
     AdminOptionGroupInput[]
   >([]);
@@ -75,6 +80,11 @@ export default function AdminProductManagementPage() {
     setFormName("");
     setFormCategoryId(selectedCatId || (categories[0]?.id ?? 0));
     setFormPrice(0);
+    setFormHasPromotion(false);
+    setFormPromotionalPrice(0);
+    setFormPromotionNote("");
+    setFormIsFeatured(false);
+    setFormSortOrder(0);
     setFormDescription("");
     setFormImageUrl("");
     setFormStatus("AVAILABLE");
@@ -89,6 +99,15 @@ export default function AdminProductManagementPage() {
       prod.category_id || prod.category || (categories[0]?.id ?? 0),
     );
     setFormPrice(Number(prod.price || 0));
+    setFormHasPromotion(Boolean(prod.has_promotion));
+    setFormPromotionalPrice(
+      prod.effective_price && prod.has_promotion
+        ? Number(prod.effective_price)
+        : Number(prod.price || 0),
+    );
+    setFormPromotionNote("");
+    setFormIsFeatured(Boolean(prod.is_featured));
+    setFormSortOrder(Number(prod.sort_order ?? 0));
     setFormDescription(prod.description || "");
     setFormImageUrl(prod.image_url || "");
     setFormStatus(
@@ -278,6 +297,19 @@ export default function AdminProductManagementPage() {
       }));
 
     try {
+      const promotionPayload = formHasPromotion
+        ? {
+            promotional_price: Number(formPromotionalPrice),
+            is_active: true,
+            note: formPromotionNote.trim() || undefined,
+          }
+        : editingProduct?.has_promotion
+          ? {
+              promotional_price: Number(formPrice),
+              is_active: false,
+            }
+          : undefined;
+
       if (editingProduct) {
         await updateProduct.mutateAsync({
           id: editingProduct.id,
@@ -287,8 +319,11 @@ export default function AdminProductManagementPage() {
             price: Number(formPrice),
             description: formDescription.trim(),
             image_url: formImageUrl.trim(),
+            is_featured: formIsFeatured,
+            sort_order: Number(formSortOrder),
             status: formStatus,
             option_groups: cleanedOptionGroups,
+            promotion: promotionPayload,
           },
         });
         showSuccess("Cập nhật món ăn thành công");
@@ -299,8 +334,11 @@ export default function AdminProductManagementPage() {
           price: Number(formPrice),
           description: formDescription.trim(),
           image_url: formImageUrl.trim(),
+          is_featured: formIsFeatured,
+          sort_order: Number(formSortOrder),
           status: formStatus,
           option_groups: cleanedOptionGroups,
+          promotion: promotionPayload,
         });
         showSuccess("Thêm món mới thành công");
       }
@@ -585,6 +623,78 @@ export default function AdminProductManagementPage() {
             </div>
           </div>
 
+          {/* Khuyến Mãi / Giá Ưu Đãi */}
+          <div className="rounded-xl border border-stone-200/80 bg-stone-50/50 p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-stone-800">
+                  Giá ưu đãi (Khuyến mãi)
+                </span>
+                <p className="text-[11px] text-stone-500">
+                  Thiết lập giá giảm cho món ăn
+                </p>
+              </div>
+              <Switch
+                checked={formHasPromotion}
+                onChange={(e) => setFormHasPromotion(e.target.checked)}
+              />
+            </div>
+
+            {formHasPromotion && (
+              <div className="mt-3 space-y-2.5 border-t border-stone-200/60 pt-2.5">
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label
+                      htmlFor="prod-promo-price-input"
+                      className="text-[11px] font-semibold text-stone-700"
+                    >
+                      Giá ưu đãi (₫) *
+                    </label>
+                    <input
+                      id="prod-promo-price-input"
+                      type="number"
+                      step="1000"
+                      value={formPromotionalPrice}
+                      onChange={(e) =>
+                        setFormPromotionalPrice(Number(e.target.value))
+                      }
+                      className="mt-1 h-10 w-full rounded-lg border border-stone-200 bg-white px-2.5 text-xs font-bold text-primary focus:border-primary focus:outline-none"
+                      required={formHasPromotion}
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-semibold text-stone-700">
+                      Mức giảm (%)
+                    </span>
+                    <div className="mt-1 flex h-10 items-center rounded-lg border border-stone-200 bg-stone-100/70 px-2.5 text-xs font-extrabold text-red-600">
+                      {formPrice > 0 &&
+                      formPromotionalPrice > 0 &&
+                      formPrice > formPromotionalPrice
+                        ? `-${Math.round((1 - formPromotionalPrice / formPrice) * 100)}%`
+                        : "0%"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label
+                    htmlFor="prod-promo-note-input"
+                    className="text-[11px] font-semibold text-stone-700"
+                  >
+                    Ghi chú ưu đãi
+                  </label>
+                  <input
+                    id="prod-promo-note-input"
+                    type="text"
+                    placeholder="VD: Flash sale, Combo trưa..."
+                    value={formPromotionNote}
+                    onChange={(e) => setFormPromotionNote(e.target.value)}
+                    className="mt-1 h-9 w-full rounded-lg border border-stone-200 bg-white px-2.5 text-xs text-stone-800 focus:border-primary focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           <div>
             <label
               htmlFor="prod-desc-input"
@@ -677,23 +787,56 @@ export default function AdminProductManagementPage() {
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="prod-status-select"
-              className="text-xs font-semibold text-stone-700"
-            >
-              Trạng thái bán
-            </label>
-            <select
-              id="prod-status-select"
-              value={formStatus}
-              onChange={(e) => setFormStatus(e.target.value as any)}
-              className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
-            >
-              <option value="AVAILABLE">Sẵn sàng bán (Available)</option>
-              <option value="OUT_OF_STOCK">Tạm hết món (Out of stock)</option>
-              <option value="INACTIVE">Ngừng bán / Ẩn món (Inactive)</option>
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                htmlFor="prod-status-select"
+                className="text-xs font-semibold text-stone-700"
+              >
+                Trạng thái bán
+              </label>
+              <select
+                id="prod-status-select"
+                value={formStatus}
+                onChange={(e) => setFormStatus(e.target.value as any)}
+                className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
+              >
+                <option value="AVAILABLE">Sẵn sàng bán (Available)</option>
+                <option value="OUT_OF_STOCK">Tạm hết món (Out of stock)</option>
+                <option value="INACTIVE">Ngừng bán / Ẩn món (Inactive)</option>
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor="prod-sort-order-input"
+                className="text-xs font-semibold text-stone-700"
+              >
+                Thứ tự hiển thị
+              </label>
+              <input
+                id="prod-sort-order-input"
+                type="number"
+                value={formSortOrder}
+                onChange={(e) => setFormSortOrder(Number(e.target.value))}
+                placeholder="0"
+                className="mt-1 h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl border border-stone-200/80 bg-stone-50/50 p-3">
+            <div>
+              <span className="text-xs font-bold text-stone-800">
+                Món nổi bật (Featured)
+              </span>
+              <p className="text-[11px] text-stone-500">
+                Hiển thị huy hiệu nổi bật hoặc ghim lên đầu danh sách
+              </p>
+            </div>
+            <Switch
+              checked={formIsFeatured}
+              onChange={(e) => setFormIsFeatured(e.target.checked)}
+            />
           </div>
 
           {/* Option Groups & Topping Section */}

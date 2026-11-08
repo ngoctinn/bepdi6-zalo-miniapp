@@ -6,10 +6,12 @@ import { Icon, Spinner } from "zmp-ui";
 import { useAppToast } from "@/hooks/use-app-toast";
 
 interface AdminRouteGuardProps {
-  requiredRole?: "ADMIN";
+  allowedRoles?: ("ADMIN" | "STAFF")[];
 }
 
-export function AdminRouteGuard({}: AdminRouteGuardProps = {}) {
+export function AdminRouteGuard({
+  allowedRoles = ["ADMIN"],
+}: AdminRouteGuardProps = {}) {
   const { customer, isLoading, refetchCustomer } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -24,20 +26,24 @@ export function AdminRouteGuard({}: AdminRouteGuardProps = {}) {
     );
   }
 
-  const isAdmin = customer?.role === "ADMIN";
+  const hasPermission =
+    customer?.role && allowedRoles.includes(customer.role as "ADMIN" | "STAFF");
 
-  if (!isAdmin) {
+  if (!hasPermission) {
     return (
       <div className="relative flex min-h-[80vh] flex-col items-center justify-center p-6 text-center">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-600">
           <Icon icon="zi-lock" className="shrink-0 text-3xl" />
         </div>
         <h2 className="text-base font-bold text-stone-900">
-          Chưa Được Cấp Quyền Quản Trị
+          Chưa Được Cấp Quyền Truy Cập
         </h2>
         <p className="mt-2 max-w-sm text-xs leading-relaxed text-stone-600">
-          Tài khoản Zalo của bạn chưa được cấp quyền Quản trị viên (ADMIN). Vui
-          lòng gửi Zalo User ID bên dưới cho chủ quán để được kích hoạt.
+          Tài khoản Zalo của bạn chưa được cấp quyền{" "}
+          {allowedRoles.includes("STAFF")
+            ? "Nhân viên (STAFF) hoặc Quản trị viên (ADMIN)"
+            : "Quản trị viên (ADMIN)"}
+          . Vui lòng gửi Zalo User ID bên dưới cho chủ quán để được kích hoạt.
         </p>
 
         {customer?.zalo_user_id && (
