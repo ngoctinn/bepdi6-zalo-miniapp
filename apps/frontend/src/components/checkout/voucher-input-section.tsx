@@ -96,7 +96,7 @@ export function VoucherInputSection({
       </div>
 
       {appliedVoucherCode && (
-        <div className="flex items-center justify-between rounded-xl border border-primary/25 bg-olive50/90 px-3.5 py-2.5 text-xs text-primaryDark">
+        <div className="flex items-center justify-between rounded-xl border border-primary/25 bg-primarySurface px-3.5 py-2.5 text-xs text-primaryDark">
           <span className="font-medium">
             {copy.checkout.appliedVoucherPrefix} <b>{appliedVoucherCode}</b>
           </span>

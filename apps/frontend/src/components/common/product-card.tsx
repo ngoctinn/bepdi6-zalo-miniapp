@@ -232,7 +232,7 @@ export default function ProductCard({
                 <button
                   type="button"
                   onClick={handleQuickDecrease}
-                  className="shadow-xs relative flex h-8 min-h-[32px] w-8 min-w-[32px] touch-manipulation items-center justify-center rounded-full border border-primary/25 bg-olive50/80 text-olive900 transition-transform after:absolute after:-inset-1.5 after:content-[''] active:scale-90"
+                  className="shadow-xs relative flex h-8 min-h-[32px] w-8 min-w-[32px] touch-manipulation items-center justify-center rounded-full border border-primary/30 bg-primarySurface text-primaryDark transition-transform after:absolute after:-inset-1.5 after:content-[''] hover:bg-primaryLight/40 active:scale-90"
                   aria-label="Giảm số lượng"
                 >
                   <svg

@@ -92,13 +92,13 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
           onClick={() => onChange(undefined)}
           className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-left transition-colors transition-transform duration-150 active:scale-[0.99] ${
             isAsap
-              ? "shadow-xs border-primary/40 bg-olive50/90 font-semibold text-olive900"
+              ? "shadow-xs border-primary/40 bg-primarySurface font-semibold text-primaryDark"
               : "border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10"
           }`}
         >
           <div className="flex flex-col">
             <span
-              className={`text-xs ${isAsap ? "font-semibold text-olive900" : "font-medium text-neutral900"}`}
+              className={`text-xs ${isAsap ? "font-semibold text-primaryDark" : "font-medium text-neutral900"}`}
             >
               Càng sớm càng tốt
             </span>
@@ -129,13 +129,13 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
             }}
             className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-left transition-colors transition-transform duration-150 active:scale-[0.99] ${
               !isAsap
-                ? "shadow-xs border-primary/40 bg-olive50/90 font-semibold text-olive900"
+                ? "shadow-xs border-primary/40 bg-primarySurface font-semibold text-primaryDark"
                 : "border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10"
             }`}
           >
             <div className="flex flex-col">
               <span
-                className={`text-xs ${!isAsap ? "font-semibold text-olive900" : "font-medium text-neutral900"}`}
+                className={`text-xs ${!isAsap ? "font-semibold text-primaryDark" : "font-medium text-neutral900"}`}
               >
                 Hẹn giờ nhận hôm nay
               </span>

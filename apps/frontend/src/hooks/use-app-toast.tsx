@@ -203,7 +203,7 @@ export const AppToastContainer: React.FC = () => {
     switch (type) {
       case "success":
         return (
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-olive100 text-olive700">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
             <svg
               className="h-3.5 w-3.5"
               viewBox="0 0 24 24"
@@ -303,10 +303,10 @@ export const AppToastContainer: React.FC = () => {
     switch (type) {
       case "success":
         return {
-          card: "bg-olive50/95 border-olive700/25 text-olive900 shadow-lime-900/10",
-          title: "text-olive900",
-          desc: "text-olive700",
-          action: "text-olive700 hover:text-olive800",
+          card: "bg-emerald-50/95 border-emerald-600/25 text-emerald-900 shadow-emerald-900/10",
+          title: "text-emerald-900",
+          desc: "text-emerald-700",
+          action: "text-emerald-700 hover:text-emerald-800",
         };
       case "warning":
         return {
@@ -324,7 +324,7 @@ export const AppToastContainer: React.FC = () => {
         };
       case "loading":
         return {
-          card: "bg-stone50/95 border-olive700/25 text-neutral900 shadow-black/10",
+          card: "bg-stone50/95 border-primary/25 text-neutral900 shadow-black/10",
           title: "text-neutral900",
           desc: "text-neutral500",
           action: "text-primary",

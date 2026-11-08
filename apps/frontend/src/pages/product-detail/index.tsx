@@ -362,7 +362,7 @@ export default function ProductDetailPage() {
                               className={cn(
                                 "flex min-h-[44px] w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-colors transition-transform duration-150 active:scale-[0.99]",
                                 isSelected
-                                  ? "shadow-xs border border-primary/30 bg-olive50/80 font-semibold text-primaryDark"
+                                  ? "shadow-xs border border-primary/30 bg-primarySurface font-semibold text-primaryDark"
                                   : "border border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10 active:bg-black/[0.02]",
                                 isUnavailable &&
                                   "cursor-not-allowed opacity-40",
@@ -373,7 +373,7 @@ export default function ProductDetailPage() {
                                   className={cn(
                                     "text-xs leading-snug",
                                     isSelected
-                                      ? "font-semibold text-olive900"
+                                      ? "font-semibold text-primaryDark"
                                       : "font-medium text-neutral800",
                                   )}
                                 >

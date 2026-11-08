@@ -63,8 +63,8 @@ export default function CategoryList({
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
               "select-none whitespace-nowrap",
               isSelected
-                ? "shadow-xs border-primary/30 bg-olive50/80 font-bold text-olive900"
-                : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50 hover:text-olive900",
+                ? "shadow-xs border-primary/40 bg-primarySurface font-bold text-primaryDark"
+                : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50 hover:text-primaryDark",
             )}
             onClick={() => onCategorySelect?.(category)}
           >

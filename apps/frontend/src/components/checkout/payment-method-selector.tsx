@@ -32,7 +32,7 @@ export function PaymentMethodSelector({
           className={cn(
             "flex w-full items-center justify-between rounded-xl border p-3.5 text-xs transition-[color,background-color,border-color,transform] duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]",
             isBankTransfer
-              ? "shadow-xs border-primary/40 bg-olive50/90 font-semibold text-olive900"
+              ? "shadow-xs border-primary/40 bg-primarySurface font-semibold text-primaryDark"
               : "border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10",
           )}
         >
@@ -42,7 +42,7 @@ export function PaymentMethodSelector({
                 className={cn(
                   "text-xs leading-snug",
                   isBankTransfer
-                    ? "font-semibold text-olive900"
+                    ? "font-semibold text-primaryDark"
                     : "font-medium text-neutral800",
                 )}
               >
@@ -78,7 +78,7 @@ export function PaymentMethodSelector({
           className={cn(
             "flex w-full items-center justify-between rounded-xl border p-3.5 text-xs transition-[color,background-color,border-color,transform] duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.99]",
             isCod
-              ? "shadow-xs border-primary/40 bg-olive50/90 font-semibold text-olive900"
+              ? "shadow-xs border-primary/40 bg-primarySurface font-semibold text-primaryDark"
               : "border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10",
           )}
         >
@@ -86,7 +86,7 @@ export function PaymentMethodSelector({
             className={cn(
               "text-xs leading-snug",
               isCod
-                ? "font-semibold text-olive900"
+                ? "font-semibold text-primaryDark"
                 : "font-medium text-neutral800",
             )}
           >

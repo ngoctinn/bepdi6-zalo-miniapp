@@ -84,13 +84,29 @@ const base = {
     stone800: "#292524",
     stone900: "#1C1917",
 
-    // Rustic Olive Palette (Xanh rêu mộc mạc - lá chuối hấp miền Tây)
+    // Warm Terracotta & Claypot Palette (Niêu đất nung & gừng ấm Bếp Dì 6)
+    terracotta50: "#FFF7ED",
+    terracotta100: "#FFEDD5",
+    terracotta200: "#FED7AA",
+    terracotta600: "#EA580C",
+    terracotta700: "#C2410C", // Warm Terracotta Brand Primary
+    terracotta800: "#9A3412", // Warm Terracotta Brand Pressed
+    terracotta900: "#7C2D12",
+
+    // Emerald Palette (Semantic Success)
+    emerald50: "#F0FDF4",
+    emerald100: "#DCFCE7",
+    emerald600: "#16A34A",
+    emerald700: "#15803D",
+    emerald900: "#14532D",
+
+    // Rustic Olive Palette (Secondary Nature Accent)
     olive50: "#F7FEE7",
     olive100: "#ECFCCB",
     olive200: "#D9F99D",
     olive600: "#65A30D",
-    olive700: "#4D7C0F", // Rustic Olive Brand Primary
-    olive800: "#3F6212", // Rustic Olive Brand Pressed
+    olive700: "#4D7C0F",
+    olive800: "#3F6212",
     olive900: "#365314",
 
     // Warm Ginger & Amber (Vàng mật ong / gừng)
@@ -125,13 +141,14 @@ const base = {
 
 const semantic = {
   colors: {
-    primary: "rgb(var(--theme-primary-rgb, 77 124 15) / <alpha-value>)", // Dynamic theme variable with opacity support
-    primaryDark: "rgb(var(--theme-primary-dark-rgb, 63 98 18) / <alpha-value>)",
+    primary: "rgb(var(--theme-primary-rgb, 194 65 12) / <alpha-value>)", // Dynamic theme variable with opacity support
+    primaryDark:
+      "rgb(var(--theme-primary-dark-rgb, 154 52 18) / <alpha-value>)",
     primaryLight:
-      "rgb(var(--theme-primary-light-rgb, 236 252 203) / <alpha-value>)",
+      "rgb(var(--theme-primary-light-rgb, 255 237 213) / <alpha-value>)",
     primarySurface:
-      "rgb(var(--theme-primary-surface-rgb, 247 254 231) / <alpha-value>)",
-    primaryBorder: "var(--theme-primary-border, rgba(77, 124, 15, 0.2))",
+      "rgb(var(--theme-primary-surface-rgb, 255 247 237) / <alpha-value>)",
+    primaryBorder: "var(--theme-primary-border, rgba(194, 65, 12, 0.2))",
     brandAccent: "rgb(var(--theme-accent-rgb, 217 119 6) / <alpha-value>)", // Đồng bộ màu thương hiệu Warm Amber
     background: base.colors.stone50, // #FCFCFB — Nền sáng dịu sạch sẽ
     surface: "#FFFFFF",
@@ -151,15 +168,15 @@ const semantic = {
     icon: {
       tertiary: base.colors.neutral500,
     },
-    accent: base.colors.olive700,
-    info: base.colors.olive700,
+    accent: base.colors.amber600,
+    info: base.colors.terracotta700,
     warning: base.colors.amber600,
     danger: base.colors.red600,
     feedback: {
       success: {
-        background: base.colors.olive50, // #F7FEE7
-        text: base.colors.olive900, // #365314
-        icon: base.colors.olive700, // #4D7C0F
+        background: base.colors.emerald50, // #F0FDF4
+        text: base.colors.emerald900, // #14532D
+        icon: base.colors.emerald600, // #16A34A
       },
       warning: {
         background: base.colors.amber50, // #FFFBEB
@@ -198,7 +215,7 @@ const semantic = {
           textOnBackground: base.colors.white,
         },
         new: {
-          backgroundColor: base.colors.olive700,
+          backgroundColor: base.colors.terracotta700,
           textOnBackground: base.colors.white,
         },
         discount: {
@@ -207,23 +224,23 @@ const semantic = {
         },
       },
       sub_cate: {
-        border: base.colors.olive100,
+        border: base.colors.amber100,
       },
       chip: {
         backgroundColor: base.colors.white,
         textOnBackground: base.colors.neutral600,
         border: base.colors.neutral200,
         selected: {
-          backgroundColor: base.colors.olive700,
+          backgroundColor: base.colors.terracotta700,
           textOnBackground: base.colors.white,
         },
         feature: {
           unselected: {
-            backgroundColor: base.colors.olive50,
+            backgroundColor: base.colors.amber50,
             textOnBackground: base.colors.neutral600,
           },
           selected: {
-            backgroundColor: base.colors.olive700,
+            backgroundColor: base.colors.terracotta700,
             textOnBackground: base.colors.white,
           },
         },

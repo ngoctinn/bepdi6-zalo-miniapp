@@ -23,7 +23,7 @@ export function DeliveryTypeSelector({
         className={cn(
           "flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition-[color,background-color,border-color,transform] duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]",
           isDelivery
-            ? "shadow-xs border-primary/40 bg-olive50/90 text-olive900"
+            ? "shadow-xs border-primary/40 bg-primarySurface text-primaryDark"
             : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50",
         )}
       >
@@ -42,7 +42,7 @@ export function DeliveryTypeSelector({
         className={cn(
           "flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition-[color,background-color,border-color,transform] duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:scale-[0.98]",
           isPickup
-            ? "shadow-xs border-primary/40 bg-olive50/90 text-olive900"
+            ? "shadow-xs border-primary/40 bg-primarySurface text-primaryDark"
             : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50",
         )}
       >

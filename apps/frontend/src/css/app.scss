@@ -9,17 +9,17 @@
     env(safe-area-inset-bottom, 0px)
   );
 
-  /* Dynamic Theme Colors — Default: Rustic Olive (Customer Mode) */
-  --theme-primary-rgb: 77 124 15;
-  --theme-primary-dark-rgb: 63 98 18;
-  --theme-primary-light-rgb: 236 252 203;
-  --theme-primary-surface-rgb: 247 254 231;
+  /* Dynamic Theme Colors — Default: Warm Terracotta & Honey Ginger (Customer Mode) */
+  --theme-primary-rgb: 194 65 12;
+  --theme-primary-dark-rgb: 154 52 18;
+  --theme-primary-light-rgb: 255 237 213;
+  --theme-primary-surface-rgb: 255 247 237;
 
   --theme-primary: rgb(var(--theme-primary-rgb));
   --theme-primary-dark: rgb(var(--theme-primary-dark-rgb));
   --theme-primary-light: rgb(var(--theme-primary-light-rgb));
   --theme-primary-surface: rgb(var(--theme-primary-surface-rgb));
-  --theme-primary-border: rgba(77, 124, 15, 0.2);
+  --theme-primary-border: rgba(194, 65, 12, 0.2);
 
   /* Brand Accent: Warm Amber */
   --theme-accent-rgb: 217 119 6;
@@ -163,8 +163,8 @@ input:focus,
 textarea:focus,
 select:focus {
   outline: none !important;
-  border-color: var(--zaui-primary-color, #4d7c0f) !important;
-  box-shadow: 0 0 0 1px var(--theme-primary-border, rgba(77, 124, 15, 0.25)) !important;
+  border-color: var(--zaui-primary-color, #c2410c) !important;
+  box-shadow: 0 0 0 1px var(--theme-primary-border, rgba(194, 65, 12, 0.25)) !important;
 }
 
 button,
@@ -178,7 +178,7 @@ button:focus-within {
 button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible {
-  outline: 2px solid var(--zaui-primary-color, #4d7c0f) !important;
+  outline: 2px solid var(--zaui-primary-color, #c2410c) !important;
   outline-offset: 2px !important;
 }
 
@@ -236,7 +236,7 @@ a:focus-visible,
 }
 
 .zaui-bottom-navigation-item-active .zaui-bottom-navigation-item-label {
-  color: var(--zaui-primary-color, #4d7c0f);
+  color: var(--zaui-primary-color, #c2410c);
 }
 
 /* ==========================================================================
@@ -361,16 +361,16 @@ a:focus-visible,
 
 /* 5. Semantic Color Variants (Soft Style) */
 
-/* Soft Success Variant (Olive) */
+/* Soft Success Variant (Emerald) */
 .zaui-snackbar.zaui-snackbar-success,
 .zaui-snackbar.zaui-toast-success,
 .zaui-snackbar[class*="success"],
 .zaui-custom-toast.zaui-toast-success,
 .zaui-toast-success,
 .zaui-snackbar-success {
-  background-color: #f7fee7 !important;
-  border-color: rgba(77, 124, 15, 0.25) !important;
-  color: #365314 !important;
+  background-color: #f0fdf4 !important;
+  border-color: rgba(22, 163, 74, 0.25) !important;
+  color: #14532d !important;
 }
 .zaui-snackbar.zaui-snackbar-success .zaui-snackbar-text,
 .zaui-snackbar.zaui-toast-success .zaui-snackbar-text,
@@ -378,7 +378,7 @@ a:focus-visible,
 .zaui-custom-toast.zaui-toast-success .zaui-snackbar-text,
 .zaui-toast-success .zaui-snackbar-text,
 .zaui-snackbar-success .zaui-snackbar-text {
-  color: #365314 !important;
+  color: #14532d !important;
 }
 .zaui-snackbar.zaui-snackbar-success .zaui-snackbar-action,
 .zaui-snackbar.zaui-toast-success .zaui-snackbar-action,
@@ -386,7 +386,7 @@ a:focus-visible,
 .zaui-custom-toast.zaui-toast-success .zaui-snackbar-action,
 .zaui-toast-success .zaui-snackbar-action,
 .zaui-snackbar-success .zaui-snackbar-action {
-  color: #4d7c0f !important;
+  color: #16a34a !important;
 }
 
 /* Soft Warning Variant (Amber / Honey) */
@@ -479,7 +479,7 @@ a:focus-visible,
 .zaui-custom-toast.zaui-toast-default .zaui-snackbar-action,
 .zaui-toast-info .zaui-snackbar-action,
 .zaui-toast-default .zaui-snackbar-action {
-  color: #4d7c0f !important;
+  color: var(--theme-primary, #c2410c) !important;
 }
 
 /* Soft Loading Variant */
@@ -488,7 +488,7 @@ a:focus-visible,
 .zaui-custom-toast.zaui-toast-loading,
 .zaui-toast-loading {
   background-color: #fafaf9 !important;
-  border-color: rgba(77, 124, 15, 0.25) !important;
+  border-color: rgba(194, 65, 12, 0.25) !important;
   color: #0f172a !important;
 }
 .zaui-snackbar.zaui-snackbar-loading .zaui-snackbar-text,

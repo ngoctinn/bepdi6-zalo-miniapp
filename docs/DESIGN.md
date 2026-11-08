@@ -7,8 +7,8 @@
 
 ## 1. Triết Lý Thiết Kế & Phong Cách Thương Hiệu (Brand & Philosophy)
 
-- **Style Archetype:** **Rustic Olive & Warm Ginger Bistro** kết hợp **Light & Airy Mobile-First**.
-- **Cảm hứng:** Ẩm thực miền Tây mộc mạc, tươi ngon, ấm cúng (sắc xanh lá chuối hấp, vàng ấm mật ong & gừng tươi, bề mặt sáng mịn sạch sẽ).
+- **Style Archetype:** **Warm Terracotta & Honey Ginger Bistro** kết hợp **Light & Airy Mobile-First**.
+- **Cảm hứng:** Ẩm thực miền Tây mộc mạc, tươi ngon, ấm cúng gia đình (sắc cam đất nung niêu kho tộ, vàng ấm mật ong & gừng tươi, bề mặt kem ấm sạch sẽ, thoát khỏi lối mòn của các ứng dụng giao hàng công nghệ).
 - **Trải nghiệm cốt lõi:**
   1. **Tốc độ (Instant & Frictionless):** ≤ 3–4 chạm từ khi mở Menu đến hoàn tất Checkout.
   2. **Tiện dụng 1 tay (Thumb-Zone Friendly):** 90% thao tác tương tác chính (Quick-add, Stepper, Thanh giỏ hàng, Nút Đặt hàng) nằm trong vùng quét thuận tiện của ngón cái ở nửa dưới màn hình.
@@ -25,10 +25,10 @@ Toàn bộ mã màu theme được khai báo dưới dạng kênh màu RGB phân
 
 | Token Key | Biến RGB / HEX | Tên gọi & Ứng dụng |
 | :--- | :--- | :--- |
-| `primary` (`--theme-primary`) | `77 124 15` / `#4D7C0F` | **Primary Brand**: Nút CTA chính, Tab đang active, icon nổi bật, viền nhấn |
-| `primaryDark` (`--theme-primary-dark`) | `63 98 18` / `#3F6212` | **Primary Pressed / Hover**: Trạng thái nhấn giữ của nút chính |
-| `primaryLight` (`--theme-primary-light`) | `236 252 203` / `#ECFCCB` | Nền phụ, chip lựa chọn, highlight nhẹ |
-| `primarySurface` (`--theme-primary-surface`) | `247 254 231` / `#F7FEE7` | Nền block tóm tắt, banner trạng thái đơn đang xử lý, badge active |
+| `primary` (`--theme-primary`) | `194 65 12` / `#C2410C` | **Primary Brand**: Nút CTA chính (Đặt hàng/Thanh toán), Tab đang active, icon nổi bật, viền nhấn |
+| `primaryDark` (`--theme-primary-dark`) | `154 52 18` / `#9A3412` | **Primary Pressed / Hover**: Trạng thái nhấn giữ của nút chính |
+| `primaryLight` (`--theme-primary-light`) | `255 237 213` / `#FFEDD5` | Nền phụ, chip lựa chọn, highlight nhẹ |
+| `primarySurface` (`--theme-primary-surface`) | `255 247 237` / `#FFF7ED` | Nền block tóm tắt, banner trạng thái đơn đang xử lý, badge active (êm mắt OLED) |
 | `brandAccent` (`--theme-accent`) | `217 119 6` / `#D97706` | **Warm Amber**: Điểm nhấn ẩm thực, badge giảm giá, hình thức "Tự đến lấy" |
 | `amber500` / `amber100` | `#F59E0B` / `#FEF3C7` | Nền nhạt và viền của cảnh báo hoặc badge chuẩn bị món |
 

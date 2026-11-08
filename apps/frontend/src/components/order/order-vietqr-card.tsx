@@ -90,7 +90,7 @@ export function OrderVietQrCard({
   };
 
   return (
-    <div className="shadow-xs space-y-3 rounded-2xl border border-primary/25 bg-olive50/60 p-4">
+    <div className="shadow-xs space-y-3 rounded-2xl border border-primary/25 bg-primarySurface/60 p-4">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold text-neutral900">
           {copy.orderDetail.vietqrTitle}
@@ -124,8 +124,8 @@ export function OrderVietQrCard({
             className={cn(
               "shadow-2xs inline-flex min-h-[44px] touch-manipulation items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold transition-transform active:scale-95",
               isSavedQrSuccess
-                ? "border-primary/40 bg-olive50 font-bold text-olive900"
-                : "border-primary/30 bg-white text-primary active:bg-olive50",
+                ? "border-primary/40 bg-primarySurface font-bold text-primaryDark"
+                : "border-primary/30 bg-white text-primary active:bg-primaryLight/30",
             )}
           >
             {isSavingQr ? (
@@ -175,7 +175,7 @@ export function OrderVietQrCard({
                   className={cn(
                     "shadow-2xs inline-flex min-h-[38px] min-w-[76px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
                     copiedKey === "bankAccountNo"
-                      ? "border-primary/40 bg-olive50 font-bold text-olive900"
+                      ? "border-primary/40 bg-primarySurface font-bold text-primaryDark"
                       : "border-primary/30 bg-white text-primary active:bg-primary/10",
                   )}
                 >
@@ -223,7 +223,7 @@ export function OrderVietQrCard({
                   className={cn(
                     "shadow-2xs inline-flex min-h-[38px] min-w-[76px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
                     copiedKey === "amount"
-                      ? "border-primary/40 bg-olive50 font-bold text-olive900"
+                      ? "border-primary/40 bg-primarySurface font-bold text-primaryDark"
                       : "border-primary/30 bg-white text-primary active:bg-primary/10",
                   )}
                 >
@@ -261,7 +261,7 @@ export function OrderVietQrCard({
                   className={cn(
                     "shadow-2xs inline-flex min-h-[38px] min-w-[76px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
                     copiedKey === "orderCode"
-                      ? "border-primary/40 bg-olive50 font-bold text-olive900"
+                      ? "border-primary/40 bg-primarySurface font-bold text-primaryDark"
                       : "border-primary/30 bg-white text-primary active:bg-primary/10",
                   )}
                 >

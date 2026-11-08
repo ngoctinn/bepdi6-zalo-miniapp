@@ -132,7 +132,7 @@ export function DeliveryAddressCard({
                       {selectedAddress.recipient_name} • {selectedAddress.phone}
                     </span>
                     {(!selectedAddress.id || selectedAddress.id === 0) && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-olive100 px-1.5 py-0.5 text-xs font-bold text-olive900">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-primaryLight px-1.5 py-0.5 text-xs font-bold text-primaryDark">
                         <MapPinIcon className="h-3 w-3 text-primary" />
                         <span>{copy.checkout.currentGpsLocation}</span>
                       </span>
@@ -146,7 +146,7 @@ export function DeliveryAddressCard({
                       className={`mt-2 inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium ${
                         shippingStatus === "OUT_OF_RADIUS"
                           ? "border-red-200 bg-red-50 text-red-600"
-                          : "border-primary/20 bg-olive50/90 text-primaryDark"
+                          : "border-primary/25 bg-primarySurface text-primaryDark"
                       }`}
                     >
                       <span>

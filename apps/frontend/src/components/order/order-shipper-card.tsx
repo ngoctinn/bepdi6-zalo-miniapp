@@ -115,7 +115,7 @@ export function OrderShipperCard({ order, isPaid }: OrderShipperCardProps) {
 
         {/* Thông báo đã thanh toán Online nếu Bank Transfer */}
         {order.payment_method === "BANK_TRANSFER" && isPaid && (
-          <div className="mt-3 flex items-center gap-1.5 rounded-xl border border-primary/20 bg-olive50 px-3 py-2 text-xs font-bold text-olive900">
+          <div className="mt-3 flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primarySurface px-3 py-2 text-xs font-bold text-primaryDark">
             <CheckIcon className="h-4 w-4 shrink-0 text-primary" />
             <span>
               {copy.orderDetail.paidOnlineNotice ||

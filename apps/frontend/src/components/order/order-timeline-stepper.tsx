@@ -125,7 +125,7 @@ export function OrderTimelineStepper({ order }: OrderTimelineStepperProps) {
                 <span
                   className={`mt-2 text-xxsmall leading-tight ${
                     isCurrent
-                      ? "font-bold text-olive900"
+                      ? "font-bold text-primaryDark"
                       : isPassed
                         ? "font-medium text-neutral800"
                         : "text-neutral400"
