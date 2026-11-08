@@ -60,7 +60,7 @@ export default function CategoryList({
             data-category-id={category.id}
             className={cn(
               "flex min-h-[40px] shrink-0 touch-manipulation items-center justify-center rounded-xl border px-4 py-2 text-xs font-semibold transition-colors duration-150 active:scale-[0.98]",
-              "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
               "select-none whitespace-nowrap",
               isSelected
                 ? "shadow-xs border-primary/30 bg-olive50/80 font-bold text-olive900"

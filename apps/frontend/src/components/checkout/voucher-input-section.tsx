@@ -53,7 +53,7 @@ export function VoucherInputSection({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between px-1">
-        <span className="text-xs font-bold uppercase text-neutral900">
+        <span className="text-xs font-bold text-neutral900">
           {copy.checkout.voucherSection}
         </span>
         <button

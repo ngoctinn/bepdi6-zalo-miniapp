@@ -88,7 +88,7 @@ export function DeliveryAddressCard({
       {deliveryType === "DELIVERY" ? (
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-bold uppercase text-neutral900">
+            <span className="text-xs font-bold text-neutral900">
               {copy.checkout.deliveryAddressSection}
             </span>
             {selectedAddress && (
@@ -209,7 +209,7 @@ export function DeliveryAddressCard({
           {/* Thông tin cửa hàng */}
           <div className="flex flex-col gap-2">
             <div className="px-1">
-              <span className="text-xs font-bold uppercase text-neutral900">
+              <span className="text-xs font-bold text-neutral900">
                 {copy.checkout.storeInfoSection || "Thông tin cửa hàng"}
               </span>
             </div>
@@ -233,7 +233,7 @@ export function DeliveryAddressCard({
           {/* Người nhận món tại quán */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-bold uppercase text-neutral900">
+              <span className="text-xs font-bold text-neutral900">
                 {copy.checkout.pickupStoreSection}
               </span>
               {isZaloRuntime() && (

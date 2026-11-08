@@ -28,10 +28,9 @@ export function OrderShipperCard({ order, isPaid }: OrderShipperCardProps) {
     <div className="shadow-xs overflow-hidden rounded-2xl border border-primary/30 bg-white">
       <div className="flex items-center justify-between bg-primary/10 px-4 py-2.5">
         <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 animate-ping rounded-full bg-emerald-500" />
-          <span className="text-xs font-black text-primary">
-            {copy.orderDetail.driverDeliveringTitle ||
-              "TÀI XẾ ĐANG GIAO ĐẾN BẠN"}
+          <span className="flex h-2 w-2 rounded-full bg-primary" />
+          <span className="text-xs font-bold text-primary">
+            Tài xế đang giao đơn đến bạn
           </span>
         </div>
         {order.distance_km && Number(order.distance_km) > 0 && (
@@ -116,8 +115,8 @@ export function OrderShipperCard({ order, isPaid }: OrderShipperCardProps) {
 
         {/* Thông báo đã thanh toán Online nếu Bank Transfer */}
         {order.payment_method === "BANK_TRANSFER" && isPaid && (
-          <div className="mt-3 flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
-            <CheckIcon className="h-4 w-4 shrink-0 text-emerald-600" />
+          <div className="mt-3 flex items-center gap-1.5 rounded-xl border border-primary/20 bg-olive50 px-3 py-2 text-xs font-bold text-olive900">
+            <CheckIcon className="h-4 w-4 shrink-0 text-primary" />
             <span>
               {copy.orderDetail.paidOnlineNotice ||
                 "Đã thanh toán Online 0đ - Không thanh toán thêm cho tài xế"}

@@ -92,58 +92,62 @@ export function OrderDetailItems({ order, shopInfo }: OrderDetailItemsProps) {
                 </div>
               </div>
 
-              {/* Action Buttons: Google Maps, Sao chép địa chỉ & Hotline */}
-              <div className="mt-3 flex items-center gap-2 pt-1">
+              {/* Action Buttons: Tách 2 tầng thông minh tránh vỡ dòng trên 360px */}
+              <div className="mt-3 space-y-2 pt-1">
                 <button
                   type="button"
                   onClick={handleOpenDirections}
                   aria-label={copy.orderDetail.openGoogleMap || "Xem đường đi"}
-                  className="shadow-xs flex min-h-[38px] flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-transform active:scale-[0.98] active:bg-primaryDark"
+                  className="shadow-xs flex min-h-[38px] w-full touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-transform active:scale-[0.98] active:bg-primaryDark"
                 >
                   <NavigationIcon className="h-3.5 w-3.5 shrink-0" />
                   <span>{copy.orderDetail.openGoogleMap}</span>
                 </button>
-                <button
-                  type="button"
-                  aria-label="Sao chép địa chỉ quán"
-                  onClick={() =>
-                    handleCopy(
-                      shopAddress,
-                      "shopAddress",
-                      copy.orderDetail.shopAddressLabel,
-                    )
-                  }
-                  className={cn(
-                    "shadow-2xs flex min-h-[38px] touch-manipulation items-center justify-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-transform active:scale-[0.98]",
-                    copiedKey === "shopAddress"
-                      ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
-                      : "border-black/10 bg-white text-neutral700 active:bg-stone-50",
-                  )}
-                  title={copy.orderDetail.copyAddress}
-                >
-                  {copiedKey === "shopAddress" ? (
-                    <>
-                      <CheckIcon className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-                      <span>Đã chép</span>
-                    </>
-                  ) : (
-                    <>
-                      <CopyIcon className="h-3.5 w-3.5 shrink-0" />
-                      <span>{copy.orderDetail.copy}</span>
-                    </>
-                  )}
-                </button>
-                {shopHotline && (
+
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    aria-label={`Gọi hotline quán ${shopHotline}`}
-                    onClick={() => makePhoneCall(shopHotline)}
-                    className="shadow-2xs flex min-h-[38px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-2 text-xs font-semibold text-primary transition-transform active:scale-[0.98] active:bg-olive50"
+                    aria-label="Sao chép địa chỉ quán"
+                    onClick={() =>
+                      handleCopy(
+                        shopAddress,
+                        "shopAddress",
+                        copy.orderDetail.shopAddressLabel,
+                      )
+                    }
+                    className={cn(
+                      "shadow-2xs flex min-h-[36px] flex-1 touch-manipulation items-center justify-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-transform active:scale-[0.98]",
+                      copiedKey === "shopAddress"
+                        ? "border-primary/40 bg-olive50 font-bold text-olive900"
+                        : "border-black/10 bg-white text-neutral700 active:bg-stone-50",
+                    )}
+                    title={copy.orderDetail.copyAddress}
                   >
-                    <PhoneIcon className="h-3.5 w-3.5 shrink-0" />
-                    <span>{shopHotline}</span>
+                    {copiedKey === "shopAddress" ? (
+                      <>
+                        <CheckIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span>Đã chép địa chỉ</span>
+                      </>
+                    ) : (
+                      <>
+                        <CopyIcon className="h-3.5 w-3.5 shrink-0" />
+                        <span>Sao chép</span>
+                      </>
+                    )}
                   </button>
-                )}
+
+                  {shopHotline && (
+                    <button
+                      type="button"
+                      aria-label={`Gọi hotline quán ${shopHotline}`}
+                      onClick={() => makePhoneCall(shopHotline)}
+                      className="shadow-2xs flex min-h-[36px] flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-1.5 text-xs font-semibold text-primary transition-transform active:scale-[0.98] active:bg-olive50"
+                    >
+                      <PhoneIcon className="h-3.5 w-3.5 shrink-0" />
+                      <span>Gọi quán</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 

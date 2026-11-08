@@ -249,7 +249,6 @@ export default function ProductDetailPage() {
                 src={imageUrl}
                 alt={product.name}
               />
-              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/20 to-transparent" />
               {product.has_promotion &&
                 product.discount_percent != null &&
                 product.discount_percent > 0 && (

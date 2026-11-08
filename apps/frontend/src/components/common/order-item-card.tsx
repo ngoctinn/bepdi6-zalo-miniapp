@@ -110,21 +110,25 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
       >
         <div className="flex items-center gap-2">
           {isPickup ? (
-            <span className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-xxsmall font-bold text-amber-800">
-              <Icon
-                icon="zi-home"
-                className="text-xs leading-none text-amber-700"
-              />
-              <span className="leading-none">TỰ ĐẾN LẤY</span>
-            </span>
+            <Badge
+              variant="warning"
+              size="small"
+              shape="pill"
+              className="gap-1"
+            >
+              <Icon icon="zi-home" className="text-xs leading-none" />
+              <span className="leading-none">Tại quán</span>
+            </Badge>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xxsmall font-bold text-blue-700">
-              <Icon
-                icon="zi-location-solid"
-                className="text-xs leading-none text-blue-600"
-              />
-              <span className="leading-none">GIAO TẬN NƠI</span>
-            </span>
+            <Badge
+              variant="primary"
+              size="small"
+              shape="pill"
+              className="gap-1"
+            >
+              <Icon icon="zi-location-solid" className="text-xs leading-none" />
+              <span className="leading-none">Giao tận nơi</span>
+            </Badge>
           )}
           <span className="font-mono text-xs font-bold text-neutral900">
             #{order.order_code}
@@ -155,8 +159,11 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
                 {item.product_name}
               </span>
               {item.options && item.options.length > 0 && (
-                <p className="mt-0.5 text-xxsmall text-stone-500">
-                  ↳ {item.options.map((o) => o.option_name).join(", ")}
+                <p className="mt-0.5 flex items-center gap-1 text-xxsmall text-stone-500">
+                  <span className="font-mono text-stone-400">+</span>
+                  <span>
+                    {item.options.map((o) => o.option_name).join(", ")}
+                  </span>
                 </p>
               )}
             </div>

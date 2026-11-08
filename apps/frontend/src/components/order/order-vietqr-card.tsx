@@ -124,14 +124,14 @@ export function OrderVietQrCard({
             className={cn(
               "shadow-2xs inline-flex min-h-[44px] touch-manipulation items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold transition-transform active:scale-95",
               isSavedQrSuccess
-                ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
+                ? "border-primary/40 bg-olive50 font-bold text-olive900"
                 : "border-primary/30 bg-white text-primary active:bg-olive50",
             )}
           >
             {isSavingQr ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             ) : isSavedQrSuccess ? (
-              <CheckIcon className="h-4 w-4 shrink-0 text-emerald-600" />
+              <CheckIcon className="h-4 w-4 shrink-0 text-primary" />
             ) : (
               <DownloadIcon className="h-4 w-4 shrink-0" />
             )}
@@ -175,13 +175,13 @@ export function OrderVietQrCard({
                   className={cn(
                     "shadow-2xs inline-flex min-h-[38px] min-w-[76px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
                     copiedKey === "bankAccountNo"
-                      ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
+                      ? "border-primary/40 bg-olive50 font-bold text-olive900"
                       : "border-primary/30 bg-white text-primary active:bg-primary/10",
                   )}
                 >
                   {copiedKey === "bankAccountNo" ? (
                     <>
-                      <CheckIcon className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                      <CheckIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
                       <span>Đã chép</span>
                     </>
                   ) : (
@@ -223,13 +223,13 @@ export function OrderVietQrCard({
                   className={cn(
                     "shadow-2xs inline-flex min-h-[38px] min-w-[76px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
                     copiedKey === "amount"
-                      ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
+                      ? "border-primary/40 bg-olive50 font-bold text-olive900"
                       : "border-primary/30 bg-white text-primary active:bg-primary/10",
                   )}
                 >
                   {copiedKey === "amount" ? (
                     <>
-                      <CheckIcon className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                      <CheckIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
                       <span>Đã chép</span>
                     </>
                   ) : (
@@ -261,13 +261,13 @@ export function OrderVietQrCard({
                   className={cn(
                     "shadow-2xs inline-flex min-h-[38px] min-w-[76px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
                     copiedKey === "orderCode"
-                      ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
+                      ? "border-primary/40 bg-olive50 font-bold text-olive900"
                       : "border-primary/30 bg-white text-primary active:bg-primary/10",
                   )}
                 >
                   {copiedKey === "orderCode" ? (
                     <>
-                      <CheckIcon className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                      <CheckIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
                       <span>Đã chép</span>
                     </>
                   ) : (

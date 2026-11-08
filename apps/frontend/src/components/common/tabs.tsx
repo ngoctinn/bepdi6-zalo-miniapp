@@ -63,7 +63,7 @@ export function Tabs<T extends string>({
             onClick={() => onChange(tab.value)}
             className={cn(
               "flex min-h-[36px] shrink-0 items-center justify-center rounded-xl border px-4 py-2 text-xs font-semibold transition-colors duration-150 active:scale-[0.98]",
-              "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1",
               "select-none whitespace-nowrap",
               isActive
                 ? "border-primary/40 bg-primarySurface text-primaryDark"

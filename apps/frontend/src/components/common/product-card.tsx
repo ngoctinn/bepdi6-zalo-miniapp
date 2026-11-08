@@ -152,8 +152,8 @@ export default function ProductCard({
           {/* Out of Stock overlay */}
           {isOutOfStock && (
             <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-              <span className="rounded-md bg-black/80 px-2 py-0.5 text-xxxsmall font-semibold tracking-wide text-white">
-                {copy.product.outOfStock}
+              <span className="rounded-md bg-black/80 px-2 py-0.5 text-xxxsmall font-medium tracking-normal text-white">
+                Tạm hết món
               </span>
             </div>
           )}
@@ -228,22 +228,23 @@ export default function ProductCard({
         {!isOutOfStock && (
           <div className="shrink-0">
             {totalQuantityInCart > 0 ? (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={handleQuickDecrease}
-                  className="shadow-xs flex h-10 min-h-[40px] w-10 min-w-[40px] touch-manipulation items-center justify-center rounded-full border border-primary/25 bg-olive50/80 text-olive900 transition-transform active:scale-90"
+                  className="shadow-xs relative flex h-8 min-h-[32px] w-8 min-w-[32px] touch-manipulation items-center justify-center rounded-full border border-primary/25 bg-olive50/80 text-olive900 transition-transform after:absolute after:-inset-1.5 after:content-[''] active:scale-90"
                   aria-label="Giảm số lượng"
                 >
                   <svg
-                    width="14"
-                    height="14"
+                    width="12"
+                    height="12"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="3"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    className="shrink-0"
                     aria-hidden="true"
                   >
                     <line x1="5" y1="12" x2="19" y2="12" />
@@ -251,7 +252,7 @@ export default function ProductCard({
                 </button>
 
                 <span
-                  className="min-w-[20px] text-center text-xs font-bold text-neutral900"
+                  className="min-w-[18px] text-center font-mono text-xs font-bold text-neutral900"
                   aria-live="polite"
                 >
                   {totalQuantityInCart}
@@ -260,18 +261,19 @@ export default function ProductCard({
                 <button
                   type="button"
                   onClick={handleQuickAdd}
-                  className="flex h-10 min-h-[40px] w-10 min-w-[40px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90"
+                  className="relative flex h-8 min-h-[32px] w-8 min-w-[32px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform after:absolute after:-inset-1.5 after:content-[''] active:scale-90"
                   aria-label="Tăng số lượng"
                 >
                   <svg
-                    width="14"
-                    height="14"
+                    width="12"
+                    height="12"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="3"
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    className="shrink-0"
                     aria-hidden="true"
                   >
                     <line x1="12" y1="5" x2="12" y2="19" />
@@ -283,18 +285,19 @@ export default function ProductCard({
               <button
                 type="button"
                 onClick={handleQuickAdd}
-                className="flex h-11 min-h-[44px] w-11 min-w-[44px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90 active:shadow-none"
+                className="flex h-9 min-h-[36px] w-9 min-w-[36px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90 active:shadow-none"
                 aria-label={`Thêm ${product.name} vào giỏ`}
               >
                 <svg
-                  width="18"
-                  height="18"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="shrink-0"
                   aria-hidden="true"
                 >
                   <line x1="12" y1="5" x2="12" y2="19" />
