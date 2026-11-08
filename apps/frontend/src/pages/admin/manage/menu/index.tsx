@@ -177,7 +177,7 @@ export default function AdminCategoryManagementPage() {
           categories.map((cat) => (
             <div
               key={cat.id}
-              className="flex items-center justify-between rounded-2xl border border-stone-200/60 bg-white p-3.5 shadow-sm transition-all"
+              className="flex items-center justify-between rounded-2xl border border-stone-200/60 bg-white p-3.5 shadow-sm transition-colors"
             >
               <div
                 onClick={() => handleOpenEdit(cat)}

@@ -238,7 +238,7 @@ export default function AdminSettingsPage() {
         >
           {/* Thông Tin Cơ Bản */}
           <div className="space-y-3.5 rounded-2xl border border-stone-200/60 bg-white p-4 shadow-sm">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-stone-600">
+            <h2 className="text-xs font-bold text-stone-600">
               Thông tin cửa hàng
             </h2>
             <div>
@@ -320,7 +320,7 @@ export default function AdminSettingsPage() {
 
           {/* Giờ Mở Cửa & Chuẩn Bị */}
           <div className="space-y-3.5 rounded-2xl border border-stone-200/60 bg-white p-4 shadow-sm">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-stone-600">
+            <h2 className="text-xs font-bold text-stone-600">
               Thời gian hoạt động
             </h2>
             <div className="grid grid-cols-2 gap-3">
@@ -384,7 +384,7 @@ export default function AdminSettingsPage() {
 
           {/* Giao Hàng & Bán Kính */}
           <div className="space-y-3.5 rounded-2xl border border-stone-200/60 bg-white p-4 shadow-sm">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-stone-600">
+            <h2 className="text-xs font-bold text-stone-600">
               Giao hàng & Bán kính
             </h2>
             <div>
@@ -538,7 +538,7 @@ export default function AdminSettingsPage() {
 
           {/* Thanh Toán & VietQR */}
           <div className="space-y-3.5 rounded-2xl border border-stone-200/60 bg-white p-4 shadow-sm">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-stone-600">
+            <h2 className="text-xs font-bold text-stone-600">
               Tài khoản nhận tiền VietQR
             </h2>
             <div>
@@ -613,7 +613,7 @@ export default function AdminSettingsPage() {
             <button
               type="submit"
               disabled={updateConfig.isPending || !isDirty}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-white shadow-md transition-all active:scale-[0.99] disabled:opacity-50"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-white shadow-md transition-transform active:scale-[0.99] disabled:opacity-50"
             >
               {updateConfig.isPending && <Spinner visible logo={false} />}
               <span>

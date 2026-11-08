@@ -22,7 +22,7 @@ export default function Header({ title, back, position }: HeaderProps) {
           <button
             type="button"
             aria-label="Quay lại"
-            className="-ml-1 flex h-10 min-h-[40px] w-10 min-w-[40px] touch-manipulation items-center justify-center rounded-full bg-black/5 text-neutral-800 transition-all active:scale-95"
+            className="-ml-1 flex h-10 min-h-[40px] w-10 min-w-[40px] touch-manipulation items-center justify-center rounded-full bg-black/5 text-neutral-800 transition-transform active:scale-95"
             onClick={() => {
               if (window.history.state?.idx > 0) {
                 navigate(-1);

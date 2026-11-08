@@ -21,7 +21,7 @@ export function DeliveryTypeSelector({
         type="button"
         onClick={() => onChange("DELIVERY")}
         className={cn(
-          "flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition-all duration-150 active:scale-[0.98]",
+          "flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition-colors transition-transform duration-150 active:scale-[0.98]",
           "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
           isDelivery
             ? "shadow-xs border-primary/40 bg-olive50/90 text-olive900"
@@ -41,7 +41,7 @@ export function DeliveryTypeSelector({
         type="button"
         onClick={() => onChange("PICKUP")}
         className={cn(
-          "flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition-all duration-150 active:scale-[0.98]",
+          "flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-bold transition-colors transition-transform duration-150 active:scale-[0.98]",
           "outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0",
           isPickup
             ? "shadow-xs border-primary/40 bg-olive50/90 text-olive900"

@@ -123,7 +123,7 @@ export default function ProductCard({
   return (
     <div
       className={cn(
-        "group flex w-full flex-col text-left transition-all",
+        "group flex w-full flex-col text-left transition-colors",
         isOutOfStock && "opacity-60",
       )}
       onMouseEnter={handlePrefetch}
@@ -279,7 +279,7 @@ export default function ProductCard({
               <button
                 type="button"
                 onClick={handleQuickAdd}
-                className="flex h-11 min-h-[44px] w-11 min-w-[44px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-all active:scale-90 active:shadow-none"
+                className="flex h-11 min-h-[44px] w-11 min-w-[44px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90 active:shadow-none"
                 aria-label={`Thêm ${product.name} vào giỏ`}
               >
                 <svg

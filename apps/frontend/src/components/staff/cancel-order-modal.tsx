@@ -94,7 +94,7 @@ export function CancelOrderModal({
                 key={reason}
                 type="button"
                 onClick={() => onSelectReason(reason)}
-                className={`flex w-full items-center justify-between rounded-xl border p-3 text-left text-xs transition-all active:scale-[0.99] ${
+                className={`flex w-full items-center justify-between rounded-xl border p-3 text-left text-xs transition-transform active:scale-[0.99] ${
                   isSelected
                     ? "shadow-xs border-rose-400 bg-rose-50/70 font-bold text-rose-950"
                     : "border-stone-200/90 bg-white font-medium text-stone-700 hover:border-stone-300"

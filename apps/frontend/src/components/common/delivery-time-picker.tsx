@@ -90,7 +90,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
         <button
           type="button"
           onClick={() => onChange(undefined)}
-          className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-left transition-all duration-150 active:scale-[0.99] ${
+          className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-left transition-colors transition-transform duration-150 active:scale-[0.99] ${
             isAsap
               ? "shadow-xs border-primary/40 bg-olive50/90 font-semibold text-olive900"
               : "border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10"
@@ -108,7 +108,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
           </div>
 
           <span
-            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150 ${
+            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors duration-150 ${
               isAsap
                 ? "shadow-xs border border-primary/40 bg-primary text-white"
                 : "border border-stone-300 bg-transparent"
@@ -127,7 +127,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
                 onChange(timeSlots[0].value);
               }
             }}
-            className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-left transition-all duration-150 active:scale-[0.99] ${
+            className={`flex w-full items-center justify-between rounded-xl border p-3.5 text-left transition-colors transition-transform duration-150 active:scale-[0.99] ${
               !isAsap
                 ? "shadow-xs border-primary/40 bg-olive50/90 font-semibold text-olive900"
                 : "border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10"
@@ -145,7 +145,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
             </div>
 
             <span
-              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150 ${
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors duration-150 ${
                 !isAsap
                   ? "shadow-xs border border-primary/40 bg-primary text-white"
                   : "border border-stone-300 bg-transparent"
@@ -167,7 +167,7 @@ export const DeliveryTimePicker: React.FC<DeliveryTimePickerProps> = ({
                         type="button"
                         onClick={() => onChange(slot.value)}
                         aria-pressed={isSelected}
-                        className={`flex min-h-[40px] touch-manipulation items-center justify-center rounded-lg px-2 py-2 text-center text-xs transition-all duration-150 active:scale-95 ${
+                        className={`flex min-h-[40px] touch-manipulation items-center justify-center rounded-lg px-2 py-2 text-center text-xs transition-colors transition-transform duration-150 active:scale-95 ${
                           isSelected
                             ? "shadow-xs border border-primary/40 bg-primary font-bold text-white"
                             : "border border-black/[0.06] bg-stone-50/70 font-medium text-neutral700 hover:border-black/10"

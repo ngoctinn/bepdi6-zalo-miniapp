@@ -54,7 +54,7 @@ export function StaffHeaderActions({
             <button
               type="button"
               onClick={onToggleSound}
-              className={`relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all active:scale-95 ${
+              className={`relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-transform active:scale-95 ${
                 isSoundEnabled
                   ? "border-primary/40 bg-primaryLight font-bold text-primary shadow-sm"
                   : "border-stone-200 bg-stone-100/90 text-stone-500 hover:text-stone-700"
@@ -84,7 +84,7 @@ export function StaffHeaderActions({
             <button
               type="button"
               onClick={onRefetch}
-              className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-stone-200 bg-stone-100/90 text-stone-700 shadow-sm transition-all hover:bg-stone-200 active:scale-95"
+              className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-stone-200 bg-stone-100/90 text-stone-700 shadow-sm transition-colors hover:bg-stone-200 active:scale-95"
               aria-label={copy.staff.refreshLabel}
             >
               <Icon

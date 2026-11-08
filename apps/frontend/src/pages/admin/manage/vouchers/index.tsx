@@ -264,7 +264,7 @@ export default function AdminVoucherManagementPage() {
               <div
                 key={v.id}
                 onClick={() => handleOpenEdit(v)}
-                className="relative cursor-pointer overflow-hidden rounded-2xl border border-stone-200/60 bg-white p-4 shadow-sm transition-all active:scale-[0.99]"
+                className="relative cursor-pointer overflow-hidden rounded-2xl border border-stone-200/60 bg-white p-4 shadow-sm transition-transform active:scale-[0.99]"
               >
                 {/* Dải trang trí cạnh trái kiểu coupon */}
                 <div

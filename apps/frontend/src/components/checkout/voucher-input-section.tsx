@@ -37,7 +37,7 @@ export function VoucherInputSection({
           <button
             type="button"
             onClick={onRemove}
-            className="rounded-xl border border-red-200/70 bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-600 transition-all active:scale-95"
+            className="rounded-xl border border-red-200/70 bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-600 transition-transform active:scale-95"
           >
             {copy.checkout.removeVoucher}
           </button>
@@ -46,7 +46,7 @@ export function VoucherInputSection({
             type="button"
             onClick={onApply}
             disabled={!voucherCodeInput.trim()}
-            className="shadow-xs rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white transition-all hover:bg-primaryDark active:scale-95 disabled:opacity-40"
+            className="shadow-xs rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-primaryDark active:scale-95 disabled:opacity-40"
           >
             {copy.checkout.applyVoucher}
           </button>

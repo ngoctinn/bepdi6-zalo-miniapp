@@ -57,7 +57,7 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="h-11 flex-1 rounded-xl bg-stone100 text-sm font-semibold text-neutral700 transition-all hover:bg-stone200 active:scale-[0.98]"
+              className="h-11 flex-1 rounded-xl bg-stone100 text-sm font-semibold text-neutral700 transition-colors hover:bg-stone200 active:scale-[0.98]"
             >
               {closeText}
             </button>
@@ -66,7 +66,7 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({
           <button
             type="button"
             onClick={onAction || onClose}
-            className="h-11 flex-1 rounded-xl bg-danger text-sm font-bold text-white shadow-md transition-all hover:opacity-90 active:scale-[0.98]"
+            className="h-11 flex-1 rounded-xl bg-danger text-sm font-bold text-white shadow-md transition-colors hover:opacity-90 active:scale-[0.98]"
           >
             {actionText || closeText}
           </button>

@@ -61,7 +61,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="h-11 flex-1 rounded-xl bg-stone100 text-xs font-semibold text-neutral700 transition-all hover:bg-stone200 active:scale-[0.98] disabled:opacity-50"
+            className="h-11 flex-1 rounded-xl bg-stone100 text-xs font-semibold text-neutral700 transition-colors hover:bg-stone200 active:scale-[0.98] disabled:opacity-50"
           >
             {cancelText}
           </button>
@@ -70,7 +70,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className={`flex h-11 flex-1 items-center justify-center rounded-xl text-xs font-bold shadow-md transition-all disabled:opacity-50 ${getConfirmButtonClasses()}`}
+            className={`flex h-11 flex-1 items-center justify-center rounded-xl text-xs font-bold shadow-md transition-colors disabled:opacity-50 ${getConfirmButtonClasses()}`}
           >
             {loading ? "Đang xử lý..." : confirmText}
           </button>

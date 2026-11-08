@@ -186,7 +186,7 @@ export default function AdminFooter({ className }: AdminFooterProps) {
       <button
         type="button"
         onClick={() => navigate("/")}
-        className="flex min-h-[52px] w-12 touch-manipulation select-none flex-col items-center justify-center border-r border-black/5 py-1.5 transition-all focus:outline-none active:scale-95"
+        className="flex min-h-[52px] w-12 touch-manipulation select-none flex-col items-center justify-center border-r border-black/5 py-1.5 transition-colors focus:outline-none active:scale-95"
         title="Quay lại cửa hàng"
         aria-label="Quay lại cửa hàng"
       >
@@ -209,7 +209,7 @@ export default function AdminFooter({ className }: AdminFooterProps) {
             type="button"
             key={item.path}
             onClick={() => navigate(item.path)}
-            className="flex min-h-[52px] w-full flex-1 touch-manipulation select-none flex-col items-center justify-center py-1.5 transition-all focus:outline-none active:scale-95"
+            className="flex min-h-[52px] w-full flex-1 touch-manipulation select-none flex-col items-center justify-center py-1.5 transition-colors focus:outline-none active:scale-95"
             aria-label={item.name}
             aria-current={isActive ? "page" : undefined}
           >

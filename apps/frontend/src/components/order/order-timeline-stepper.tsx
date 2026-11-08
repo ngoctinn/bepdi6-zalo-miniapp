@@ -94,7 +94,7 @@ export function OrderTimelineStepper({ order }: OrderTimelineStepperProps) {
           {/* Progress Line */}
           <div className="absolute left-8 right-8 top-5 -z-0 h-0.5 bg-stone-200" />
           <div
-            className="absolute left-8 top-5 -z-0 h-0.5 bg-primary transition-all duration-500"
+            className="absolute left-8 top-5 -z-0 h-0.5 bg-primary transition-colors duration-500"
             style={{
               width: `calc(${(currentStep / Math.max(1, steps.length - 1)) * 100}% - 16px)`,
             }}
@@ -110,7 +110,7 @@ export function OrderTimelineStepper({ order }: OrderTimelineStepperProps) {
                 className="z-10 flex w-16 flex-col items-center text-center"
               >
                 <div
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs transition-all ${
+                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs transition-colors ${
                     isPassed
                       ? "shadow-xs bg-primary text-white"
                       : "border border-black/[0.08] bg-stone-100 text-neutral400"

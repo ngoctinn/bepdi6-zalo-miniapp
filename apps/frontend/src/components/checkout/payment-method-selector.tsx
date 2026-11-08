@@ -30,7 +30,7 @@ export function PaymentMethodSelector({
           type="button"
           onClick={() => onChange("BANK_TRANSFER")}
           className={cn(
-            "flex w-full items-center justify-between rounded-xl border p-3.5 text-xs transition-all duration-150 active:scale-[0.99]",
+            "flex w-full items-center justify-between rounded-xl border p-3.5 text-xs transition-colors transition-transform duration-150 active:scale-[0.99]",
             isBankTransfer
               ? "shadow-xs border-primary/40 bg-olive50/90 font-semibold text-olive900"
               : "border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10",
@@ -61,7 +61,7 @@ export function PaymentMethodSelector({
           {/* Custom Soft Radio Indicator */}
           <span
             className={cn(
-              "ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150",
+              "ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors duration-150",
               isBankTransfer
                 ? "shadow-xs border border-primary/40 bg-primary text-white"
                 : "border border-stone-300 bg-transparent",
@@ -76,7 +76,7 @@ export function PaymentMethodSelector({
           type="button"
           onClick={() => onChange("COD")}
           className={cn(
-            "flex w-full items-center justify-between rounded-xl border p-3.5 text-xs transition-all duration-150 active:scale-[0.99]",
+            "flex w-full items-center justify-between rounded-xl border p-3.5 text-xs transition-colors transition-transform duration-150 active:scale-[0.99]",
             isCod
               ? "shadow-xs border-primary/40 bg-olive50/90 font-semibold text-olive900"
               : "border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10",
@@ -96,7 +96,7 @@ export function PaymentMethodSelector({
           {/* Custom Soft Radio Indicator */}
           <span
             className={cn(
-              "flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150",
+              "flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors duration-150",
               isCod
                 ? "shadow-xs border border-primary/40 bg-primary text-white"
                 : "border border-stone-300 bg-transparent",

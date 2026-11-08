@@ -316,7 +316,7 @@ export default function ProductDetailPage() {
                       key={group.id}
                       id={`option-group-${group.id}`}
                       className={cn(
-                        "scroll-mt-6 space-y-2.5 rounded-2xl transition-all duration-300",
+                        "scroll-mt-6 space-y-2.5 rounded-2xl transition-colors duration-300",
                         isInvalid &&
                           "-m-2.5 rounded-2xl bg-red-50/30 p-2.5 ring-2 ring-red-400/80",
                       )}
@@ -361,7 +361,7 @@ export default function ProductDetailPage() {
                                 handleOptionToggle(group, option)
                               }
                               className={cn(
-                                "flex min-h-[44px] w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-all duration-150 active:scale-[0.99]",
+                                "flex min-h-[44px] w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs transition-colors transition-transform duration-150 active:scale-[0.99]",
                                 isSelected
                                   ? "shadow-xs border border-primary/30 bg-olive50/80 font-semibold text-primaryDark"
                                   : "border border-black/[0.06] bg-white font-medium text-neutral800 hover:border-black/10 active:bg-black/[0.02]",
@@ -395,7 +395,7 @@ export default function ProductDetailPage() {
                               </div>
                               <span
                                 className={cn(
-                                  "ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-150",
+                                  "ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors duration-150",
                                   isSelected
                                     ? "shadow-xs border border-primary/40 bg-primary text-white"
                                     : "border border-stone-300 bg-transparent",
@@ -463,7 +463,7 @@ export default function ProductDetailPage() {
             <button
               type="button"
               onClick={handleAddToCart}
-              className="flex flex-1 items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:bg-primaryDark active:scale-[0.98]"
+              className="flex flex-1 items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-white shadow-md transition-colors hover:bg-primaryDark active:scale-[0.98]"
             >
               <span>
                 {isEditMode ? copy.common.updateCart : copy.common.addToCart}

@@ -94,7 +94,7 @@ export function OrderShipperCard({ order, isPaid }: OrderShipperCardProps) {
               type="button"
               aria-label={`Gọi tài xế ${order.shipper_name || ""}`}
               onClick={() => makePhoneCall(order.shipper_phone!)}
-              className="shadow-xs flex h-11 shrink-0 touch-manipulation items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold text-white transition-all active:scale-95"
+              className="shadow-xs flex h-11 shrink-0 touch-manipulation items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold text-white transition-transform active:scale-95"
             >
               <PhoneIcon className="h-4 w-4 shrink-0" />
               <span>{copy.orderDetail.callDriver || "Gọi tài xế"}</span>

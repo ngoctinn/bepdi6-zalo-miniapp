@@ -102,7 +102,7 @@ export function DeliveryAddressCard({
             )}
           </div>
           {isLocating ? (
-            <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4 transition-all">
+            <div className="shadow-xs rounded-2xl border border-black/[0.06] bg-white p-4 transition-colors">
               <div className="flex animate-pulse items-center gap-3 py-2 text-sm text-primaryDark">
                 <div className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 <span className="font-medium">{copy.checkout.locatingGps}</span>
@@ -120,7 +120,7 @@ export function DeliveryAddressCard({
                   navigate("/select-location");
                 }
               }}
-              className="shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border border-black/[0.06] bg-white p-4 text-left text-sm text-neutral700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]"
+              className="shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border border-black/[0.06] bg-white p-4 text-left text-sm text-neutral700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99]"
             >
               <div className="flex items-start gap-3">
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
@@ -178,7 +178,7 @@ export function DeliveryAddressCard({
                     navigate("/select-location");
                   }
                 }}
-                className={`shadow-xs flex cursor-pointer items-center justify-between rounded-2xl border p-4 text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99] ${
+                className={`shadow-xs flex cursor-pointer items-center justify-between rounded-2xl border p-4 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99] ${
                   hasAddressError
                     ? "border-red-500 bg-red-50/50 text-red-600 ring-1 ring-red-500"
                     : "border-black/[0.06] bg-white text-neutral900"

@@ -132,7 +132,7 @@ export default function OrderPage() {
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="shadow-xs mt-1 flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white transition-all active:scale-95"
+              className="shadow-xs mt-1 flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white transition-transform active:scale-95"
             >
               <span>{copy.order.exploreMenu}</span>
               <ChevronRightIcon className="h-3.5 w-3.5 shrink-0" />

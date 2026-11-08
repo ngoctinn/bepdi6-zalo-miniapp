@@ -109,7 +109,7 @@ export function CheckoutOrderSummary({
           type="button"
           disabled={isSubmitting || isUpdatingFee || !isQuoteReady}
           onClick={onPlaceOrder}
-          className="flex min-h-[48px] w-full touch-manipulation items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-sm transition-all hover:bg-primaryDark active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex min-h-[48px] w-full touch-manipulation items-center justify-between rounded-xl bg-primary px-4 py-3.5 text-sm font-extrabold text-white shadow-sm transition-colors hover:bg-primaryDark active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <div className="flex items-center gap-2">
             {isUpdatingFee && (

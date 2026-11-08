@@ -133,7 +133,7 @@ export function DispatchOrderModal({
 
         {/* Lựa chọn kênh vận chuyển */}
         <div className="mt-4">
-          <label className="text-xxsmall font-bold uppercase tracking-wider text-stone-400">
+          <label className="text-xxsmall font-bold text-stone-400">
             {copy.staff.dispatch.selectChannel}
           </label>
           <div className="mt-1.5 grid grid-cols-3 gap-1.5">

@@ -44,14 +44,14 @@ export default function OrderSuccessPage() {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="flex-1 rounded-xl border border-black/10 bg-white py-3 text-sm font-semibold text-neutral800 transition-all active:scale-[0.98] active:bg-black/5"
+            className="flex-1 rounded-xl border border-black/10 bg-white py-3 text-sm font-semibold text-neutral800 transition-transform active:scale-[0.98] active:bg-black/5"
           >
             {copy.orderSuccess.backToHome || "Về trang chủ"}
           </button>
           <button
             type="button"
             onClick={handleViewOrder}
-            className="shadow-xs flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-white transition-all active:scale-[0.98] active:bg-primaryDark"
+            className="shadow-xs flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-white transition-transform active:scale-[0.98] active:bg-primaryDark"
           >
             {copy.orderSuccess.viewOrder || "Xem đơn hàng"}
           </button>

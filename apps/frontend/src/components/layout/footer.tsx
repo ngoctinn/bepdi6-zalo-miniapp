@@ -73,7 +73,7 @@ export default function Footer() {
             type="button"
             key={item.path}
             onClick={() => navigate(item.path)}
-            className="flex min-h-[52px] w-full flex-1 touch-manipulation select-none flex-col items-center justify-center py-1.5 transition-all focus:outline-none active:scale-95"
+            className="flex min-h-[52px] w-full flex-1 touch-manipulation select-none flex-col items-center justify-center py-1.5 transition-colors focus:outline-none active:scale-95"
             aria-label={item.name}
             aria-current={isActive ? "page" : undefined}
           >

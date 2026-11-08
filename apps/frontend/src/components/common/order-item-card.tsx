@@ -93,7 +93,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
   };
 
   return (
-    <div className="w-full overflow-hidden rounded-2xl border border-stone-200/90 bg-white p-3.5 shadow-sm transition-all">
+    <div className="w-full overflow-hidden rounded-2xl border border-stone-200/90 bg-white p-3.5 shadow-sm transition-colors">
       {/* 1. Header: Loại nhận hàng & Mã đơn (Trái) + Badge trạng thái (Phải) */}
       <div
         onClick={goToDetail}

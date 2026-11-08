@@ -347,7 +347,7 @@ export const AppToastContainer: React.FC = () => {
       role="status"
       aria-live="polite"
       style={{ zIndex: options.zIndex ?? 99999 }}
-      className={`pointer-events-none fixed inset-x-0 flex justify-center px-3 transition-all duration-300 ease-out ${
+      className={`pointer-events-none fixed inset-x-0 flex justify-center px-3 transition-opacity duration-300 ease-out ${
         position === "top"
           ? "top-[calc(var(--zaui-safe-area-inset-top,16px)+56px)]"
           : "bottom-[calc(var(--app-safe-area-bottom,env(safe-area-inset-bottom,0px))+68px)]"
@@ -363,7 +363,7 @@ export const AppToastContainer: React.FC = () => {
         onClick={hide}
         className={`${
           visible ? "pointer-events-auto" : "pointer-events-none"
-        } flex w-full max-w-xl items-center gap-3 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md transition-all active:scale-[0.99] ${variant.card}`}
+        } flex w-full max-w-xl items-center gap-3 rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md transition-transform active:scale-[0.99] ${variant.card}`}
       >
         {/* Icon */}
         {renderIcon()}

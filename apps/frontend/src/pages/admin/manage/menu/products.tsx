@@ -424,7 +424,7 @@ export default function AdminProductManagementPage() {
               <div
                 key={p.id}
                 onClick={() => handleOpenEdit(p)}
-                className="flex cursor-pointer items-center justify-between rounded-2xl border border-stone-200/60 bg-white p-3.5 shadow-sm transition-all active:bg-stone-50"
+                className="flex cursor-pointer items-center justify-between rounded-2xl border border-stone-200/60 bg-white p-3.5 shadow-sm transition-colors active:bg-stone-50"
               >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   {p.image_url ? (

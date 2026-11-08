@@ -167,7 +167,7 @@ export function StaffOrderDetailSheet({
                 variant={isPaid ? "primary" : "recommended"}
                 size="small"
                 shape="rounded"
-                className="uppercase tracking-wider"
+                className="font-bold"
               >
                 {isPaid
                   ? copy.staff.financialShield.neverCollect
@@ -196,7 +196,10 @@ export function StaffOrderDetailSheet({
                   onClick={() => makePhoneCall(order.phone)}
                   className="inline-flex h-9 items-center justify-center gap-1 rounded-full border border-primary/40 bg-primarySurface px-3.5 text-xs font-bold text-primaryDark shadow-sm transition-transform active:scale-95"
                 >
-                  <Icon icon="zi-call" className="text-sm leading-none" />
+                  <Icon
+                    icon="zi-call"
+                    className="shrink-0 text-sm leading-none"
+                  />
                   <span>{copy.staff.callCustomerBtn}</span>
                 </button>
               )}
@@ -222,7 +225,7 @@ export function StaffOrderDetailSheet({
                   className="inline-flex shrink-0 items-center justify-center text-sm leading-none text-amber-600"
                 />
                 <div className="leading-snug">
-                  <span className="font-bold uppercase tracking-wide">
+                  <span className="font-bold">
                     {copy.staff.customerNotePrefix}{" "}
                   </span>
                   <span>{order.note}</span>
@@ -287,7 +290,7 @@ export function StaffOrderDetailSheet({
 
           {/* Items Detail — Flat Clean List, không dùng ô đen */}
           <div className="rounded-xl border border-stone-200/90 bg-white p-3">
-            <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-stone-500">
+            <h4 className="mb-2 text-xs font-bold text-stone-500">
               {copy.staff.items.itemCountPrefix} ({order.items?.length || 0})
             </h4>
             <div className="divide-y divide-stone-100">

@@ -52,7 +52,7 @@ export default function QuantityStepper({
 
   const buttonBaseClasses =
     variant === "rounded"
-      ? "rounded-full flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-black/[0.12] bg-white text-neutral800 hover:border-black/20 hover:bg-stone-50 active:scale-95 shadow-xs select-none relative after:content-[''] after:absolute after:-inset-2.5 after:z-10"
+      ? "rounded-full flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed border border-black/[0.12] bg-white text-neutral800 hover:border-black/20 hover:bg-stone-50 active:scale-95 shadow-xs select-none relative after:content-[''] after:absolute after:-inset-2.5 after:z-10"
       : "flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed select-none relative after:content-[''] after:absolute after:-inset-2.5 after:z-10";
 
   return (

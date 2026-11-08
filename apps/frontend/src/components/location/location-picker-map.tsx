@@ -113,7 +113,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
 
       {/* Center Pin ghim cố định ở chính giữa tâm bản đồ */}
       <div
-        className={`pointer-events-none absolute left-1/2 top-1/2 z-[400] flex -translate-x-1/2 flex-col items-center transition-all duration-200 ease-out ${
+        className={`pointer-events-none absolute left-1/2 top-1/2 z-[400] flex -translate-x-1/2 flex-col items-center transition-transform duration-200 ease-out ${
           isMoving
             ? "-translate-y-[120%] scale-110"
             : "-translate-y-full scale-100"
@@ -131,7 +131,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
         </div>
         {/* Bóng chân ghim */}
         <div
-          className={`h-1.5 w-3.5 rounded-full bg-black/25 transition-all duration-200 ${
+          className={`h-1.5 w-3.5 rounded-full bg-black/25 transition-colors duration-200 ${
             isMoving
               ? "mt-2 scale-75 opacity-30"
               : "mt-0.5 scale-100 opacity-60"
@@ -154,7 +154,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
           type="button"
           onClick={onLocateCurrent}
           disabled={isLocating}
-          className="backdrop-blur-xs absolute bottom-2.5 right-2.5 z-[400] flex items-center justify-center rounded-xl border border-black/[0.08] bg-white/95 p-2 text-neutral-800 shadow-md transition-all hover:bg-white active:scale-95 disabled:opacity-50"
+          className="backdrop-blur-xs absolute bottom-2.5 right-2.5 z-[400] flex items-center justify-center rounded-xl border border-black/[0.08] bg-white/95 p-2 text-neutral-800 shadow-md transition-colors hover:bg-white active:scale-95 disabled:opacity-50"
           title="Vị trí hiện tại"
           aria-label="Vị trí hiện tại"
         >

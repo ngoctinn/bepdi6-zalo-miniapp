@@ -605,7 +605,7 @@ export default function SelectLocationPage() {
           <div className="flex gap-2.5 pt-2">
             <button
               type="button"
-              className="h-11 flex-1 rounded-xl bg-stone100 text-xs font-semibold text-neutral700 transition-all hover:bg-stone200 active:scale-[0.98]"
+              className="h-11 flex-1 rounded-xl bg-stone100 text-xs font-semibold text-neutral700 transition-colors hover:bg-stone200 active:scale-[0.98]"
               onClick={() => {
                 setIsCreating(false);
                 setFormError(null);
@@ -621,7 +621,7 @@ export default function SelectLocationPage() {
               type="button"
               disabled={createAddressMutation.isPending}
               onClick={handleCreateAddress}
-              className="flex h-11 flex-1 items-center justify-center rounded-xl bg-primary text-xs font-bold text-white shadow-md transition-all hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
+              className="flex h-11 flex-1 items-center justify-center rounded-xl bg-primary text-xs font-bold text-white shadow-md transition-colors hover:bg-primaryDark active:scale-[0.98] disabled:opacity-50"
             >
               {createAddressMutation.isPending
                 ? "Đang lưu..."
@@ -655,7 +655,7 @@ export default function SelectLocationPage() {
                   role="radio"
                   aria-checked={isSelected}
                   onClick={() => handleSelectAddress(addr)}
-                  className={`shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border bg-white p-3.5 transition-all ${
+                  className={`shadow-xs flex cursor-pointer items-start justify-between rounded-2xl border bg-white p-3.5 transition-colors ${
                     isSelected
                       ? "border-[1.5px] border-primary shadow-sm ring-1 ring-primary/20"
                       : "border-black/[0.06] hover:border-black/15 active:bg-black/[0.02]"
@@ -687,7 +687,7 @@ export default function SelectLocationPage() {
 
                   <button
                     type="button"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-neutral400 transition-all hover:bg-red-50 hover:text-red-600 active:scale-90"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-neutral400 transition-colors hover:bg-red-50 hover:text-red-600 active:scale-90"
                     onClick={(e) => {
                       e.stopPropagation();
                       setDeleteAddressId(addr.id);
@@ -721,7 +721,7 @@ export default function SelectLocationPage() {
           <button
             type="button"
             onClick={() => setIsCreating(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-white shadow-sm transition-all active:scale-[0.99] active:opacity-90"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3.5 text-sm font-semibold text-white shadow-sm transition-transform active:scale-[0.99] active:opacity-90"
           >
             <PlusIcon className="h-4 w-4 shrink-0" />
             <span className="leading-none">

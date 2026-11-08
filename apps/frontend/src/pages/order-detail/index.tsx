@@ -243,7 +243,7 @@ export default function OrderDetailPage() {
             type="button"
             onClick={() => setShowCancelModal(true)}
             disabled={isCancelling}
-            className="shadow-2xs flex h-12 w-full touch-manipulation items-center justify-center rounded-xl border border-red-200 bg-red-50/90 text-sm font-semibold text-red-600 transition-all active:scale-[0.98] active:bg-red-100 disabled:opacity-50"
+            className="shadow-2xs flex h-12 w-full touch-manipulation items-center justify-center rounded-xl border border-red-200 bg-red-50/90 text-sm font-semibold text-red-600 transition-transform active:scale-[0.98] active:bg-red-100 disabled:opacity-50"
           >
             {isCancelling ? (
               <div className="flex items-center gap-2">
@@ -263,7 +263,7 @@ export default function OrderDetailPage() {
           <button
             type="button"
             onClick={handleReorder}
-            className="shadow-2xs flex h-12 w-full touch-manipulation items-center justify-center rounded-xl bg-primary text-sm font-bold text-white transition-all hover:bg-primaryDark active:scale-[0.98]"
+            className="shadow-2xs flex h-12 w-full touch-manipulation items-center justify-center rounded-xl bg-primary text-sm font-bold text-white transition-colors hover:bg-primaryDark active:scale-[0.98]"
           >
             {copy.orderDetail.reorderButton ||
               copy.order.reorder ||

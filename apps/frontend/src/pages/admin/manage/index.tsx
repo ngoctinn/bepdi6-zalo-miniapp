@@ -84,7 +84,7 @@ export default function AdminManageHubPage() {
       <div className="space-y-5 p-4">
         {MENU_SECTIONS.map((section) => (
           <div key={section.title} className="space-y-2">
-            <h2 className="px-1 text-xs font-bold uppercase tracking-wider text-stone-600">
+            <h2 className="px-1 text-xs font-bold text-stone-600">
               {section.title}
             </h2>
             <div className="divide-y divide-stone-100 overflow-hidden rounded-2xl border border-stone-200/60 bg-white shadow-sm">

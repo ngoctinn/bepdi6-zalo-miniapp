@@ -86,7 +86,7 @@ export function OrderDetailItems({ order, shopInfo }: OrderDetailItemsProps) {
     <>
       {/* Thông tin nhận hàng (Giao tận nơi vs Tự đến lấy) */}
       <div className="shadow-xs space-y-3 rounded-2xl border border-black/[0.06] bg-white p-4">
-        <span className="block text-xs font-bold uppercase tracking-wider text-neutral900">
+        <span className="block text-xs font-bold text-neutral900">
           {isPickup
             ? copy.checkout.pickupStoreSection
             : copy.checkout.deliveryAddressSection}
@@ -114,7 +114,7 @@ export function OrderDetailItems({ order, shopInfo }: OrderDetailItemsProps) {
                   type="button"
                   onClick={handleOpenDirections}
                   aria-label={copy.orderDetail.openGoogleMap || "Xem đường đi"}
-                  className="shadow-xs flex min-h-[38px] flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-all active:scale-[0.98] active:bg-primaryDark"
+                  className="shadow-xs flex min-h-[38px] flex-1 touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition-transform active:scale-[0.98] active:bg-primaryDark"
                 >
                   <NavigationIcon className="h-3.5 w-3.5 shrink-0" />
                   <span>{copy.orderDetail.openGoogleMap}</span>
@@ -130,7 +130,7 @@ export function OrderDetailItems({ order, shopInfo }: OrderDetailItemsProps) {
                     )
                   }
                   className={cn(
-                    "shadow-2xs flex min-h-[38px] touch-manipulation items-center justify-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-all active:scale-[0.98]",
+                    "shadow-2xs flex min-h-[38px] touch-manipulation items-center justify-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-transform active:scale-[0.98]",
                     copiedKey === "shopAddress"
                       ? "border-emerald-500 bg-emerald-50 font-bold text-emerald-700"
                       : "border-black/10 bg-white text-neutral700 active:bg-stone-50",
@@ -154,7 +154,7 @@ export function OrderDetailItems({ order, shopInfo }: OrderDetailItemsProps) {
                     type="button"
                     aria-label={`Gọi hotline quán ${shopHotline}`}
                     onClick={() => makePhoneCall(shopHotline)}
-                    className="shadow-2xs flex min-h-[38px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-2 text-xs font-semibold text-primary transition-all active:scale-[0.98] active:bg-olive50"
+                    className="shadow-2xs flex min-h-[38px] touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-white px-3 py-2 text-xs font-semibold text-primary transition-transform active:scale-[0.98] active:bg-olive50"
                   >
                     <PhoneIcon className="h-3.5 w-3.5 shrink-0" />
                     <span>{shopHotline}</span>

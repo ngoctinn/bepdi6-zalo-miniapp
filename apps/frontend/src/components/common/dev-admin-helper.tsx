@@ -122,7 +122,7 @@ export function DevAdminHelper() {
                 onClick={() => setIsOpen(false)}
                 className="flex h-7 w-7 items-center justify-center rounded-full p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700"
               >
-                <Icon icon="zi-close" className="text-sm" />
+                <Icon icon="zi-close" className="shrink-0 text-sm" />
               </button>
             </div>
 
@@ -153,7 +153,7 @@ export function DevAdminHelper() {
                       <button
                         type="button"
                         onClick={handleCopy}
-                        className={`inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-all active:scale-95 ${
+                        className={`inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold transition-transform active:scale-95 ${
                           copied
                             ? "bg-emerald-600 text-white"
                             : "bg-primary text-white hover:opacity-90"
@@ -161,7 +161,10 @@ export function DevAdminHelper() {
                       >
                         {copied ? (
                           <>
-                            <Icon icon="zi-check" className="text-xs" />
+                            <Icon
+                              icon="zi-check"
+                              className="shrink-0 text-xs"
+                            />
                             <span>Đã chép</span>
                           </>
                         ) : (

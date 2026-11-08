@@ -27,7 +27,7 @@ export default function AdminDashboardPage() {
       {/* Top Header Card */}
       <div className="header-margin bg-primary px-4 pb-6 pr-24 pt-4 text-white shadow-sm">
         <div>
-          <span className="inline-block rounded-full bg-black/20 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white">
+          <span className="inline-block rounded-full bg-black/20 px-2.5 py-0.5 text-xs font-bold font-semibold text-white">
             Quản Trị Viên
           </span>
           <h1 className="mt-1 text-xl font-bold">
@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
           {/* Đơn chờ xử lý */}
           <div
             onClick={() => navigate("/admin/kitchen")}
-            className="cursor-pointer rounded-2xl border border-stone-200/60 bg-white p-3.5 shadow-sm transition-all active:scale-[0.98]"
+            className="cursor-pointer rounded-2xl border border-stone-200/60 bg-white p-3.5 shadow-sm transition-transform active:scale-[0.98]"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-stone-600">
@@ -107,7 +107,7 @@ export default function AdminDashboardPage() {
           {/* Số lượng món trong Menu */}
           <div
             onClick={() => navigate("/admin/manage/menu/products")}
-            className="cursor-pointer rounded-2xl border border-stone-200/60 bg-white p-3.5 shadow-sm transition-all active:scale-[0.98]"
+            className="cursor-pointer rounded-2xl border border-stone-200/60 bg-white p-3.5 shadow-sm transition-transform active:scale-[0.98]"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-stone-600">
@@ -139,7 +139,7 @@ export default function AdminDashboardPage() {
           {/* Chiến dịch Voucher */}
           <div
             onClick={() => navigate("/admin/manage/vouchers")}
-            className="cursor-pointer rounded-2xl border border-stone-200/60 bg-white p-3.5 shadow-sm transition-all active:scale-[0.98]"
+            className="cursor-pointer rounded-2xl border border-stone-200/60 bg-white p-3.5 shadow-sm transition-transform active:scale-[0.98]"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-stone-600">
