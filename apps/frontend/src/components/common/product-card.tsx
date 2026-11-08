@@ -1,6 +1,7 @@
 import { Product } from "@/types/product.types";
 import { formatCurrency } from "@/utils/format";
 import { useNavigate } from "react-router-dom";
+import { useShallow } from "zustand/react/shallow";
 import { useCartStore } from "@/stores/cart.store";
 import { usePrefetchProduct } from "@/services/product/product.queries";
 import { copy } from "@/constants/copy";
@@ -23,8 +24,10 @@ export default function ProductCard({
   const addToCart = useCartStore((state) => state.addToCart);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
-  const cartItemsForProduct = useCartStore((state) =>
-    state.items.filter((item) => item.product_id === product.id),
+  const cartItemsForProduct = useCartStore(
+    useShallow((state) =>
+      state.items.filter((item) => item.product_id === product.id),
+    ),
   );
   const prefetchProduct = usePrefetchProduct();
 
