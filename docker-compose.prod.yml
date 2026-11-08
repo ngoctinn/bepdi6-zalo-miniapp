@@ -81,7 +81,7 @@ services:
       dockerfile: Dockerfile
     container_name: bepdi6_celery
     restart: unless-stopped
-    command: ["celery", "-A", "config", "worker", "--loglevel=info", "--concurrency=2"]
+    command: ["celery", "-A", "config", "worker", "-Q", "high_priority,celery,notifications", "--loglevel=info", "--concurrency=2"]
     working_dir: /app/apps/backend
     depends_on:
       postgres:

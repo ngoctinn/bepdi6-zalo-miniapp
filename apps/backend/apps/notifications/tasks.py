@@ -32,9 +32,11 @@ def send_in_app_notification(
 
 def format_telegram_order_message(order: Order, max_items: int = 15) -> str:
     """
-    Formats new order notification using safe Telegram HTML tags.
-    Escapes all dynamic/user-provided fields to prevent 400 Bad Request entity parsing errors.
-    Truncates item list if greater than max_items to stay well under the 4096 character limit.
+    Formats new order notification using safe Telegram HTML tags according to Hallmark design principles.
+    - Zero decorative emojis / visual noise.
+    - Clear typographic hierarchy, clean monospace for codes, readable line structure.
+    - Escapes all dynamic/user-provided fields to prevent 400 Bad Request entity parsing errors.
+    - Truncates item list if greater than max_items to stay well under the 4096 character limit.
     """
     import html
 
@@ -51,15 +53,15 @@ def format_telegram_order_message(order: Order, max_items: int = 15) -> str:
             escaped_opts = ", ".join(
                 html.escape(str(opt.option_name)) for opt in options
             )
-            opt_str = f" (+{escaped_opts})"
+            opt_str = f"\n   +{escaped_opts}"
 
         item_note = ""
         if item.note:
             escaped_item_note = html.escape(str(item.note))[:150]
-            item_note = f"\n   ↳ <i>Ghi chú:</i> <i>{escaped_item_note}</i>"
+            item_note = f"\n   <i>Ghi chú: {escaped_item_note}</i>"
 
         item_lines.append(
-            f"• <b>{idx}. {safe_pname}</b> x{item.quantity} - {item.subtotal:,.0f}đ{opt_str}{item_note}"
+            f"{idx}. <b>{safe_pname}</b> x{item.quantity} — {item.subtotal:,.0f}đ{opt_str}{item_note}"
         )
 
     if len(items) > max_items:
@@ -70,57 +72,55 @@ def format_telegram_order_message(order: Order, max_items: int = 15) -> str:
         "\n".join(item_lines) if item_lines else "<i>Không có thông tin món</i>"
     )
 
-    # Delivery & Maps information
-    delivery_type_display = (
-        "🛵 <b>Giao tận nơi</b>"
-        if order.delivery_type == Order.DeliveryType.DELIVERY
-        else "🏪 <b>Nhận tại quán</b>"
-    )
-
-    maps_link = ""
-    if order.delivery_latitude and order.delivery_longitude:
-        maps_link = (
-            f'\n📍 <a href="https://www.google.com/maps?q={order.delivery_latitude},{order.delivery_longitude}">'
-            f"Xem vị trí trên Google Maps</a>"
-        )
-
+    # Customer and Delivery Information
     safe_recipient_name = html.escape(str(order.recipient_name or ""))
     safe_phone = html.escape(str(order.phone or ""))
-    safe_address = html.escape(str(order.delivery_address or ""))[:250]
+
+    if order.delivery_type == Order.DeliveryType.PICKUP:
+        delivery_info = "Nhận tại quán"
+    else:
+        safe_address = html.escape(str(order.delivery_address or ""))[:250]
+        delivery_info = f"Giao tận nơi: {safe_address}"
+        if order.delivery_latitude and order.delivery_longitude:
+            delivery_info += (
+                f'\n<a href="https://www.google.com/maps?q={order.delivery_latitude},{order.delivery_longitude}">'
+                f"Vị trí trên Google Maps</a>"
+            )
 
     order_note = ""
     if order.note:
         safe_note = html.escape(str(order.note))[:300]
-        order_note = f"\n📝 <b>Lưu ý của khách:</b> <i>{safe_note}</i>"
+        order_note = f"\nGhi chú đơn: <i>{safe_note}</i>"
 
-    voucher_code_str = ""
-    if order.voucher:
-        voucher_code_str = f" ({html.escape(str(order.voucher.code))})"
+    # Pricing & Discounts
+    pricing_lines = [f"Tạm tính: {order.subtotal:,.0f}đ"]
 
-    discount_line = (
-        f"\n🎟️ <b>Giảm giá:</b> -{order.discount:,.0f}đ{voucher_code_str}"
-        if order.discount > 0
-        else ""
+    if order.shipping_fee > 0:
+        pricing_lines.append(f"Phí giao hàng: {order.shipping_fee:,.0f}đ")
+
+    if order.discount > 0:
+        voucher_code_str = (
+            f" ({html.escape(str(order.voucher.code))})" if order.voucher else ""
+        )
+        pricing_lines.append(f"Giảm giá{voucher_code_str}: -{order.discount:,.0f}đ")
+
+    pricing_lines.append(f"<b>Tổng thanh toán: {order.total_amount:,.0f}đ</b>")
+    pricing_lines.append(
+        f"Thanh toán: {html.escape(str(order.get_payment_method_display()))}"
     )
-    shipping_line = (
-        f"\n🚚 <b>Phí ship:</b> {order.shipping_fee:,.0f}đ"
-        if order.shipping_fee > 0
-        else ""
-    )
+
+    pricing_text = "\n".join(pricing_lines)
 
     telegram_text = (
-        f"🔔 <b>[BẾP DÌ 6] ĐƠN HÀNG MỚI!</b>\n"
-        f"━━━━━━━━━━━━━━━━━━\n"
-        f"🧾 <b>Mã đơn:</b> <code>#{html.escape(str(order.order_code))}</code>\n"
-        f"👤 <b>Khách hàng:</b> {safe_recipient_name} (<code>{safe_phone}</code>)\n"
-        f"🏷️ <b>Hình thức:</b> {delivery_type_display}\n"
-        f"🏠 <b>Địa chỉ:</b> {safe_address}{maps_link}{order_note}\n\n"
-        f"🍱 <b>Chi tiết món ăn:</b>\n{items_text}\n"
-        f"━━━━━━━━━━━━━━━━━━\n"
-        f"💰 <b>Tạm tính:</b> {order.subtotal:,.0f}đ"
-        f"{shipping_line}{discount_line}\n"
-        f"💵 <b>Tổng thanh toán:</b> <b>{order.total_amount:,.0f}đ</b>\n"
-        f"💳 <b>Phương thức:</b> {html.escape(str(order.get_payment_method_display()))}"
+        f"<b>Bếp Dì 6 · Đơn hàng mới</b>\n\n"
+        f"Mã đơn: <code>#{html.escape(str(order.order_code))}</code>\n\n"
+        f"<b>Khách hàng</b>\n"
+        f"{safe_recipient_name} · <code>{safe_phone}</code>\n"
+        f"{delivery_info}{order_note}\n\n"
+        f"<b>Chi tiết món</b>\n"
+        f"{items_text}\n\n"
+        f"──────────────────\n"
+        f"{pricing_text}"
     )
     return telegram_text
 
