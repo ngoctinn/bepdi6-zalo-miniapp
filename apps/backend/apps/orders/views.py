@@ -814,15 +814,11 @@ class AdminOrderPaymentVerifyView(APIView):
 
         with transaction.atomic():
             try:
-                order = (
-                    Order.objects.select_for_update()
-                    .select_related("payment")
-                    .get(pk=pk)
-                )
+                order = Order.objects.select_for_update().get(pk=pk)
             except Order.DoesNotExist:
                 raise NotFound("Đơn hàng không tồn tại.") from None
 
-            payment = getattr(order, "payment", None)
+            payment = Payment.objects.select_for_update().filter(order=order).first()
             if not payment:
                 raise ValidationError(
                     {
