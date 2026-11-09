@@ -135,27 +135,38 @@ export function StaffOrderDetailSheet({
 
         {/* Scrollable Body with overscroll containment */}
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-3">
-          {/* Financial Shield Banner */}
+          {/* Financial Summary Banner */}
           <div
-            className={`flex items-center justify-between rounded-xl px-3.5 py-3 text-xs font-bold ${
+            className={`flex items-center justify-between rounded-xl border p-3 text-xs ${
               isPaid
-                ? "border border-primary/20 bg-primary/10 text-primary"
-                : "border-2 border-amber-500 bg-amber-50 text-amber-900 shadow-sm"
+                ? "border-primary/20 bg-primary/5 text-neutral900"
+                : "border-stone-200 bg-stone-50 text-neutral900"
             }`}
           >
-            <div className="flex items-center gap-2">
-              <Icon
-                icon={isPaid ? "zi-check-circle-solid" : "zi-warning-solid"}
-                className={`text-lg leading-none ${isPaid ? "text-primary" : "animate-pulse text-amber-600"}`}
-              />
+            <div className="flex items-center gap-2.5">
+              <span
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                  isPaid
+                    ? "bg-primary/10 text-primary"
+                    : "bg-amber-100 text-amber-800"
+                }`}
+              >
+                <Icon
+                  icon={isPaid ? "zi-check-circle-solid" : "zi-warning-solid"}
+                  className="shrink-0 text-base leading-none"
+                />
+              </span>
               <div>
-                <span className="block text-sm font-black leading-tight">
+                <span className="block text-xs font-medium text-stone-500">
                   {isPaid
-                    ? `${copy.staff.financialShield.paidOnline}: ${formatCurrency(order.total_amount || 0)}`
-                    : `${copy.staff.financialShield.collectCod} ${formatCurrency(order.total_amount || 0)}`}
+                    ? copy.staff.financialShield.paidOnline
+                    : copy.staff.financialShield.collectCod}
+                </span>
+                <span className="font-mono text-sm font-bold text-neutral900">
+                  {formatCurrency(order.total_amount || 0)}đ
                 </span>
                 {order.payment_method === "BANK_TRANSFER" && !isPaid && (
-                  <span className="mt-0.5 block text-xs font-semibold text-rose-600">
+                  <span className="mt-0.5 block text-xxsmall font-medium text-rose-600">
                     Chuyển khoản (Chưa khớp tiền)
                   </span>
                 )}
@@ -180,8 +191,8 @@ export function StaffOrderDetailSheet({
               <Badge
                 variant={isPaid ? "primary" : "recommended"}
                 size="small"
-                shape="rounded"
-                className="font-bold"
+                shape="pill"
+                className="font-medium"
               >
                 {isPaid
                   ? copy.staff.financialShield.neverCollect

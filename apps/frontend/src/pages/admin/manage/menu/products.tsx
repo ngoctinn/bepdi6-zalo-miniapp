@@ -522,23 +522,14 @@ export default function AdminProductManagementPage() {
                       )}
                       <span>•</span>
                       <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 font-bold ${
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
                           p.status === "AVAILABLE"
-                            ? "bg-emerald-50 text-emerald-600"
+                            ? "border border-emerald-200/60 bg-emerald-50 text-emerald-700"
                             : p.status === "OUT_OF_STOCK"
-                              ? "bg-amber-50 text-amber-600"
-                              : "bg-stone-100 text-stone-500"
+                              ? "border border-amber-200/60 bg-amber-50 text-amber-700"
+                              : "border border-stone-200/60 bg-stone-100 text-stone-600"
                         }`}
                       >
-                        <span
-                          className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${
-                            p.status === "AVAILABLE"
-                              ? "bg-emerald-500"
-                              : p.status === "OUT_OF_STOCK"
-                                ? "bg-amber-500"
-                                : "bg-stone-400"
-                          }`}
-                        />
                         {p.status === "AVAILABLE"
                           ? "Còn món"
                           : p.status === "OUT_OF_STOCK"

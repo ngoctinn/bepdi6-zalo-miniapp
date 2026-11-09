@@ -624,10 +624,10 @@ const semantic = {
         overdue: "TRỄ",
       },
       financialShield: {
-        paidOnline: "ĐÃ THANH TOÁN ONLINE",
-        collectCod: "THU TIỀN MẶT COD:",
-        neverCollect: "CẤM THU THÊM",
-        driverMustCollect: "TÀI XẾ CẦN THU",
+        paidOnline: "Đã thanh toán online",
+        collectCod: "Thu tiền mặt khi giao",
+        neverCollect: "Đã thanh toán đủ",
+        driverMustCollect: "Tài xế thu tiền",
       },
       dispatch: {
         title: "Điều Phối Giao Hàng",
