@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { NavigationIcon } from "@/components/common/vectors";
+import { MapPinIconSolid, NavigationIcon } from "@/components/common/vectors";
 
 // Tọa độ trung tâm TP. Hồ Chí Minh mặc định nếu chưa có GPS
 const DEFAULT_CENTER: [number, number] = [10.7769, 106.7009];
@@ -142,13 +142,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({
         }`}
       >
         <div className="relative flex items-center justify-center">
-          <svg
-            className="h-9 w-9 text-red-500 drop-shadow-md filter"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M12 0C7.58 0 4 3.58 4 8c0 5.25 8 13 8 13s8-7.75 8-13c0-4.42-3.58-8-8-8zm0 11c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z" />
-          </svg>
+          <MapPinIconSolid className="h-9 w-9 shrink-0 text-red-500 drop-shadow-md filter" />
           <div className="shadow-xs absolute top-[8px] h-2.5 w-2.5 rounded-full bg-white" />
         </div>
         {/* Bóng chân ghim */}

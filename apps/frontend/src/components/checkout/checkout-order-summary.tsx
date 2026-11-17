@@ -1,5 +1,6 @@
 import { copy } from "@/constants/copy";
 import { formatCurrency } from "@/utils/format";
+import { ChevronRightIcon } from "@/components/common/vectors";
 
 interface CheckoutOrderSummaryProps {
   displaySubtotal: number;
@@ -133,19 +134,10 @@ export function CheckoutOrderSummary({
           <div className="flex items-center gap-1 font-extrabold">
             <span>{formatCurrency(displayTotal)}đ</span>
             {!isUpdatingFee && !isSubmitting && isQuoteReady && (
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+              <ChevronRightIcon
+                className="h-4 w-4 shrink-0"
+                strokeWidth={2.5}
+              />
             )}
           </div>
         </button>

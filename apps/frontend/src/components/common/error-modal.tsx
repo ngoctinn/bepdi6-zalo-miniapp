@@ -1,4 +1,5 @@
 import React from "react";
+import { AlertCircleIcon } from "@/components/common/vectors";
 
 export interface ErrorModalProps {
   visible: boolean;
@@ -29,19 +30,10 @@ export const ErrorModal: React.FC<ErrorModalProps> = ({
       <div className="w-full max-w-[320px] rounded-2xl bg-white p-5 text-center shadow-2xl">
         {/* Soft Error Icon badge */}
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-danger">
-          <svg
-            className="h-8 w-8 text-danger"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="15" y1="9" x2="9" y2="15" />
-            <line x1="9" y1="9" x2="15" y2="15" />
-          </svg>
+          <AlertCircleIcon
+            className="h-8 w-8 shrink-0 text-danger"
+            strokeWidth={2.5}
+          />
         </div>
 
         <h3 className="mb-2 break-words text-base font-bold text-neutral900">

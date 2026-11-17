@@ -4,7 +4,7 @@ import { useCartStore } from "@/stores/cart.store";
 import { calculateCartTotal } from "@/utils/cart";
 import { formatCurrency } from "@/utils/format";
 import { copy } from "@/constants/copy";
-import { ChevronRightIcon } from "@/components/common/vectors";
+import { CartIcon, ChevronRightIcon } from "@/components/common/vectors";
 
 export default function CartFloatBar() {
   const navigate = useNavigate();
@@ -42,22 +42,10 @@ export default function CartFloatBar() {
       {/* Left: Icon Giỏ hàng + Badge số lượng + Tạm tính */}
       <div className="flex items-center gap-2.5">
         <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 text-white">
-          <svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="shrink-0"
+          <CartIcon
+            className="h-4 w-4 shrink-0 text-white"
             aria-hidden="true"
-          >
-            <circle cx="9" cy="21" r="1" />
-            <circle cx="20" cy="21" r="1" />
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-          </svg>
+          />
           <span
             key={totalItems}
             className="shadow-xs absolute -right-1.5 -top-1.5 flex h-4 min-w-[16px] animate-bounce items-center justify-center rounded-full bg-white px-1 text-[10px] font-black leading-none text-primary ring-1 ring-black/5 [animation-iteration-count:2]"

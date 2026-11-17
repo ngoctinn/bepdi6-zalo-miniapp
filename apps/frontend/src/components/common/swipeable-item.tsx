@@ -135,7 +135,7 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
           className="flex h-full w-full flex-col items-center justify-center gap-1 active:opacity-80"
           aria-label={deleteLabel}
         >
-          <TrashIcon className="h-5 w-5" />
+          <TrashIcon className="h-5 w-5 shrink-0" />
           <span className="text-xxsmall font-bold leading-none">
             {deleteLabel}
           </span>

@@ -377,7 +377,7 @@ export default function StaffOrdersPage() {
     return (
       <div className="relative flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-          <Icon icon="zi-lock" className="text-3xl" />
+          <Icon icon="zi-lock" className="shrink-0 text-3xl" />
         </div>
         <h2 className="text-base font-bold text-neutral900">
           {copy.staff.accessDenied.title}
@@ -495,7 +495,7 @@ export default function StaffOrdersPage() {
         ) : filteredOrders.length === 0 ? (
           <div className="shadow-xs col-span-full flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-center">
             <div className="mb-2.5 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Icon icon="zi-list-1" className="text-2xl" />
+              <Icon icon="zi-list-1" className="shrink-0 text-2xl" />
             </div>
             <p className="text-sm font-bold text-neutral900">
               {copy.staff.emptyOrdersTitle}

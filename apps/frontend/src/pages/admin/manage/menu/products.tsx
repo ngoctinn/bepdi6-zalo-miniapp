@@ -418,8 +418,21 @@ export default function AdminProductManagementPage() {
             placeholder="Tìm nhanh tên món..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 py-2 pl-9 pr-3 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
+            className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 py-2 pl-9 pr-9 text-base text-stone-900 focus:border-primary focus:outline-none md:h-10 md:text-sm"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-stone-400 hover:text-stone-600 active:scale-90"
+              aria-label="Xóa tìm kiếm"
+            >
+              <Icon
+                icon="zi-close-circle-solid"
+                className="shrink-0 text-base"
+              />
+            </button>
+          )}
         </div>
 
         {/* Category Pills Filter */}

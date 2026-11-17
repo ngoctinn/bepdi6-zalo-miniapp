@@ -1,7 +1,7 @@
 import NoteInput from "@/components/common/note-input";
 import { useState, useMemo, useEffect } from "react";
 import QuantityStepper from "@/components/common/quantity-stepper";
-import { CheckIcon } from "@/components/common/vectors";
+import { AlertCircleIcon, CheckIcon } from "@/components/common/vectors";
 import { useProduct } from "@/services/product/product.queries";
 import { useCartStore } from "@/stores/cart.store";
 import { Spinner, Text } from "zmp-ui";
@@ -401,7 +401,7 @@ export default function ProductDetailPage() {
                                 )}
                               >
                                 {isSelected && (
-                                  <CheckIcon className="h-3 w-3 text-white" />
+                                  <CheckIcon className="h-3 w-3 shrink-0 text-white" />
                                 )}
                               </span>
                             </button>
@@ -434,19 +434,7 @@ export default function ProductDetailPage() {
         <div className="safe-bottom fixed bottom-0 left-0 right-0 z-50 border-t border-black/5 bg-background/95 px-4 pt-3 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] backdrop-blur-md">
           {validationError && (
             <div className="mb-2 flex items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-500/10 py-1.5 text-center text-xs font-medium text-red-600">
-              <svg
-                className="h-3.5 w-3.5 shrink-0 text-red-500"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
+              <AlertCircleIcon className="h-3.5 w-3.5 shrink-0 text-red-500" />
               <span>{validationError}</span>
             </div>
           )}

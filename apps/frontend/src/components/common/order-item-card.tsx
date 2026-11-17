@@ -111,7 +111,7 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
               shape="pill"
               className="gap-1"
             >
-              <Icon icon="zi-home" className="text-xs leading-none" />
+              <Icon icon="zi-home" className="shrink-0 text-xs leading-none" />
               <span className="leading-none">Tại quán</span>
             </Badge>
           ) : (
@@ -121,7 +121,10 @@ export function OrderItemCard({ order }: OrderItemCardProps) {
               shape="pill"
               className="gap-1"
             >
-              <Icon icon="zi-location-solid" className="text-xs leading-none" />
+              <Icon
+                icon="zi-location-solid"
+                className="shrink-0 text-xs leading-none"
+              />
               <span className="leading-none">Giao tận nơi</span>
             </Badge>
           )}

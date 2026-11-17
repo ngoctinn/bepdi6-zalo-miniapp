@@ -20,6 +20,7 @@ import { ErrorModal } from "@/components/common/error-modal";
 import { copy } from "@/constants/copy";
 import { makePhoneCall } from "@/utils/phone";
 import { ApiError } from "@/lib/api-error";
+import { ShoppingBagIcon } from "@/components/common/vectors";
 
 // Modularized Checkout Sub-components
 import { DeliveryAddressCard } from "@/components/checkout/delivery-address-card";
@@ -362,19 +363,7 @@ export default function CheckoutPage() {
     return (
       <div className="flex h-full min-h-[60vh] flex-col items-center justify-center bg-background p-6 text-center">
         <div className="mb-4 flex h-28 w-28 items-center justify-center rounded-full bg-black/[0.03]">
-          <svg
-            className="h-14 w-14 text-neutral-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-            />
-          </svg>
+          <ShoppingBagIcon className="h-14 w-14 shrink-0 text-neutral-400" />
         </div>
         <h2 className="mb-1 text-base font-bold text-neutral-900">
           {copy.cart.empty}

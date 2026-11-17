@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect } from "react";
 import { create } from "zustand";
+import {
+  AlertCircleIcon,
+  CheckIcon,
+  CloseIcon,
+  InfoIcon,
+} from "@/components/common/vectors";
+import { Spinner } from "zmp-ui";
 
 export type ToastType =
   | "success"
@@ -226,96 +233,39 @@ export const AppToastContainer: React.FC = () => {
       case "success":
         return (
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-            <svg
-              className="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
+            <CheckIcon className="h-3.5 w-3.5 shrink-0" strokeWidth={3} />
           </div>
         );
       case "warning":
         return (
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber100 text-amber600">
-            <svg
-              className="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
+            <AlertCircleIcon
+              className="h-3.5 w-3.5 shrink-0"
+              strokeWidth={2.5}
+            />
           </div>
         );
       case "error":
         return (
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
-            <svg
-              className="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            <CloseIcon className="h-3.5 w-3.5 shrink-0" strokeWidth={3} />
           </div>
         );
       case "loading":
         return (
           <div className="flex h-6 w-6 shrink-0 items-center justify-center text-primary">
-            <svg
-              className="h-5 w-5 animate-spin"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="3"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
+            <Spinner
+              visible
+              logo={false}
+              className="h-5 w-5 shrink-0 text-primary"
+            />
           </div>
         );
       case "info":
       default:
         return (
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral900/10 text-neutral800">
-            <svg
-              className="h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="16" x2="12" y2="12" />
-              <line x1="12" y1="8" x2="12.01" y2="8" />
-            </svg>
+            <InfoIcon className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
           </div>
         );
     }

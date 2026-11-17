@@ -15,7 +15,10 @@ export default function RouteErrorBoundary() {
   return (
     <div className="flex h-full min-h-[60vh] flex-col items-center justify-center bg-background px-6 py-12 text-center">
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-danger">
-        <Icon icon="zi-warning-circle-solid" className="text-3xl text-danger" />
+        <Icon
+          icon="zi-warning-circle-solid"
+          className="shrink-0 text-3xl text-danger"
+        />
       </div>
 
       <Text.Title size="small" className="mb-2 font-bold text-neutral900">

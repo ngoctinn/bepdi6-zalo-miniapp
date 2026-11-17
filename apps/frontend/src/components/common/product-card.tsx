@@ -7,6 +7,7 @@ import { usePrefetchProduct } from "@/services/product/product.queries";
 import { copy } from "@/constants/copy";
 import { cn } from "@/utils/cn";
 import { Badge } from "@/components/common/badge";
+import { MinusIcon, PlusIcon } from "@/components/common/vectors";
 import defaultProductImg from "@/static/logo.png";
 
 interface ProductCardProps {
@@ -235,20 +236,11 @@ export default function ProductCard({
                   className="shadow-xs relative flex h-8 min-h-[32px] w-8 min-w-[32px] touch-manipulation items-center justify-center rounded-full border border-primary/30 bg-primarySurface text-primaryDark transition-transform after:absolute after:-inset-1.5 after:content-[''] hover:bg-primaryLight/40 active:scale-90"
                   aria-label="Giảm số lượng"
                 >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="shrink-0"
+                  <MinusIcon
+                    className="h-3 w-3 shrink-0"
+                    strokeWidth={3}
                     aria-hidden="true"
-                  >
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
+                  />
                 </button>
 
                 <span
@@ -264,21 +256,11 @@ export default function ProductCard({
                   className="relative flex h-8 min-h-[32px] w-8 min-w-[32px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform after:absolute after:-inset-1.5 after:content-[''] active:scale-90"
                   aria-label="Tăng số lượng"
                 >
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="shrink-0"
+                  <PlusIcon
+                    className="h-3 w-3 shrink-0"
+                    strokeWidth={3}
                     aria-hidden="true"
-                  >
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
+                  />
                 </button>
               </div>
             ) : (
@@ -288,21 +270,11 @@ export default function ProductCard({
                 className="flex h-9 min-h-[36px] w-9 min-w-[36px] touch-manipulation items-center justify-center rounded-full bg-primary text-white shadow-sm transition-transform active:scale-90 active:shadow-none"
                 aria-label={`Thêm ${product.name} vào giỏ`}
               >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="shrink-0"
+                <PlusIcon
+                  className="h-4 w-4 shrink-0"
+                  strokeWidth={2.5}
                   aria-hidden="true"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
+                />
               </button>
             )}
           </div>

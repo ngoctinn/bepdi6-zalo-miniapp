@@ -67,7 +67,9 @@ export function PaymentMethodSelector({
                 : "border border-stone-300 bg-transparent",
             )}
           >
-            {isBankTransfer && <CheckIcon className="h-3 w-3 text-white" />}
+            {isBankTransfer && (
+              <CheckIcon className="h-3 w-3 shrink-0 text-white" />
+            )}
           </span>
         </button>
 
@@ -102,7 +104,7 @@ export function PaymentMethodSelector({
                 : "border border-stone-300 bg-transparent",
             )}
           >
-            {isCod && <CheckIcon className="h-3 w-3 text-white" />}
+            {isCod && <CheckIcon className="h-3 w-3 shrink-0 text-white" />}
           </span>
         </button>
       </div>

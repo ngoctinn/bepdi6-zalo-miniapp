@@ -54,7 +54,7 @@ export default function StaffInvitePage() {
     <div className="flex min-h-[85vh] flex-col items-center justify-center p-6 text-center font-sans">
       <div className="w-full max-w-sm rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xl">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Icon icon="zi-check-circle-solid" className="text-3xl" />
+          <Icon icon="zi-check-circle-solid" className="shrink-0 text-3xl" />
         </div>
 
         <h2 className="mt-4 text-lg font-black text-stone-900">
@@ -99,7 +99,7 @@ export default function StaffInvitePage() {
                 <Spinner visible logo={false} />
               ) : (
                 <>
-                  <Icon icon="zi-check" className="text-base" />
+                  <Icon icon="zi-check" className="shrink-0 text-base" />
                   <span>Đồng Ý Tham Gia Ngay</span>
                 </>
               )}

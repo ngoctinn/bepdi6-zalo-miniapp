@@ -386,7 +386,7 @@ export default function SelectLocationPage() {
                       className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2 text-left transition-colors hover:bg-neutral-50 focus-visible:bg-neutral-100 focus-visible:outline-none active:bg-neutral-100"
                     >
                       <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
-                        <MapPinIcon className="h-4 w-4" />
+                        <MapPinIcon className="h-4 w-4 shrink-0" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-semibold text-neutral900">
@@ -497,7 +497,7 @@ export default function SelectLocationPage() {
             ) : (
               <div className="flex items-start gap-2.5 rounded-xl border border-black/[0.08] bg-stone-50/80 p-3">
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
-                  <MapPinIcon className="h-4 w-4" />
+                  <MapPinIcon className="h-4 w-4 shrink-0" />
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-medium leading-5 text-neutral800">
@@ -663,7 +663,7 @@ export default function SelectLocationPage() {
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
-                      <RadioIcon selected={isSelected} />
+                      <RadioIcon selected={isSelected} className="shrink-0" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -694,7 +694,7 @@ export default function SelectLocationPage() {
                     }}
                     aria-label={copy.common.delete}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon className="h-4 w-4 shrink-0" />
                   </button>
                 </div>
               );
@@ -702,7 +702,7 @@ export default function SelectLocationPage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-black/[0.03] text-neutral400">
-                <MapPinIcon className="h-8 w-8" />
+                <MapPinIcon className="h-8 w-8 shrink-0" />
               </div>
               <p className="text-sm font-bold text-neutral800">
                 {copy.selectLocation.emptyTitle}

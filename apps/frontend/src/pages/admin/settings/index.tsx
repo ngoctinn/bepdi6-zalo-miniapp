@@ -417,7 +417,7 @@ export default function AdminSettingsPage() {
                       >
                         <Icon
                           icon="zi-close"
-                          className="text-xs leading-none"
+                          className="shrink-0 text-xs leading-none"
                         />
                       </button>
                     )}

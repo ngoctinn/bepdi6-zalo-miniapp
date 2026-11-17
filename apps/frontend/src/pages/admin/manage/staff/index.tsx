@@ -144,9 +144,9 @@ export default function AdminStaffPage() {
                       }`}
                     >
                       {isAdmin ? (
-                        <Icon icon="zi-admin" className="text-lg" />
+                        <Icon icon="zi-admin" className="shrink-0 text-lg" />
                       ) : (
-                        <Icon icon="zi-user" className="text-lg" />
+                        <Icon icon="zi-user" className="shrink-0 text-lg" />
                       )}
                     </div>
                     <div>
@@ -234,7 +234,7 @@ export default function AdminStaffPage() {
                   <Spinner visible logo={false} />
                 ) : (
                   <>
-                    <Icon icon="zi-share" className="text-base" />
+                    <Icon icon="zi-share" className="shrink-0 text-base" />
                     <span>Tạo Link & Chia Sẻ Qua Zalo</span>
                   </>
                 )}
@@ -244,7 +244,7 @@ export default function AdminStaffPage() {
             <div className="space-y-3">
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-center">
                 <div className="flex items-center justify-center text-emerald-600">
-                  <Icon icon="zi-check-circle" className="text-2xl" />
+                  <Icon icon="zi-check-circle" className="shrink-0 text-2xl" />
                 </div>
                 <h4 className="mt-1 text-xs font-bold text-emerald-900">
                   Đã tạo mã mời thành công!
@@ -302,7 +302,7 @@ export default function AdminStaffPage() {
                     }}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-bold text-white shadow-sm active:scale-95"
                   >
-                    <Icon icon="zi-share" className="text-sm" />
+                    <Icon icon="zi-share" className="shrink-0 text-sm" />
                     <span>Mở Share Zalo</span>
                   </button>
                 )}

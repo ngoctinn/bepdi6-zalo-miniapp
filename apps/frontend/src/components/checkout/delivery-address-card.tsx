@@ -124,7 +124,7 @@ export function DeliveryAddressCard({
             >
               <div className="flex items-start gap-3">
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center text-primary">
-                  <MapPinIcon className="h-5 w-5" />
+                  <MapPinIcon className="h-5 w-5 shrink-0" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export function DeliveryAddressCard({
                     </span>
                     {(!selectedAddress.id || selectedAddress.id === 0) && (
                       <span className="inline-flex items-center gap-1 rounded-md bg-primaryLight px-1.5 py-0.5 text-xs font-bold text-primaryDark">
-                        <MapPinIcon className="h-3 w-3 text-primary" />
+                        <MapPinIcon className="h-3 w-3 shrink-0 text-primary" />
                         <span>{copy.checkout.currentGpsLocation}</span>
                       </span>
                     )}
@@ -160,7 +160,7 @@ export function DeliveryAddressCard({
                 </div>
               </div>
               <div className="flex h-5 w-5 shrink-0 items-center justify-center text-neutral400">
-                <ChevronRightIcon className="h-5 w-5" />
+                <ChevronRightIcon className="h-5 w-5 shrink-0" />
               </div>
             </div>
           ) : (
@@ -188,12 +188,12 @@ export function DeliveryAddressCard({
                   <div
                     className={`shrink-0 ${hasAddressError ? "text-red-500" : "text-primary"}`}
                   >
-                    <MapPinIcon className="h-5 w-5" />
+                    <MapPinIcon className="h-5 w-5 shrink-0" />
                   </div>
                   <span>{copy.checkout.selectAddressHint}</span>
                 </div>
                 <ChevronRightIcon
-                  className={`h-5 w-5 ${hasAddressError ? "text-red-400" : "text-neutral400"}`}
+                  className={`h-5 w-5 shrink-0 ${hasAddressError ? "text-red-400" : "text-neutral400"}`}
                 />
               </div>
               {hasAddressError && (

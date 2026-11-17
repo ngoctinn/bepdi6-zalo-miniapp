@@ -1,7 +1,7 @@
 import { DeliveryType } from "@/types/order.types";
 import { copy } from "@/constants/copy";
 import { cn } from "@/utils/cn";
-import { TruckIcon } from "@/components/common/vectors";
+import { ShoppingBagIcon, TruckIcon } from "@/components/common/vectors";
 
 interface DeliveryTypeSelectorProps {
   deliveryType: DeliveryType;
@@ -46,20 +46,12 @@ export function DeliveryTypeSelector({
             : "border-black/[0.06] bg-stone-50/70 text-neutral700 hover:border-black/10 hover:bg-stone-50",
         )}
       >
-        <svg
+        <ShoppingBagIcon
           className={cn(
             "h-4 w-4 shrink-0 transition-colors",
             isPickup ? "text-primary" : "text-neutral500",
           )}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <path d="M16 10a4 4 0 0 1-8 0" />
-        </svg>
+        />
         <span className="truncate">{copy.checkout.pickup}</span>
       </button>
     </div>
